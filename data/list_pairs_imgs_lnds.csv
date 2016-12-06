@@ -1,0 +1,3 @@
+Reference image,Sensed image,Reference landmarks,Sensed landmarks
+data/images/29-041-Izd2-w35-He.jpg,data/images/29-041-Izd2-w35-proSPC.jpg,data/landmarks/29-041-Izd2-w35-He.csv,data/landmarks/29-041-Izd2-w35-proSPC-4.csv
+data/images/Rat_Kidney_HE.jpg,data/images/Rat_Kidney_PanCytokeratin.jpg,data/landmarks/Rat_Kidney_HE.csv,data/landmarks/Rat_Kidney_PanCytokeratin.csv
