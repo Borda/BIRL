@@ -45,7 +45,15 @@ python scripts/create_dataset_real_image_synthetic_deformation.py \
     -out output/synth_dataset -nb 5 --nb_jobs 3 --visu False
 ´´´
 
-## Useful infomation
+When you have generated the synthetic datasets we generate the cover csv file which contains the registration pairs such as Reference and Moving image (landmarks). We generate then in two modes "1-all" for registering the first one to all others and "all-all" for registering each image to all other (note A-B is the same as B-A so it is the just once).
+
+´´´
+python scripts/create_cover_file.py \
+    -imgs ../output/synth_dataset/*.jpg -lnds ../output/synth_dataset/*.csv \
+    -csv ../output/cover.csv --mode all-all
+´´´
+
+## Useful information
 
 ### Configure local environment
 
