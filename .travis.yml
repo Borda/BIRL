@@ -1,0 +1,33 @@
+# vim ft=yaml
+
+# After changing this file, check it on:
+#   http://yaml-online-parser.appspot.com/
+
+# See doc/travis_notes.txt for some guidelines
+
+language: python
+
+sudo: false
+
+python:
+  - 2.7
+  - 3.4
+
+# See http://docs.travis-ci.com/user/caching/#pip-cache
+cache: pip
+
+before_install:
+#  - pip install .
+  - pip install --upgrade pip
+
+install:
+  - pip install -r requirements.txt
+  - pip install pytest pytest-cov codecov coverage
+
+script:
+  - nosetests --with-doctest --with-coverage
+
+after_success:
+#  - bash <(curl -s https://codecov.io/bash)
+  - codecov --token=56df941a-7c40-47a0-bf01-3d42c40af66d
+  - coverage report
