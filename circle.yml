@@ -1,0 +1,14 @@
+machine:
+  python:
+    version: 2.7.9
+  post:
+    - pyenv global 2.7.9
+
+dependencies:
+  override:
+    - pip install -r requirements.txt
+    - pip install pytest pytest-cov codecov coverage
+
+test:
+  override:
+    - nosetests --with-doctest

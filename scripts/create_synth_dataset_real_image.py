@@ -33,9 +33,8 @@ HUE_SHIFT_MIN = 20
 HUE_SHIFT_MAX = 120
 FIG_MAX_SIZE = 16
 DEFORMATION_MAX = 50
-DEFORMATION_SMOOTH = 15
-DEFORMATION_BOUNDARY_FIX = 5 * DEFORMATION_SMOOTH
-LANDMARK_COLOR = 'y'
+DEFORMATION_SMOOTH = 25
+DEFORMATION_BOUNDARY_COEF = 3
 
 
 def arg_parse_params():
@@ -67,40 +66,77 @@ def arg_parse_params():
     return args
 
 
-def generate_deformation_field(shape, points, max_deform=DEFORMATION_MAX):
+def generate_deformation_field_gauss(shape, points, max_deform=DEFORMATION_MAX,
+                                     deform_smooth=DEFORMATION_SMOOTH):
     """ generate deformation field as combination of positive and
     negative Galatians densities scaled in range +/- max_deform
 
     :param shape: tuple of size 2
-    :param points: np.array<nb_points, 2>
-    :param max_deform: float
+    :param points: np.array<nb_points, 2> list of landmarks
+    :param max_deform: float, maximal deformation distance in any direction
+    :param deform_smooth: float, smoothing the deformation by Gaussian filter
     :return: np.array<shape>
     """
     ndim = len(shape)
-    ampl = max_deform
-    min_cov = int(0.1 * np.mean(shape))
-    max_cov = int(10 * np.mean(shape))
     x, y = np.mgrid[0:shape[0], 0:shape[1]]
     pos_grid = np.rollaxis(np.array([x, y]), 0, 3)
     # initialise the deformation
     deform = np.zeros(shape)
     for point in points:
         sign = np.random.choice([-1, 1])
-        cov = max_cov * np.random.random((ndim, ndim)) * np.eye(ndim) \
-              + min_cov * np.random.random((ndim, ndim))
+        cov = np.random.random((ndim, ndim))
+        cov[np.eye(ndim, dtype=bool)] = 100 * np.random.random(ndim)
+        # obtain a positive semi-definite matrix
+        cov = np.dot(cov, cov.T) * (0.1 * np.mean(shape))
         gauss = stats.multivariate_normal(point, cov)
         deform += sign * gauss.pdf(pos_grid)
-    # normalise the deformation
-    deform /=  max(np.abs([np.min(deform), np.max(deform)]))
-    # multiply by the amplitude
-    deform *= ampl
+    # normalise the deformation and multiply by the amplitude
+    deform *= max_deform / np.abs(deform).max()
     # set boundary region to zeros
-    deform[:DEFORMATION_BOUNDARY_FIX, :] = 0
-    deform[-DEFORMATION_BOUNDARY_FIX:, :] = 0
-    deform[:, :DEFORMATION_BOUNDARY_FIX] = 0
-    deform[:, -DEFORMATION_BOUNDARY_FIX:] = 0
+    fix_deform_bounds = DEFORMATION_BOUNDARY_COEF * deform_smooth
+    deform[:fix_deform_bounds, :] = 0
+    deform[-fix_deform_bounds:, :] = 0
+    deform[:, :fix_deform_bounds] = 0
+    deform[:, -fix_deform_bounds:] = 0
     # smooth the deformation field
-    deform = ndimage.gaussian_filter(deform, sigma=DEFORMATION_SMOOTH, order=0)
+    deform = ndimage.gaussian_filter(deform, sigma=deform_smooth, order=0)
+    return deform
+
+
+def generate_deformation_field_rbf(shape, points, max_deform=DEFORMATION_MAX,
+                                   nb_bound_points=25):
+    """ generate deformation field as thin plate spline  deformation
+    in range +/- max_deform
+
+    :param shape: tuple of size 2
+    :param points: np.array<nb_points, 2> list of landmarks
+    :param max_deform: float, maximal deformation distance in any direction
+    :param nb_bound_points: int, number of fix boundary points
+    :return: np.array<shape>
+    """
+    x_point = points[:, 0]
+    y_point = points[:, 1]
+    # generate random shifting
+    move = (np.random.random(points.shape[0]) - 0.5) * max_deform
+
+    # fix boundary points
+    # set the boundary points
+    bound = np.ones(nb_bound_points - 1)
+    x_bound = np.linspace(0, shape[0] - 1, nb_bound_points)
+    y_bound = np.linspace(0, shape[1] - 1, nb_bound_points)
+    x_point = np.hstack((x_point, 0 * bound, x_bound[:-1],
+                         (shape[0] - 1) * bound, x_bound[::-1][:-1]))
+    y_point = np.hstack((y_point, y_bound[:-1], (shape[1] - 1) * bound,
+                         y_bound[::-1][:-1], 0 * bound))
+    # the boundary points sex as 0 shift
+    move = np.hstack((move, np.zeros(4 * nb_bound_points - 4)))
+    # create the interpolation function
+    smooth = 0.5 * max_deform
+    rbf = interpolate.Rbf(x_point, y_point, move, function='thin-plate',
+                          epsilon=1, smooth=smooth)
+    # interpolate in regular grid
+    x_grid, y_grid = np.mgrid[0:shape[0], 0:shape[1]]
+    deform = rbf(x_grid, y_grid)
     return deform
 
 
@@ -110,20 +146,22 @@ def deform_image_landmarks(image, points, max_deform=DEFORMATION_MAX):
 
     :param image: np.array<height, width, 3>
     :param points: np.array<nb_points, 2>
-    :param max_deform: float
+    :param max_deform: float, maximal deformation distance in any direction
     :return: np.array<height, width, 3>, np.array<nb_points, 2>
     """
     x, y = np.mgrid[0:image.shape[0], 0:image.shape[1]]
-    x_deform = generate_deformation_field(image.shape[:2], points, max_deform)
-    y_deform = generate_deformation_field(image.shape[:2], points, max_deform)
-
-    img_warped = np.empty(image.shape)
-    for i in range(image.shape[2]):
-        img_warped[:, :, i] = interpolate.griddata(zip(x.ravel(), y.ravel()),
-                                                   image[:, :, i].ravel(),
-                                                   (x + x_deform, y + y_deform),
-                                                   method='linear',
-                                                   fill_value=0)
+    # generate the deformation field
+    nb_fix_points = int(np.max(image.shape) / max_deform * 2.)
+    x_deform = generate_deformation_field_rbf(image.shape[:2], points,
+                                              max_deform, nb_fix_points)
+    y_deform = generate_deformation_field_rbf(image.shape[:2], points,
+                                              max_deform, nb_fix_points)
+    # interpolate the image
+    img_warped = interpolate.griddata(zip(x.ravel(), y.ravel()),
+                                      image.reshape(-1, 3),
+                                      (x + x_deform, y + y_deform),
+                                      method='linear', fill_value=1.)
+    # compute new positions of landmarks
     x_new = x - x_deform
     y_new = y - y_deform
     pts_warped = np.array([[x_new[pt[0], pt[1]], y_new[pt[0], pt[1]]]
@@ -143,7 +181,7 @@ def image_color_shift_hue(image, sat_change=True):
     h_shift = np.random.randint(HUE_SHIFT_MIN, HUE_SHIFT_MAX)
     h_shift *= -1 if np.random.random() < 0.5 else 1
     # generate saturation power
-    s_power = 0.5 + np.random.random()
+    s_power = 0.3 + np.random.random()
     logging.debug('image color change with Hue shift %d and Sat power %f',
                   h_shift, s_power)
     # convert image into range (0, 1)
@@ -173,7 +211,8 @@ def draw_image_landmarks(image, points):
     fig = plt.figure(figsize=fig_size)
     ax = fig.gca()
     ax.imshow(image)
-    ax.plot(points[:, 1], points[:, 0], '.', color=LANDMARK_COLOR)
+    ax.plot(points[:, 1], points[:, 0], 'o', color='k')
+    ax.plot(points[:, 1], points[:, 0], '.', color='w')
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
     ax.set_xlim(0, shape[1])
@@ -190,9 +229,9 @@ def export_image_landmarks(image, points, idx, path_out, name_img, name_points,
     :param image: np.array<height, width, 3>
     :param points: np.array<nb_points, 2>
     :param idx: int
-    :param path_out: str
-    :param name_img: str
-    :param name_points: str
+    :param path_out: str, path to the output directory
+    :param name_img: str, image file name
+    :param name_points: str, landmarks file name
     :param visual: bool
     """
     if image.max() <= 1.:
@@ -226,9 +265,20 @@ def perform_deform_export(idx, image, points, path_out, name_img, name_points,
     :param visual: bool
     """
     image_out = image_color_shift_hue(image)
-    image_out, points_out = deform_image_landmarks(image_out, points)
+    max_deform = int(0.03 * np.mean(image.shape[:2]))
+    image_out, points_out = deform_image_landmarks(image_out, points,
+                                                   max_deform)
     export_image_landmarks(image_out, points_out, idx + 1, path_out,
                            name_img, name_points, visual)
+
+
+def get_name(path):
+    """ parse the name without extension from complete path
+
+    :param path: str
+    :return: str
+    """
+    return os.path.splitext(os.path.basename(path))[0]
 
 
 def main(params):
@@ -240,15 +290,17 @@ def main(params):
 
     image = np.array(Image.open(params['path_image']))
     logging.debug('loaded image, shape: %s', image.shape)
-    points = pd.DataFrame.from_csv(params['path_landmarks'])[COLUMNS_COORD].values
+    df_points = pd.DataFrame.from_csv(params['path_landmarks'])
+    points = df_points[COLUMNS_COORD].values
     logging.debug('loaded landmarks, dim: %s', points.shape)
 
-    name_img = os.path.splitext(os.path.basename(params['path_image']))[0]
-    name_points = os.path.splitext(os.path.basename(params['path_landmarks']))[0]
+    name_img = get_name(params['path_image'])
+    name_points = get_name(params['path_landmarks'])
 
     export_image_landmarks(image, points, 0, params['path_out'],
                            name_img, name_points, visual=params['visu'])
 
+    # create the wrapper for parallel usage
     wrapper_deform_export = partial(perform_deform_export, image=image,
                                     points=points, path_out=params['path_out'],
                                     name_img=name_img, name_points=name_points,

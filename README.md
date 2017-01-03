@@ -1,11 +1,15 @@
 # Benchmark for image registration methods
 
-[![Build Status](https://travis-ci.com/Borda/pyImageRegistrationBenchmark.svg?token=HksCAm7DV2pJNEbsGJH2&branch=master)](https://travis-ci.com/Borda/pyImageRegistrationBenchmark)
-[![codecov](https://codecov.io/gh/Borda/pyImageRegistrationBenchmark/branch/master/graph/badge.svg?token=JZwA1rlUGA)](https://codecov.io/gh/Borda/pyImageRegistrationBenchmark)
+[![Build Status](https://travis-ci.com/Borda/pyImRegBenchmark.svg?token=HksCAm7DV2pJNEbsGJH2&branch=master)](https://travis-ci.com/Borda/pyImRegBenchmark)
+[![Codeship Status for Borda/pyImRegBenchmark](https://app.codeship.com/projects/975451b0-b7e1-0134-981a-3617a86d3e20/status?branch=master)](https://app.codeship.com/projects/194566)
+[![Run Status](https://api.shippable.com/projects/585bfa66e18a291000c15f24/badge?branch=master)](https://app.shippable.com/projects/585bfa66e18a291000c15f24)
+[![Coverage Badge](https://api.shippable.com/projects/585bfa66e18a291000c15f24/coverageBadge?branch=master)](https://app.shippable.com/projects/585bfa66e18a291000c15f24)
+[![codecov](https://codecov.io/gh/Borda/pyImRegBenchmark/branch/master/graph/badge.svg?token=JZwA1rlUGA)](https://codecov.io/gh/Borda/pyImRegBenchmark)
+[![CircleCI](https://circleci.com/gh/Borda/pyImRegBenchmark.svg?style=svg&circle-token=e58b9845aab1b02d749df60060afbac54138ea28)](https://circleci.com/gh/Borda/pyImRegBenchmark)
 
 This project contains a set of sample images with related landmarks and experimental evaluation of several image registration (state-of-the-art) methods.
 
-As the data we use a dataset of stain histological tissues image pairs of related (mainly consecutive cuts) sections where each of them in the pair is colour different stain. The apprentice difference and deformations during sensing makes the image registration challenging task. 
+As the data we use a dataset of stain histological tissues image pairs of related (mainly consecutive cuts) sections where each of them in the pair is colour different stain. The apprentice difference and deformations during sensing makes the image registration challenging task.
 
 For evaluation we have set of manually placed landmarks in each image pair at least 40 uniformly spread over the tissue (we do not put any landmarks in backround)
 
@@ -19,8 +23,9 @@ The project contains also a few folders and its brief description is:
 * **data** - folder with input sample data
     * **images** - contains sample image pairs (reference and sensed one)
     * **landmarks** - contains related landmarks to images in previous folder
-* **src** - ...
-* **mactos** - macros mainly for ImageJ 
+* **benchmarks** - directory with all benchmarks and general useful utils
+    * **general_utils** - useful tools and functions
+* **macros** - macros mainly for ImageJ 
 * **scripts** - useful scripts handling some staff around the benchmark itself
 
 
@@ -54,6 +59,10 @@ python scripts/create_cover_file.py \
     -imgs ../output/synth_dataset/*.jpg -lnds ../output/synth_dataset/*.csv \
     -csv ../output/cover.csv --mode all-all
 ```
+
+## License
+
+The project is using the standard [BSD license](http://opensource.org/licenses/BSD-2-Clause).
 
 ## Useful information
 
