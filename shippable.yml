@@ -20,11 +20,16 @@ before_install:
 
 install:
   - pip install -r requirements.txt
-  - pip install pytest pytest-cov codecov coverage
+  - pip install nose codecov coverage
+
+before_script:
+  - mkdir -p shippable/testresults
+  - mkdir -p shippable/codecoverage
 
 script:
-  - nosetests --with-doctest --with-coverage
+  - nosetests --with-xunit --xunit-file=shippable/testresults/nosetests.xml
+  - nosetests --with-doctest --with-coverage  --cover-package=benchmarks
+  - coverage xml -o shippable/codecoverage/coverage.xml
 
 after_success:
   - codecov --token=56df941a-7c40-47a0-bf01-3d42c40af66d
-  - coverage report
