@@ -39,9 +39,9 @@ DEFORMATION_BOUNDARY_COEF = 3
 
 def arg_parse_params():
     """ parse the input parameters
-    SEE: https://docs.python.org/3/library/argparse.html
-    :return: {str: str}
+    :return dict: {str: str}
     """
+    # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
     parser.add_argument('-img', '--path_image', type=str, required=True,
                         help='path to the input image')
@@ -71,10 +71,10 @@ def generate_deformation_field_gauss(shape, points, max_deform=DEFORMATION_MAX,
     """ generate deformation field as combination of positive and
     negative Galatians densities scaled in range +/- max_deform
 
-    :param shape: tuple of size 2
-    :param points: np.array<nb_points, 2> list of landmarks
-    :param max_deform: float, maximal deformation distance in any direction
-    :param deform_smooth: float, smoothing the deformation by Gaussian filter
+    :param (int, int) shape: tuple of size 2
+    :param points: <nb_points, 2> list of landmarks
+    :param float max_deform: maximal deformation distance in any direction
+    :param float deform_smooth: smoothing the deformation by Gaussian filter
     :return: np.array<shape>
     """
     ndim = len(shape)
@@ -108,10 +108,10 @@ def generate_deformation_field_rbf(shape, points, max_deform=DEFORMATION_MAX,
     """ generate deformation field as thin plate spline  deformation
     in range +/- max_deform
 
-    :param shape: tuple of size 2
+    :param (int, int) shape: tuple of size 2
     :param points: np.array<nb_points, 2> list of landmarks
-    :param max_deform: float, maximal deformation distance in any direction
-    :param nb_bound_points: int, number of fix boundary points
+    :param float max_deform: maximal deformation distance in any direction
+    :param int nb_bound_points: number of fix boundary points
     :return: np.array<shape>
     """
     x_point = points[:, 0]
@@ -146,7 +146,7 @@ def deform_image_landmarks(image, points, max_deform=DEFORMATION_MAX):
 
     :param image: np.array<height, width, 3>
     :param points: np.array<nb_points, 2>
-    :param max_deform: float, maximal deformation distance in any direction
+    :param float max_deform: maximal deformation distance in any direction
     :return: np.array<height, width, 3>, np.array<nb_points, 2>
     """
     x, y = np.mgrid[0:image.shape[0], 0:image.shape[1]]
@@ -173,7 +173,7 @@ def image_color_shift_hue(image, sat_change=True):
     """ take the original image and shift the colour space in HUE
 
     :param image: np.array<height, width, 3>
-    :param sat_change: bool whether change also the saturation
+    :param bool sat_change: whether change also the saturation
     :return: np.array<height, width, 3>
 
     """
@@ -228,11 +228,11 @@ def export_image_landmarks(image, points, idx, path_out, name_img, name_points,
 
     :param image: np.array<height, width, 3>
     :param points: np.array<nb_points, 2>
-    :param idx: int
-    :param path_out: str, path to the output directory
-    :param name_img: str, image file name
-    :param name_points: str, landmarks file name
-    :param visual: bool
+    :param int idx:
+    :param str path_out: path to the output directory
+    :param str name_img: image file name
+    :param str name_points: landmarks file name
+    :param bool visual:
     """
     if image.max() <= 1.:
         image = (image * 255).astype(np.uint8)
@@ -256,13 +256,13 @@ def perform_deform_export(idx, image, points, path_out, name_img, name_points,
     """ perform complete image colour change, and deformation on image
     and landmarks and if required draw a visualisation
 
-    :param idx: int
+    :param int idx:
     :param image: np.array<height, width, 3>
     :param points: np.array<nb_points, 2>
-    :param path_out: str
-    :param name_img: str
-    :param name_points: str
-    :param visual: bool
+    :param str path_out:
+    :param str name_img:
+    :param str name_points:
+    :param bool visual:
     """
     image_out = image_color_shift_hue(image)
     max_deform = int(0.03 * np.mean(image.shape[:2]))
@@ -275,8 +275,8 @@ def perform_deform_export(idx, image, points, path_out, name_img, name_points,
 def get_name(path):
     """ parse the name without extension from complete path
 
-    :param path: str
-    :return: str
+    :param str path:
+    :return str:
     """
     return os.path.splitext(os.path.basename(path))[0]
 
@@ -284,7 +284,7 @@ def get_name(path):
 def main(params):
     """ main entry point
 
-    :param params: {str: str}
+    :param dict params: {str: str}
     """
     logging.info('running...')
 

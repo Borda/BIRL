@@ -23,7 +23,7 @@ OPTIONS_COMBINE = ['1-all', 'all-all']
 def arg_parse_params():
     """ parse the input parameters
 
-    :return: {str: str}
+    :return dict: {str: str}
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('-imgs', '--path_pattern_images', type=str,
@@ -47,10 +47,10 @@ def arg_parse_params():
 def generate_pairs(df_cover, path_pattern_imgs, path_pattern_lnds, mode):
     """ generate the registration pairs as reference and moving images
 
-    :param df_cover: DF
-    :param path_pattern_imgs: str, path to the images and image name pattern
-    :param path_pattern_lnds: str, path to the landmarks and its name pattern
-    :param type: str, one of OPTIONS_COMBINE
+    :param DF df_cover: DF
+    :param str path_pattern_imgs: path to the images and image name pattern
+    :param str path_pattern_lnds: path to the landmarks and its name pattern
+    :param str mode: one of OPTIONS_COMBINE
     :return: DF
     """
     list_imgs = sorted(glob.glob(path_pattern_imgs))
@@ -84,7 +84,7 @@ def generate_pairs(df_cover, path_pattern_imgs, path_pattern_lnds, mode):
 def main(params):
     """ main entry point
 
-    :param params: {str: str}
+    :param dict params: {str: str}
     """
     logging.info('running...')
 
