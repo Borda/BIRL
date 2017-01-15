@@ -7,8 +7,8 @@ machine:
 dependencies:
   override:
     - pip install -r requirements.txt
-    - pip install nose
+    - pip install pytest
 
 test:
   override:
-    - nosetests --with-doctest --with-coverage
+    - pytest --doctest-modules --junitxml=$CIRCLE_TEST_REPORTS/junit/pytest.xml
