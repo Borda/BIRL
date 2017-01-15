@@ -92,8 +92,8 @@ class BmRegistration(Experiment):
     True
     >>> del bm
     >>> shutil.rmtree('output/BmRegistration', ignore_errors=True)
-
     """
+
     def __init__(self, params):
         """ initialise benchmark
 
@@ -102,16 +102,16 @@ class BmRegistration(Experiment):
         assert 'unique' in params
         super(BmRegistration, self).__init__(params, params['unique'])
         logging.info(self.__doc__)
-        self._check_required_params()
 
     def _check_required_params(self):
+        """ check some extra required parameters for this benchmark """
         logging.debug('.. check if the BM have all required parameters')
         super(BmRegistration, self)._check_required_params()
         for param in ['path_cover', 'path_out', 'nb_jobs']:
             assert param in self.params
 
     def _load_data(self):
-        """ loading data """
+        """ loading data, the cover file with all registration pairs """
         logging.info('-> loading data...')
         # loading the csv cover file
         assert os.path.exists(self.params['path_cover']), \
@@ -128,7 +128,7 @@ class BmRegistration(Experiment):
             self.df_cover[col] = self.df_cover[col].apply(os.path.abspath)
 
     def _perform(self):
-        """ perform complete benchmark """
+        """ perform complete benchmark experiment """
         logging.info('-> perform set of experiments...')
 
         # load existing result of create new entity
@@ -192,9 +192,9 @@ class BmRegistration(Experiment):
             tqdm_bar.update()
 
     def _perform_registration(self, df_row):
-        """ rin single registration experiment with all sub-stages
+        """ run single registration experiment with all sub-stages
 
-        :param (int, row) df_row:
+        :param (int, dict) df_row: tow from iterated table
         """
         idx, dict_row = df_row
         logging.debug('-> perform single registration #%d...', idx)
@@ -209,13 +209,14 @@ class BmRegistration(Experiment):
         dict_row = self._prepare_single_regist(dict_row)
         str_cmd = self._generate_regist_command(dict_row)
         path_log = os.path.join(dict_row[COL_REG_DIR], NAME_LOG_REGIST)
-        # todo, add lock to single thread, iterate ids, as own shall?
+        # todo, add lock to single thread, create pool with possible thread ids
+        # (USE taskset [native], numactl [need install])
 
         time_start = time.time()
-        cmd_res = tl_expt.run_command_line(str_cmd, path_log)
+        cmd_result = tl_expt.run_command_line(str_cmd, path_log)
         dict_row['Time [s]'] = time.time() - time_start
         # if the experiment failed, return back
-        if not cmd_res:
+        if not cmd_result:
             return None
 
         dict_row = self._evaluate_single_regist(dict_row)
@@ -223,7 +224,7 @@ class BmRegistration(Experiment):
         return dict_row
 
     def _summarise(self):
-        """ summarise experiment """
+        """ summarise complete benchmark experiment """
         logging.info('-> summarise experiment...')
         # load df_regist and compute stat
         self.__perform_one_thread(self.__compute_landmarks_statistic,
@@ -243,6 +244,11 @@ class BmRegistration(Experiment):
         self.__expert_summary_txt()
 
     def __compute_landmarks_statistic(self, df_row):
+        """ after successful registration load initial nad estimated landmarks
+        afterwords compute various statistic for init, and final alignment
+
+        :param (int, dict) df_row: tow from iterated table
+        """
         idx, dict_row = df_row
         # load initial landmarks
         points_ref = tl_io.load_landmarks(dict_row[COL_POINTS_REF])
@@ -250,7 +256,6 @@ class BmRegistration(Experiment):
         # compute statistic
         self.__compute_landmarks_inaccuracy(idx, points_ref, points_move,
                                             'init')
-
         # load transformed landmarks
         if COL_POINTS_REF_TRANS in dict_row:
             points_target = points_ref
@@ -277,22 +282,28 @@ class BmRegistration(Experiment):
             self.df_regist.set_value(idx, col=col_name, value=stat[name])
 
     def _visualise_regist_results(self, df_row):
+        """ visualise the registration results according what landmarks were
+        estimated - in registration or moving frame
+
+        :param (int, dict) df_row: tow from iterated table
+        """
         idx, dict_row = df_row
         points_ref = tl_io.load_landmarks(dict_row[COL_POINTS_REF])
         points_move = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE])
+        assert COL_IMAGE_REF_TRANS in dict_row, 'missing registered image'
         # visualise particular idx
-        if COL_IMAGE_REF_TRANS in dict_row:
+        if COL_POINTS_REF_TRANS in dict_row:
             image_ref = tl_io.load_image(dict_row[COL_IMAGE_REF])
             image_transf = tl_io.load_image(dict_row[COL_IMAGE_REF_TRANS])
             points_transf = tl_io.load_landmarks(
                                         dict_row[COL_POINTS_REF_TRANS])
             fig = tl_visu.draw_regist_landmartks_ref(image_ref, image_transf,
                                      points_ref, points_move, points_transf)
-        elif COL_IMAGE_MOVE_TRANS in dict_row:
+        elif COL_POINTS_MOVE_TRANS in dict_row:
             image_move = tl_io.load_image(dict_row[COL_IMAGE_MOVE])
             # image_transf = tl_io.load_image(row['Moving image, Transf.'])
             points_transf = tl_io.load_landmarks(
-                                     dict_row[COL_IMAGE_MOVE_TRANS])
+                                     dict_row[COL_POINTS_MOVE_TRANS])
             fig = tl_visu.draw_regist_landmartks_move(image_move,
                                      points_ref, points_move, points_transf)
         path_fig = os.path.join(dict_row[COL_REG_DIR], NAME_IMAGE_REGIST)
@@ -304,6 +315,7 @@ class BmRegistration(Experiment):
         costume_prec = np.arange(0., 1., 0.05)
         df_summary = self.df_regist.describe(percentiles=costume_prec).T
         df_summary['median'] = self.df_regist.median()
+        df_summary.sort_index(inplace=True)
         with open(path_txt, 'w') as fp:
             fp.write(tl_expt.string_dict(self.params, 'CONFIGURATION:'))
             fp.write('\n' * 3 + 'RESULTS:\n')
@@ -350,7 +362,7 @@ class BmRegistration(Experiment):
         :return: {str: value}
         """
         logging.debug('.. simulate registration: '
-                      'copy the original image and landmarkas')
+                      'copy the original image and landmarks')
         # detect image
         path_img = os.path.join(dict_row[COL_REG_DIR],
                                 os.path.basename(dict_row[COL_IMAGE_MOVE]))
@@ -389,7 +401,7 @@ def main(params):
 
 # RUN by given parameters
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     parser = tl_expt.create_basic_parse()
     params = tl_expt.parse_params(parser)
     main(params)

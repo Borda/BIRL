@@ -15,12 +15,11 @@ cache: pip
 
 before_install:
   - apt-get install freetype*
-#  - pip install .
   - pip install --upgrade pip
 
 install:
   - pip install -r requirements.txt
-  - pip install nose codecov coverage
+  - pip install nose codecov coverage pytest
 
 before_script:
   - mkdir -p shippable/testresults
@@ -28,7 +27,7 @@ before_script:
 
 script:
   - nosetests --with-xunit --xunit-file=shippable/testresults/nosetests.xml
-  - nosetests --with-doctest --with-coverage  --cover-package=benchmarks
+  - nosetests --with-coverage --cover-package=benchmarks
   - coverage xml -o shippable/codecoverage/coverage.xml
 
 after_success:

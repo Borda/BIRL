@@ -55,6 +55,7 @@ class Experiment(object):
         logging.info(tl_expt.string_dict(self.params, 'PARAMS:'))
 
     def _check_required_params(self):
+        """ check some extra required parameters for this experiment """
         logging.debug('.. check if Experiment have all required parameters')
         pass
 
