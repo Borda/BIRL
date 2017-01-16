@@ -25,6 +25,7 @@ The project contains also a few folders and its brief description is:
     * **landmarks** - contains related landmarks to images in previous folder
 * **benchmarks** - directory with all benchmarks and general useful utils
     * **general_utils** - useful tools and functions
+* **configs** - configs for registration methods 
 * **macros** - macros mainly for ImageJ 
 * **scripts** - useful scripts handling some staff around the benchmark itself
 
@@ -32,8 +33,8 @@ The project contains also a few folders and its brief description is:
 ## Implemented Methods
 
 * **[Elastix](http://elastix.isi.uu.nl)** - wide framework for image registration
-* **[bUnwarpJ](http://biocomp.cnb.csic.es/~iarganda/bUnwarpJ)** - the ImageJ plugin for elastic registration using SSD metric
-* **[RVSS](http://fiji.sc/wiki/index.php/Register_Virtual_Stack_Slices)** - Register Virtual Stack Slices
+* **[bUnwarpJ](http://imagej.net/BUnwarpJ)** - the [ImageJ](https://imagej.nih.gov/ij/) plugin for elastic registration (integration with [Feature Extraction](http://imagej.net/Feature_Extraction))
+* **[RVSS](http://imagej.net/Register_Virtual_Stack_Slices)** - [ImageJ](https://imagej.nih.gov/ij/) plugin Register Virtual Stack Slices
 * ...
 
 
@@ -60,11 +61,42 @@ python scripts/create_cover_file.py \
     -csv ../output/cover.csv --mode all-all
 ```
 
+## Install methods and running benchmarks
+
+### Imagej - [bUnwarpJ](http://imagej.net/BUnwarpJ)
+
+Download [Fiji](https://fiji.sc/) into application folder
+```
+cd <ImRegBenchmark>/applications
+wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
+unzip fiji-linux64.zip
+Fiji.app/ImageJ-linux64
+```
+
+Run the basic bUnwarpJ registration with original parameters
+```
+python bm_registration.py \
+    -in ../data/list_pairs_imgs_lnds.csv -out ../output \
+    -fiji ../applications/Fiji.app/ImageJ-linux64 \
+    -config ../configs/ImageJ_bUnwarpJ.txt
+```
+
+The bUnwarpJ is [supporting SIFT and MOPS](http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support) feature extraction as landmarks
+```
+python bm_registration.py \
+    -in ../data/list_pairs_imgs_lnds.csv -out ../output \
+    -fiji ../applications/Fiji.app/ImageJ-linux64 \
+    -config ../configs/ImageJ_bUnwarpJ.txt \
+    -sift ../configs/ImageJ_SIFT.txt
+```
+
+
+
 ## License
 
 The project is using the standard [BSD license](http://opensource.org/licenses/BSD-2-Clause).
 
-## Useful information
+## Appendix - Useful information
 
 ### Configure local environment
 
@@ -76,7 +108,7 @@ $ cd benchmark_Registration
  -> New python executable in pokus/bin/python
  -> Installing setuptools, pip, wheel...done.
 ~/benchmark_Registration$ source env/bin/activate
-(vEnv):~/benchmark_Registration$
+(vEnv):~/benchmark_Registration$ ...
 ```
 
 now you are in local environment and you can install packages with specific versions

@@ -19,6 +19,7 @@ import benchmarks.general_utils.io_utils as tl_io
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 FILE_LOGS = 'logging.txt'
 
+
 def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     """ create the experiment folder and iterate while there is no available
 
@@ -57,17 +58,21 @@ def set_experiment_logger(path_out, file_name=FILE_LOGS, reset=True):
 
 
     >>> set_experiment_logger('.')
-    >>> len([h for h in logging.getLogger().handlers
-    ...      if isinstance(h, logging.FileHandler)])
+    >>> len([lh for lh in logging.getLogger().handlers
+    ...      if type(lh) is logging.FileHandler])
     1
     >>> os.remove(FILE_LOGS)
     """
     log = logging.getLogger()
+    log.setLevel(logging.DEBUG)
     if reset:
         close_file_loggers()
     path_logger = os.path.join(path_out, file_name)
     fh = logging.FileHandler(path_logger)
     fh.setLevel(logging.DEBUG)
+    fh.setFormatter(logging.Formatter(
+        '%(asctime)s:%(levelname)s@%(filename)s:%(processName)s - %(message)s',
+        datefmt="%H:%M:%S"))
     log.addHandler(fh)
 
 
@@ -75,13 +80,13 @@ def close_file_loggers():
     """ close all handlers to a file
 
     >>> close_file_loggers()
-    >>> len([h for h in logging.getLogger().handlers
-    ...      if isinstance(h, logging.FileHandler)])
+    >>> len([lh for lh in logging.getLogger().handlers
+    ...      if type(lh) is logging.FileHandler])
     0
     """
     log = logging.getLogger()
-    log.handlers = [h for h in log.handlers
-                    if not isinstance(h, logging.FileHandler)]
+    log.handlers = [lh for lh in log.handlers
+                    if not type(lh) is logging.FileHandler]
 
 
 def string_dict(d, headline='DICTIONARY:', offset=25):
@@ -131,6 +136,9 @@ def parse_params(parser):
     # SEE: https://docs.python.org/3/library/argparse.html
     args = vars(parser.parse_args())
     logging.debug('ARG PARAMS: \n %s', repr(args))
+    # remove all None parameters
+    args = {k: args[k] for k in args if args[k] is not None}
+    # extend nd test all paths in params
     for k in (k for k in args if 'path' in k):
         args[k] = os.path.abspath(os.path.expanduser(args[k]))
         p = os.path.dirname(args[k]) if '*' in args[k] else args[k]
@@ -160,12 +168,12 @@ def run_command_line(cmd, path_logger=None):
 
 
 def compute_points_dist_statistic(points1, points2):
-    """ compute disntace as between related points in two sets
+    """ compute distance as between related points in two sets
     and make a statistic on those distances - mean, std, median, min, max
 
     :param points1: np.array<nb_points, dim>
     :param points2: np.array<nb_points, dim>
-    :return: np.array<nb_points, 1> {str: float}
+    :return: (np.array<nb_points, 1>, {str: float})
 
     >>> points1 = np.array([[1, 2], [3, 4], [2, 1]])
     >>> points2 = np.array([[3, 4], [2, 1], [1, 2]])

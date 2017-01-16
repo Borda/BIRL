@@ -11,14 +11,48 @@ import matplotlib
 # Force matplotlib to not use any Xwindows backend.
 matplotlib.use('Agg')
 import matplotlib.pylab as plt
+from PIL import Image, ImageDraw
+
+import benchmarks.general_utils.io_utils as tl_io
 
 MAX_FIGURE_SIZE = 18
 
 
-def draw_landmarks_ref_move_transf(ax, points_origin, points_target,
-                                   points_estim=None):
+def draw_image_points(image, points, color='green', marker_size=5, shape='o'):
+    """ draw marker in the image and add to each landmark its index
+
+    :param image: np.ndarray
+    :param points: np.array<nb_points, dim>
+    :param str color: color of the marker
+    :param int marker_size: radius of the circular marker
+    :param str shape: marker shape: 'o' for circle, '.' for dot
+    :return: np.ndarray
+
+    >>> image = np.random.random((50, 50, 3))
+    >>> points = np.array([[20, 30], [40, 10], [15, 25]])
+    >>> image = draw_image_points(image, points)
+    """
+    image = tl_io.convert_ndarray_2_image(image)
+    draw = ImageDraw.Draw(image)
+    for i, (x, y) in enumerate(points):
+        pos_marker = (x - marker_size, y - marker_size,
+               x + marker_size, y + marker_size)
+        pos_text = tuple(points[i] + marker_size)
+        if shape == 'o':
+            draw.ellipse(pos_marker, outline=color)
+        elif shape == '.':
+            draw.ellipse(pos_marker, fill=color)
+        else:
+            draw.ellipse(pos_marker, fill=color, outline=color)
+        draw.text(pos_text, str(i + 1), fill=(0, 0, 0))
+    image = np.array(image) / 255.
+    return image
+
+
+def draw_landmarks_ref_move_warped(ax, points_origin, points_target,
+                                   points_estim=None, marker='o'):
     """ visualisation of transforming points, presenting 3 set of points:
-    original points, targeting points, and the stimate of target points
+    original points, targeting points, and the estimate of target points
 
     scenario 1:
     original - moving landmarks
@@ -30,28 +64,29 @@ def draw_landmarks_ref_move_transf(ax, points_origin, points_target,
     target - moving landmarks
     estimate - transformed landmarks
 
-    :param fig: matplotlib figure
+    :param ax: matplotlib figure
     :param points_origin: np.array<nb_points, dim>
     :param points_target: np.array<nb_points, dim>
     :param points_estim: np.array<nb_points, dim>
+    :param str marker: set the marker shape
     :return:
     """
     assert points_target.shape == points_origin.shape
     assert points_origin.shape == points_estim.shape
-    ax.plot(points_origin[:, 0], points_origin[:, 1], '.', color='b',
+    ax.plot(points_origin[:, 0], points_origin[:, 1], marker, color='b',
             label='Original positions')
     # draw a dotted line between origin and where it should be
     for start, stop in zip(points_target, points_origin):
         x, y = zip(start, stop)
-        ax.plot(x, y, '-.', color='b')
-    ax.plot(points_target[:, 0], points_target[:, 1], '.', color='m',
+        ax.plot(x, y, '-.', color='b', linewidth=2)
+    ax.plot(points_target[:, 0], points_target[:, 1], marker, color='m',
             label='Target positions')
     if points_estim is not None:
         # draw line that  should be minimal between target and estimate
         for start, stop in zip(points_target, points_estim):
             x, y = zip(start, stop)
-            ax.plot(x, y, '-', color='r')
-        ax.plot(points_estim[:, 0], points_estim[:, 1], '.', color='g',
+            ax.plot(x, y, '-', color='r', linewidth=2)
+        ax.plot(points_estim[:, 0], points_estim[:, 1], marker, color='g',
                 label='Estimated positions')
 
 
@@ -84,25 +119,24 @@ def overlap_two_images(image1, image2, transparent=0.5):
     return image
 
 
-def draw_regist_landmartks_ref(image_ref, image_transf, points_ref, points_move,
-                               points_transf, fig_max_size=MAX_FIGURE_SIZE):
-    """
-    composed form several functions - images overlap + landmarks + legend
+def draw_regist_landmarks_ref(image_ref, image_warped, points_ref, points_move,
+                              points_warped, fig_max_size=MAX_FIGURE_SIZE):
+    """ composed form several functions - images overlap + landmarks + legend
 
     :param image_ref: np.array<height, with, dim>
-    :param image_transf: np.array<height, with, dim>
+    :param image_warped: np.array<height, with, dim>
     :param points_ref: np.array<nb_points, dim>
     :param points_move: np.array<nb_points, dim>
-    :param points_transf: np.array<nb_points, dim>
-    :param int fig_size: maximal figure size for major image dimension
+    :param points_warped: np.array<nb_points, dim>
+    :param int fig_max_size: maximal figure size for major image dimension
     :return: object
     """
-    image = overlap_two_images(image_ref, image_transf)
+    image = overlap_two_images(image_ref, image_warped)
     size = np.array(image.shape[:2])
     fig_size = size[::-1] / float(size.max()) * fig_max_size
     fig, ax = plt.subplots(figsize=fig_size)
     ax.imshow(image)
-    draw_landmarks_ref_move_transf(ax, points_move, points_ref, points_transf)
+    draw_landmarks_ref_move_warped(ax, points_move, points_ref, points_warped)
     ax.legend(loc='lower right', title='Legend')
     ax.set_xlim([0, image.shape[1]])
     ax.set_ylim([image.shape[0], 0])
@@ -111,23 +145,22 @@ def draw_regist_landmartks_ref(image_ref, image_transf, points_ref, points_move,
     return fig
 
 
-def draw_regist_landmartks_move(image, points_ref, points_move, points_transf,
+def draw_regist_landmartks_move(image, points_ref, points_move, points_warped,
                                 fig_max_size=MAX_FIGURE_SIZE):
-    """
-    composed form several functions - images overlap + landmarks + legend
+    """ composed form several functions - images overlap + landmarks + legend
 
     :param image: np.array<height, with, dim>
     :param points_ref: np.array<nb_points, dim>
     :param points_move: np.array<nb_points, dim>
-    :param points_transf: np.array<nb_points, dim>
-    :param int fig_size: maximal figure size for major image dimension
+    :param points_warped: np.array<nb_points, dim>
+    :param int fig_max_size: maximal figure size for major image dimension
     :return: object
     """
     size = np.array(image.shape[:2])
     fig_size = size[::-1] / float(size.max()) * fig_max_size
     fig, ax = plt.subplots(figsize=fig_size)
     ax.imshow(image)
-    draw_landmarks_ref_move_transf(ax, points_ref, points_move, points_transf)
+    draw_landmarks_ref_move_warped(ax, points_ref, points_move, points_warped)
     ax.legend(loc='lower right', title='Legend')
     ax.set_xlim([0, image.shape[1]])
     ax.set_ylim([image.shape[0], 0])

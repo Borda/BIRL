@@ -2,6 +2,14 @@
 All other benchmarks should be deviated this way so the core functionality
 of the benchmarks such as loading or evaluation is not overwritten
 
+INSTALLATION:
+1. ...
+
+EXAMPLE (usage):
+>> python bm_registration.py \
+    -in ../data/list_pairs_imgs_lnds.csv -out ../output --unique \
+    --an_executable none
+
 Copyright (C) 2017 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
@@ -43,10 +51,10 @@ class BmTemplate(bm.BmRegistration):
     >>> params = {'nb_jobs': 1, 'unique': False, 'path_out': 'output',
     ...           'path_cover': 'data/list_pairs_imgs_lnds.csv',
     ...           'an_executable': ''}
-    >>> bm = BmTemplate(params)
-    >>> bm.run()
+    >>> benchmark = BmTemplate(params)
+    >>> benchmark.run()
     True
-    >>> del bm
+    >>> del benchmark
     >>> shutil.rmtree('output/BmTemplate', ignore_errors=True)
     """
 
@@ -55,6 +63,9 @@ class BmTemplate(bm.BmRegistration):
         super(BmTemplate, self)._check_required_params()
         for param in ['an_executable']:
             assert param in self.params
+
+    def _prepare(self):
+        logging.info('-> copy configuration...')
 
     def _prepare_single_regist(self, dict_row):
         """ prepare the experiment folder if it is required,
@@ -96,12 +107,12 @@ class BmTemplate(bm.BmRegistration):
         path_img = os.path.join(dict_row[bm.COL_REG_DIR],
                                 os.path.basename(dict_row[bm.COL_IMAGE_MOVE]))
         if os.path.exists(path_img):
-            dict_row[bm.COL_IMAGE_REF_TRANS] = path_img
+            dict_row[bm.COL_IMAGE_REF_WARP] = path_img
         # detect landmarks
         path_lnd = os.path.join(dict_row[bm.COL_REG_DIR],
                                 os.path.basename(dict_row[bm.COL_POINTS_REF]))
         if os.path.exists(path_img):
-            dict_row[bm.COL_POINTS_MOVE_TRANS] = path_lnd
+            dict_row[bm.COL_POINTS_MOVE_WARP] = path_lnd
 
         return dict_row
 
@@ -122,9 +133,9 @@ def main(params):
     """
     logging.info('running...')
     logging.info(__doc__)
-    bm = BmTemplate(params)
-    bm.run()
-    del bm
+    benchmark = BmTemplate(params)
+    benchmark.run()
+    del benchmark
     logging.info('Done.')
 
 

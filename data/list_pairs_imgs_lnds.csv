@@ -1,3 +1,5 @@
 Reference image,Moving image,Reference landmarks,Moving landmarks
-data/images/29-041-Izd2-w35-He.jpg,data/images/29-041-Izd2-w35-proSPC.jpg,data/landmarks/29-041-Izd2-w35-He.csv,data/landmarks/29-041-Izd2-w35-proSPC-4.csv
+data/images/artificial_reference.jpg,data/images/artificial_moving-affine.jpg,data/landmarks/artificial_reference.csv,data/landmarks/artificial_moving-affine.csv
+data/images/artificial_reference.jpg,data/images/artificial_moving-elastic.jpg,data/landmarks/artificial_reference.csv,data/landmarks/artificial_moving-elastic.csv
 data/images/Rat_Kidney_HE.jpg,data/images/Rat_Kidney_PanCytokeratin.jpg,data/landmarks/Rat_Kidney_HE.csv,data/landmarks/Rat_Kidney_PanCytokeratin.csv
+data/images/Izd2-29-041-w35-He.jpg,data/images/Izd2-29-041-w35-proSPC.jpg,data/landmarks/Izd2-29-041-w35-He.csv,data/landmarks/Izd2-29-041-w35-proSPC-4.csv
