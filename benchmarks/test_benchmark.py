@@ -14,22 +14,24 @@ import pandas as pd
 from numpy.testing import assert_raises, assert_array_almost_equal
 
 from benchmarks.general_utils.io_utils import try_find_upper_folders
-from benchmarks import bm_registration as bm_regist
+from benchmarks import bm_registration as bm
 from benchmarks.bm_registration import BmRegistration
+
+PATH_CSV_COVER = try_find_upper_folders('data/list_pairs_imgs_lnds.csv')
 
 
 class TestBmRegistration(unittest.TestCase):
 
     @classmethod
-    def setUpClass(self):
+    def setUpClass(cls):
         path_base = os.path.dirname(try_find_upper_folders('requirements.txt'))
-        self.path_out = os.path.join(path_base, 'output')
-        if not os.path.exists(self.path_out):
-            os.mkdir(self.path_out)
+        cls.path_out = os.path.join(path_base, 'output')
+        if not os.path.exists(cls.path_out):
+            os.mkdir(cls.path_out)
 
     @classmethod
-    def tearDownClass(self):
-        shutil.rmtree(self.path_out, ignore_errors=True)
+    def tearDownClass(cls):
+        shutil.rmtree(cls.path_out, ignore_errors=True)
 
     def setUp(self):
         # remove previous benchmark folder
@@ -51,51 +53,52 @@ class TestBmRegistration(unittest.TestCase):
     def test_benchmark_parallel(self):
         """ test run in parallel (2 threads) """
         params = {
-            'path_cover': 'data/list_pairs_imgs_lnds.csv',
+            'path_cover': PATH_CSV_COVER,
             'path_out': self.path_out,
             'nb_jobs': 2,
             'unique': False,
         }
-        self.bm = BmRegistration(params)
-        self.bm.run()
+        self.benchmark = BmRegistration(params)
+        self.benchmark.run()
         self.check_benchmark_results()
-        del self.bm
+        del self.benchmark
 
     def test_benchmark_simple(self):
         """ test run in single thread """
         params = {
-            'path_cover': 'data/list_pairs_imgs_lnds.csv',
+            'path_cover': PATH_CSV_COVER,
             'path_out': self.path_out,
             'nb_jobs': 1,
             'unique': False,
         }
-        self.bm = BmRegistration(params)
-        self.bm.run()
+        self.benchmark = BmRegistration(params)
+        self.benchmark.run()
         self.check_benchmark_results()
-        del self.bm
+        del self.benchmark
 
     def check_benchmark_results(self):
         """ check whether the benchmark folder contains all required files
         and compute statistic correctly """
-        path_bm = os.path.join(self.path_out, self.bm.__class__.__name__)
+        path_bm = os.path.join(self.path_out, self.benchmark.__class__.__name__)
         assert os.path.exists(path_bm), \
-            'missing benchmark: %s' % self.bm.__class__.__name__
+            'missing benchmark: %s' % self.benchmark.__class__.__name__
         # required output files
-        for file_name in [bm_regist.NAME_CSV_REGIST,
-                          bm_regist.NAME_CSV_RESULTS,
-                          bm_regist.NAME_TXT_RESULTS]:
+        for file_name in [bm.NAME_CSV_REGIST,
+                          bm.NAME_CSV_RESULTS,
+                          bm.NAME_TXT_RESULTS]:
             assert os.path.exists(os.path.join(path_bm, file_name)), \
                 'missing "%s" file in the benchmark experiment' % file_name
         # load registration file
         df_regist = pd.DataFrame.from_csv(os.path.join(path_bm,
-                                               bm_regist.NAME_CSV_REGIST))
-        # only two records in the bm
-        assert len(df_regist) == 2, \
-            'found only %i records instead of 2' % len(df_regist)
+                                                       bm.NAME_CSV_REGIST))
+        # only two records in the benchmark
+        assert len(df_regist) == len(self.benchmark.df_cover), \
+            'found only %i records instead of %i' % \
+            (len(df_regist), len(self.benchmark.df_cover))
         # check existence of all mentioned files
         for idx, row in df_regist.iterrows():
-            for col in bm_regist.COVER_COLUMNS + [bm_regist.COL_IMAGE_REF_TRANS,
-                                              bm_regist.COL_POINTS_REF_TRANS]:
+            for col in bm.COVER_COLUMNS + \
+                    [bm.COL_IMAGE_REF_WARP, bm.COL_POINTS_REF_WARP]:
                 assert os.path.exists(row[col]), \
                     'missing column "%s" in result table' % col
         # check existence of statistical results
@@ -103,7 +106,9 @@ class TestBmRegistration(unittest.TestCase):
             assert any(stat_name in col for col in df_regist.columns), \
                 'missing statistis "%s"' % stat_name
         # test specific results
-        assert_array_almost_equal(df_regist['Mean [px] (init)'].values,
-                                  np.array([76.43945, 28.0549]), decimal=3)
-        assert_array_almost_equal(df_regist['STD [px] (init)'].values,
-                                  np.array([ 34.41690,  12.76510]), decimal=3)
+        assert_array_almost_equal(sorted(df_regist['Mean [px] (init)'].values),
+                                  np.array([28.055, 68.209, 73.175, 76.439]),
+                                  decimal=3)
+        assert_array_almost_equal(sorted(df_regist['STD [px] (init)'].values),
+                                  np.array([12.765, 28.12, 28.255, 34.417]),
+                                  decimal=3)

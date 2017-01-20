@@ -49,8 +49,10 @@ class Experiment(object):
         self.__check_exist_path()
         self.__create_folder(stamp_unique)
         tl_expt.set_experiment_logger(self.params['path_exp'], FILE_LOGS)
-        if logging.getLogger().getEffectiveLevel() > logging.INFO:
-            logging.getLogger().setLevel(logging.INFO)
+        # set stream logging to info level
+        for lh in logging.getLogger().handlers:
+            if type(lh) is logging.StreamHandler:
+                lh.setLevel(logging.INFO)
         logging.info('initialise experiment...')
         logging.info(tl_expt.string_dict(self.params, 'PARAMS:'))
 
@@ -62,10 +64,15 @@ class Experiment(object):
     def run(self):
         """ running experiment """
         logging.info('running experiment...')
+        self._prepare()
         self._load_data()
         self._perform()
         self._summarise()
         return True
+
+    def _prepare(self):
+        """ prepare the benchmark folder """
+        logging.info('-> preparing registration folder...')
 
     def _load_data(self):
         """ loading data """

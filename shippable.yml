@@ -27,7 +27,7 @@ before_script:
 
 script:
   - nosetests --with-xunit --xunit-file=shippable/testresults/nosetests.xml
-  - nosetests --with-coverage --cover-package=benchmarks
+  - nosetests --with-doctest --with-coverage --cover-package=benchmarks
   - coverage xml -o shippable/codecoverage/coverage.xml
 
 after_success:
