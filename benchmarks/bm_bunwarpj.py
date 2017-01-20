@@ -134,8 +134,10 @@ class BmBUnwarpJ(bm.BmRegistration):
     ...           'path_fiji': '.',
     ...           'path_config_bUnwarpJ': 'configs/ImageJ_bUnwarpJ.txt'}
     >>> benchmark = BmBUnwarpJ(params)
+    >>> benchmark.run()  # doctest: +SKIP
     >>> params['path_config_IJ_SIFT'] = 'configs/ImageJ_SIFT.txt'
     >>> benchmark = BmBUnwarpJ(params)
+    >>> benchmark.run()  # doctest: +SKIP
     >>> del benchmark
     >>> shutil.rmtree('output/BmBUnwarpJ', ignore_errors=True)
     """
