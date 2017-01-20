@@ -119,48 +119,25 @@ def overlap_two_images(image1, image2, transparent=0.5):
     return image
 
 
-def draw_regist_landmarks_ref(image_ref, image_warped, points_ref, points_move,
-                              points_warped, fig_max_size=MAX_FIGURE_SIZE):
+def draw_images_warped_landmarks(image_target, image_source,
+                                 points_init, points_target, points_estim,
+                                 fig_max_size=MAX_FIGURE_SIZE):
     """ composed form several functions - images overlap + landmarks + legend
 
-    :param image_ref: np.array<height, with, dim>
-    :param image_warped: np.array<height, with, dim>
-    :param points_ref: np.array<nb_points, dim>
-    :param points_move: np.array<nb_points, dim>
-    :param points_warped: np.array<nb_points, dim>
+    :param image_target: np.array<height, with, dim>
+    :param image_source: np.array<height, with, dim>
+    :param points_target: np.array<nb_points, dim>
+    :param points_init: np.array<nb_points, dim>
+    :param points_estim: np.array<nb_points, dim>
     :param int fig_max_size: maximal figure size for major image dimension
     :return: object
     """
-    image = overlap_two_images(image_ref, image_warped)
+    image = overlap_two_images(image_target, image_source, transparent=0.3)
     size = np.array(image.shape[:2])
     fig_size = size[::-1] / float(size.max()) * fig_max_size
     fig, ax = plt.subplots(figsize=fig_size)
     ax.imshow(image)
-    draw_landmarks_ref_move_warped(ax, points_move, points_ref, points_warped)
-    ax.legend(loc='lower right', title='Legend')
-    ax.set_xlim([0, image.shape[1]])
-    ax.set_ylim([image.shape[0], 0])
-    ax.axes.get_xaxis().set_ticklabels([])
-    ax.axes.get_yaxis().set_ticklabels([])
-    return fig
-
-
-def draw_regist_landmartks_move(image, points_ref, points_move, points_warped,
-                                fig_max_size=MAX_FIGURE_SIZE):
-    """ composed form several functions - images overlap + landmarks + legend
-
-    :param image: np.array<height, with, dim>
-    :param points_ref: np.array<nb_points, dim>
-    :param points_move: np.array<nb_points, dim>
-    :param points_warped: np.array<nb_points, dim>
-    :param int fig_max_size: maximal figure size for major image dimension
-    :return: object
-    """
-    size = np.array(image.shape[:2])
-    fig_size = size[::-1] / float(size.max()) * fig_max_size
-    fig, ax = plt.subplots(figsize=fig_size)
-    ax.imshow(image)
-    draw_landmarks_ref_move_warped(ax, points_ref, points_move, points_warped)
+    draw_landmarks_ref_move_warped(ax, points_init, points_target, points_estim)
     ax.legend(loc='lower right', title='Legend')
     ax.set_xlim([0, image.shape[1]])
     ax.set_ylim([image.shape[0], 0])

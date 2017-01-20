@@ -256,7 +256,7 @@ class BmBUnwarpJ(bm.BmRegistration):
                                 os.path.basename(dict_row[bm.COL_IMAGE_MOVE]))
         # detect image
         if os.path.exists(path_img):
-            dict_row[bm.COL_IMAGE_MOVE_WARP] = path_img
+            dict_row[bm.COL_IMAGE_REF_WARP] = path_img
 
         # convert the transform do obtain displacement field
         path_macro = os.path.join(path_dir, NAME_MACRO_CONVERT_TRANS)
@@ -272,7 +272,7 @@ class BmBUnwarpJ(bm.BmRegistration):
         path_lnd = os.path.join(path_dir,
                                 os.path.basename(dict_row[bm.COL_POINTS_MOVE]))
         tl_io.save_landmarks_csv(path_lnd, points_warp)
-        dict_row[bm.COL_POINTS_MOVE_WARP] = path_lnd
+        dict_row[bm.COL_POINTS_REF_WARP] = path_lnd
 
         return dict_row
 

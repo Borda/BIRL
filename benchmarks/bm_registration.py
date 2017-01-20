@@ -39,14 +39,20 @@ NAME_IMAGE_REGIST_VISUAL = 'registration_visual_landmarks.jpg'
 # columns names in cover and also registration table
 COL_IMAGE_REF = 'Reference image'
 COL_IMAGE_MOVE = 'Moving image'
-COL_IMAGE_REF_WARP = 'Reference image, Warped'
-COL_IMAGE_MOVE_WARP = 'Moving image, Warped'
+# moving image warped to the reference frame
+COL_IMAGE_REF_WARP = 'Moving image, Warped'
+# reference image warped to the moving frame
+COL_IMAGE_MOVE_WARP = 'Reference image, Warped'
 COL_POINTS_REF = 'Reference landmarks'
 COL_POINTS_MOVE = 'Moving landmarks'
-COL_POINTS_REF_WARP = 'Reference landmarks, Warped'
-COL_POINTS_MOVE_WARP = 'Moving landmarks, Warped'
+# moving landmarks warped to the reference frame
+COL_POINTS_REF_WARP = 'Moving landmarks, Warped'
+# reference landmarks warped to the moving frame
+COL_POINTS_MOVE_WARP = 'Reference landmarks, Warped'
+# registration folder for each particular experiment
 COL_REG_DIR = 'Regist. folder'
 
+# list of columns in cover csv
 COVER_COLUMNS = [COL_IMAGE_REF, COL_IMAGE_MOVE,
                  COL_POINTS_REF, COL_POINTS_MOVE]
 
@@ -260,12 +266,12 @@ class BmRegistration(Experiment):
         self.__compute_landmarks_inaccuracy(idx, points_ref, points_move,
                                             'init')
         # load transformed landmarks
-        if COL_POINTS_MOVE_WARP in dict_row:
+        if COL_POINTS_REF_WARP in dict_row:
             points_target = points_ref
-            points_estim = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE_WARP])
-        elif COL_POINTS_REF_WARP in dict_row:
-            points_target = points_move
             points_estim = tl_io.load_landmarks(dict_row[COL_POINTS_REF_WARP])
+        elif COL_POINTS_MOVE_WARP in dict_row:
+            points_target = points_move
+            points_estim = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE_WARP])
         else:
             logging.error('not allowed scenario: no output landmarks')
         # compute statistic
@@ -296,26 +302,28 @@ class BmRegistration(Experiment):
         image_ref = tl_io.load_image(dict_row[COL_IMAGE_REF])
         points_ref = tl_io.load_landmarks(dict_row[COL_POINTS_REF])
         points_move = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE])
-        assert COL_IMAGE_MOVE_WARP in dict_row, 'missing registered image'
+        assert COL_IMAGE_REF_WARP in dict_row, 'missing registered image'
         # visualise particular experiment by idx
-        if COL_POINTS_MOVE_WARP in dict_row:
-            image_warp = tl_io.load_image(dict_row[COL_IMAGE_MOVE_WARP])
-            points_warp = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE_WARP])
+        if COL_POINTS_REF_WARP in dict_row:
+            image_warp = tl_io.load_image(dict_row[COL_IMAGE_REF_WARP])
+            points_warp = tl_io.load_landmarks(dict_row[COL_POINTS_REF_WARP])
             # draw image with landmarks
             image = tl_visu.draw_image_points(image_warp, points_warp)
             tl_io.save_image(os.path.join(dict_row[COL_REG_DIR],
                                           NAME_IMAGE_MOVE_WARP_POINTS), image)
-            fig = tl_visu.draw_regist_landmarks_ref(image_ref, image_warp,
-                                        points_ref, points_move, points_warp)
-        elif COL_POINTS_REF_WARP in dict_row:
+            # visualise the landmarks move during registration
+            fig = tl_visu.draw_images_warped_landmarks(image_ref, image_warp,
+                                           points_move, points_ref, points_warp)
+        elif COL_POINTS_MOVE_WARP in dict_row:
             image_move = tl_io.load_image(dict_row[COL_IMAGE_MOVE])
             # image_warp = tl_io.load_image(row['Moving image, Transf.'])
-            points_warp = tl_io.load_landmarks(dict_row[COL_POINTS_REF_WARP])
+            points_warp = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE_WARP])
             # draw image with landmarks
-            image = tl_visu.draw_image_points(image_ref, points_warp)
+            image = tl_visu.draw_image_points(image_move, points_warp)
             tl_io.save_image(os.path.join(dict_row[COL_REG_DIR],
                                           NAME_IMAGE_REF_POINTS_WARP), image)
-            fig = tl_visu.draw_regist_landmartks_move(image_move,
+            # visualise the landmarks move during registration
+            fig = tl_visu.draw_images_warped_landmarks(image_ref, image_move,
                                      points_ref, points_move, points_warp)
         else:
             logging.error('not allowed scenario: no output image or landmarks')
@@ -380,12 +388,12 @@ class BmRegistration(Experiment):
         path_img = os.path.join(dict_row[COL_REG_DIR],
                                 os.path.basename(dict_row[COL_IMAGE_MOVE]))
         if os.path.exists(path_img):
-            dict_row[COL_IMAGE_MOVE_WARP] = path_img
+            dict_row[COL_IMAGE_REF_WARP] = path_img
         # detect landmarks
         path_lnd = os.path.join(dict_row[COL_REG_DIR],
                                 os.path.basename(dict_row[COL_POINTS_MOVE]))
         if os.path.exists(path_lnd):
-            dict_row[COL_POINTS_MOVE_WARP] = path_lnd
+            dict_row[COL_POINTS_REF_WARP] = path_lnd
 
         return dict_row
 
