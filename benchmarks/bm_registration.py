@@ -33,8 +33,9 @@ NAME_CSV_REGIST = 'registration.csv'
 NAME_CSV_RESULTS = 'results.csv'
 NAME_TXT_RESULTS = 'results.txt'
 NAME_LOG_REGIST = 'registration.log'
-NAME_IMAGE_REGIST_POINTS = 'registration_landmarks.jpg'
-NAME_IMAGE_REGIST_VISUAL = 'registration_visual.jpg'
+NAME_IMAGE_MOVE_WARP_POINTS = 'image_warped_landmarks_warped.jpg'
+NAME_IMAGE_REF_POINTS_WARP = 'image_ref_landmarks_warped.jpg'
+NAME_IMAGE_REGIST_VISUAL = 'registration_visual_landmarks.jpg'
 # columns names in cover and also registration table
 COL_IMAGE_REF = 'Reference image'
 COL_IMAGE_MOVE = 'Moving image'
@@ -292,24 +293,28 @@ class BmRegistration(Experiment):
         :param (int, dict) df_row: tow from iterated table
         """
         idx, dict_row = df_row
+        image_ref = tl_io.load_image(dict_row[COL_IMAGE_REF])
         points_ref = tl_io.load_landmarks(dict_row[COL_POINTS_REF])
         points_move = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE])
         assert COL_IMAGE_MOVE_WARP in dict_row, 'missing registered image'
         # visualise particular experiment by idx
         if COL_POINTS_MOVE_WARP in dict_row:
-            image_ref = tl_io.load_image(dict_row[COL_IMAGE_REF])
             image_warp = tl_io.load_image(dict_row[COL_IMAGE_MOVE_WARP])
             points_warp = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE_WARP])
             # draw image with landmarks
             image = tl_visu.draw_image_points(image_warp, points_warp)
             tl_io.save_image(os.path.join(dict_row[COL_REG_DIR],
-                                          NAME_IMAGE_REGIST_POINTS), image)
+                                          NAME_IMAGE_MOVE_WARP_POINTS), image)
             fig = tl_visu.draw_regist_landmarks_ref(image_ref, image_warp,
                                         points_ref, points_move, points_warp)
         elif COL_POINTS_REF_WARP in dict_row:
             image_move = tl_io.load_image(dict_row[COL_IMAGE_MOVE])
             # image_warp = tl_io.load_image(row['Moving image, Transf.'])
             points_warp = tl_io.load_landmarks(dict_row[COL_POINTS_REF_WARP])
+            # draw image with landmarks
+            image = tl_visu.draw_image_points(image_ref, points_warp)
+            tl_io.save_image(os.path.join(dict_row[COL_REG_DIR],
+                                          NAME_IMAGE_REF_POINTS_WARP), image)
             fig = tl_visu.draw_regist_landmartks_move(image_move,
                                      points_ref, points_move, points_warp)
         else:
