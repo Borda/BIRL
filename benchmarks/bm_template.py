@@ -107,12 +107,12 @@ class BmTemplate(bm.BmRegistration):
         path_img = os.path.join(dict_row[bm.COL_REG_DIR],
                                 os.path.basename(dict_row[bm.COL_IMAGE_MOVE]))
         if os.path.exists(path_img):
-            dict_row[bm.COL_IMAGE_REF_WARP] = path_img
+            dict_row[bm.COL_IMAGE_MOVE_WARP] = path_img
         # detect landmarks
         path_lnd = os.path.join(dict_row[bm.COL_REG_DIR],
                                 os.path.basename(dict_row[bm.COL_POINTS_REF]))
         if os.path.exists(path_img):
-            dict_row[bm.COL_POINTS_MOVE_WARP] = path_lnd
+            dict_row[bm.COL_POINTS_REF_WARP] = path_lnd
 
         return dict_row
 

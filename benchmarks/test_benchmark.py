@@ -98,7 +98,7 @@ class TestBmRegistration(unittest.TestCase):
         # check existence of all mentioned files
         for idx, row in df_regist.iterrows():
             for col in bm.COVER_COLUMNS + \
-                    [bm.COL_IMAGE_REF_WARP, bm.COL_POINTS_REF_WARP]:
+                    [bm.COL_IMAGE_MOVE_WARP, bm.COL_POINTS_MOVE_WARP]:
                 assert os.path.exists(row[col]), \
                     'missing column "%s" in result table' % col
         # check existence of statistical results

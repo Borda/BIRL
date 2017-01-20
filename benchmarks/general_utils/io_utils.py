@@ -235,7 +235,7 @@ def load_parse_bunwarpj_displacements_warp_points(path_file, points):
     :return: np.array<nb_points, 2>
 
     >>> fp = open('./my_transform.txt', 'w')
-    >>> _ = fp.write('''Width=5
+    >>> fp.write('''Width=5
     ... Height=4
     ...
     ... X Trans -----------------------------------
@@ -248,7 +248,7 @@ def load_parse_bunwarpj_displacements_warp_points(path_file, points):
     ... 20 20 20 20 20
     ... 21 21 21 21 21
     ... 22 22 22 22 22
-    ... 23 23 23 23 23''')
+    ... 23 23 23 23 23''')  # doctest: +ELLIPSIS
     >>> fp.close()
     >>> points = np.array([[1, 1], [4, 0], [2, 3]])
     >>> load_parse_bunwarpj_displacements_warp_points('./my_transform.txt',
@@ -272,14 +272,14 @@ def load_parse_bunwarpj_displacements_warp_points(path_file, points):
 
     # read inter line
     fp.readline(), fp.readline()
-    # read X Trans
+    # read inter line and Transform notation
     points_x = load_parse_bunwarpj_displacement_axis(fp, size, points)
 
-    # read inter line
+    # read inter line and Transform notation
     fp.readline(), fp.readline()
     # read Y Trans
     points_y = load_parse_bunwarpj_displacement_axis (fp, size, points)
     fp.close()
 
-    points_new = np.array(zip(points_x, points_y), dtype=float)
+    points_new = np.vstack((points_x, points_y)).T
     return points_new
