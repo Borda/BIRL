@@ -28,12 +28,15 @@ NOTE:
 
 Copyright (C) 2017 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
+from __future__ import absolute_import
 
 import os
+import sys
 import logging
 
 import shutil
 
+sys.path.append(os.path.abspath('.'))  # Add path to root
 import benchmarks.general_utils.io_utils as tl_io
 import benchmarks.general_utils.experiments as tl_expt
 import benchmarks.bm_registration as bm

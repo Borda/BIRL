@@ -3,6 +3,7 @@ General template for experiments
 
 Copyright (C) 2016 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
+from __future__ import absolute_import
 
 import os
 import json
@@ -10,8 +11,8 @@ import copy
 import logging
 import shutil
 
-import benchmarks.general_utils.experiments as tl_expt
 import benchmarks.general_utils.io_utils as tl_io
+import benchmarks.general_utils.experiments as tl_expt
 
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 CONFIG_JSON = 'config.json'

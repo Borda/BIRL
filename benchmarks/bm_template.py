@@ -6,18 +6,24 @@ INSTALLATION:
 1. ...
 
 EXAMPLE (usage):
->> python bm_registration.py \
-    -in ../data/list_pairs_imgs_lnds.csv -out ../output --unique \
-    --an_executable none
+>>> os.system('mkdir output')  # doctest: +SKIP
+>>> cmd = '''python benchmarks/bm_template.py \
+    -in data/list_pairs_imgs_lnds.csv -out output --unique \
+    --an_executable none'''
+>>> os.system(cmd)
+0
 
 Copyright (C) 2017 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
+from __future__ import absolute_import
 
 import os
+import sys
 import logging
 
 import shutil
 
+sys.path.append(os.path.abspath('.'))  # Add path to root
 import benchmarks.general_utils.io_utils as tl_io
 import benchmarks.general_utils.experiments as tl_expt
 import benchmarks.bm_registration as bm
@@ -48,7 +54,14 @@ class BmTemplate(bm.BmRegistration):
 
     Running in single thread:
     >>> tl_io.create_dir('output')
-    >>> params = {'nb_jobs': 1, 'unique': False, 'path_out': 'output',
+    >>> main({'nb_jobs': 1, 'unique': False, 'path_out': 'output',
+    ...       'path_cover': 'data/list_pairs_imgs_lnds.csv',
+    ...       'an_executable': ''})
+    >>> shutil.rmtree('output/BmTemplate', ignore_errors=True)
+
+    Running in 2 threads:
+    >>> tl_io.create_dir('output')
+    >>> params = {'nb_jobs': 2, 'unique': False, 'path_out': 'output',
     ...           'path_cover': 'data/list_pairs_imgs_lnds.csv',
     ...           'an_executable': ''}
     >>> benchmark = BmTemplate(params)
@@ -91,8 +104,8 @@ class BmTemplate(bm.BmRegistration):
                               target_img),
                 'cp %s %s' % (os.path.abspath(dict_row[bm.COL_POINTS_REF]),
                               target_lnd)]
-        cmd = ' && '.join(cmds)
-        return cmd
+        command = ' && '.join(cmds)
+        return command
 
     def _evaluate_single_regist(self, dict_row):
         """ evaluate rests of the experiment and identity the registered image

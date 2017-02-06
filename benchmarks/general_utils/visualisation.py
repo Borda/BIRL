@@ -3,6 +3,7 @@ Function for drawing and visualisations
 
 Copyright (C) 2017 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
+from __future__ import absolute_import
 
 import os
 

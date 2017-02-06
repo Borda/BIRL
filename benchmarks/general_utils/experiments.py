@@ -4,6 +4,7 @@ General experiments methods
 
 Copyright (C) 2016 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
+from __future__ import absolute_import
 
 import os
 import time
@@ -111,6 +112,10 @@ def create_basic_parse():
     """ create the basic arg parses
 
     :return object:
+
+    >>> parser = create_basic_parse()
+    >>> type(parser)
+    <class 'argparse.ArgumentParser'>
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
@@ -132,6 +137,9 @@ def parse_params(parser):
 
     :param parser: object of parser
     :return: {str: any}, int
+
+    >>> args = create_basic_parse()
+    >>> parse_params(args)  # doctest: +SKIP
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     args = vars(parser.parse_args())

@@ -4,11 +4,15 @@ It also serves for evaluating the input registration pairs
 (while no registration is performed, there is only the initial deformation)
 
 EXAMPLE (usage):
->> python bm_registration.py \
-    -in ../data/list_pairs_imgs_lnds.csv -out ../output --unique
+>>> os.system('mkdir output')  # doctest: +SKIP
+>>> cmd = '''python benchmarks/bm_registration.py \
+    -in data/list_pairs_imgs_lnds.csv -out output --unique'''
+>>> os.system(cmd)
+0
 
 Copyright (C) 2016-2017 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
+from __future__ import absolute_import
 
 import os
 import sys
@@ -21,6 +25,7 @@ import tqdm
 import numpy as np
 import pandas as pd
 
+sys.path.append(os.path.abspath('.'))  # Add path to root
 import benchmarks.general_utils.io_utils as tl_io
 import benchmarks.general_utils.experiments as tl_expt
 import benchmarks.general_utils.visualisation as tl_visu
@@ -94,8 +99,15 @@ class BmRegistration(Experiment):
 
     Running in single thread:
     >>> tl_io.create_dir('output')
-    >>> params = {'nb_jobs': 1, 'unique': False, 'path_out': 'output',
+    >>> main({'nb_jobs': 1, 'unique': False, 'path_out': 'output',
+    ...       'path_cover': 'data/list_pairs_imgs_lnds.csv'})
+    >>> shutil.rmtree('output/BmRegistration', ignore_errors=True)
+
+    Running in 2 threads:
+    >>> tl_io.create_dir('output')
+    >>> params = {'nb_jobs': 2, 'unique': False, 'path_out': 'output',
     ...           'path_cover': 'data/list_pairs_imgs_lnds.csv'}
+    >>> main(params)
     >>> benchmark = BmRegistration(params)
     >>> benchmark.run()
     True

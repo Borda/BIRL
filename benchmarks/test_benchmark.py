@@ -4,6 +4,7 @@ Check whether it generates correct outputs and resulting values
 
 Copyright (C) 2017 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
+from __future__ import absolute_import
 
 import os
 import unittest
@@ -14,8 +15,7 @@ import pandas as pd
 from numpy.testing import assert_raises, assert_array_almost_equal
 
 from benchmarks.general_utils.io_utils import try_find_upper_folders
-from benchmarks import bm_registration as bm
-from benchmarks.bm_registration import BmRegistration
+import benchmarks.bm_registration as bm
 
 PATH_CSV_COVER = try_find_upper_folders('data/list_pairs_imgs_lnds.csv')
 
@@ -46,9 +46,9 @@ class TestBmRegistration(unittest.TestCase):
         for miss in ['path_cover', 'path_out', 'nb_jobs', 'unique']:
             params_miss = params.copy()
             del params_miss[miss]
-            assert_raises(AssertionError, BmRegistration, params_miss)
+            assert_raises(AssertionError, bm.BmRegistration, params_miss)
         # not defined output folder
-        assert_raises(Exception, BmRegistration, params)
+        assert_raises(Exception, bm.BmRegistration, params)
 
     def test_benchmark_parallel(self):
         """ test run in parallel (2 threads) """
@@ -58,7 +58,7 @@ class TestBmRegistration(unittest.TestCase):
             'nb_jobs': 2,
             'unique': False,
         }
-        self.benchmark = BmRegistration(params)
+        self.benchmark = bm.BmRegistration(params)
         self.benchmark.run()
         self.check_benchmark_results()
         del self.benchmark
@@ -71,7 +71,7 @@ class TestBmRegistration(unittest.TestCase):
             'nb_jobs': 1,
             'unique': False,
         }
-        self.benchmark = BmRegistration(params)
+        self.benchmark = bm.BmRegistration(params)
         self.benchmark.run()
         self.check_benchmark_results()
         del self.benchmark
