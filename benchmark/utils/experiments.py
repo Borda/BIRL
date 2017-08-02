@@ -2,7 +2,7 @@
 General experiments methods
 
 
-Copyright (C) 2016 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 
@@ -15,7 +15,7 @@ import traceback
 
 import numpy as np
 
-import benchmarks.general_utils.io_utils as tl_io
+import benchmark.utils.data_io as tl_io
 
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 FILE_LOGS = 'logging.txt'
@@ -46,7 +46,7 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
         logging.warning('particular out folder already exists')
         path_exp += ':' + str(random.randint(0, 9))
     logging.info('creating experiment folder "{}"'.format(path_exp))
-    tl_io.create_dir(path_exp)
+    path_exp = tl_io.create_dir(path_exp)
     return path_exp
 
 
@@ -65,7 +65,7 @@ def set_experiment_logger(path_out, file_name=FILE_LOGS, reset=True):
     >>> os.remove(FILE_LOGS)
     """
     log = logging.getLogger()
-    log.setLevel(logging.DEBUG)
+    # log.setLevel(logging.DEBUG)
     if reset:
         close_file_loggers()
     path_logger = os.path.join(path_out, file_name)
@@ -125,11 +125,42 @@ def create_basic_parse():
                         help='path to the output directory')
     parser.add_argument('--unique', dest='unique', action='store_true',
                         help='whether each experiment have unique time stamp')
+    parser.add_argument('--visual', dest='unique', action='store_true',
+                        help='whether visualise partial results')
     parser.add_argument('--lock_expt', dest='lock_thread', action='store_true',
                         help='whether lock to run experiment in single therad')
     parser.add_argument('--nb_jobs', type=int, required=False, default=1,
                         help='number of registration running in parallel')
     return parser
+
+
+def check_paths(args, restrict_dir=[]):
+    """
+
+    :param {} args:
+    :param [str] restrict_dir:
+
+    >>> check_paths({'sample': 123})
+    True
+    >>> check_paths({'path_': '.'})
+    True
+    >>> check_paths({'path_out': './nothing'}, restrict_dir=['path_out'])
+    True
+    >>> check_paths({'path_out': './nothing'})  # doctest: +ELLIPSIS
+    False
+    """
+    status = True
+    for k in (k for k in args if 'path' in k):
+        if '*' in os.path.basename(args[k]) or k in restrict_dir:
+            p = tl_io.update_path(os.path.dirname(args[k]))
+            args[k] = os.path.join(p, os.path.basename(args[k]))
+        else:
+            args[k] = tl_io.update_path(args[k])
+            p = args[k]
+        if not os.path.exists(p):
+            logging.error('missing "%s"' % p)
+            status = False
+    return status
 
 
 def parse_params(parser):
@@ -147,10 +178,7 @@ def parse_params(parser):
     # remove all None parameters
     args = {k: args[k] for k in args if args[k] is not None}
     # extend nd test all paths in params
-    for k in (k for k in args if 'path' in k):
-        args[k] = os.path.abspath(os.path.expanduser(args[k]))
-        p = os.path.dirname(args[k]) if '*' in args[k] else args[k]
-        assert os.path.exists(p), 'missing "%s"' % p
+    assert check_paths(args)
     return args
 
 
@@ -168,6 +196,7 @@ def run_command_line(cmd, path_logger=None):
     if path_logger is not None and not os.path.exists(path_logger):
         cmd += " >> " + path_logger
     try:
+        # TODO: out = subprocess.call(cmd, timeout=TIMEOUT, shell=True)
         os.system(cmd)
         return True
     except:

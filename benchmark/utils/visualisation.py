@@ -1,20 +1,23 @@
 """
 Function for drawing and visualisations
 
-Copyright (C) 2017 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 
 import os
+import logging
+
+import matplotlib
+if os.environ.get('DISPLAY', '') == '':
+    logging.warning('No display found. Using non-interactive Agg backend')
+    matplotlib.use('Agg')
 
 import numpy as np
-import matplotlib
-# Force matplotlib to not use any Xwindows backend.
-matplotlib.use('Agg')
 import matplotlib.pylab as plt
 from PIL import Image, ImageDraw
 
-import benchmarks.general_utils.io_utils as tl_io
+import benchmark.utils.data_io as tl_io
 
 MAX_FIGURE_SIZE = 18
 
@@ -22,16 +25,29 @@ MAX_FIGURE_SIZE = 18
 def draw_image_points(image, points, color='green', marker_size=5, shape='o'):
     """ draw marker in the image and add to each landmark its index
 
-    :param image: np.ndarray
-    :param points: np.array<nb_points, dim>
+    :param ndarray image: input image
+    :param ndarray points: np.array<nb_points, dim>
     :param str color: color of the marker
     :param int marker_size: radius of the circular marker
     :param str shape: marker shape: 'o' for circle, '.' for dot
     :return: np.ndarray
 
-    >>> image = np.random.random((50, 50, 3))
-    >>> points = np.array([[20, 30], [40, 10], [15, 25]])
-    >>> image = draw_image_points(image, points)
+    >>> image = np.zeros((10, 10, 3))
+    >>> points = np.array([[7, 9], [2, 2], [5, 5]])
+    >>> img = draw_image_points(image, points, marker_size=1)
+    >>> img.shape
+    (10, 10, 3)
+    >>> np.round(img[:, :, 1], 2)
+    array([[ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0.5,  0.5,  0.5,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0.5,  0. ,  0.5,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0.5,  0.5,  0.5,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  0. ,  0.5,  0.5,  0.5,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  0. ,  0.5,  0. ,  0.5,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  0. ,  0.5,  0.5,  0.5,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0.5,  0. ]])
     """
     image = tl_io.convert_ndarray_2_image(image)
     draw = ImageDraw.Draw(image)
@@ -66,17 +82,17 @@ def draw_landmarks_origin_target_estim(ax, points_origin, points_target,
     estimate - transformed landmarks
 
     :param ax: matplotlib figure
-    :param points_origin: np.array<nb_points, dim>
-    :param points_target: np.array<nb_points, dim>
-    :param points_estim: np.array<nb_points, dim>
+    :param ndarray points_origin: np.array<nb_points, dim>
+    :param ndarray points_target: np.array<nb_points, dim>
+    :param ndarray points_estim: np.array<nb_points, dim>
     :param str marker: set the marker shape
 
     >>> points = np.array([[20, 30], [40, 10], [15, 25]])
     >>> draw_landmarks_origin_target_estim(plt.figure().gca(),
-    ...                                points, points + 1, points - 1)
+    ...                                    points, points + 1, points - 1)
     """
-    assert points_target.shape == points_origin.shape
-    assert points_origin.shape == points_estim.shape
+    assert points_target.shape == points_origin.shape, 'image dimension has to match'
+    assert points_origin.shape == points_estim.shape, 'image dimension has to match'
     ax.plot(points_origin[:, 0], points_origin[:, 1], marker, color='b',
             label='Original positions')
     # draw a dotted line between origin and where it should be
@@ -97,8 +113,8 @@ def draw_landmarks_origin_target_estim(ax, points_origin, points_target,
 def overlap_two_images(image1, image2, transparent=0.5):
     """ merge two images togeher with transparency level
 
-    :param image1: np.array<height, with, dim>
-    :param image2: np.array<height, with, dim>
+    :param ndarray image1: np.array<height, with, dim>
+    :param ndarray image2: np.array<height, with, dim>
     :param float transparent: level ot transparency in range (0, 1)
         with 1 to see only first image nad 0 to see the second one
     :return: np.array<height, with, dim>
@@ -113,8 +129,8 @@ def overlap_two_images(image1, image2, transparent=0.5):
            [ 0.5,  0.5,  0.5,  0.5,  0.5,  0.1],
            [ 0.4,  0.4,  0.4,  0.4,  0.4,  0. ]])
     """
-    assert image1.ndim == 3
-    assert image1.ndim == image2.ndim
+    assert image1.ndim == 3, 'required RGB images'
+    assert image1.ndim == image2.ndim, 'image dimension has to match'
     size1, size2 = image1.shape, image2.shape
     max_size = np.max(np.array([size1, size2]), axis=0)
     image = np.zeros(max_size)
@@ -125,26 +141,26 @@ def overlap_two_images(image1, image2, transparent=0.5):
 
 def draw_images_warped_landmarks(image_target, image_source,
                                  points_init, points_target, points_estim,
-                                 fig_max_size=MAX_FIGURE_SIZE):
+                                 figsize_max=MAX_FIGURE_SIZE):
     """ composed form several functions - images overlap + landmarks + legend
 
-    :param image_target: np.array<height, with, dim>
-    :param image_source: np.array<height, with, dim>
-    :param points_target: np.array<nb_points, dim>
-    :param points_init: np.array<nb_points, dim>
-    :param points_estim: np.array<nb_points, dim>
-    :param int fig_max_size: maximal figure size for major image dimension
+    :param ndarray image_target: np.array<height, with, dim>
+    :param ndarray image_source: np.array<height, with, dim>
+    :param ndarray points_target: np.array<nb_points, dim>
+    :param ndarray points_init: np.array<nb_points, dim>
+    :param ndarray points_estim: np.array<nb_points, dim>
+    :param int figsize_max: maximal figure size for major image dimension
     :return: object
 
     >>> image = np.random.random((50, 50, 3))
     >>> points = np.array([[20, 30], [40, 10], [15, 25]])
     >>> fig = draw_images_warped_landmarks(image, 1 - image,
-    ...                                    points, points + 1, points - 1)
+    ...                              points, points + 1, points - 1)  # doctest: +ELLIPSIS
+    >>> isinstance(fig, plt.Figure)
+    True
     """
     image = overlap_two_images(image_target, image_source, transparent=0.3)
-    size = np.array(image.shape[:2])
-    fig_size = size[::-1] / float(size.max()) * fig_max_size
-    fig, ax = plt.subplots(figsize=fig_size)
+    fig, ax = create_figure(image.shape, figsize_max)
     ax.imshow(image)
     draw_landmarks_origin_target_estim(ax, points_init, points_target, points_estim)
     ax.legend(loc='lower right', title='Legend')
@@ -155,14 +171,33 @@ def draw_images_warped_landmarks(image_target, image_source,
     return fig
 
 
+def create_figure(im_size, figsize_max=MAX_FIGURE_SIZE):
+    """ create an empty figure of image size maximise maximal size
+
+    :param (int, int) im_size:
+    :param float figsize_max:
+    :return:
+
+    >>> fig, ax = create_figure((100, 150, 3))
+    >>> isinstance(fig, plt.Figure)
+    True
+    """
+    assert len(im_size) >= 2, 'not valide image size'
+    size = np.array(im_size[:2])
+    fig_size = size[::-1] / float(size.max()) * figsize_max
+    fig, ax = plt.subplots(figsize=fig_size)
+    return fig, ax
+
+
 def export_figure(path_fig, fig):
     """ export the figure and close it afterwords
 
     :param str path_fig: path to the new figure image
     :param fig: object
 
-    >>> export_figure('./sample_figure.jpg', plt.figure())
-    >>> os.remove('./sample_figure.jpg')
+    >>> path_fig = './sample_figure.jpg'
+    >>> export_figure(path_fig, plt.figure())
+    >>> os.remove(path_fig)
     """
     assert os.path.exists(os.path.dirname(path_fig))
     fig.subplots_adjust(left=0., right=1., top=1., bottom=0.)

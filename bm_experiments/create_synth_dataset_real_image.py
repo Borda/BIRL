@@ -4,19 +4,26 @@ The output is set of geometrical deformed images with also change color space
 and related computed new landmarks.
 
 Example run:
->> python create_dataset_real_image_synthetic_deformation.py \
-    -img ../data/images/Rat_Kidney_HE.jpg \
-    -lnd ../data/landmarks/Rat_Kidney_HE.csv \
+>> python create_synth_dataset_real_image.py \
+    -img ../data_images/images/Rat_Kidney_HE.jpg \
+    -lnd ../data_images/landmarks/Rat_Kidney_HE.csv \
     -out ../output/synth_dataset
 
-Copyright (C) 2016 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
+import sys
 import argparse
 import logging
 import multiprocessing as mproc
 from functools import partial
+
+import matplotlib
+# in case you are running on machine without display, e.g. server
+if os.environ.get('DISPLAY', '') == '':
+    logging.warning('No display found. Using non-interactive Agg backend')
+    matplotlib.use('Agg')
 
 import tqdm
 import numpy as np
@@ -26,7 +33,11 @@ from PIL import Image
 from scipy import ndimage, stats, interpolate
 import matplotlib.pyplot as plt
 
-COLUMNS_COORD = ['Y', 'X']
+sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
+import benchmark.utils.experiments as tl_expt
+import benchmark.utils.data_io as tl_io
+
+COLUMNS_COORD = tl_io.LANDMARK_COORDS
 NB_THREADS = int(mproc.cpu_count() * .8)
 NB_DEFORMATIONS = 5
 HUE_SHIFT_MIN = 20
@@ -49,20 +60,18 @@ def arg_parse_params():
                         help='path to the input landmarks')
     parser.add_argument('-out', '--path_out', type=str, required=True,
                         help='path to the output folder')
-    parser.add_argument('-nb', '--nb_deforms', type=int, required=False,
+    parser.add_argument('-nb', '--nb_samples', type=int, required=False,
                         help='number of deromed images',
                         default=NB_DEFORMATIONS)
-    parser.add_argument('--visu', type=bool, required=False, default=False,
-                        help='visualise the landmarks in images')
+    parser.add_argument('--visual', action='store_true', required=False,
+                        default=False, help='visualise the landmarks in images')
     parser.add_argument('--nb_jobs', type=int, required=False,
                         help='number of processes in parallel',
                         default=NB_THREADS)
     args = vars(parser.parse_args())
-    logging.info('ARG PARAMS: \n %s', repr(args))
-    for k in (k for k in args if 'path' in k):
-        args[k] = os.path.abspath(os.path.expanduser(args[k]))
-        assert os.path.exists(args[k]), '%s' % args[k]
-    args['visu'] = bool(args['visu'])
+    logging.info(tl_expt.string_dict(args, 'ARGUMENTS:'))
+    assert tl_expt.check_paths(args, ['path_out'])
+    args['visual'] = bool(args['visual'])
     return args
 
 
@@ -114,8 +123,8 @@ def generate_deformation_field_rbf(shape, points, max_deform=DEFORMATION_MAX,
     :param int nb_bound_points: number of fix boundary points
     :return: np.array<shape>
     """
-    x_point = points[:, 0]
-    y_point = points[:, 1]
+    # x_point = points[:, 0]
+    # y_point = points[:, 1]
     # generate random shifting
     move = (np.random.random(points.shape[0]) - 0.5) * max_deform
 
@@ -124,18 +133,19 @@ def generate_deformation_field_rbf(shape, points, max_deform=DEFORMATION_MAX,
     bound = np.ones(nb_bound_points - 1)
     x_bound = np.linspace(0, shape[0] - 1, nb_bound_points)
     y_bound = np.linspace(0, shape[1] - 1, nb_bound_points)
-    x_point = np.hstack((x_point, 0 * bound, x_bound[:-1],
+    x_point = np.hstack((points[:, 0], 0 * bound, x_bound[:-1],
                          (shape[0] - 1) * bound, x_bound[::-1][:-1]))
-    y_point = np.hstack((y_point, y_bound[:-1], (shape[1] - 1) * bound,
+    y_point = np.hstack((points[:, 1], y_bound[:-1], (shape[1] - 1) * bound,
                          y_bound[::-1][:-1], 0 * bound))
     # the boundary points sex as 0 shift
     move = np.hstack((move, np.zeros(4 * nb_bound_points - 4)))
     # create the interpolation function
-    smooth = 0.5 * max_deform
+    smooth = 0.2 * max_deform
     rbf = interpolate.Rbf(x_point, y_point, move, function='thin-plate',
                           epsilon=1, smooth=smooth)
     # interpolate in regular grid
-    x_grid, y_grid = np.mgrid[0:shape[0], 0:shape[1]]
+    x_grid, y_grid = np.mgrid[0:shape[0], 0:shape[1]].astype(np.int32)
+    # FIXME: it takes to much of RAM memory, for sample image more that 8GM !
     deform = rbf(x_grid, y_grid)
     return deform
 
@@ -154,6 +164,8 @@ def deform_image_landmarks(image, points, max_deform=DEFORMATION_MAX):
     nb_fix_points = int(np.max(image.shape) / max_deform * 2.)
     x_deform = generate_deformation_field_rbf(image.shape[:2], points,
                                               max_deform, nb_fix_points)
+    # TODO: look for another elastic deformation which is friendly to Memory usage
+    # -> generate random elastic deformation and using this field get new landmarks
     y_deform = generate_deformation_field_rbf(image.shape[:2], points,
                                               max_deform, nb_fix_points)
     # interpolate the image
@@ -169,11 +181,11 @@ def deform_image_landmarks(image, points, max_deform=DEFORMATION_MAX):
     return img_warped, pts_warped
 
 
-def image_color_shift_hue(image, sat_change=True):
+def image_color_shift_hue(image, change_satur=True):
     """ take the original image and shift the colour space in HUE
 
     :param image: np.array<height, width, 3>
-    :param bool sat_change: whether change also the saturation
+    :param bool change_satur: whether change also the saturation
     :return: np.array<height, width, 3>
 
     """
@@ -191,7 +203,7 @@ def image_color_shift_hue(image, sat_change=True):
     img_hsv = matplotlib.colors.rgb_to_hsv(image)
     # color transformation
     img_hsv[:, :, 0] = (img_hsv[:, :, 0] + (h_shift / 360.0)) % 1.0
-    if sat_change:
+    if change_satur:
         img_hsv[:, :, 1] = img_hsv[:, :, 1] ** s_power
 
     image = matplotlib.colors.hsv_to_rgb(img_hsv)
@@ -288,6 +300,12 @@ def main(params):
     """
     logging.info('running...')
 
+    if not os.path.isdir(params['path_out']):
+        logging.info('creating folder: %s', params['path_out'])
+        os.mkdir(params['path_out'])
+    else:
+        logging.warning('using existing folder: %s', params['path_out'])
+
     image = np.array(Image.open(params['path_image']))
     logging.debug('loaded image, shape: %s', image.shape)
     df_points = pd.DataFrame.from_csv(params['path_landmarks'])
@@ -298,24 +316,24 @@ def main(params):
     name_points = get_name(params['path_landmarks'])
 
     export_image_landmarks(image, points, 0, params['path_out'],
-                           name_img, name_points, visual=params['visu'])
+                           name_img, name_points, visual=params['visual'])
 
     # create the wrapper for parallel usage
     wrapper_deform_export = partial(perform_deform_export, image=image,
                                     points=points, path_out=params['path_out'],
                                     name_img=name_img, name_points=name_points,
-                                    visual=params['visu'])
+                                    visual=params['visual'])
 
-    tqdm_bar = tqdm.tqdm(total=params['nb_deforms'])
+    tqdm_bar = tqdm.tqdm(total=params['nb_samples'])
     if params['nb_jobs'] > 1:
         mproc_pool = mproc.Pool(params['nb_jobs'])
-        for r in mproc_pool.imap_unordered(wrapper_deform_export,
-                                           range(params['nb_deforms'])):
+        for _ in mproc_pool.imap_unordered(wrapper_deform_export,
+                                           range(params['nb_samples'])):
             tqdm_bar.update()
         mproc_pool.close()
         mproc_pool.join()
     else:
-        for i in range(params['nb_deforms']):
+        for i in range(params['nb_samples']):
             wrapper_deform_export(i)
             tqdm_bar.update()
 

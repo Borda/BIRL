@@ -1,7 +1,7 @@
 """
 Useful function for managing Input/Output
 
-Copyright (C) 2017 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
-LANDMARK_COORDS = ['X', 'Y']
+LANDMARK_COORDS = ['Y', 'X']
 
 
 def create_dir(path_dir):
@@ -19,10 +19,12 @@ def create_dir(path_dir):
 
     :param str path_dir:
     """
-    if not os.path.exists(path_dir):
+    path_dir = os.path.abspath(path_dir)
+    if not os.path.isdir(path_dir):
         os.makedirs(path_dir, mode=0o775)
     else:
         logging.warning('Folder already exists: %s', path_dir)
+    return path_dir
 
 
 def load_landmarks(path_file):
@@ -59,7 +61,8 @@ def load_landmarks_txt(path_file):
 
     >>> points = np.array([[1, 2], [3, 4], [5, 6]])
     >>> save_landmarks_txt('./sample_landmarks.txt', points)
-    >>> load_landmarks_txt('./sample_landmarks.txt')
+    >>> pts = load_landmarks_txt('./sample_landmarks.txt')
+    >>> pts  # doctest: +NORMALIZE_WHITESPACE
     array([[ 1.,  2.],
            [ 3.,  4.],
            [ 5.,  6.]])
@@ -82,7 +85,8 @@ def load_landmarks_csv(path_file):
 
     >>> points = np.array([[1, 2], [3, 4], [5, 6]])
     >>> save_landmarks_csv('./sample_landmarks.csv', points)
-    >>> load_landmarks_csv('./sample_landmarks.csv')
+    >>> pts = load_landmarks_csv('./sample_landmarks.csv')
+    >>> pts  # doctest: +NORMALIZE_WHITESPACE
     array([[1, 2],
            [3, 4],
            [5, 6]])
@@ -131,16 +135,33 @@ def save_landmarks_csv(path_file, landmarks):
     df.to_csv(path_file)
 
 
-def try_find_upper_folders(path_file, depth=5):
-    """ try to bubble up the until max depth of find such path
+def update_path(path_file, lim_depth=5, absolute=True):
+    """ bubble in the folder tree up intil it found desired file
+    otherwise return original one
 
-    :param str path_file: original path to the file
-    :param int depth: max depth of up bubbling
-    :return str: resulting path file
+    :param str path_file:
+    :param int lim_depth:
+    :return str:
+
+    >>> path = 'sample_file.test'
+    >>> f = open(path, 'w')
+    >>> update_path(path, absolute=False)
+    'sample_file.test'
+    >>> os.remove(path)
     """
-    while not os.path.exists(path_file) and depth > 0:
-        path_file = os.path.join('..', path_file)
-        depth -= 1
+    if path_file.startswith('/'):
+        return path_file
+    elif path_file.startswith('~'):
+        path_file = os.path.expanduser(path_file)
+    else:
+        tmp_path = path_file
+        for depth in range(lim_depth):
+            if os.path.exists(tmp_path):
+                path_file = tmp_path
+                break
+            tmp_path = os.path.join('..', tmp_path)
+    if absolute:
+        path_file = os.path.abspath(path_file)
     return path_file
 
 
@@ -251,8 +272,9 @@ def load_parse_bunwarpj_displacements_warp_points(path_file, points):
     ... 23 23 23 23 23''') # py2 has no return, py3 returns nb of characters
     >>> fp.close()
     >>> points = np.array([[1, 1], [4, 0], [2, 3]])
-    >>> load_parse_bunwarpj_displacements_warp_points('./my_transform.txt',
-    ...                                               points)
+    >>> pts = load_parse_bunwarpj_displacements_warp_points(
+    ...                             './my_transform.txt', points)
+    >>> pts  # doctest: +NORMALIZE_WHITESPACE
     array([[ 12.,  21.],
            [ 15.,  20.],
            [ 13.,  23.]])

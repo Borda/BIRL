@@ -2,11 +2,12 @@
 Testing default benchmarks in single thred and parallel configuration
 Check whether it generates correct outputs and resulting values
 
-Copyright (C) 2017 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 
 import os
+import sys
 import unittest
 import shutil
 
@@ -14,17 +15,19 @@ import numpy as np
 import pandas as pd
 from numpy.testing import assert_raises, assert_array_almost_equal
 
-from benchmarks.general_utils.io_utils import try_find_upper_folders
-import benchmarks.bm_registration as bm
+sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
+from benchmark.utils.data_io import update_path
+import benchmark.cls_benchmark as bm
 
-PATH_CSV_COVER = try_find_upper_folders('data/list_pairs_imgs_lnds.csv')
+PATH_CSV_COVER = os.path.join(update_path('data_images'),
+                              'list_pairs_imgs_lnds.csv')
 
 
 class TestBmRegistration(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        path_base = os.path.dirname(try_find_upper_folders('requirements.txt'))
+        path_base = os.path.dirname(update_path('requirements.txt'))
         cls.path_out = os.path.join(path_base, 'output')
         if not os.path.exists(cls.path_out):
             os.mkdir(cls.path_out)
@@ -35,7 +38,7 @@ class TestBmRegistration(unittest.TestCase):
 
     def setUp(self):
         # remove previous benchmark folder
-        shutil.rmtree(os.path.join(self.path_out, 'BmRegistration'),
+        shutil.rmtree(os.path.join(self.path_out, 'ImRegBenchmark'),
                       ignore_errors=True)
 
     def test_benchmark_invalid_inputs(self):
@@ -46,9 +49,9 @@ class TestBmRegistration(unittest.TestCase):
         for miss in ['path_cover', 'path_out', 'nb_jobs', 'unique']:
             params_miss = params.copy()
             del params_miss[miss]
-            assert_raises(AssertionError, bm.BmRegistration, params_miss)
+            assert_raises(AssertionError, bm.ImRegBenchmark, params_miss)
         # not defined output folder
-        assert_raises(Exception, bm.BmRegistration, params)
+        assert_raises(Exception, bm.ImRegBenchmark, params)
 
     def test_benchmark_parallel(self):
         """ test run in parallel (2 threads) """
@@ -58,7 +61,7 @@ class TestBmRegistration(unittest.TestCase):
             'nb_jobs': 2,
             'unique': False,
         }
-        self.benchmark = bm.BmRegistration(params)
+        self.benchmark = bm.ImRegBenchmark(params)
         self.benchmark.run()
         self.check_benchmark_results()
         del self.benchmark
@@ -71,7 +74,7 @@ class TestBmRegistration(unittest.TestCase):
             'nb_jobs': 1,
             'unique': False,
         }
-        self.benchmark = bm.BmRegistration(params)
+        self.benchmark = bm.ImRegBenchmark(params)
         self.benchmark.run()
         self.check_benchmark_results()
         del self.benchmark
@@ -92,9 +95,9 @@ class TestBmRegistration(unittest.TestCase):
         df_regist = pd.DataFrame.from_csv(os.path.join(path_bm,
                                                        bm.NAME_CSV_REGIST))
         # only two records in the benchmark
-        assert len(df_regist) == len(self.benchmark.df_cover), \
+        assert len(df_regist) == len(self.benchmark._df_cover), \
             'found only %i records instead of %i' % \
-            (len(df_regist), len(self.benchmark.df_cover))
+            (len(df_regist), len(self.benchmark._df_cover))
         # check existence of all mentioned files
         for idx, row in df_regist.iterrows():
             for col in bm.COVER_COLUMNS + \

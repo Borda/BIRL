@@ -1,9 +1,10 @@
 """
 Benchmark for ImageJ plugin - bUnwarpJ
+see: http://imagej.net/BUnwarpJ
 
 INSTALLATION:
 1. Enter the application folder in this project
-    >> cd <ImRegBenchmark>/applications
+    >> cd <BIRL>/applications
 2. Download Fiji - https://fiji.sc/
     >> wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
 3. Extract the downloaded application
@@ -11,14 +12,18 @@ INSTALLATION:
 4. Try to run Fiji
     >> Fiji.app/ImageJ-linux64
 
-EXAMPLE (usage):
->> python bm_registration.py \
-    -in ../data/list_pairs_imgs_lnds.csv -out ../output \
+Run the basic bUnwarpJ registration with original parameters:
+>> python bm_experiments/bm_bunwarpj.py \
+    -in ../data_images/list_pairs_imgs_lnds.csv \
+    -out ../results \
     -fiji ../applications/Fiji.app/ImageJ-linux64 \
     -config ../configs/ImageJ_bUnwarpJ.txt
 
->> python bm_registration.py \
-    -in ../data/list_pairs_imgs_lnds.csv -out ../output \
+The bUnwarpJ is supporting SIFT and MOPS feature extraction as landmarks
+see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support
+>> python bm_experiments/bm_bunwarpj.py \
+    -in ../data_images/list_pairs_imgs_lnds.csv \
+    -out ../results \
     -fiji ../applications/Fiji.app/ImageJ-linux64 \
     -config ../configs/ImageJ_bUnwarpJ.txt \
     -sift ../configs/ImageJ_SIFT.txt
@@ -26,7 +31,7 @@ EXAMPLE (usage):
 NOTE:
 * tested for version ImageJ 2.35
 
-Copyright (C) 2017 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 
@@ -36,10 +41,10 @@ import logging
 
 import shutil
 
-sys.path.append(os.path.abspath('.'))  # Add path to root
-import benchmarks.general_utils.io_utils as tl_io
-import benchmarks.general_utils.experiments as tl_expt
-import benchmarks.bm_registration as bm
+sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
+import benchmark.utils.data_io as tl_io
+import benchmark.utils.experiments as tl_expt
+import benchmark.cls_benchmark as bm
 
 NAME_MACRO_REGISTRATION = 'macro_registration.ijm'
 NAME_MACRO_WARP_IMAGE = 'macro_warp_image.ijm'
@@ -127,22 +132,25 @@ def extend_parse(parser):
     return parser
 
 
-class BmBUnwarpJ(bm.BmRegistration):
+class BmBUnwarpJ(bm.ImRegBenchmark):
     """ Benchmark for ImageJ plugin - bUnwarpJ
 
     no run test while this method requires manual installation of ImageJ
-    >>> tl_io.create_dir('output')
-    >>> params = {'nb_jobs': 1, 'unique': False, 'path_out': 'output',
-    ...           'path_cover': 'data/list_pairs_imgs_lnds.csv',
+    >>> path_out = tl_io.create_dir('temp_results')
+    >>> fn_path_conf = lambda n: os.path.join(tl_io.update_path('configs'), n)
+    >>> params = {'nb_jobs': 1, 'unique': False,
+    ...           'path_out': path_out,
+    ...           'path_cover': os.path.join(tl_io.update_path('data_images'),
+    ...                                      'list_pairs_imgs_lnds.csv'),
     ...           'path_fiji': '.',
-    ...           'path_config_bUnwarpJ': 'configs/ImageJ_bUnwarpJ.txt'}
+    ...           'path_config_bUnwarpJ': fn_path_conf('ImageJ_bUnwarpJ_histo-1k.txt')}
     >>> benchmark = BmBUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> params['path_config_IJ_SIFT'] = 'configs/ImageJ_SIFT.txt'
+    >>> params['path_config_IJ_SIFT'] = fn_path_conf('ImageJ_SIFT_histo-1k.txt')
     >>> benchmark = BmBUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
     >>> del benchmark
-    >>> shutil.rmtree('output/BmBUnwarpJ', ignore_errors=True)
+    >>> shutil.rmtree(path_out, ignore_errors=True)
     """
 
     def _check_required_params(self):
@@ -166,7 +174,7 @@ class BmBUnwarpJ(bm.BmRegistration):
             shutil.copy(path_cofig, os.path.join(self.params['path_exp'],
                                                  os.path.basename(path_cofig)))
 
-    def _prepare_single_regist(self, dict_row):
+    def _prepare_registration(self, dict_row):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
 
@@ -240,7 +248,7 @@ class BmBUnwarpJ(bm.BmRegistration):
         cmd = '%s -batch %s' % (self.params['path_fiji'], path_macro)
         return cmd
 
-    def _evaluate_single_regist(self, dict_row):
+    def _evaluate_registration(self, dict_row):
         """ evaluate rests of the experiment and identity the registered image
         and landmarks when the process finished
 
@@ -279,7 +287,7 @@ class BmBUnwarpJ(bm.BmRegistration):
 
         return dict_row
 
-    def _clean_single_regist(self, dict_row):
+    def _clear_after_registration(self, dict_row):
         """ clean unnecessarily files after the registration
 
         :param dict_row: {str: value}, dictionary with regist. params

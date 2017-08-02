@@ -4,13 +4,11 @@ It also serves for evaluating the input registration pairs
 (while no registration is performed, there is only the initial deformation)
 
 EXAMPLE (usage):
->>> os.system('mkdir output')  # doctest: +SKIP
->>> cmd = '''python benchmarks/bm_registration.py \
-    -in data/list_pairs_imgs_lnds.csv -out output --unique'''
->>> os.system(cmd)
-0
+>> mkdir results
+>> python benchmarks/bm_registration.py \
+    -in data_images/list_pairs_imgs_lnds.csv -out results --unique
 
-Copyright (C) 2016-2017 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 
@@ -25,11 +23,11 @@ import tqdm
 import numpy as np
 import pandas as pd
 
-sys.path.append(os.path.abspath('.'))  # Add path to root
-import benchmarks.general_utils.io_utils as tl_io
-import benchmarks.general_utils.experiments as tl_expt
-import benchmarks.general_utils.visualisation as tl_visu
-from benchmarks.general_utils.cls_experiment import Experiment
+sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
+import benchmark.utils.data_io as tl_io
+import benchmark.utils.experiments as tl_expt
+import benchmark.utils.visualisation as tl_visu
+from benchmark.utils.cls_experiment import Experiment
 
 NB_THREADS = mproc.cpu_count()
 NB_THREADS_USED = int(NB_THREADS * .8)
@@ -79,7 +77,7 @@ if sys.version_info.major == 2:
     copy_reg.pickle(types.MethodType, _reduce_method)
 
 
-class BmRegistration(Experiment):
+class ImRegBenchmark(Experiment):
     """
     General benchmark class for all registration methods.
     It also serves for evaluating the input registration pairs.
@@ -98,21 +96,20 @@ class BmRegistration(Experiment):
     4. visualise results abd evaluate registration results
 
     Running in single thread:
-    >>> tl_io.create_dir('output')
-    >>> main({'nb_jobs': 1, 'unique': False, 'path_out': 'output',
-    ...       'path_cover': 'data/list_pairs_imgs_lnds.csv'})
-    >>> shutil.rmtree('output/BmRegistration', ignore_errors=True)
+    >>> path_out = tl_io.create_dir('temp_results')
+    >>> main({'nb_jobs': 1, 'unique': False, 'path_out': path_out,
+    ...       'path_cover': tl_io.update_path('data_images/list_pairs_imgs_lnds.csv')})
+    >>> shutil.rmtree(path_out, ignore_errors=True)
 
     Running in 2 threads:
-    >>> tl_io.create_dir('output')
-    >>> params = {'nb_jobs': 2, 'unique': False, 'path_out': 'output',
-    ...           'path_cover': 'data/list_pairs_imgs_lnds.csv'}
-    >>> main(params)
-    >>> benchmark = BmRegistration(params)
+    >>> path_out = tl_io.create_dir('temp_results')
+    >>> params = {'nb_jobs': 2, 'unique': False, 'path_out': path_out,
+    ...           'path_cover': tl_io.update_path('data_images/list_pairs_imgs_lnds.csv')}
+    >>> benchmark = ImRegBenchmark(params)
     >>> benchmark.run()
     True
     >>> del benchmark
-    >>> shutil.rmtree('output/BmRegistration', ignore_errors=True)
+    >>> shutil.rmtree(path_out, ignore_errors=True)
     """
 
     def __init__(self, params):
@@ -121,13 +118,13 @@ class BmRegistration(Experiment):
         :param dict params:  {str: value}
         """
         assert 'unique' in params
-        super(BmRegistration, self).__init__(params, params['unique'])
+        super(ImRegBenchmark, self).__init__(params, params['unique'])
         logging.info(self.__doc__)
 
     def _check_required_params(self):
         """ check some extra required parameters for this benchmark """
         logging.debug('.. check if the BM have all required parameters')
-        super(BmRegistration, self)._check_required_params()
+        super(ImRegBenchmark, self)._check_required_params()
         for param in ['path_cover', 'path_out', 'nb_jobs']:
             assert param in self.params
 
@@ -137,41 +134,43 @@ class BmRegistration(Experiment):
         # loading the csv cover file
         assert os.path.exists(self.params['path_cover']), \
             'path to csv cover not defined'
-        self.df_cover = pd.DataFrame().from_csv(self.params['path_cover'],
-                                                index_col=None)
-        assert all(col in self.df_cover.columns for col in COVER_COLUMNS), \
+        self._df_cover = pd.DataFrame().from_csv(self.params['path_cover'],
+                                                 index_col=None)
+        assert all(col in self._df_cover.columns for col in COVER_COLUMNS), \
             'Some required columns are mIssing in the cover file.'
         for col in COVER_COLUMNS:
             # try to find the correct location, calls by test and running
-            self.df_cover[col] = self.df_cover[col].apply(
-                tl_io.try_find_upper_folders)
+            self._df_cover[col] = self._df_cover[col].apply(
+                tl_io.update_path)
             # extend the complete path
-            self.df_cover[col] = self.df_cover[col].apply(os.path.abspath)
+            self._df_cover[col] = self._df_cover[col].apply(os.path.abspath)
 
-    def _perform(self):
+    def _run(self):
         """ perform complete benchmark experiment """
         logging.info('-> perform set of experiments...')
 
         # load existing result of create new entity
-        self.path_csv_regist = os.path.join(self.params['path_exp'],
-                                            NAME_CSV_REGIST)
-        if os.path.exists(self.path_csv_regist):
-            logging.info('loading existing csv: "%s"', self.path_csv_regist)
-            self.df_regist = pd.DataFrame.from_csv(self.path_csv_regist)
+        self._path_csv_regist = os.path.join(self.params['path_exp'],
+                                             NAME_CSV_REGIST)
+        if os.path.exists(self._path_csv_regist):
+            logging.info('loading existing csv: "%s"', self._path_csv_regist)
+            self._df_experiments = pd.DataFrame.from_csv(self._path_csv_regist)
         else:
-            self.df_regist = pd.DataFrame()
+            self._df_experiments = pd.DataFrame()
 
         # run the experiment in parallel of single thread
-        if self.params['nb_jobs'] > 1:
-            self.__perform_parallel(self._perform_registration, self.df_cover,
-                                    self.path_csv_regist, 'regist. experiments',
-                                    self.params['nb_jobs'])
-        else:
-            self.__perform_one_thread(self._perform_registration,
-                                      self.df_cover, self.path_csv_regist,
-                                      'registration experiments')
+        self.__execute_method(self._perform_registration, self._df_cover,
+                              self._path_csv_regist, 'registration experiments')
 
-    def __perform_parallel(self, method, in_table, path_csv=None, name='',
+    def __execute_method(self, method, in_table, path_csv=None, name=''):
+        # run the experiment in parallel of single thread
+        if self.params.get('nb_jobs', 0) > 1:
+            self.__execute_parallel(method, in_table, path_csv,
+                                    name, self.params['nb_jobs'])
+        else:
+            self.__execute_serial(method, in_table, path_csv, name)
+
+    def __execute_parallel(self, method, in_table, path_csv=None, name='',
                            nb_jobs=NB_THREADS_USED):
         """ running several registration experiments in parallel
 
@@ -187,14 +186,14 @@ class BmRegistration(Experiment):
         mproc_pool = mproc.Pool(nb_jobs)
         for res in mproc_pool.imap(method, iter_table):
             if res is not None:
-                self.df_regist = self.df_regist.append(res, ignore_index=True)
+                self._df_experiments = self._df_experiments.append(res, ignore_index=True)
                 if path_csv is not None:
-                    self.df_regist.to_csv(path_csv)
+                    self._df_experiments.to_csv(path_csv)
             tqdm_bar.update()
         mproc_pool.close()
         mproc_pool.join()
 
-    def __perform_one_thread(self, method, in_table, path_csv=None, name=''):
+    def __execute_serial(self, method, in_table, path_csv=None, name=''):
         """ running only one registration experiment in the time
 
         :param method: executed self method which have as input row
@@ -207,9 +206,9 @@ class BmRegistration(Experiment):
         iter_table = ((idx, dict(row)) for idx, row, in in_table.iterrows())
         for res in map(method, iter_table):
             if res is not None:
-                self.df_regist = self.df_regist.append(res, ignore_index=True)
+                self._df_experiments = self._df_experiments.append(res, ignore_index=True)
                 if path_csv is not None:
-                    self.df_regist.to_csv(path_csv)
+                    self._df_experiments.to_csv(path_csv)
             tqdm_bar.update()
 
     def _perform_registration(self, df_row):
@@ -220,6 +219,7 @@ class BmRegistration(Experiment):
         idx, dict_row = df_row
         logging.debug('-> perform single registration #%d...', idx)
         # create folder for this particular experiment
+        dict_row['ID'] = idx
         dict_row[COL_REG_DIR] = os.path.join(self.params['path_exp'], str(idx))
         if os.path.exists(dict_row[COL_REG_DIR]):
             logging.warning('particular regist. experiment already exists: '
@@ -227,10 +227,10 @@ class BmRegistration(Experiment):
             return None
         tl_io.create_dir(dict_row[COL_REG_DIR])
 
-        dict_row = self._prepare_single_regist(dict_row)
+        dict_row = self._prepare_registration(dict_row)
         str_cmd = self._generate_regist_command(dict_row)
         path_log = os.path.join(dict_row[COL_REG_DIR], NAME_LOG_REGIST)
-        # todo, add lock to single thread, create pool with possible thread ids
+        # TODO, add lock to single thread, create pool with possible thread ids
         # (USE taskset [native], numactl [need install])
 
         time_start = time.time()
@@ -240,29 +240,25 @@ class BmRegistration(Experiment):
         if not cmd_result:
             return None
 
-        dict_row = self._evaluate_single_regist(dict_row)
-        dict_row = self._clean_single_regist(dict_row)
+        dict_row = self._evaluate_registration(dict_row)
+        dict_row = self._clear_after_registration(dict_row)
         return dict_row
 
     def _summarise(self):
         """ summarise complete benchmark experiment """
         logging.info('-> summarise experiment...')
-        # load df_regist and compute stat
-        self.__perform_one_thread(self.__compute_landmarks_statistic,
-                                  self.df_regist, name='compute inaccuracy')
-        if self.params['nb_jobs'] > 1:
-            # add visualisations
-            self.__perform_parallel(self._visualise_regist_results,
-                                    self.df_regist, name='compute inaccuracy',
-                                    nb_jobs=self.params['nb_jobs'])
-        else:
-            # add visualisations
-            self.__perform_one_thread(self._visualise_regist_results,
-                                      self.df_regist, name='visualise results')
+        # load _df_experiments and compute stat
+        self.__execute_serial(self.__compute_landmarks_statistic,
+                              self._df_experiments, name='compute inaccuracy')
+        # add visualisations
+        if self.params.get('visual', False):
+            self.__execute_method(self._visualise_registration,
+                                  self._df_experiments,
+                                  name='visualise results')
         # export stat to csv
-        self.df_regist.to_csv(self.path_csv_regist)
+        self._df_experiments.to_csv(self._path_csv_regist)
         # export simple stat to txt
-        self.__expert_summary_txt()
+        self.__export_summary_txt()
 
     def __compute_landmarks_statistic(self, df_row):
         """ after successful registration load initial nad estimated landmarks
@@ -286,6 +282,7 @@ class BmRegistration(Experiment):
             points_estim = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE_WARP])
         else:
             logging.error('not allowed scenario: no output landmarks')
+            points_target, points_estim = [], []
         # compute statistic
         self.__compute_landmarks_inaccuracy(idx, points_target, points_estim,
                                             'final')
@@ -302,9 +299,9 @@ class BmRegistration(Experiment):
         # update particular idx
         for name in stat:
             col_name = '%s [px] (%s)' % (name, state)
-            self.df_regist.set_value(idx, col=col_name, value=stat[name])
+            self._df_experiments.set_value(idx, col=col_name, value=stat[name])
 
-    def _visualise_regist_results(self, df_row):
+    def _visualise_registration(self, df_row):
         """ visualise the registration results according what landmarks were
         estimated - in registration or moving frame
 
@@ -339,20 +336,21 @@ class BmRegistration(Experiment):
                                      points_ref, points_move, points_warp)
         else:
             logging.error('not allowed scenario: no output image or landmarks')
+            fig, _ = tl_visu.create_figure((1, 1))
         path_fig = os.path.join(dict_row[COL_REG_DIR], NAME_IMAGE_REGIST_VISUAL)
         tl_visu.export_figure(path_fig, fig)
 
-    def __expert_summary_txt(self):
+    def __export_summary_txt(self):
         """ export the summary as CSV and TXT """
         path_txt = os.path.join(self.params['path_exp'], NAME_TXT_RESULTS)
         costume_prec = np.arange(0., 1., 0.05)
-        df_summary = self.df_regist.describe(percentiles=costume_prec).T
-        df_summary['median'] = self.df_regist.median()
+        df_summary = self._df_experiments.describe(percentiles=costume_prec).T
+        df_summary['median'] = self._df_experiments.median()
         df_summary.sort_index(inplace=True)
         with open(path_txt, 'w') as fp:
             fp.write(tl_expt.string_dict(self.params, 'CONFIGURATION:'))
             fp.write('\n' * 3 + 'RESULTS:\n')
-            fp.write('completed regist. experiments: %i' % len(self.df_regist))
+            fp.write('completed regist. experiments: %i' % len(self._df_experiments))
             fp.write('\n' * 2)
             fp.write(repr(df_summary[['mean', 'std', 'median', 'min', 'max']]))
             fp.write('\n' * 2)
@@ -360,7 +358,7 @@ class BmRegistration(Experiment):
         path_csv = os.path.join(self.params['path_exp'], NAME_CSV_RESULTS)
         df_summary.to_csv(path_csv)
 
-    def _prepare_single_regist(self, dict_row):
+    def _prepare_registration(self, dict_row):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
 
@@ -387,7 +385,7 @@ class BmRegistration(Experiment):
         cmd = ' && '.join(cmds)
         return cmd
 
-    def _evaluate_single_regist(self, dict_row):
+    def _evaluate_registration(self, dict_row):
         """ evaluate rests of the experiment and identity the registered image
         and landmarks when the process finished
 
@@ -409,7 +407,7 @@ class BmRegistration(Experiment):
 
         return dict_row
 
-    def _clean_single_regist(self, dict_row):
+    def _clear_after_registration(self, dict_row):
         """ clean unnecessarily files after the registration
 
         :param dict_row: {str: value}, dictionary with regist. params
@@ -420,13 +418,9 @@ class BmRegistration(Experiment):
 
 
 def main(params):
-    """ run the Main of blank experiment
-
-    :param params: {str: value} set of input parameters
-    """
     logging.info('running...')
     logging.info(__doc__)
-    benchmark = BmRegistration(params)
+    benchmark = ImRegBenchmark(params)
     benchmark.run()
     del benchmark
     logging.info('Done.')

@@ -6,27 +6,24 @@ INSTALLATION:
 1. ...
 
 EXAMPLE (usage):
->>> os.system('mkdir output')  # doctest: +SKIP
->>> cmd = '''python benchmarks/bm_template.py \
-    -in data/list_pairs_imgs_lnds.csv -out output --unique \
-    --an_executable none'''
->>> os.system(cmd)
-0
+>> mkdir results
+>> python benchmarks/bm_template.py \
+    -in data_images/list_pairs_imgs_lnds.csv -out results --unique \
+    --an_executable none
 
-Copyright (C) 2017 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 
 import os
 import sys
 import logging
-
 import shutil
 
-sys.path.append(os.path.abspath('.'))  # Add path to root
-import benchmarks.general_utils.io_utils as tl_io
-import benchmarks.general_utils.experiments as tl_expt
-import benchmarks.bm_registration as bm
+sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
+import benchmark.utils.data_io as tl_io
+import benchmark.utils.experiments as tl_expt
+import benchmark.cls_benchmark as bm
 
 
 def extend_parse(parser):
@@ -40,35 +37,36 @@ def extend_parse(parser):
     return parser
 
 
-class BmTemplate(bm.BmRegistration):
+class BmTemplate(bm.ImRegBenchmark):
     """ a Template showing what method can be overwritten
      * _check_required_params
-     * _prepare_single_regist
+     * _prepare_registration
      * _generate_regist_command
-     * _evaluate_single_regist
-     * _clean_single_regist
+     * _evaluate_registration
+     * _clear_after_registration
 
-    This benchmarks also presents that method can have registered image
-    as output but the transformed landmarks are in different frame
+    This template benchmark also presents that method can have registered
+    image as output but the transformed landmarks are in different frame
     (reference landmarks in moving image).
 
     Running in single thread:
-    >>> tl_io.create_dir('output')
-    >>> main({'nb_jobs': 1, 'unique': False, 'path_out': 'output',
-    ...       'path_cover': 'data/list_pairs_imgs_lnds.csv',
+    >>> path_out = tl_io.create_dir('temp_results')
+    >>> fn_path_data = lambda n: os.path.join(tl_io.update_path('data_images'), n)
+    >>> main({'nb_jobs': 1, 'unique': False, 'path_out': path_out,
+    ...       'path_cover': fn_path_data('list_pairs_imgs_lnds.csv'),
     ...       'an_executable': ''})
-    >>> shutil.rmtree('output/BmTemplate', ignore_errors=True)
+    >>> shutil.rmtree(path_out, ignore_errors=True)
 
     Running in 2 threads:
-    >>> tl_io.create_dir('output')
-    >>> params = {'nb_jobs': 2, 'unique': False, 'path_out': 'output',
-    ...           'path_cover': 'data/list_pairs_imgs_lnds.csv',
+    >>> path_out = tl_io.create_dir('temp_results')
+    >>> params = {'nb_jobs': 2, 'unique': False, 'path_out': path_out,
+    ...           'path_cover': fn_path_data('list_pairs_imgs_lnds.csv'),
     ...           'an_executable': ''}
     >>> benchmark = BmTemplate(params)
     >>> benchmark.run()
     True
     >>> del benchmark
-    >>> shutil.rmtree('output/BmTemplate', ignore_errors=True)
+    >>> shutil.rmtree(path_out, ignore_errors=True)
     """
 
     def _check_required_params(self):
@@ -80,7 +78,7 @@ class BmTemplate(bm.BmRegistration):
     def _prepare(self):
         logging.info('-> copy configuration...')
 
-    def _prepare_single_regist(self, dict_row):
+    def _prepare_registration(self, dict_row):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
 
@@ -107,7 +105,7 @@ class BmTemplate(bm.BmRegistration):
         command = ' && '.join(cmds)
         return command
 
-    def _evaluate_single_regist(self, dict_row):
+    def _evaluate_registration(self, dict_row):
         """ evaluate rests of the experiment and identity the registered image
         and landmarks when the process finished
 
@@ -130,7 +128,7 @@ class BmTemplate(bm.BmRegistration):
 
         return dict_row
 
-    def _clean_single_regist(self, dict_row):
+    def _clear_after_registration(self, dict_row):
         """ clean unnecessarily files after the registration
 
         :param dict_row: {str: value}, dictionary with regist. params

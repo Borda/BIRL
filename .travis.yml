@@ -5,13 +5,20 @@
 
 # See doc/travis_notes.txt for some guidelines
 
+env:
+  global:
+    - CODACY_PROJECT_TOKEN=d75bca9494aa4cc09d8bf8c55aa1c3f0
+
 language: python
 
 sudo: false
 
 python:
   - 2.7
-  - 3.4
+  # - 3.4
+  - 3.5
+  - 3.6
+  # - 3.7  # develop
 
 # See http://docs.travis-ci.com/user/caching/#pip-cache
 cache: pip
@@ -22,11 +29,14 @@ before_install:
 
 install:
   - pip install -r requirements.txt
-  - pip install nose codecov
+  - pip install nose>=1.3.7 coverage codecov pytest>=3.0.5 codacy-coverage
 
 script:
-  - nosetests --with-doctest --with-coverage --cover-package=benchmarks
+  - mkdir results
+  - nosetests -v --exe --with-doctest --with-xunit --with-coverage --cover-package=benchmark
+  - python benchmark/cls_benchmark.py -in data_images/list_pairs_imgs_lnds.csv -out results --unique --visual
+  - python benchmark/bm_template.py -in data_images/list_pairs_imgs_lnds.csv -out results --unique --visual  --an_executable none
 
 after_success:
-  - codecov --token=56df941a-7c40-47a0-bf01-3d42c40af66d
-#  - coverage report
+  - codecov -t 56df941a-7c40-47a0-bf01-3d42c40af66d
+  - coverage report

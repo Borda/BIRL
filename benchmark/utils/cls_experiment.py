@@ -1,7 +1,7 @@
 """
 General template for experiments
 
-Copyright (C) 2016 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 
@@ -11,8 +11,8 @@ import copy
 import logging
 import shutil
 
-import benchmarks.general_utils.io_utils as tl_io
-import benchmarks.general_utils.experiments as tl_expt
+import benchmark.utils.data_io as tl_io
+import benchmark.utils.experiments as tl_expt
 
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 CONFIG_JSON = 'config.json'
@@ -26,14 +26,14 @@ class Experiment(object):
     Tha basic template for experiment running with specific initialisation
     None, all required parameters used in future have to come in init phase
 
-    >>> tl_io.create_dir('output')
-    >>> expt = Experiment({'path_out': 'output', 'name': 'my_Test'}, False)
+    >>> path_out = tl_io.create_dir('output')
+    >>> expt = Experiment({'path_out': path_out, 'name': 'my_Experiment'}, False)
     >>> 'path_exp' in expt.params
     True
     >>> expt.run()
     True
     >>> del expt
-    >>> shutil.rmtree('output/Experiment_my_Test', ignore_errors=True)
+    >>> shutil.rmtree(path_out, ignore_errors=True)
 
     """
 
@@ -55,7 +55,7 @@ class Experiment(object):
             if type(lh) is logging.StreamHandler:
                 lh.setLevel(logging.INFO)
         logging.info('initialise experiment...')
-        logging.info(tl_expt.string_dict(self.params, 'PARAMS:'))
+        logging.info(tl_expt.string_dict(self.params, 'PARAMETERS:'))
 
     def _check_required_params(self):
         """ check some extra required parameters for this experiment """
@@ -67,25 +67,25 @@ class Experiment(object):
         logging.info('running experiment...')
         self._prepare()
         self._load_data()
-        self._perform()
+        self._run()
         self._summarise()
         return True
 
     def _prepare(self):
         """ prepare the benchmark folder """
-        logging.info('-> preparing registration folder...')
+        logging.warning('-> preparing EMPTY experiments...')
 
     def _load_data(self):
         """ loading data """
-        logging.info('-> loading EMPTY data...')
+        logging.warning('-> loading EMPTY data...')
 
-    def _perform(self):
+    def _run(self):
         """ perform experiment """
-        logging.info('-> perform EMPTY experiment...')
+        logging.warning('-> perform EMPTY experiment...')
 
     def _summarise(self):
         """ summarise experiment """
-        logging.info('-> summarise EMPTY experiment...')
+        logging.warning('-> summarise EMPTY experiment...')
 
     def __check_exist_path(self):
         """ check existence of all paths """

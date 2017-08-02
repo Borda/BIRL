@@ -1,14 +1,44 @@
-machine:
-  python:
-    version: 2.7.9
-  post:
-    - pyenv global 2.7.9
+version: 2.0
 
-dependencies:
-  override:
-    - pip install -r requirements.txt
-    - pip install pytest
+jobs:
+  Python2:
+      docker:
+        - image: circleci/python:2.7
+      steps: &steps
+        - checkout
+        - run: sudo apt-get update
+        - run: sudo apt-get install tk-dev pkg-config python-dev python-tk
+        - run: sudo pip install nose coverage pytest pytest-cov
+        - run: pip install -r requirements.txt --user
+        - run: python --version ; pip --version ; pwd ; ls
 
-test:
-  override:
-    - pytest --doctest-modules --junitxml=$CIRCLE_TEST_REPORTS/junit/pytest.xml
+        # TESTING
+        - run: mkdir results && mkdir test-reports
+        - run: coverage run --source benchmark -m py.test benchmark -v --doctest-modules --junitxml=test-reports/pytest_junit.xml
+
+        # EXPERIMENTS
+        - run:  python benchmark/cls_benchmark.py -in data_images/list_pairs_imgs_lnds.csv -out results --unique --visual
+        - run:  python benchmark/bm_template.py -in data_images/list_pairs_imgs_lnds.csv -out results --unique --visual --an_executable none
+        - run:  python bm_experiments/generate_registration_pairs.py -imgs "data_images/images/artificial_*.jpg" -lnds "data_images/landmarks/artificial_*.csv" -csv data_images/cover_artificial.csv --mode all-all
+        # - run:  python bm_experiments/create_synth_dataset_real_image.py -img data_images/images/Rat_Kidney_HE.jpg -lnd data_images/landmarks/Rat_Kidney_HE.csv -out data_images/synth_dataset -nb 3 --nb_jobs 1
+        # - run:  python bm_experiments/generate_registration_pairs.py -imgs "data_images/synth_dataset/*.jpg" -lnds "data_images/synth_dataset/*.csv" -csv data_images/cover_synth-dataset.csv --mode all-all
+
+        # PASS-TESTS
+        - run: coverage report && coverage xml -o test-reports/coverage.xml
+
+        - store_test_results:
+            path: test-reports
+        - store_artifacts:
+            path: test-reports
+
+  Python3:
+      docker:
+        - image: circleci/python:3.6
+      steps: *steps
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - Python2
+      - Python3

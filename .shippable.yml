@@ -1,0 +1,50 @@
+# vim ft=yaml
+
+# After changing this file, check it on:
+#   http://yaml-online-parser.appspot.com/
+
+language: python
+
+sudo: true
+
+python:
+  - 2.7
+  - 3.5
+
+cache: pip
+
+env:
+  - CI_REPORTS=shippable/testresults COVERAGE_REPORTS=shippable/codecoverage
+
+build:
+  ci:
+    - echo $CI_REPORTS && mkdir -p $CI_REPORTS
+    - echo $COVERAGE_REPORTS && mkdir -p $COVERAGE_REPORTS
+
+before_install:
+  - apt-get update # --fix-missing
+  - apt-get install freetype*
+  - apt-get install python-dev python-tk
+  - apt-get install pkg-config
+  - pip install --upgrade pip
+
+install:
+  - pip install -r requirements.txt
+  - pip install nose>=1.3.7 coverage codecov pytest>=3.0.5
+
+script:
+  - mkdir results
+  # - nosetests --with-xunit --xunit-file=shippable/testresults/nosetests.xml
+  - nosetests -v --exe --with-doctest --with-coverage --with-xunit --cover-package=benchmark --xunit-file=shippable/testresults/nosetests.xml
+
+  - python benchmark/cls_benchmark.py -in data_images/list_pairs_imgs_lnds.csv -out results --unique
+  - python benchmark/bm_template.py -in data_images/list_pairs_imgs_lnds.csv -out results --unique  --an_executable none
+
+  - python bm_experiments/generate_registration_pairs.py -imgs "data_images/images/artificial_*.jpg" -lnds "data_images/landmarks/artificial_*.csv" -csv data_images/cover_artificial.csv --mode all-all
+  # - python bm_experiments/create_synth_dataset_real_image.py -img data_images/images/Rat_Kidney_HE.jpg -lnd data_images/landmarks/Rat_Kidney_HE.csv -out data_images/synth_dataset -nb 3 --nb_jobs 1
+  # - python bm_experiments/generate_registration_pairs.py -imgs "data_images/synth_dataset/*.jpg" -lnds "data_images/synth_dataset/*.csv" -csv data_images/cover_synth-dataset.csv --mode all-all
+
+after_success:
+  - codecov -t 56df941a-7c40-47a0-bf01-3d42c40af66d
+  - coverage xml -o $COVERAGE_REPORTS/coverage.xml
+  - coverage report

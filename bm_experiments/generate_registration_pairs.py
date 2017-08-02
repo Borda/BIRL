@@ -2,22 +2,27 @@
 Script for generating
 
 Example run:
->> python create_cover_file.py \
+>> python create_registration_pairs.py \
     -imgs ../output/synth_dataset/*.jpg \
     -lnds ../output/synth_dataset/*.csv \
     -csv ../output/cover.csv --mode all-all
 
-Copyright (C) 2016 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
+import sys
 import glob
 import argparse
 import logging
 
 import pandas as pd
+
+sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
+import benchmark.utils.experiments as tl_expt
+
 # list of combination options
-OPTIONS_COMBINE = ['1-all', 'all-all']
+OPTIONS_COMBINE = ['first-all', 'all-all']
 
 
 def arg_parse_params():
@@ -36,11 +41,8 @@ def arg_parse_params():
                         help='type of combination of registration pairs',
                         default=OPTIONS_COMBINE[0], choices=OPTIONS_COMBINE)
     args = vars(parser.parse_args())
-    logging.info('ARG PARAMS: \n %s', repr(args))
-    for k in (k for k in args if 'path' in k):
-        args[k] = os.path.abspath(os.path.expanduser(args[k]))
-        p = os.path.dirname(args[k])
-        assert os.path.exists(p), '%s' % p
+    logging.info(tl_expt.string_dict(args, 'ARGUMENTS:'))
+    assert tl_expt.check_paths(args, ['path_csv'])
     return args
 
 
@@ -61,7 +63,7 @@ def generate_pairs(df_cover, path_pattern_imgs, path_pattern_lnds, mode):
     assert len(list_imgs) >= 2, 'the minimum is 2 elements'
     logging.info('combining list %i files with "%s"', len(list_imgs), mode)
 
-    if type == '1-all':
+    if type == 'first-all':
         for i in range(1, len(list_imgs)):
             df_cover = df_cover.append({
                 'Reference image': list_imgs[0],

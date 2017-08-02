@@ -1,4 +1,35 @@
-applications
-output
-temp
-*.pyc
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.cpp
+*.so
+
+# installed libraries
+libs/
+
+# temporary structure
+build/
+output/
+results/
+temporary/
+applications/
+
+# PyCharm
+.idea/
+# Dropbox sync
+.dropbox.attr
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+pytest.*
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
