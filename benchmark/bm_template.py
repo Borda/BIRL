@@ -18,23 +18,21 @@ from __future__ import absolute_import
 import os
 import sys
 import logging
-import shutil
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-import benchmark.utils.data_io as tl_io
-import benchmark.utils.experiments as tl_expt
+import benchmark.utilities.experiments as tl_expt
 import benchmark.cls_benchmark as bm
 
 
-def extend_parse(parser):
+def extend_parse(a_parser):
     """ extent the basic arg parses by some extra required parameters
 
     :return object:
     """
     # SEE: https://docs.python.org/3/library/argparse.html
-    parser.add_argument('--an_executable', type=str, required=True,
-                        help='some extra parameters')
-    return parser
+    a_parser.add_argument('--an_executable', type=str, required=True,
+                          help='some extra parameters')
+    return a_parser
 
 
 class BmTemplate(bm.ImRegBenchmark):
@@ -50,30 +48,30 @@ class BmTemplate(bm.ImRegBenchmark):
     (reference landmarks in moving image).
 
     Running in single thread:
+    >>> import benchmark.utilities.data_io as tl_io
     >>> path_out = tl_io.create_dir('temp_results')
-    >>> fn_path_data = lambda n: os.path.join(tl_io.update_path('data_images'), n)
+    >>> path_csv = os.path.join(tl_io.update_path('data_images'),
+    ...                         'list_pairs_imgs_lnds.csv')
     >>> main({'nb_jobs': 1, 'unique': False, 'path_out': path_out,
-    ...       'path_cover': fn_path_data('list_pairs_imgs_lnds.csv'),
-    ...       'an_executable': ''})
+    ...       'path_cover': path_csv, 'an_executable': ''})
+    >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
 
     Running in 2 threads:
+    >>> import benchmark.utilities.data_io as tl_io
     >>> path_out = tl_io.create_dir('temp_results')
+    >>> path_csv = os.path.join(tl_io.update_path('data_images'),
+    ...                         'list_pairs_imgs_lnds.csv')
     >>> params = {'nb_jobs': 2, 'unique': False, 'path_out': path_out,
-    ...           'path_cover': fn_path_data('list_pairs_imgs_lnds.csv'),
-    ...           'an_executable': ''}
+    ...           'path_cover': path_csv, 'an_executable': ''}
     >>> benchmark = BmTemplate(params)
     >>> benchmark.run()
     True
     >>> del benchmark
+    >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
-
-    def _check_required_params(self):
-        """ check some extra required parameters for this benchmark """
-        super(BmTemplate, self)._check_required_params()
-        for param in ['an_executable']:
-            assert param in self.params
+    REQUIRED_PARAMS = bm.ImRegBenchmark.REQUIRED_PARAMS + ['an_executable']
 
     def _prepare(self):
         logging.info('-> copy configuration...')
@@ -95,9 +93,9 @@ class BmTemplate(bm.ImRegBenchmark):
         :return: str, the execution string
         """
         target_img = os.path.join(dict_row[bm.COL_REG_DIR],
-                              os.path.basename(dict_row[bm.COL_IMAGE_MOVE]))
+                                  os.path.basename(dict_row[bm.COL_IMAGE_MOVE]))
         target_lnd = os.path.join(dict_row[bm.COL_REG_DIR],
-                              os.path.basename(dict_row[bm.COL_POINTS_REF]))
+                                  os.path.basename(dict_row[bm.COL_POINTS_REF]))
         cmds = ['cp %s %s' % (os.path.abspath(dict_row[bm.COL_IMAGE_MOVE]),
                               target_img),
                 'cp %s %s' % (os.path.abspath(dict_row[bm.COL_POINTS_REF]),
@@ -138,14 +136,14 @@ class BmTemplate(bm.ImRegBenchmark):
         return dict_row
 
 
-def main(params):
+def main(arg_params):
     """ run the Main of blank experiment
 
-    :param params: {str: value} set of input parameters
+    :param arg_params: {str: value} set of input parameters
     """
     logging.info('running...')
     logging.info(__doc__)
-    benchmark = BmTemplate(params)
+    benchmark = BmTemplate(arg_params)
     benchmark.run()
     del benchmark
     logging.info('Done.')
@@ -154,7 +152,7 @@ def main(params):
 # RUN by given parameters
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    parser = tl_expt.create_basic_parse()
-    parser = extend_parse(parser)
-    params = tl_expt.parse_params(parser)
-    main(params)
+    arg_parser = tl_expt.create_basic_parse()
+    arg_parser = extend_parse(arg_parser)
+    arg_params = tl_expt.parse_params(arg_parser)
+    main(arg_params)

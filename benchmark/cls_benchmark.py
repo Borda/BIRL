@@ -18,16 +18,15 @@ import time
 import logging
 import multiprocessing as mproc
 
-import shutil
 import tqdm
 import numpy as np
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-import benchmark.utils.data_io as tl_io
-import benchmark.utils.experiments as tl_expt
-import benchmark.utils.visualisation as tl_visu
-from benchmark.utils.cls_experiment import Experiment
+import benchmark.utilities.data_io as tl_io
+import benchmark.utilities.experiments as tl_expt
+import benchmark.utilities.visualisation as tl_visu
+from benchmark.utilities.cls_experiment import Experiment
 
 NB_THREADS = mproc.cpu_count()
 NB_THREADS_USED = int(NB_THREADS * .8)
@@ -99,6 +98,7 @@ class ImRegBenchmark(Experiment):
     >>> path_out = tl_io.create_dir('temp_results')
     >>> main({'nb_jobs': 1, 'unique': False, 'path_out': path_out,
     ...       'path_cover': tl_io.update_path('data_images/list_pairs_imgs_lnds.csv')})
+    >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
 
     Running in 2 threads:
@@ -109,15 +109,18 @@ class ImRegBenchmark(Experiment):
     >>> benchmark.run()
     True
     >>> del benchmark
+    >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
+    REQUIRED_PARAMS = ['path_cover', 'path_out', 'nb_jobs']
 
     def __init__(self, params):
         """ initialise benchmark
 
         :param dict params:  {str: value}
         """
-        assert 'unique' in params
+        assert 'unique' in params, 'missing "unique" among %s' \
+                                   % repr(params.keys())
         super(ImRegBenchmark, self).__init__(params, params['unique'])
         logging.info(self.__doc__)
 
@@ -125,23 +128,22 @@ class ImRegBenchmark(Experiment):
         """ check some extra required parameters for this benchmark """
         logging.debug('.. check if the BM have all required parameters')
         super(ImRegBenchmark, self)._check_required_params()
-        for param in ['path_cover', 'path_out', 'nb_jobs']:
-            assert param in self.params
+        for n in self.REQUIRED_PARAMS:
+            assert n in self.params, 'missing "%s" among %s' \
+                                     % (n, repr(self.params.keys()))
 
     def _load_data(self):
         """ loading data, the cover file with all registration pairs """
         logging.info('-> loading data...')
         # loading the csv cover file
         assert os.path.exists(self.params['path_cover']), \
-            'path to csv cover not defined'
-        self._df_cover = pd.DataFrame().from_csv(self.params['path_cover'],
-                                                 index_col=None)
+            'path to csv cover is not defined - %s' % self.params['path_cover']
+        self._df_cover = pd.read_csv(self.params['path_cover'], index_col=None)
         assert all(col in self._df_cover.columns for col in COVER_COLUMNS), \
-            'Some required columns are mIssing in the cover file.'
+            'Some required columns are missing in the cover file.'
         for col in COVER_COLUMNS:
             # try to find the correct location, calls by test and running
-            self._df_cover[col] = self._df_cover[col].apply(
-                tl_io.update_path)
+            self._df_cover[col] = self._df_cover[col].apply(tl_io.update_path)
             # extend the complete path
             self._df_cover[col] = self._df_cover[col].apply(os.path.abspath)
 
@@ -154,7 +156,7 @@ class ImRegBenchmark(Experiment):
                                              NAME_CSV_REGIST)
         if os.path.exists(self._path_csv_regist):
             logging.info('loading existing csv: "%s"', self._path_csv_regist)
-            self._df_experiments = pd.DataFrame.from_csv(self._path_csv_regist)
+            self._df_experiments = pd.read_csv(self._path_csv_regist, index_col=0)
         else:
             self._df_experiments = pd.DataFrame()
 
@@ -295,19 +297,21 @@ class ImRegBenchmark(Experiment):
         :param points2: np.array<nb_points, dim>
         :param str state: whether it was before of after registration
         """
-        dist, stat = tl_expt.compute_points_dist_statistic(points1, points2)
+        _, stat = tl_expt.compute_points_dist_statistic(points1, points2)
         # update particular idx
         for name in stat:
             col_name = '%s [px] (%s)' % (name, state)
-            self._df_experiments.set_value(idx, col=col_name, value=stat[name])
+            # self._df_experiments.set_value(idx, col=col_name, value=stat[name])
+            self._df_experiments.at[idx, col_name] = stat[name]
 
+    @classmethod
     def _visualise_registration(self, df_row):
         """ visualise the registration results according what landmarks were
         estimated - in registration or moving frame
 
         :param (int, dict) df_row: tow from iterated table
         """
-        idx, dict_row = df_row
+        _, dict_row = df_row
         image_ref = tl_io.load_image(dict_row[COL_IMAGE_REF])
         points_ref = tl_io.load_landmarks(dict_row[COL_POINTS_REF])
         points_move = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE])
@@ -322,7 +326,8 @@ class ImRegBenchmark(Experiment):
                                           NAME_IMAGE_MOVE_WARP_POINTS), image)
             # visualise the landmarks move during registration
             fig = tl_visu.draw_images_warped_landmarks(image_ref, image_warp,
-                                           points_move, points_ref, points_warp)
+                                                       points_move, points_ref,
+                                                       points_warp)
         elif COL_POINTS_MOVE_WARP in dict_row:
             image_move = tl_io.load_image(dict_row[COL_IMAGE_MOVE])
             # image_warp = tl_io.load_image(row['Moving image, Transf.'])
@@ -333,7 +338,8 @@ class ImRegBenchmark(Experiment):
                                           NAME_IMAGE_REF_POINTS_WARP), image)
             # visualise the landmarks move during registration
             fig = tl_visu.draw_images_warped_landmarks(image_ref, image_move,
-                                     points_ref, points_move, points_warp)
+                                                       points_ref, points_move,
+                                                       points_warp)
         else:
             logging.error('not allowed scenario: no output image or landmarks')
             fig, _ = tl_visu.create_figure((1, 1))
@@ -358,6 +364,7 @@ class ImRegBenchmark(Experiment):
         path_csv = os.path.join(self.params['path_exp'], NAME_CSV_RESULTS)
         df_summary.to_csv(path_csv)
 
+    @classmethod
     def _prepare_registration(self, dict_row):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
@@ -368,6 +375,7 @@ class ImRegBenchmark(Experiment):
         logging.debug('.. no preparing before regist. experiment')
         return dict_row
 
+    @classmethod
     def _generate_regist_command(self, dict_row):
         """ generate the registration command
 
@@ -385,6 +393,7 @@ class ImRegBenchmark(Experiment):
         cmd = ' && '.join(cmds)
         return cmd
 
+    @classmethod
     def _evaluate_registration(self, dict_row):
         """ evaluate rests of the experiment and identity the registered image
         and landmarks when the process finished
@@ -407,6 +416,7 @@ class ImRegBenchmark(Experiment):
 
         return dict_row
 
+    @classmethod
     def _clear_after_registration(self, dict_row):
         """ clean unnecessarily files after the registration
 
@@ -429,6 +439,6 @@ def main(params):
 # RUN by given parameters
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    parser = tl_expt.create_basic_parse()
-    params = tl_expt.parse_params(parser)
-    main(params)
+    arg_parser = tl_expt.create_basic_parse()
+    arg_params = tl_expt.parse_params(arg_parser)
+    main(arg_params)

@@ -1,15 +1,15 @@
 # BIRL: Benchmark on Image Registration methods with Landmark validation
 
-[![Build Status](https://travis-ci.com/Borda/BIRL.svg?token=HksCAm7DV2pJNEbsGJH2&branch=master)](https://travis-ci.com/Borda/BIRL)
-[![codecov](https://codecov.io/gh/Borda/BIRL/branch/master/graph/badge.svg?token=JZwA1rlUGA)](https://codecov.io/gh/Borda/BIRL)
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/9d352210100847629b2c74d2ff3f4993)](https://www.codacy.com?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Borda/BIRL&amp;utm_campaign=Badge_Grade)
-[![Code Health](https://landscape.io/github/Borda/BIRL/master/landscape.svg?style=flat&badge_auth_token=584b288f6a864dcdaf0fcf7f5d392ea8)](https://landscape.io/github/Borda/BIRL/master)
-[![Run Status](https://api.shippable.com/projects/585bfa66e18a291000c15f24/badge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
-[![Coverage Badge](https://api.shippable.com/projects/585bfa66e18a291000c15f24/coverageBadge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
-[![codebeat badge](https://codebeat.co/badges/40d2ac50-5c1b-4b73-86bf-e04080e65010)](https://codebeat.co/a/jirka-borovec/projects/github-com-borda-birl-master)
+[![Build Status](https://travis-ci.org/Borda/BIRL.svg?branch=master)](https://travis-ci.org/Borda/BIRL)
 [![CircleCI](https://circleci.com/gh/Borda/BIRL.svg?style=svg&circle-token=e58b9845aab1b02d749df60060afbac54138ea28)](https://circleci.com/gh/Borda/BIRL)
+[![Build status](https://ci.appveyor.com/api/projects/status/rmfvuxix379eu6fh/branch/master?svg=true)](https://ci.appveyor.com/project/Borda/birl/branch/master)
+[![Run Status](https://api.shippable.com/projects/585bfa66e18a291000c15f24/badge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
+[![codecov](https://codecov.io/gh/Borda/BIRL/branch/master/graph/badge.svg?token=JZwA1rlUGA)](https://codecov.io/gh/Borda/BIRL)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/b12d7a4a99d549a9baba6c9a83ad6b59)](https://www.codacy.com/project/Borda/BIRL/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Borda/BIRL&amp;utm_campaign=Badge_Grade_Dashboard)
+[![Code Health](https://landscape.io/github/Borda/BIRL/master/landscape.svg?style=flat)](https://landscape.io/github/Borda/BIRL/master)
+[![codebeat badge](https://codebeat.co/badges/6dd13229-ca9e-4dae-9394-caf5f363082d)](https://codebeat.co/projects/github-com-borda-birl-master)
 <!--
-[![Codeship Status for Borda/pyImRegBenchmark](https://app.codeship.com/projects/975451b0-b7e1-0134-981a-3617a86d3e20/status?branch=master)](https://app.codeship.com/projects/194566)
+[![Coverage Badge](https://api.shippable.com/projects/585bfa66e18a291000c15f24/coverageBadge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
 -->
 
 This project contains a set of sample images with related landmarks and experimental evaluation of several image registration (state-of-the-art) methods.
@@ -18,7 +18,7 @@ As the data we use a [dataset of stain histological tissues](http://cmp.felk.cvu
 
 For evaluation we have set of manually placed landmarks in each image pair at least 40 uniformly spread over the tissue (we do not put any landmarks in backround)
 
-The dataset is defined by CSV file containing pathes to reference and sensed image and their related landmarks _(see `./data_images/list_pairs_imgs_lnds.csv`)_.
+The dataset is defined by CSV file containing paths to reference and sensed image and their related landmarks _(see `./data_images/list_pairs_imgs_lnds.csv`)_.
 
 ![images-landmarks](figures/images-landmarks.jpg)
 
@@ -30,10 +30,10 @@ The project contains also a few folders and its brief description is:
     * `images` - contains sample image pairs (reference and sensed one)
     * `landmarks` - contains related landmarks to images in previous folder
 * `benchmarks` - directory with benchmark & template and general useful utils
-    * `utils` - useful tools and functions
+    * `utilities` - useful tools and functions
 * `bm_experiments` - directory with particular benchmark experiments
 * `configs` - configs for registration methods 
-* `macros` - macros mainly for ImageJ 
+* `macros_ij` - macros mainly for ImageJ 
 * `scripts` - useful scripts handling some staff around the benchmark itself
 
 
@@ -101,8 +101,7 @@ The project is using the standard [BSD license](http://opensource.org/licenses/B
 ## References
 
 For complete references see [bibtex](docs/references.bib).
-1. J. Borovec, A. Munoz-Barrutia, and J. Kybic, “**Benchmarking of image registration methods for differently stained histological slides**” in IEEE International Conference on Image Processing (ICIP), 2018.
-
+1. Borovec, J., Munoz-Barrutia, A. & Kybic, J., 2018. **[Benchmarking of image registration methods for differently stained histological slides](https://www.researchgate.net/publication/325019076_Benchmarking_of_image_registration_methods_for_differently_stained_histological_slides)**. In IEEE International Conference on Image Processing (ICIP). Athens. 
 
 ## Appendix - Useful information
 
@@ -121,6 +120,6 @@ and in the end terminating...
 (env)@duda:~$ deactivate
 ```
 
-### Running docString tests
+### Testing
 
-documentation and samples of doc string on [pymotw](https://pymotw.com/2/doctest/) and [python/docs](https://docs.python.org/2/library/doctest.html)
+**Running docString tests** - documentation and samples of doc string on [pymotw](https://pymotw.com/2/doctest/) and [python/docs](https://docs.python.org/2/library/doctest.html)

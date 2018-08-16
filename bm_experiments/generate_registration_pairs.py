@@ -19,7 +19,7 @@ import logging
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-import benchmark.utils.experiments as tl_expt
+import benchmark.utilities.experiments as tl_expt
 
 # list of combination options
 OPTIONS_COMBINE = ['first-all', 'all-all']
@@ -42,7 +42,7 @@ def arg_parse_params():
                         default=OPTIONS_COMBINE[0], choices=OPTIONS_COMBINE)
     args = vars(parser.parse_args())
     logging.info(tl_expt.string_dict(args, 'ARGUMENTS:'))
-    assert tl_expt.check_paths(args, ['path_csv'])
+    assert tl_expt.check_paths(args, ['path_csv']), 'some paths are missing'
     return args
 
 
@@ -59,7 +59,7 @@ def generate_pairs(df_cover, path_pattern_imgs, path_pattern_lnds, mode):
     list_lnds = sorted(glob.glob(path_pattern_lnds))
     assert len(list_imgs) == len(list_lnds), \
         'the list of loaded images (%i) and landmarks (%i) ' \
-        'is diffrent lenfth' % (len(list_imgs), len(list_lnds))
+        'is different length' % (len(list_imgs), len(list_lnds))
     assert len(list_imgs) >= 2, 'the minimum is 2 elements'
     logging.info('combining list %i files with "%s"', len(list_imgs), mode)
 
@@ -72,8 +72,8 @@ def generate_pairs(df_cover, path_pattern_imgs, path_pattern_lnds, mode):
                 'Moving landmarks': list_lnds[i],
             }, ignore_index=True)
     elif type == 'all-all':
-        for i in range(len(list_imgs)):
-            for j in range(i+1, len(list_imgs)):
+        for i, _ in enumerate(list_imgs):
+            for j in range(i + 1, len(list_imgs)):
                 df_cover = df_cover.append({
                     'Reference image': list_imgs[i],
                     'Moving image': list_lnds[i],
@@ -93,7 +93,7 @@ def main(params):
     # if the cover file exist continue in it, otherwise create new
     if os.path.exists(params['path_csv']):
         logging.info('loading existing csv file')
-        df_cover = pd.DataFrame.from_csv(params['path_csv'])
+        df_cover = pd.read_csv(params['path_csv'], index_col=0)
     else:
         logging.info('creating new cover file')
         df_cover = pd.DataFrame()
@@ -110,5 +110,5 @@ def main(params):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
-    params = arg_parse_params()
-    main(params)
+    arg_params = arg_parse_params()
+    main(arg_params)

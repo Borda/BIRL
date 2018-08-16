@@ -42,7 +42,7 @@ def load_landmarks(path_file):
     >>> os.remove('./sample_landmarks.csv')
     >>> os.remove('./sample_landmarks.txt')
     """
-    assert os.path.exists(path_file), str(path_file)
+    assert os.path.exists(path_file), 'missing file "%s"' % path_file
     ext = os.path.splitext(path_file)[-1]
     if ext == '.csv':
         return load_landmarks_csv(path_file)
@@ -68,12 +68,19 @@ def load_landmarks_txt(path_file):
            [ 5.,  6.]])
     >>> os.remove('./sample_landmarks.txt')
     """
-    assert os.path.exists(path_file)
+    assert os.path.exists(path_file), 'missing file "%s"' % path_file
     with open(path_file, 'r') as fp:
-        lines = fp.readlines()
+        data = fp.read()
+        lines = data.split('\n')
+        # lines = [re.sub("(\\r|)\\n$", '', line) for line in lines]
+    if len(lines) < 2:
+        logging.warning('invalid format: file has less then 2 lines, "%s"',
+                        repr(lines))
+        return np.zeros((0, 2))
     nb_points = int(lines[1])
     points = [[float(n) for n in line.split()] for line in lines[2:]]
-    assert nb_points == len(points)
+    assert nb_points == len(points), 'number of declared (%i) and found (%i) ' \
+                                     'does not match' % (nb_points, len(points))
     return np.array(points, dtype=np.float)
 
 
@@ -86,14 +93,14 @@ def load_landmarks_csv(path_file):
     >>> points = np.array([[1, 2], [3, 4], [5, 6]])
     >>> save_landmarks_csv('./sample_landmarks.csv', points)
     >>> pts = load_landmarks_csv('./sample_landmarks.csv')
-    >>> pts  # doctest: +NORMALIZE_WHITESPACE
+    >>> pts  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     array([[1, 2],
            [3, 4],
-           [5, 6]])
+           [5, 6]]...)
     >>> os.remove('./sample_landmarks.csv')
     """
-    assert os.path.exists(path_file)
-    df = pd.DataFrame.from_csv(path_file)
+    assert os.path.exists(path_file), 'missing file "%s"' % path_file
+    df = pd.read_csv(path_file, index_col=0)
     points = df[LANDMARK_COORDS].values
     return points
 
@@ -104,7 +111,8 @@ def save_landmarks(path_file, landmarks):
     :param str path_file: path to the output file
     :param landmarks: np.array<np_points, dim>
     """
-    assert os.path.exists(os.path.dirname(path_file))
+    assert os.path.exists(os.path.dirname(path_file)), \
+        'missing folder "%s"' % os.path.dirname(path_file)
     path_file = os.path.splitext(path_file)[0]
     save_landmarks_csv(path_file + '.csv', landmarks)
     save_landmarks_txt(path_file + '.txt', landmarks)
@@ -116,11 +124,12 @@ def save_landmarks_txt(path_file, landmarks):
     :param str path_file: path to the output file
     :param landmarks: np.array<np_points, dim>
     """
-    assert os.path.exists(os.path.dirname(path_file))
+    assert os.path.exists(os.path.dirname(path_file)), \
+        'missing folder "%s"' % os.path.dirname(path_file)
     lines = ['point', str(len(landmarks))]
     lines += [' '.join(str(i) for i in point) for point in landmarks]
     with open(path_file, 'w') as fp:
-        fp.write(os.linesep.join(lines))
+        fp.write('\n'.join(lines))
 
 
 def save_landmarks_csv(path_file, landmarks):
@@ -129,8 +138,10 @@ def save_landmarks_csv(path_file, landmarks):
     :param str path_file: path to the output file
     :param landmarks: np.array<np_points, dim>
     """
-    assert os.path.exists(os.path.dirname(path_file))
-    assert os.path.splitext(path_file)[-1] == '.csv'
+    assert os.path.exists(os.path.dirname(path_file)), \
+        'missing folder "%s"' % os.path.dirname(path_file)
+    assert os.path.splitext(path_file)[-1] == '.csv', \
+        'wrong file extension "%s"' % os.path.basename(path_file)
     df = pd.DataFrame(landmarks, columns=LANDMARK_COORDS)
     df.to_csv(path_file)
 
@@ -139,27 +150,30 @@ def update_path(path_file, lim_depth=5, absolute=True):
     """ bubble in the folder tree up intil it found desired file
     otherwise return original one
 
-    :param str path_file:
-    :param int lim_depth:
+    :param str path_file: original path
+    :param int lim_depth: lax depth of going up
+    :param bool absolute: return absolute path
     :return str:
 
-    >>> path = 'sample_file.test'
-    >>> f = open(path, 'w')
-    >>> update_path(path, absolute=False)
-    'sample_file.test'
-    >>> os.remove(path)
+    >>> os.path.exists(update_path('benchmark', absolute=False))
+    True
+    >>> os.path.exists(update_path('/', absolute=False))
+    True
+    >>> os.path.exists(update_path('~', absolute=False))
+    True
     """
     if path_file.startswith('/'):
         return path_file
     elif path_file.startswith('~'):
         path_file = os.path.expanduser(path_file)
-    else:
-        tmp_path = path_file
-        for depth in range(lim_depth):
-            if os.path.exists(tmp_path):
-                path_file = tmp_path
-                break
-            tmp_path = os.path.join('..', tmp_path)
+
+    tmp_path = path_file
+    for _ in range(lim_depth):
+        if os.path.exists(tmp_path):
+            path_file = tmp_path
+            break
+        tmp_path = os.path.join('..', tmp_path)
+
     if absolute:
         path_file = os.path.abspath(path_file)
     return path_file
@@ -178,7 +192,7 @@ def load_image(path_image):
     True
     >>> os.remove('./test_image.jpg')
     """
-    assert os.path.exists(path_image), 'missing image "%s"' % (path_image)
+    assert os.path.exists(path_image), 'missing image "%s"' % path_image
     image = np.array(Image.open(path_image))
     while image.max() > 1.:
         image = (image / 255.)
@@ -197,7 +211,7 @@ def convert_ndarray_2_image(image):
     True
     """
     if isinstance(image, np.ndarray):
-        if image.max() <= 1.:
+        if np.max(image) <= 1.:
             image = (image * 255)
         image = Image.fromarray(np.round(image).astype(np.uint8))
     return image
@@ -236,7 +250,7 @@ def load_parse_bunwarpj_displacement_axis(fp, size, points):
     for i in range(height):
         line = fp.readline()
         # if the any point is listed in this line
-        if i in selected_lines :
+        if i in selected_lines:
             pos = line.rstrip().split()
             # pos = [float(e) for e in pos if len(e)>0]
             assert len(pos) == width
@@ -280,8 +294,7 @@ def load_parse_bunwarpj_displacements_warp_points(path_file, points):
            [ 13.,  23.]])
     >>> os.remove('./my_transform.txt')
     """
-    assert os.path.exists(path_file)
-    assert os.path.isfile(path_file)
+    assert os.path.isfile(path_file), 'missing file "%s"' % path_file
 
     fp = open(path_file, 'r')
     # read image sizes
@@ -293,14 +306,15 @@ def load_parse_bunwarpj_displacements_warp_points(path_file, points):
         'some points are outside of the image'
 
     # read inter line
-    fp.readline(), fp.readline()
+    fp.readline()
+    fp.readline()
     # read inter line and Transform notation
     points_x = load_parse_bunwarpj_displacement_axis(fp, size, points)
 
     # read inter line and Transform notation
     fp.readline(), fp.readline()
     # read Y Trans
-    points_y = load_parse_bunwarpj_displacement_axis (fp, size, points)
+    points_y = load_parse_bunwarpj_displacement_axis(fp, size, points)
     fp.close()
 
     points_new = np.vstack((points_x, points_y)).T

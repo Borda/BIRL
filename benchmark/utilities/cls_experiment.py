@@ -9,10 +9,8 @@ import os
 import json
 import copy
 import logging
-import shutil
 
-import benchmark.utils.data_io as tl_io
-import benchmark.utils.experiments as tl_expt
+import benchmark.utilities.experiments as tl_expt
 
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 CONFIG_JSON = 'config.json'
@@ -26,6 +24,7 @@ class Experiment(object):
     Tha basic template for experiment running with specific initialisation
     None, all required parameters used in future have to come in init phase
 
+    >>> import benchmark.utilities.data_io as tl_io
     >>> path_out = tl_io.create_dir('output')
     >>> expt = Experiment({'path_out': path_out, 'name': 'my_Experiment'}, False)
     >>> 'path_exp' in expt.params
@@ -33,8 +32,8 @@ class Experiment(object):
     >>> expt.run()
     True
     >>> del expt
+    >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
-
     """
 
     def __init__(self, dict_params, stamp_unique=True):
@@ -52,11 +51,12 @@ class Experiment(object):
         tl_expt.set_experiment_logger(self.params['path_exp'], FILE_LOGS)
         # set stream logging to info level
         for lh in logging.getLogger().handlers:
-            if type(lh) is logging.StreamHandler:
+            if isinstance(lh, logging.StreamHandler):
                 lh.setLevel(logging.INFO)
         logging.info('initialise experiment...')
         logging.info(tl_expt.string_dict(self.params, 'PARAMETERS:'))
 
+    @classmethod
     def _check_required_params(self):
         """ check some extra required parameters for this experiment """
         logging.debug('.. check if Experiment have all required parameters')
@@ -71,18 +71,22 @@ class Experiment(object):
         self._summarise()
         return True
 
+    @classmethod
     def _prepare(self):
         """ prepare the benchmark folder """
         logging.warning('-> preparing EMPTY experiments...')
 
+    @classmethod
     def _load_data(self):
         """ loading data """
         logging.warning('-> loading EMPTY data...')
 
+    @classmethod
     def _run(self):
         """ perform experiment """
         logging.warning('-> perform EMPTY experiment...')
 
+    @classmethod
     def _summarise(self):
         """ summarise experiment """
         logging.warning('-> summarise EMPTY experiment...')
@@ -99,7 +103,8 @@ class Experiment(object):
 
     def __create_folder(self, stamp_unique=True):
         """ create the experiment folder (iterate if necessary) """
-        assert 'path_out' in self.params
+        assert 'path_out' in self.params, 'missing "path_out" among %s' \
+                                          % repr(self.params.keys())
         # create results folder for experiments
         path_exp = tl_expt.create_experiment_folder(
                         self.params.get('path_out'), self.__class__.__name__,
@@ -108,7 +113,8 @@ class Experiment(object):
         with open(os.path.join(path_exp, CONFIG_JSON), 'w') as f:
             json.dump(self.params, f)
 
+    @classmethod
     def __del__(self):
         """ terminating experiment """
         logging.info('terminating experiment...')
-        tl_expt.close_file_loggers()
+        tl_expt.release_logger_files()

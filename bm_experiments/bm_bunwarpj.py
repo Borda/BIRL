@@ -42,8 +42,8 @@ import logging
 import shutil
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-import benchmark.utils.data_io as tl_io
-import benchmark.utils.experiments as tl_expt
+import benchmark.utilities.data_io as tl_io
+import benchmark.utilities.experiments as tl_expt
 import benchmark.cls_benchmark as bm
 
 NAME_MACRO_REGISTRATION = 'macro_registration.ijm'
@@ -115,27 +115,27 @@ exit();
 '''
 
 
-def extend_parse(parser):
+def extend_parse(a_parser):
     """ extent the basic arg parses by some extra required parameters
 
     :return object:
     """
     # SEE: https://docs.python.org/3/library/argparse.html
-    parser.add_argument('-fiji', '--path_fiji', type=str, required=True,
-                        help='path to the Fiji executable')
-    parser.add_argument('-config', '--path_config_bUnwarpJ', required=True,
-                        type=str, help='path to the bUnwarpJ configuration')
-    parser.add_argument('-sift', '--path_config_IJ_SIFT', required=False,
-                        type=str, help='path to the ImageJ SIFT configuration')
-    parser.add_argument('-mops', '--path_config_IJ_MOPS', required=False,
-                        type=str, help='path to the ImageJ MOPS configuration')
-    return parser
+    a_parser.add_argument('-fiji', '--path_fiji', type=str, required=True,
+                          help='path to the Fiji executable')
+    a_parser.add_argument('-config', '--path_config_bUnwarpJ', required=True,
+                          type=str, help='path to the bUnwarpJ configuration')
+    a_parser.add_argument('-sift', '--path_config_IJ_SIFT', required=False,
+                          type=str, help='path to the ImageJ SIFT configuration')
+    a_parser.add_argument('-mops', '--path_config_IJ_MOPS', required=False,
+                          type=str, help='path to the ImageJ MOPS configuration')
+    return a_parser
 
 
 class BmBUnwarpJ(bm.ImRegBenchmark):
     """ Benchmark for ImageJ plugin - bUnwarpJ
-
     no run test while this method requires manual installation of ImageJ
+
     >>> path_out = tl_io.create_dir('temp_results')
     >>> fn_path_conf = lambda n: os.path.join(tl_io.update_path('configs'), n)
     >>> params = {'nb_jobs': 1, 'unique': False,
@@ -152,12 +152,7 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
-
-    def _check_required_params(self):
-        """ check some extra required parameters for this benchmark """
-        super(BmBUnwarpJ, self)._check_required_params()
-        for param in ['path_fiji', 'path_config_bUnwarpJ']:
-            assert param in self.params
+    REQUIRED_PARAMS = bm.ImRegBenchmark.REQUIRED_PARAMS + ['path_fiji', 'path_config_bUnwarpJ']
 
     def _prepare(self):
         """ prepare BM - copy configurations """
@@ -299,14 +294,14 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         return dict_row
 
 
-def main(params):
+def main(arg_params):
     """ run the Main of blank experiment
 
-    :param params: {str: value} set of input parameters
+    :param arg_params: {str: value} set of input parameters
     """
     logging.info('running...')
     logging.info(__doc__)
-    benchmark = BmBUnwarpJ(params)
+    benchmark = BmBUnwarpJ(arg_params)
     benchmark.run()
     del benchmark
     logging.info('Done.')
@@ -315,7 +310,7 @@ def main(params):
 # RUN by given parameters
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    parser = tl_expt.create_basic_parse()
-    parser = extend_parse(parser)
-    params = tl_expt.parse_params(parser)
-    main(params)
+    arg_parser = tl_expt.create_basic_parse()
+    arg_parser = extend_parse(arg_parser)
+    arg_params = tl_expt.parse_params(arg_parser)
+    main(arg_params)

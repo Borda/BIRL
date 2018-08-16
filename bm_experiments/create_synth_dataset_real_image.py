@@ -28,14 +28,13 @@ if os.environ.get('DISPLAY', '') == '':
 import tqdm
 import numpy as np
 import pandas as pd
-import matplotlib
 from PIL import Image
 from scipy import ndimage, stats, interpolate
 import matplotlib.pyplot as plt
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-import benchmark.utils.experiments as tl_expt
-import benchmark.utils.data_io as tl_io
+import benchmark.utilities.experiments as tl_expt
+import benchmark.utilities.data_io as tl_io
 
 COLUMNS_COORD = tl_io.LANDMARK_COORDS
 NB_THREADS = int(mproc.cpu_count() * .8)
@@ -70,7 +69,8 @@ def arg_parse_params():
                         default=NB_THREADS)
     args = vars(parser.parse_args())
     logging.info(tl_expt.string_dict(args, 'ARGUMENTS:'))
-    assert tl_expt.check_paths(args, ['path_out'])
+    assert tl_expt.check_paths(args, ['path_out']), 'missing some paths in %s' \
+                                                    % repr(args)
     args['visual'] = bool(args['visual'])
     return args
 
@@ -308,7 +308,7 @@ def main(params):
 
     image = np.array(Image.open(params['path_image']))
     logging.debug('loaded image, shape: %s', image.shape)
-    df_points = pd.DataFrame.from_csv(params['path_landmarks'])
+    df_points = pd.read_csv(params['path_landmarks'], index_col=0)
     points = df_points[COLUMNS_COORD].values
     logging.debug('loaded landmarks, dim: %s', points.shape)
 
@@ -343,5 +343,5 @@ def main(params):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
-    params = arg_parse_params()
-    main(params)
+    arg_params = arg_parse_params()
+    main(arg_params)

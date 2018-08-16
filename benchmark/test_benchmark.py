@@ -16,7 +16,7 @@ import pandas as pd
 from numpy.testing import assert_raises, assert_array_almost_equal
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utils.data_io import update_path
+from benchmark.utilities.data_io import update_path
 import benchmark.cls_benchmark as bm
 
 PATH_CSV_COVER = os.path.join(update_path('data_images'),
@@ -36,11 +36,13 @@ class TestBmRegistration(unittest.TestCase):
     def tearDownClass(cls):
         shutil.rmtree(cls.path_out, ignore_errors=True)
 
+    @classmethod
     def setUp(self):
         # remove previous benchmark folder
         shutil.rmtree(os.path.join(self.path_out, 'ImRegBenchmark'),
                       ignore_errors=True)
 
+    @classmethod
     def test_benchmark_invalid_inputs(self):
         # test missing some parameters
         params = {'path_cover': 'x', 'path_out': 'x',
@@ -53,6 +55,7 @@ class TestBmRegistration(unittest.TestCase):
         # not defined output folder
         assert_raises(Exception, bm.ImRegBenchmark, params)
 
+    @classmethod
     def test_benchmark_parallel(self):
         """ test run in parallel (2 threads) """
         params = {
@@ -66,6 +69,7 @@ class TestBmRegistration(unittest.TestCase):
         self.check_benchmark_results()
         del self.benchmark
 
+    @classmethod
     def test_benchmark_simple(self):
         """ test run in single thread """
         params = {
@@ -79,12 +83,13 @@ class TestBmRegistration(unittest.TestCase):
         self.check_benchmark_results()
         del self.benchmark
 
+    @classmethod
     def check_benchmark_results(self):
         """ check whether the benchmark folder contains all required files
         and compute statistic correctly """
         path_bm = os.path.join(self.path_out, self.benchmark.__class__.__name__)
-        assert os.path.exists(path_bm), \
-            'missing benchmark: %s' % self.benchmark.__class__.__name__
+        assert os.path.exists(path_bm), 'missing benchmark: %s' % \
+                                        self.benchmark.__class__.__name__
         # required output files
         for file_name in [bm.NAME_CSV_REGIST,
                           bm.NAME_CSV_RESULTS,
@@ -92,14 +97,13 @@ class TestBmRegistration(unittest.TestCase):
             assert os.path.exists(os.path.join(path_bm, file_name)), \
                 'missing "%s" file in the benchmark experiment' % file_name
         # load registration file
-        df_regist = pd.DataFrame.from_csv(os.path.join(path_bm,
-                                                       bm.NAME_CSV_REGIST))
+        df_regist = pd.read_csv(os.path.join(path_bm, bm.NAME_CSV_REGIST), index_col=0)
         # only two records in the benchmark
         assert len(df_regist) == len(self.benchmark._df_cover), \
             'found only %i records instead of %i' % \
             (len(df_regist), len(self.benchmark._df_cover))
         # check existence of all mentioned files
-        for idx, row in df_regist.iterrows():
+        for _, row in df_regist.iterrows():
             for col in bm.COVER_COLUMNS + \
                     [bm.COL_IMAGE_REF_WARP, bm.COL_POINTS_REF_WARP]:
                 assert os.path.exists(row[col]), \

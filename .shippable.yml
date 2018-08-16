@@ -14,7 +14,7 @@ python:
 cache: pip
 
 env:
-  - CI_REPORTS=shippable/testresults COVERAGE_REPORTS=shippable/codecoverage
+  - CI_REPORTS=shippable/testresults COVERAGE_REPORTS=shippable/codecoverage CODACY_PROJECT_TOKEN=43ac6a06566f42968e919830ee28de4d
 
 build:
   ci:
@@ -30,7 +30,7 @@ before_install:
 
 install:
   - pip install -r requirements.txt
-  - pip install nose>=1.3.7 coverage codecov pytest>=3.0.5
+  - pip install nose coverage codecov pytest codacy-coverage
 
 script:
   - mkdir results
@@ -45,6 +45,7 @@ script:
   # - python bm_experiments/generate_registration_pairs.py -imgs "data_images/synth_dataset/*.jpg" -lnds "data_images/synth_dataset/*.csv" -csv data_images/cover_synth-dataset.csv --mode all-all
 
 after_success:
-  - codecov -t 56df941a-7c40-47a0-bf01-3d42c40af66d
+  - codecov
   - coverage xml -o $COVERAGE_REPORTS/coverage.xml
+  - python-codacy-coverage -r $COVERAGE_REPORTS/coverage.xml
   - coverage report

@@ -6,18 +6,17 @@ Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 from __future__ import absolute_import
 
 import os
-import logging
 
-import matplotlib
-if os.environ.get('DISPLAY', '') == '':
-    logging.warning('No display found. Using non-interactive Agg backend')
-    matplotlib.use('Agg')
+# import matplotlib
+# if os.environ.get('DISPLAY', '') == '':
+#     logging.warning('No display found. Using non-interactive Agg backend')
+#     matplotlib.use('Agg')
 
 import numpy as np
 import matplotlib.pylab as plt
-from PIL import Image, ImageDraw
+from PIL import ImageDraw
 
-import benchmark.utils.data_io as tl_io
+import benchmark.utilities.data_io as tl_io
 
 MAX_FIGURE_SIZE = 18
 
@@ -53,7 +52,7 @@ def draw_image_points(image, points, color='green', marker_size=5, shape='o'):
     draw = ImageDraw.Draw(image)
     for i, (x, y) in enumerate(points):
         pos_marker = (x - marker_size, y - marker_size,
-               x + marker_size, y + marker_size)
+                      x + marker_size, y + marker_size)
         pos_text = tuple(points[i] + marker_size)
         if shape == 'o':
             draw.ellipse(pos_marker, outline=color)
@@ -91,8 +90,12 @@ def draw_landmarks_origin_target_estim(ax, points_origin, points_target,
     >>> draw_landmarks_origin_target_estim(plt.figure().gca(),
     ...                                    points, points + 1, points - 1)
     """
-    assert points_target.shape == points_origin.shape, 'image dimension has to match'
-    assert points_origin.shape == points_estim.shape, 'image dimension has to match'
+    assert points_target.shape == points_origin.shape, \
+        'image dimension has to match %s != %s' \
+        % (repr(points_target.shape), repr(points_origin.shape))
+    assert points_origin.shape == points_estim.shape, \
+        'image dimension has to match %s != %s' \
+        % (repr(points_origin.shape), repr(points_estim.shape))
     ax.plot(points_origin[:, 0], points_origin[:, 1], marker, color='b',
             label='Original positions')
     # draw a dotted line between origin and where it should be
@@ -129,8 +132,9 @@ def overlap_two_images(image1, image2, transparent=0.5):
            [ 0.5,  0.5,  0.5,  0.5,  0.5,  0.1],
            [ 0.4,  0.4,  0.4,  0.4,  0.4,  0. ]])
     """
-    assert image1.ndim == 3, 'required RGB images'
-    assert image1.ndim == image2.ndim, 'image dimension has to match'
+    assert image1.ndim == 3, 'required RGB images, got %s' % repr(image1.ndim)
+    assert image1.ndim == image2.ndim, 'image dimension has to match, %s != %s' \
+                                       % (repr(image1.ndim), repr(image2.ndim))
     size1, size2 = image1.shape, image2.shape
     max_size = np.max(np.array([size1, size2]), axis=0)
     image = np.zeros(max_size)
@@ -155,7 +159,7 @@ def draw_images_warped_landmarks(image_target, image_source,
     >>> image = np.random.random((50, 50, 3))
     >>> points = np.array([[20, 30], [40, 10], [15, 25]])
     >>> fig = draw_images_warped_landmarks(image, 1 - image,
-    ...                              points, points + 1, points - 1)  # doctest: +ELLIPSIS
+    ...                                    points, points + 1, points - 1)  # doctest: +ELLIPSIS
     >>> isinstance(fig, plt.Figure)
     True
     """
@@ -182,7 +186,7 @@ def create_figure(im_size, figsize_max=MAX_FIGURE_SIZE):
     >>> isinstance(fig, plt.Figure)
     True
     """
-    assert len(im_size) >= 2, 'not valide image size'
+    assert len(im_size) >= 2, 'not valid image size - %s' % repr(im_size)
     size = np.array(im_size[:2])
     fig_size = size[::-1] / float(size.max()) * figsize_max
     fig, ax = plt.subplots(figsize=fig_size)
@@ -199,7 +203,8 @@ def export_figure(path_fig, fig):
     >>> export_figure(path_fig, plt.figure())
     >>> os.remove(path_fig)
     """
-    assert os.path.exists(os.path.dirname(path_fig))
+    assert os.path.exists(os.path.dirname(path_fig)), \
+        'missing folder "%s"' % os.path.dirname(path_fig)
     fig.subplots_adjust(left=0., right=1., top=1., bottom=0.)
     fig.savefig(path_fig)
     plt.close(fig)

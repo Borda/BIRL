@@ -1,2 +1,2 @@
-# show_downloads: true  #todo
-theme: jekyll-theme-architect
+show_downloads: true
+theme: jekyll-theme-cayman

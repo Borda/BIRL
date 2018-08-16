@@ -15,7 +15,7 @@ import traceback
 
 import numpy as np
 
-import benchmark.utils.data_io as tl_io
+import benchmark.utilities.data_io as tl_io
 
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 FILE_LOGS = 'logging.txt'
@@ -50,6 +50,20 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     return path_exp
 
 
+def release_logger_files():
+    """ close all handlers to a file
+
+    >>> release_logger_files()
+    >>> len([lh for lh in logging.getLogger().handlers
+    ...      if type(lh) is logging.FileHandler])
+    0
+    """
+    for hl in logging.getLogger().handlers:
+        if isinstance(hl, logging.FileHandler):
+            hl.close()
+            logging.getLogger().removeHandler(hl)
+
+
 def set_experiment_logger(path_out, file_name=FILE_LOGS, reset=True):
     """ set the logger to file
 
@@ -57,17 +71,17 @@ def set_experiment_logger(path_out, file_name=FILE_LOGS, reset=True):
     :param str file_name: log file name
     :param bool reset: reset all previous logging into a file
 
-
     >>> set_experiment_logger('.')
     >>> len([lh for lh in logging.getLogger().handlers
     ...      if type(lh) is logging.FileHandler])
     1
+    >>> release_logger_files()
     >>> os.remove(FILE_LOGS)
     """
     log = logging.getLogger()
     # log.setLevel(logging.DEBUG)
     if reset:
-        close_file_loggers()
+        release_logger_files()
     path_logger = os.path.join(path_out, file_name)
     fh = logging.FileHandler(path_logger)
     fh.setLevel(logging.DEBUG)
@@ -75,19 +89,6 @@ def set_experiment_logger(path_out, file_name=FILE_LOGS, reset=True):
         '%(asctime)s:%(levelname)s@%(filename)s:%(processName)s - %(message)s',
         datefmt="%H:%M:%S"))
     log.addHandler(fh)
-
-
-def close_file_loggers():
-    """ close all handlers to a file
-
-    >>> close_file_loggers()
-    >>> len([lh for lh in logging.getLogger().handlers
-    ...      if type(lh) is logging.FileHandler])
-    0
-    """
-    log = logging.getLogger()
-    log.handlers = [lh for lh in log.handlers
-                    if not type(lh) is logging.FileHandler]
 
 
 def string_dict(d, headline='DICTIONARY:', offset=25):
@@ -134,7 +135,7 @@ def create_basic_parse():
     return parser
 
 
-def check_paths(args, restrict_dir=[]):
+def check_paths(args, restrict_dir=None):
     """
 
     :param {} args:
@@ -149,6 +150,8 @@ def check_paths(args, restrict_dir=[]):
     >>> check_paths({'path_out': './nothing'})  # doctest: +ELLIPSIS
     False
     """
+    if restrict_dir is None:
+        restrict_dir = []
     status = True
     for k in (k for k in args if 'path' in k):
         if '*' in os.path.basename(args[k]) or k in restrict_dir:
@@ -178,7 +181,7 @@ def parse_params(parser):
     # remove all None parameters
     args = {k: args[k] for k in args if args[k] is not None}
     # extend nd test all paths in params
-    assert check_paths(args)
+    assert check_paths(args), 'missing paths: %s' % repr(args)
     return args
 
 
@@ -199,7 +202,7 @@ def run_command_line(cmd, path_logger=None):
         # TODO: out = subprocess.call(cmd, timeout=TIMEOUT, shell=True)
         os.system(cmd)
         return True
-    except:
+    except Exception:
         logging.error(traceback.format_exc())
         return False
 
@@ -225,7 +228,9 @@ def compute_points_dist_statistic(points1, points2):
     >>> stat['Mean']
     2.4683061157625548
     """
-    assert points1.shape == points2.shape
+    assert points1.shape == points2.shape, \
+        'points sizes do not match %s != %s' \
+        % (repr(points1.shape), repr(points2.shape))
     diffs = np.sqrt(np.sum(np.power(points1 - points2, 2), axis=1))
     dict_stat = {
         'Mean': np.mean(diffs),
