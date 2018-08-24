@@ -20,7 +20,7 @@ from benchmark.utilities.data_io import update_path
 import benchmark.cls_benchmark as bm
 
 PATH_CSV_COVER = os.path.join(update_path('data_images'),
-                              'list_pairs_imgs_lnds.csv')
+                              'pairs-imgs-lnds_mix.csv')
 
 
 class TestBmRegistration(unittest.TestCase):
@@ -91,13 +91,14 @@ class TestBmRegistration(unittest.TestCase):
         assert os.path.exists(path_bm), 'missing benchmark: %s' % \
                                         self.benchmark.__class__.__name__
         # required output files
-        for file_name in [bm.NAME_CSV_REGIST,
+        for file_name in [bm.NAME_CSV_REGIST_PAIRS,
                           bm.NAME_CSV_RESULTS,
                           bm.NAME_TXT_RESULTS]:
-            assert os.path.exists(os.path.join(path_bm, file_name)), \
+            assert os.path.isfile(os.path.join(path_bm, file_name)), \
                 'missing "%s" file in the benchmark experiment' % file_name
         # load registration file
-        df_regist = pd.read_csv(os.path.join(path_bm, bm.NAME_CSV_REGIST), index_col=0)
+        df_regist = pd.read_csv(os.path.join(path_bm, bm.NAME_CSV_REGIST_PAIRS),
+                                index_col=0)
         # only two records in the benchmark
         assert len(df_regist) == len(self.benchmark._df_cover), \
             'found only %i records instead of %i' % \

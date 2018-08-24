@@ -14,7 +14,7 @@ INSTALLATION:
 
 Run the basic bUnwarpJ registration with original parameters:
 >> python bm_experiments/bm_bunwarpj.py \
-    -in ../data_images/list_pairs_imgs_lnds.csv \
+    -in ../data_images/pairs-imgs-lnds_mix.csv \
     -out ../results \
     -fiji ../applications/Fiji.app/ImageJ-linux64 \
     -config ../configs/ImageJ_bUnwarpJ.txt
@@ -22,7 +22,7 @@ Run the basic bUnwarpJ registration with original parameters:
 The bUnwarpJ is supporting SIFT and MOPS feature extraction as landmarks
 see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support
 >> python bm_experiments/bm_bunwarpj.py \
-    -in ../data_images/list_pairs_imgs_lnds.csv \
+    -in ../data_images/pairs-imgs-lnds_mix.csv \
     -out ../results \
     -fiji ../applications/Fiji.app/ImageJ-linux64 \
     -config ../configs/ImageJ_bUnwarpJ.txt \
@@ -38,8 +38,9 @@ from __future__ import absolute_import
 import os
 import sys
 import logging
-
 import shutil
+
+import numpy as np
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 import benchmark.utilities.data_io as tl_io
@@ -132,6 +133,99 @@ def extend_parse(a_parser):
     return a_parser
 
 
+def load_parse_bunwarpj_displacement_axis(fp, size, points):
+    """ given pointer in the file aiming to the beginning of displacement
+     parse all lines and if in the particular line is a point from list
+     get its new position
+
+    :param fp: file pointer
+    :param (int, int) size: width, height of the image
+    :param points: np.array<nb_points, 2>
+    :return list: list of new positions on given axis (x/y) for related points
+    """
+    width, height = size
+    points = np.round(points)
+    selected_lines = points[:, 1].tolist()
+    pos_new = [0] * len(points)
+
+    # walk thor all lined of this displacement field
+    for i in range(height):
+        line = fp.readline()
+        # if the any point is listed in this line
+        if i in selected_lines:
+            pos = line.rstrip().split()
+            # pos = [float(e) for e in pos if len(e)>0]
+            assert len(pos) == width
+            # find all points in this line
+            for j, point in enumerate(points):
+                if point[1] == i:
+                    pos_new[j] = float(pos[point[0]])
+    return pos_new
+
+
+def load_parse_bunwarpj_displacements_warp_points(path_file, points):
+    """ load and parse displacement field for both X and Y coordinated
+    and return new position of selected points
+
+    :param str path_file:
+    :param points: np.array<nb_points, 2>
+    :return: np.array<nb_points, 2>
+
+    >>> fp = open('./my_transform.txt', 'w')
+    >>> _= fp.write('''Width=5
+    ... Height=4
+    ...
+    ... X Trans -----------------------------------
+    ... 11 12 13 14 15
+    ... 11 12 13 14 15
+    ... 11 12 13 14 15
+    ... 11 12 13 14 15
+    ...
+    ... Y Trans -----------------------------------
+    ... 20 20 20 20 20
+    ... 21 21 21 21 21
+    ... 22 22 22 22 22
+    ... 23 23 23 23 23''') # py2 has no return, py3 returns nb of characters
+    >>> fp.close()
+    >>> points = np.array([[1, 1], [4, 0], [2, 3]])
+    >>> pts = load_parse_bunwarpj_displacements_warp_points(
+    ...                             './my_transform.txt', points)
+    >>> pts  # doctest: +NORMALIZE_WHITESPACE
+    array([[ 12.,  21.],
+           [ 15.,  20.],
+           [ 13.,  23.]])
+    >>> os.remove('./my_transform.txt')
+    """
+    if not os.path.isfile(path_file):
+        logging.warning('missing transform file "%s"', path_file)
+        return None
+
+    fp = open(path_file, 'r')
+    # read image sizes
+    width = int(fp.readline().split('=')[-1])
+    height = int(fp.readline().split('=')[-1])
+    logging.debug('loaded image size: %i x %i', width, height)
+    size = (width, height)
+    if not all(np.max(points, axis=0) <= size):
+        logging.warning('some points are outside of the transformation domain')
+        return None
+
+    # read inter line
+    fp.readline()
+    fp.readline()
+    # read inter line and Transform notation
+    points_x = load_parse_bunwarpj_displacement_axis(fp, size, points)
+
+    # read inter line and Transform notation
+    fp.readline(), fp.readline()
+    # read Y Trans
+    points_y = load_parse_bunwarpj_displacement_axis(fp, size, points)
+    fp.close()
+
+    points_new = np.vstack((points_x, points_y)).T
+    return points_new
+
+
 class BmBUnwarpJ(bm.ImRegBenchmark):
     """ Benchmark for ImageJ plugin - bUnwarpJ
     no run test while this method requires manual installation of ImageJ
@@ -141,7 +235,7 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
     >>> params = {'nb_jobs': 1, 'unique': False,
     ...           'path_out': path_out,
     ...           'path_cover': os.path.join(tl_io.update_path('data_images'),
-    ...                                      'list_pairs_imgs_lnds.csv'),
+    ...                                      'pairs-imgs-lnds_mix.csv'),
     ...           'path_fiji': '.',
     ...           'path_config_bUnwarpJ': fn_path_conf('ImageJ_bUnwarpJ_histo-1k.txt')}
     >>> benchmark = BmBUnwarpJ(params)
@@ -211,7 +305,7 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
             with open(self.params['path_config_IJ_MOPS'], 'r') as fp:
                 lines = fp.readlines()
             dict_params['config_MOPS'] = ' '.join(l.strip() for l in lines)
-            dict_params['MOPS'] = MACRO_SIFT % dict_params
+            dict_params['MOPS'] = MACRO_MOPS % dict_params
         else:
             dict_params['MOPS'] = ''
 
@@ -261,7 +355,7 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         path_img = os.path.join(path_dir,
                                 os.path.basename(dict_row[bm.COL_IMAGE_MOVE]))
         # detect image
-        if os.path.exists(path_img):
+        if os.path.isfile(path_img):
             dict_row[bm.COL_IMAGE_REF_WARP] = path_img
 
         # convert the transform do obtain displacement field
@@ -273,8 +367,10 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         path_raw = os.path.join(path_dir, NAME_TXT_TRANSFORM_RAW)
         # points_ref = tl_io.load_landmarks(dict_row[bm.COL_POINTS_REF])
         points_move = tl_io.load_landmarks(dict_row[bm.COL_POINTS_MOVE])
-        points_warp = tl_io.load_parse_bunwarpj_displacements_warp_points(
+        points_warp = load_parse_bunwarpj_displacements_warp_points(
                                                         path_raw, points_move)
+        if points_warp is None:
+            return dict_row
         path_lnd = os.path.join(path_dir,
                                 os.path.basename(dict_row[bm.COL_POINTS_MOVE]))
         tl_io.save_landmarks_csv(path_lnd, points_warp)
@@ -289,8 +385,9 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         :return: {str: value}
         """
         logging.debug('.. cleaning: remove raw transformation')
-        os.remove(os.path.join(dict_row[bm.COL_REG_DIR],
-                               NAME_TXT_TRANSFORM_RAW))
+        path_raw = os.path.join(dict_row[bm.COL_REG_DIR], NAME_TXT_TRANSFORM_RAW)
+        if os.path.isfile(path_raw):
+            os.remove(path_raw)
         return dict_row
 
 

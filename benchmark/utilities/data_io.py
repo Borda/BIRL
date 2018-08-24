@@ -42,7 +42,7 @@ def load_landmarks(path_file):
     >>> os.remove('./sample_landmarks.csv')
     >>> os.remove('./sample_landmarks.txt')
     """
-    assert os.path.exists(path_file), 'missing file "%s"' % path_file
+    assert os.path.isfile(path_file), 'missing file "%s"' % path_file
     ext = os.path.splitext(path_file)[-1]
     if ext == '.csv':
         return load_landmarks_csv(path_file)
@@ -68,7 +68,7 @@ def load_landmarks_txt(path_file):
            [ 5.,  6.]])
     >>> os.remove('./sample_landmarks.txt')
     """
-    assert os.path.exists(path_file), 'missing file "%s"' % path_file
+    assert os.path.isfile(path_file), 'missing file "%s"' % path_file
     with open(path_file, 'r') as fp:
         data = fp.read()
         lines = data.split('\n')
@@ -99,7 +99,7 @@ def load_landmarks_csv(path_file):
            [5, 6]]...)
     >>> os.remove('./sample_landmarks.csv')
     """
-    assert os.path.exists(path_file), 'missing file "%s"' % path_file
+    assert os.path.isfile(path_file), 'missing file "%s"' % path_file
     df = pd.read_csv(path_file, index_col=0)
     points = df[LANDMARK_COORDS].values
     return points
@@ -111,7 +111,7 @@ def save_landmarks(path_file, landmarks):
     :param str path_file: path to the output file
     :param landmarks: np.array<np_points, dim>
     """
-    assert os.path.exists(os.path.dirname(path_file)), \
+    assert os.path.isdir(os.path.dirname(path_file)), \
         'missing folder "%s"' % os.path.dirname(path_file)
     path_file = os.path.splitext(path_file)[0]
     save_landmarks_csv(path_file + '.csv', landmarks)
@@ -124,7 +124,7 @@ def save_landmarks_txt(path_file, landmarks):
     :param str path_file: path to the output file
     :param landmarks: np.array<np_points, dim>
     """
-    assert os.path.exists(os.path.dirname(path_file)), \
+    assert os.path.isdir(os.path.dirname(path_file)), \
         'missing folder "%s"' % os.path.dirname(path_file)
     lines = ['point', str(len(landmarks))]
     lines += [' '.join(str(i) for i in point) for point in landmarks]
@@ -138,7 +138,7 @@ def save_landmarks_csv(path_file, landmarks):
     :param str path_file: path to the output file
     :param landmarks: np.array<np_points, dim>
     """
-    assert os.path.exists(os.path.dirname(path_file)), \
+    assert os.path.isdir(os.path.dirname(path_file)), \
         'missing folder "%s"' % os.path.dirname(path_file)
     assert os.path.splitext(path_file)[-1] == '.csv', \
         'wrong file extension "%s"' % os.path.basename(path_file)
@@ -192,7 +192,7 @@ def load_image(path_image):
     True
     >>> os.remove('./test_image.jpg')
     """
-    assert os.path.exists(path_image), 'missing image "%s"' % path_image
+    assert os.path.isfile(path_image), 'missing image "%s"' % path_image
     image = np.array(Image.open(path_image))
     while image.max() > 1.:
         image = (image / 255.)
@@ -225,97 +225,7 @@ def save_image(path_image, image):
     """
     image = convert_ndarray_2_image(image)
     path_dir = os.path.dirname(path_image)
-    if os.path.exists(path_dir):
+    if os.path.isdir(path_dir):
         image.save(path_image)
     else:
         logging.error('upper folder does not exists: "%s"', path_dir)
-
-
-def load_parse_bunwarpj_displacement_axis(fp, size, points):
-    """ given pointer in the file aiming to the beginning of displacement
-     parse all lines and if in the particular line is a point from list
-     get its new position
-
-    :param fp: file pointer
-    :param (int, int) size: width, height of the image
-    :param points: np.array<nb_points, 2>
-    :return list: list of new positions on given axis (x/y) for related points
-    """
-    width, height = size
-    points = np.round(points)
-    selected_lines = points[:, 1].tolist()
-    pos_new = [0] * len(points)
-
-    # walk thor all lined of this displacement field
-    for i in range(height):
-        line = fp.readline()
-        # if the any point is listed in this line
-        if i in selected_lines:
-            pos = line.rstrip().split()
-            # pos = [float(e) for e in pos if len(e)>0]
-            assert len(pos) == width
-            # find all points in this line
-            for j, point in enumerate(points):
-                if point[1] == i:
-                    pos_new[j] = float(pos[point[0]])
-    return pos_new
-
-
-def load_parse_bunwarpj_displacements_warp_points(path_file, points):
-    """ load and parse displacement field for both X and Y coordinated
-    and return new position of selected points
-
-    :param str path_file:
-    :param points: np.array<nb_points, 2>
-    :return: np.array<nb_points, 2>
-
-    >>> fp = open('./my_transform.txt', 'w')
-    >>> _= fp.write('''Width=5
-    ... Height=4
-    ...
-    ... X Trans -----------------------------------
-    ... 11 12 13 14 15
-    ... 11 12 13 14 15
-    ... 11 12 13 14 15
-    ... 11 12 13 14 15
-    ...
-    ... Y Trans -----------------------------------
-    ... 20 20 20 20 20
-    ... 21 21 21 21 21
-    ... 22 22 22 22 22
-    ... 23 23 23 23 23''') # py2 has no return, py3 returns nb of characters
-    >>> fp.close()
-    >>> points = np.array([[1, 1], [4, 0], [2, 3]])
-    >>> pts = load_parse_bunwarpj_displacements_warp_points(
-    ...                             './my_transform.txt', points)
-    >>> pts  # doctest: +NORMALIZE_WHITESPACE
-    array([[ 12.,  21.],
-           [ 15.,  20.],
-           [ 13.,  23.]])
-    >>> os.remove('./my_transform.txt')
-    """
-    assert os.path.isfile(path_file), 'missing file "%s"' % path_file
-
-    fp = open(path_file, 'r')
-    # read image sizes
-    width = int(fp.readline().split('=')[-1])
-    height = int(fp.readline().split('=')[-1])
-    logging.debug('loaded image size: %i x %i', width, height)
-    size = (width, height)
-    assert all(np.max(points, axis=0) <= size), \
-        'some points are outside of the image'
-
-    # read inter line
-    fp.readline()
-    fp.readline()
-    # read inter line and Transform notation
-    points_x = load_parse_bunwarpj_displacement_axis(fp, size, points)
-
-    # read inter line and Transform notation
-    fp.readline(), fp.readline()
-    # read Y Trans
-    points_y = load_parse_bunwarpj_displacement_axis(fp, size, points)
-    fp.close()
-
-    points_new = np.vstack((points_x, points_y)).T
-    return points_new

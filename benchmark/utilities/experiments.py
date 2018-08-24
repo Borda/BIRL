@@ -19,6 +19,9 @@ import benchmark.utilities.data_io as tl_io
 
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 FILE_LOGS = 'logging.txt'
+LOG_FILE_FORMAT = logging.Formatter(
+    '%(asctime)s:%(levelname)s@%(filename)s:%(processName)s - %(message)s',
+    datefmt="%H:%M:%S")
 
 
 def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
@@ -35,14 +38,14 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     >>> os.rmdir(p)
 
     """
-    assert os.path.exists(path_out), '%s' % path_out
+    assert os.path.exists(path_out), 'missing "%s"' % path_out
     date = time.gmtime()
     if isinstance(name, str) and len(name) > 0:
         dir_name = '{}_{}'.format(dir_name, name)
     if stamp_unique:
         dir_name += '_' + time.strftime(FORMAT_DATE_TIME, date)
     path_exp = os.path.join(path_out, dir_name)
-    while stamp_unique and os.path.exists(path_exp):
+    while stamp_unique and os.path.isdir(path_exp):
         logging.warning('particular out folder already exists')
         path_exp += ':' + str(random.randint(0, 9))
     logging.info('creating experiment folder "{}"'.format(path_exp))
@@ -79,15 +82,13 @@ def set_experiment_logger(path_out, file_name=FILE_LOGS, reset=True):
     >>> os.remove(FILE_LOGS)
     """
     log = logging.getLogger()
-    # log.setLevel(logging.DEBUG)
+    log.setLevel(logging.DEBUG)
     if reset:
         release_logger_files()
     path_logger = os.path.join(path_out, file_name)
     fh = logging.FileHandler(path_logger)
     fh.setLevel(logging.DEBUG)
-    fh.setFormatter(logging.Formatter(
-        '%(asctime)s:%(levelname)s@%(filename)s:%(processName)s - %(message)s',
-        datefmt="%H:%M:%S"))
+    fh.setFormatter(LOG_FILE_FORMAT)
     log.addHandler(fh)
 
 
@@ -126,7 +127,7 @@ def create_basic_parse():
                         help='path to the output directory')
     parser.add_argument('--unique', dest='unique', action='store_true',
                         help='whether each experiment have unique time stamp')
-    parser.add_argument('--visual', dest='unique', action='store_true',
+    parser.add_argument('--visual', dest='visual', action='store_true',
                         help='whether visualise partial results')
     parser.add_argument('--lock_expt', dest='lock_thread', action='store_true',
                         help='whether lock to run experiment in single therad')
@@ -135,8 +136,33 @@ def create_basic_parse():
     return parser
 
 
-def check_paths(args, restrict_dir=None):
+def missing_paths(args, upper_dirs=None, pattern='path'):
+    """ find params with not existing paths
+
+    :param {} args: dictionary with all parameters
+    :param [str] upper_dirs: list of keys in parameters
+        with item which must exist only the parent folder
+    :param str pattern: patter specifying key with path
+    :return:
     """
+    if upper_dirs is None:
+        upper_dirs = []
+    missing = []
+    for k in (k for k in args if pattern in k):
+        if '*' in os.path.basename(args[k]) or k in upper_dirs:
+            p = tl_io.update_path(os.path.dirname(args[k]))
+            args[k] = os.path.join(p, os.path.basename(args[k]))
+        else:
+            args[k] = tl_io.update_path(args[k])
+            p = args[k]
+        if not os.path.exists(p):
+            logging.warning('missing "%s": %s' % (k, p))
+            missing.append(k)
+    return missing
+
+
+def check_paths(args, restrict_dir=None):
+    """ check if all paths in dictionary exists
 
     :param {} args:
     :param [str] restrict_dir:
@@ -150,19 +176,8 @@ def check_paths(args, restrict_dir=None):
     >>> check_paths({'path_out': './nothing'})  # doctest: +ELLIPSIS
     False
     """
-    if restrict_dir is None:
-        restrict_dir = []
-    status = True
-    for k in (k for k in args if 'path' in k):
-        if '*' in os.path.basename(args[k]) or k in restrict_dir:
-            p = tl_io.update_path(os.path.dirname(args[k]))
-            args[k] = os.path.join(p, os.path.basename(args[k]))
-        else:
-            args[k] = tl_io.update_path(args[k])
-            p = args[k]
-        if not os.path.exists(p):
-            logging.error('missing "%s"' % p)
-            status = False
+    missing = missing_paths(args, restrict_dir)
+    status = (len(missing) == 0)
     return status
 
 
@@ -181,7 +196,8 @@ def parse_params(parser):
     # remove all None parameters
     args = {k: args[k] for k in args if args[k] is not None}
     # extend nd test all paths in params
-    assert check_paths(args), 'missing paths: %s' % repr(args)
+    assert check_paths(args), 'missing paths: %s' % \
+                              repr({k: args[k] for k in missing_paths(args)})
     return args
 
 
@@ -195,9 +211,9 @@ def run_command_line(cmd, path_logger=None):
     >>> run_command_line('cd .')
     True
     """
-    logging.debug('CMD -> \n%s', cmd)
-    if path_logger is not None and not os.path.exists(path_logger):
-        cmd += " >> " + path_logger
+    logging.debug('CMD ->> \n%s', cmd)
+    if path_logger is not None:
+        cmd += " > " + path_logger
     try:
         # TODO: out = subprocess.call(cmd, timeout=TIMEOUT, shell=True)
         os.system(cmd)
@@ -228,6 +244,8 @@ def compute_points_dist_statistic(points1, points2):
     >>> stat['Mean']
     2.4683061157625548
     """
+    points1 = np.asarray(points1)
+    points2 = np.asarray(points2)
     assert points1.shape == points2.shape, \
         'points sizes do not match %s != %s' \
         % (repr(points1.shape), repr(points2.shape))

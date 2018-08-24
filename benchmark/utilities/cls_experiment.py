@@ -26,7 +26,8 @@ class Experiment(object):
 
     >>> import benchmark.utilities.data_io as tl_io
     >>> path_out = tl_io.create_dir('output')
-    >>> expt = Experiment({'path_out': path_out, 'name': 'my_Experiment'}, False)
+    >>> params = {'path_out': path_out, 'name': 'my_Experiment'}
+    >>> expt = Experiment(params, False)
     >>> 'path_exp' in expt.params
     True
     >>> expt.run()
@@ -51,7 +52,8 @@ class Experiment(object):
         tl_expt.set_experiment_logger(self.params['path_exp'], FILE_LOGS)
         # set stream logging to info level
         for lh in logging.getLogger().handlers:
-            if isinstance(lh, logging.StreamHandler):
+            if isinstance(lh, logging.StreamHandler) and \
+                    not isinstance(lh, logging.FileHandler):
                 lh.setLevel(logging.INFO)
         logging.info('initialise experiment...')
         logging.info(tl_expt.string_dict(self.params, 'PARAMETERS:'))

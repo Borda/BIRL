@@ -18,7 +18,7 @@ As the data we use a [dataset of stain histological tissues](http://cmp.felk.cvu
 
 For evaluation we have set of manually placed landmarks in each image pair at least 40 uniformly spread over the tissue (we do not put any landmarks in backround)
 
-The dataset is defined by CSV file containing paths to reference and sensed image and their related landmarks _(see `./data_images/list_pairs_imgs_lnds.csv`)_.
+The dataset is defined by CSV file containing paths to reference and sensed image and their related landmarks _(see `./data_images/pairs-imgs-lnds_mix.csv`)_.
 
 ![images-landmarks](figures/images-landmarks.jpg)
 
@@ -39,7 +39,7 @@ The project contains also a few folders and its brief description is:
 
 ## Before benchmarks (pre-processing) 
 
-In the `data_images` folder we provide some sample images with landmarks for registration. This sample registration pairs are saved in `data_images/list_pairs_imgs_lnds.csv`. 
+In the `data_images` folder we provide some sample images with landmarks for registration. This sample registration pairs are saved in `data_images/pairs-imgs-lnds_mix.csv`. 
 
 ### Prepare Data
 
@@ -68,11 +68,12 @@ python scripts/create_registration_pairs.py \
 
 ### Included registration methods
 
-* **[bUnwarpJ](http://imagej.net/BUnwarpJ)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for elastic registration (optional integration with [Feature Extraction](http://imagej.net/Feature_Extraction))
-* **[RVSS](http://imagej.net/Register_Virtual_Stack_Slices)** is [ImageJ](https://imagej.nih.gov/ij/) plugin Register Virtual Stack Slices
-* **[DROP](http://www.mrf-registration.net/)** is a software for deformable image registration using discrete optimization.
+* **[bUnwarpJ](http://imagej.net/BUnwarpJ)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for elastic registration (optional integration with [Feature Extraction](http://imagej.net/Feature_Extraction)).
+* **[ANTs](https://sourceforge.net/projects/advants)** with variable transformations (elastic, diffeomorphic, diffeomorphisms, unbiased) and similarity metrics (landmarks, cross-correlation, mutual information, etc).
+* **[DROP](http://www.mrf-registration.net)** is a software for deformable image registration using discrete optimization.
 <!-- 
 * **[Elastix](http://elastix.isi.uu.nl)** is wide framework for image registration
+* **[RVSS](http://imagej.net/Register_Virtual_Stack_Slices)** is [ImageJ](https://imagej.nih.gov/ij/) plugin Register Virtual Stack Slices
 -->
 * ...
 
@@ -85,8 +86,8 @@ Experiments on each registration methods can be performed independently with res
 Sample execution of the "empty" benchmark template
 ```bash
 mkdir results
-python benchmarks/bm_template.py \
-    -in ./data_images/list_pairs_imgs_lnds.csv \
+python benchmark/bm_template.py \
+    -in ./data_images/pairs-imgs-lnds_mix.csv \
     -out ./results \
     --unique --visual \
     --an_executable none
@@ -105,7 +106,7 @@ For complete references see [bibtex](docs/references.bib).
 
 ## Appendix - Useful information
 
-### Configure local environment
+**Configure local environment**
 
 Create your own local environment, for more see the [User Guide](https://pip.pypa.io/en/latest/user_guide.html), and install dependencies requirements.txt contains list of packages and can be installed as
 ```bash
@@ -119,7 +120,5 @@ and in the end terminating...
 ```bash
 (env)@duda:~$ deactivate
 ```
-
-### Testing
 
 **Running docString tests** - documentation and samples of doc string on [pymotw](https://pymotw.com/2/doctest/) and [python/docs](https://docs.python.org/2/library/doctest.html)

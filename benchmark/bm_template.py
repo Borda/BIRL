@@ -8,7 +8,7 @@ INSTALLATION:
 EXAMPLE (usage):
 >> mkdir results
 >> python benchmarks/bm_template.py \
-    -in data_images/list_pairs_imgs_lnds.csv -out results --unique \
+    -in data_images/pairs-imgs-lnds_mix.csv -out results --visual --unique \
     --an_executable none
 
 Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
@@ -51,7 +51,7 @@ class BmTemplate(bm.ImRegBenchmark):
     >>> import benchmark.utilities.data_io as tl_io
     >>> path_out = tl_io.create_dir('temp_results')
     >>> path_csv = os.path.join(tl_io.update_path('data_images'),
-    ...                         'list_pairs_imgs_lnds.csv')
+    ...                         'pairs-imgs-lnds_mix.csv')
     >>> main({'nb_jobs': 1, 'unique': False, 'path_out': path_out,
     ...       'path_cover': path_csv, 'an_executable': ''})
     >>> import shutil
@@ -61,7 +61,7 @@ class BmTemplate(bm.ImRegBenchmark):
     >>> import benchmark.utilities.data_io as tl_io
     >>> path_out = tl_io.create_dir('temp_results')
     >>> path_csv = os.path.join(tl_io.update_path('data_images'),
-    ...                         'list_pairs_imgs_lnds.csv')
+    ...                         'pairs-imgs-lnds_mix.csv')
     >>> params = {'nb_jobs': 2, 'unique': False, 'path_out': path_out,
     ...           'path_cover': path_csv, 'an_executable': ''}
     >>> benchmark = BmTemplate(params)
@@ -115,13 +115,13 @@ class BmTemplate(bm.ImRegBenchmark):
         # detect image
         path_img = os.path.join(dict_row[bm.COL_REG_DIR],
                                 os.path.basename(dict_row[bm.COL_IMAGE_MOVE]))
-        if os.path.exists(path_img):
+        if os.path.isfile(path_img):
             dict_row[bm.COL_IMAGE_REF_WARP] = path_img
         # detect landmarks
         path_lnd = os.path.join(dict_row[bm.COL_REG_DIR],
                                 os.path.basename(dict_row[bm.COL_POINTS_REF]))
         # for inverse landmarks estimate
-        if os.path.exists(path_img):
+        if os.path.isfile(path_img):
             dict_row[bm.COL_POINTS_MOVE_WARP] = path_lnd
 
         return dict_row
@@ -150,7 +150,7 @@ def main(arg_params):
 
 
 # RUN by given parameters
-if __name__ == "__main__":
+if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     arg_parser = tl_expt.create_basic_parse()
     arg_parser = extend_parse(arg_parser)

@@ -203,7 +203,7 @@ def export_figure(path_fig, fig):
     >>> export_figure(path_fig, plt.figure())
     >>> os.remove(path_fig)
     """
-    assert os.path.exists(os.path.dirname(path_fig)), \
+    assert os.path.isdir(os.path.dirname(path_fig)), \
         'missing folder "%s"' % os.path.dirname(path_fig)
     fig.subplots_adjust(left=0., right=1., top=1., bottom=0.)
     fig.savefig(path_fig)

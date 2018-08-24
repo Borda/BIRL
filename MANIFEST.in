@@ -10,10 +10,7 @@ include *.md
 include LICENSE
 
 # Include the visualisations
-recursive-include figures *
-
-# Include the visualisations
-recursive-include figures *
+recursive-include figures *.jpg
 
 # Exclude the data files
 recursive-exclude data_images *

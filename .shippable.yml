@@ -37,8 +37,7 @@ script:
   # - nosetests --with-xunit --xunit-file=shippable/testresults/nosetests.xml
   - nosetests -v --exe --with-doctest --with-coverage --with-xunit --cover-package=benchmark --xunit-file=shippable/testresults/nosetests.xml
 
-  - python benchmark/cls_benchmark.py -in data_images/list_pairs_imgs_lnds.csv -out results --unique
-  - python benchmark/bm_template.py -in data_images/list_pairs_imgs_lnds.csv -out results --unique  --an_executable none
+  - python benchmark/bm_template.py -in data_images/pairs-imgs-lnds_mix.csv -out results --unique  --an_executable none
 
   - python bm_experiments/generate_registration_pairs.py -imgs "data_images/images/artificial_*.jpg" -lnds "data_images/landmarks/artificial_*.csv" -csv data_images/cover_artificial.csv --mode all-all
   # - python bm_experiments/create_synth_dataset_real_image.py -img data_images/images/Rat_Kidney_HE.jpg -lnd data_images/landmarks/Rat_Kidney_HE.csv -out data_images/synth_dataset -nb 3 --nb_jobs 1
