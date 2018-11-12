@@ -11,7 +11,7 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install tk-dev pkg-config python-dev python-tk tree
-            sudo apt-get install python-opencv openslide
+            sudo apt-get install python-opencv openslide-tools
       - run:
           name: Install PyPI dependences
           command: |
@@ -57,7 +57,7 @@ jobs:
 
   Py3:
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:3.5
     steps: *steps
 
 workflows:

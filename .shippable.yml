@@ -9,7 +9,7 @@ sudo: true
 
 python:
   - 2.7
-  - 3.5
+  - 3.6
 
 cache: pip
 
@@ -26,6 +26,7 @@ before_install:
   - apt-get install freetype*
   - apt-get install python-dev python-tk
   - apt-get install pkg-config
+  - apt-get install python-opencv openslide-tools
   - pip install --upgrade pip
 
 install:

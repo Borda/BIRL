@@ -12,6 +12,9 @@ include LICENSE
 # Include the visualisations
 recursive-include figures *.jpg
 
+# Include the util scripts
+recursive-include scripts *.py
+
 # Exclude the data files
 recursive-exclude data_images *
 exclude data_images

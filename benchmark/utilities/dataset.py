@@ -115,9 +115,9 @@ def project_object_edge(img, cut_dimension):
     >>> img = np.zeros((20, 10, 3))
     >>> img[2:6, 1:7, :] = 1
     >>> img[10:17, 4:6, :] = 1
-    >>> project_object_edge(img, 0)
-    array([0. , 0. , 0.7, 0.7, 0.7, 0.7, 0. , 0. , 0. , 0. , 0.2, 0.2, 0.2,
-           0.2, 0.2, 0.2, 0.2, 0. , 0. , 0. ])
+    >>> project_object_edge(img, 0).tolist()  # doctest: +NORMALIZE_WHITESPACE
+    [0.0, 0.0, 0.7, 0.7, 0.7, 0.7, 0.0, 0.0, 0.0, 0.0,
+     0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0, 0.0, 0.0]
     """
     assert img.ndim == 3, 'unsupported image shape %s' % repr(img.shape)
     img_gray = np.mean(img, axis=-1)

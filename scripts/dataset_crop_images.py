@@ -1,8 +1,7 @@
 """
 Crop images around major object with set padding
 
-Note, for the loading we have to use matplotlib while ImageMagic nor other lib
-(opencv, skimage, Pillow) is able to load larger images then 32k.
+Note, that using these scripts for 1+GB images take several tens of GB RAM
 
 EXAMPLE
 -------

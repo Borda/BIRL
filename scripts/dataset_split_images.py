@@ -1,9 +1,7 @@
 """
-Spliting image containing two samples
+Splitting image containing two samples
 
-Note, for the loading we have to use matplotlib while ImageMagic nor other lib
-(opencv, skimage, Pillow) is able to load larger images then 32k.
-On the other hand matplotlib is not able to save such large image.
+Note, that using these scripts for 1+GB images take several tens of GB RAM
 
 EXAMPLE
 -------

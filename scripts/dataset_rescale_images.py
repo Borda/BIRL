@@ -3,9 +3,7 @@ Converting images to particular scales
 
 With given path pattern to images crete particular scales within the same set
 
-Note, for the loading we have to use matplotlib while ImageMagic nor other lib
-(opencv, skimage, Pillow) is able to load larger images then 32k.
-On the other hand matplotlib is not able to save such large image.
+Note, that using these scripts for 1+GB images take several tens of GB RAM
 
 EXAMPLE
 -------
@@ -36,7 +34,7 @@ import matplotlib.pyplot as plt
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.experiments import wrap_execute_sequence
-from benchmark.utilities.dataset import load_large_image, save_large_image
+from benchmark.utilities.dataset import load_large_image
 
 NB_THREADS = int(mproc.cpu_count() * .5)
 DEFAULT_SCALES = [5, 10, 25, 50]
@@ -72,7 +70,7 @@ def scale_image(img_path, scale, overwrite=False):
     base = os.path.dirname(os.path.dirname(img_path))
     name = os.path.splitext(os.path.basename(img_path))[0]
     dir = os.path.basename(os.path.dirname(img_path))
-    base_scale = int(re.findall('\d+', dir)[0])
+    base_scale = int(re.findall('[0-9]+', dir)[0])
 
     path_dir = os.path.join(base, FOLDER_TEMPLATE % scale)
     if not os.path.isdir(path_dir):
