@@ -23,8 +23,8 @@ import argparse
 import multiprocessing as mproc
 from functools import partial
 
+import cv2 as cv
 import numpy as np
-from skimage.transform import rescale
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.dataset import find_largest_object, project_object_edge
@@ -32,8 +32,9 @@ from benchmark.utilities.dataset import load_large_image, save_large_image
 from benchmark.utilities.experiments import wrap_execute_sequence
 
 NB_THREADS = int(mproc.cpu_count() * .5)
-SCALE_FACTOR = 100.
+SCALE_SIZE = 512
 CUT_DIMENSION = 0
+TISSUE_CONTENT = 0.05
 
 
 def arg_parse_params():
@@ -44,7 +45,7 @@ def arg_parse_params():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--path_images', type=str, required=True,
                         help='path (pattern) to the input image')
-    parser.add_argument('--padding', type=float, required=False, default=0.1,
+    parser.add_argument('--padding', type=float, required=False, default=0.5,
                         help='padding around the object in image percents')
     parser.add_argument('--nb_jobs', type=int, required=False,
                         help='number of processes running in parallel',
@@ -55,27 +56,29 @@ def arg_parse_params():
     return args
 
 
-def crop_image(img_path, crop_dime, padding=0.15):
+def crop_image(img_path, crop_dim, padding=0.15):
     img = load_large_image(img_path)
+    scale_factor = max(1, img.shape[crop_dim] / float(SCALE_SIZE))
     # work with just a scaled version
-    img_small = 1. - rescale(img, 1. / SCALE_FACTOR, order=0, multichannel=True,
-                             mode='constant', anti_aliasing=True,
-                             preserve_range=True)
-    img_edge = project_object_edge(img_small, crop_dime)
+    sc = 1. / scale_factor
+    order = cv.INTER_LINEAR if scale_factor > 1 else cv.INTER_CUBIC
+    img_small = 255 - cv.resize(img, None, fx=sc, fy=sc, interpolation=order)
+
+    img_edge = project_object_edge(img_small, crop_dim)
     del img_small
 
-    begin, end = find_largest_object(img_edge, threshold=0.05)
+    begin, end = find_largest_object(img_edge, threshold=TISSUE_CONTENT)
     img_diag = int(np.sqrt(img.shape[0] ** 2 + img.shape[1] ** 2))
     pad_px = padding * img_diag
-    begin_px = max(0, int((begin * SCALE_FACTOR) - pad_px))
-    end_px = min(img.shape[crop_dime], int((end * SCALE_FACTOR) + pad_px))
+    begin_px = max(0, int((begin * scale_factor) - pad_px))
+    end_px = min(img.shape[crop_dim], int((end * scale_factor) + pad_px))
 
-    if crop_dime == 0:
+    if crop_dim == 0:
         img = img[begin_px:end_px, ...]
-    elif crop_dime == 1:
+    elif crop_dim == 1:
         img = img[:, begin_px:end_px, ...]
     else:
-        raise Exception('unsupported dimension %i' % crop_dime)
+        raise Exception('unsupported dimension %i' % crop_dim)
 
     save_large_image(img_path, img)
     gc.collect(), time.sleep(1)
@@ -83,7 +86,7 @@ def crop_image(img_path, crop_dime, padding=0.15):
 
 def wrap_img_crop(img_path_dim, padding=0.15):
     img_path, dim = img_path_dim
-    return crop_image(img_path, crop_dime=dim, padding=padding)
+    return crop_image(img_path, crop_dim=dim, padding=padding)
 
 
 def main(path_images, padding, nb_jobs):

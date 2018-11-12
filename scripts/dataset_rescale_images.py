@@ -27,7 +27,12 @@ import argparse
 import multiprocessing as mproc
 from functools import partial
 
-from skimage.transform import rescale
+import cv2 as cv
+import matplotlib
+if os.environ.get('DISPLAY', '') == '':
+    logging.warning('No display found. Using non-interactive Agg backend')
+    matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.experiments import wrap_execute_sequence
@@ -36,6 +41,7 @@ from benchmark.utilities.dataset import load_large_image, save_large_image
 NB_THREADS = int(mproc.cpu_count() * .5)
 DEFAULT_SCALES = [5, 10, 25, 50]
 IMAGE_EXTENSION = '.jpg'
+# IMWRITE_PARAMS = (cv.IMWRITE_JPEG_QUALITY, 100)
 FOLDER_TEMPLATE = 'scale-%ipc'
 
 
@@ -78,12 +84,14 @@ def scale_image(img_path, scale, overwrite=False):
         return
 
     img = load_large_image(img_path)
-    order = 1 if base_scale > scale else 2
-    img_sc = rescale(img, scale / float(base_scale), order=order,
-                     anti_aliasing=True, mode='constant', multichannel=True)
+    sc = scale / float(base_scale)
+    img_sc = cv.resize(img, None, fx=sc, fy=sc, interpolation=cv.INTER_CUBIC)
     del img
+
     logging.debug('creating >> %s', path_img_scale)
-    save_large_image(path_img_scale, img_sc)
+    # save_large_image(path_img_scale, img_sc)
+    # cv.imwrite(path_img_scale, img_sc)  # , params=IMWRITE_PARAMS
+    plt.imsave(path_img_scale, img_sc)
     gc.collect(), time.sleep(1)
 
 

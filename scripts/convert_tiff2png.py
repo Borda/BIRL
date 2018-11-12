@@ -28,7 +28,7 @@ import multiprocessing as mproc
 from functools import partial
 
 import tqdm
-import cv2
+import cv2 as cv
 import numpy as np
 from openslide import OpenSlide
 
@@ -91,10 +91,10 @@ def convert_image(path_img, level=DEFAULT_LEVEL, level_shift=DEFAULT_LEVEL_OFFSE
         img_tiles_d0.append(np.vstack(img_tiles_d1))
     image = np.hstack(img_tiles_d0)
     if image.shape[2] == 4:
-        image = cv2.cvtColor(image, cv2.COLOR_RGBA2RGB)
+        image = cv.cvtColor(image, cv.COLOR_RGBA2RGB)
 
     logging.debug('save image: "%s"', path_img_new)
-    cv2.imwrite(path_img_new, image)
+    cv.imwrite(path_img_new, image, params=(cv.IMWRITE_PNG_COMPRESSION, 9))
     gc.collect(), time.sleep(1)
 
 

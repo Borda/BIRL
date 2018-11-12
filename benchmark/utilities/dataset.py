@@ -7,10 +7,12 @@ Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 import logging
 
 import numpy as np
-import cv2 as open_cv
+import cv2 as cv
 import matplotlib.pyplot as plt
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
+
+TISSUE_CONTENT = 0.05
 
 
 def detect_binary_blocks(vec_bin):
@@ -49,7 +51,7 @@ def detect_binary_blocks(vec_bin):
     return begins, ends, lengths
 
 
-def find_split_objects(hist, nb_objects=2, threshold=0.05):
+def find_split_objects(hist, nb_objects=2, threshold=TISSUE_CONTENT):
     """ find the N largest objects and set split as middle distance among them
 
     :param [float] hist: input vector
@@ -119,7 +121,7 @@ def project_object_edge(img, cut_dimension):
     """
     assert img.ndim == 3, 'unsupported image shape %s' % repr(img.shape)
     img_gray = np.mean(img, axis=-1)
-    img_gray = open_cv.GaussianBlur(img_gray, (5, 5), 0)
+    img_gray = cv.GaussianBlur(img_gray, (5, 5), 0)
     p_low, p_high = np.percentile(img_gray, (1, 95))
     img_gray = rescale_intensity(img_gray, in_range=(p_low, p_high))
     img_bin = img_gray > threshold_otsu(img_gray)
@@ -146,8 +148,10 @@ def save_large_image(img_path, img):
     :param str img_path:
     :param ndarray img:
     """
-    if np.max(img) <= 1:
+    if np.max(img) <= 1.:
         img = (img * 255)
+    if np.max(img) > 255:
+        img = (img / 255)
     if img.dtype != np.uint8:
         img = img.astype(np.uint8)
     plt.imsave(img_path, img)
