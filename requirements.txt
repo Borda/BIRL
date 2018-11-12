@@ -5,3 +5,5 @@ six>=1.7.3
 pillow>=2.1.0
 matplotlib>=2.0.2
 tqdm>=4.7.4
+opencv-python
+openslide-python

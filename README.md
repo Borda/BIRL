@@ -122,3 +122,8 @@ and in the end terminating...
 ```
 
 **Running docString tests** - documentation and samples of doc string on [pymotw](https://pymotw.com/2/doctest/) and [python/docs](https://docs.python.org/2/library/doctest.html)
+
+**Listing dataset in command line**  
+```bash
+find . | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/" >> dataset.txt
+```
