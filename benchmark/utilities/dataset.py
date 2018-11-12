@@ -4,6 +4,7 @@ Some functionality related to dataset
 Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
+import os
 import logging
 
 import numpy as np
@@ -82,7 +83,7 @@ def find_split_objects(hist, nb_objects=2, threshold=TISSUE_CONTENT):
     return splits
 
 
-def find_largest_object(hist, threshold=0.05):
+def find_largest_object(hist, threshold=TISSUE_CONTENT):
     """ find the largest objects and give its beginning end end
 
     :param [float] hist: input vector
@@ -105,11 +106,11 @@ def find_largest_object(hist, threshold=0.05):
     return begins[obj_select], ends[obj_select]
 
 
-def project_object_edge(img, cut_dimension):
-    """ scale the image, binarise with Otsu and project to one dimension
+def project_object_edge(img, dimension):
+    """ scale the image, binarise with Othu and project to one dimension
 
     :param ndarray img:
-    :param int cut_dimension:
+    :param int dimension: select dimension for projection
     :return [float]:
 
     >>> img = np.zeros((20, 10, 3))
@@ -119,13 +120,14 @@ def project_object_edge(img, cut_dimension):
     [0.0, 0.0, 0.7, 0.7, 0.7, 0.7, 0.0, 0.0, 0.0, 0.0,
      0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0, 0.0, 0.0]
     """
+    assert dimension in (0, 1), 'not supported dimension %i' % dimension
     assert img.ndim == 3, 'unsupported image shape %s' % repr(img.shape)
     img_gray = np.mean(img, axis=-1)
     img_gray = cv.GaussianBlur(img_gray, (5, 5), 0)
     p_low, p_high = np.percentile(img_gray, (1, 95))
     img_gray = rescale_intensity(img_gray, in_range=(p_low, p_high))
     img_bin = img_gray > threshold_otsu(img_gray)
-    img_edge = np.mean(img_bin, axis=1 - cut_dimension)
+    img_edge = np.mean(img_bin, axis=1 - dimension)
     return img_edge
 
 
@@ -135,9 +137,10 @@ def load_large_image(img_path):
     Note, for the loading we have to use matplotlib while ImageMagic nor other
      lib (opencv, skimage, Pillow) is able to load larger images then 32k.
 
-    :param str img_path:
-    :return ndarray:
+    :param str img_path: path to the image
+    :return ndarray: image
     """
+    assert os.path.isfile(img_path), 'missing image: %s' % img_path
     img = plt.imread(img_path)
     return img
 
@@ -145,8 +148,16 @@ def load_large_image(img_path):
 def save_large_image(img_path, img):
     """ saving large images more then 50k x 50k
 
-    :param str img_path:
-    :param ndarray img:
+    :param str img_path: path to the new image
+    :param ndarray img: image
+
+    >>> img = np.random.random((2500, 3200, 3))
+    >>> img_path = './sample-image.jpg'
+    >>> save_large_image(img_path, img)
+    >>> img2 = load_large_image(img_path)
+    >>> img.shape == img2.shape
+    True
+    >>> os.remove(img_path)
     """
     if np.max(img) <= 1.:
         img = (img * 255)
@@ -154,4 +165,6 @@ def save_large_image(img_path, img):
         img = (img / 255)
     if img.dtype != np.uint8:
         img = img.astype(np.uint8)
+    if os.path.isfile(img_path):
+        logging.debug('image will be overwritten: %s', img_path)
     plt.imsave(img_path, img)
