@@ -95,7 +95,10 @@ def scale_image(img_path, scale, overwrite=False):
 
 def wrap_scale_image(img_path_scale, overwrite=False):
     img_path, scale = img_path_scale
-    return scale_image(img_path, scale, overwrite)
+    try:
+        return scale_image(img_path, scale, overwrite)
+    except Exception:
+        logging.exception('scaling %i of image: %s', scale, img_path)
 
 
 def main(path_images, scales, overwrite, nb_jobs):

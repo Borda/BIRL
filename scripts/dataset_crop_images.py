@@ -7,7 +7,7 @@ EXAMPLE
 -------
 >> python dataset_crop_images.py \
     -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*.png" \
-    --padding 0.1 --nb_jobs 3
+    --padding 0.1 --nb_jobs 2
 
 Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -23,7 +23,6 @@ import multiprocessing as mproc
 from functools import partial
 
 import cv2 as cv
-import numpy as np
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.dataset import find_largest_object, project_object_edge
@@ -33,7 +32,7 @@ from benchmark.utilities.experiments import wrap_execute_sequence
 NB_THREADS = int(mproc.cpu_count() * .5)
 SCALE_SIZE = 512
 CUT_DIMENSION = 0
-TISSUE_CONTENT = 0.05
+TISSUE_CONTENT = 0.01
 
 
 def arg_parse_params():
@@ -44,7 +43,7 @@ def arg_parse_params():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--path_images', type=str, required=True,
                         help='path (pattern) to the input image')
-    parser.add_argument('--padding', type=float, required=False, default=0.5,
+    parser.add_argument('--padding', type=float, required=False, default=0.1,
                         help='padding around the object in image percents')
     parser.add_argument('--nb_jobs', type=int, required=False,
                         help='number of processes running in parallel',
@@ -67,8 +66,8 @@ def crop_image(img_path, crop_dim, padding=0.15):
     del img_small
 
     begin, end = find_largest_object(img_edge, threshold=TISSUE_CONTENT)
-    img_diag = int(np.sqrt(img.shape[0] ** 2 + img.shape[1] ** 2))
-    pad_px = padding * img_diag
+    # img_diag = int(np.sqrt(img.shape[0] ** 2 + img.shape[1] ** 2))
+    pad_px = padding * (end - begin) * scale_factor
     begin_px = max(0, int((begin * scale_factor) - pad_px))
     end_px = min(img.shape[crop_dim], int((end * scale_factor) + pad_px))
 
@@ -83,17 +82,19 @@ def crop_image(img_path, crop_dim, padding=0.15):
     gc.collect(), time.sleep(1)
 
 
-def wrap_img_crop(img_path_dim, padding=0.15):
-    img_path, dim = img_path_dim
-    return crop_image(img_path, crop_dim=dim, padding=padding)
+def wrap_img_crop(img_path, padding=0.1):
+    try:
+        for dim in range(2):
+            crop_image(img_path, crop_dim=dim, padding=padding)
+    except Exception:
+        logging.exception('dimension %i for image: %s', dim, img_path)
 
 
 def main(path_images, padding, nb_jobs):
     image_paths = sorted(glob.glob(path_images))
 
-    image_paths_dims = [(p_img, d) for p_img in image_paths for d in range(2)]
     _wrap_crop = partial(wrap_img_crop, padding=padding)
-    list(wrap_execute_sequence(_wrap_crop, image_paths_dims,
+    list(wrap_execute_sequence(_wrap_crop, image_paths,
                                desc='Cut image objects', nb_jobs=nb_jobs))
 
 

@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
 
-TISSUE_CONTENT = 0.05
+TISSUE_CONTENT = 0.01
 
 
 def detect_binary_blocks(vec_bin):

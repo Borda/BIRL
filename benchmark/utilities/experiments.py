@@ -10,7 +10,6 @@ import time
 import random
 import logging
 import argparse
-import traceback
 import multiprocessing.pool
 import multiprocessing as mproc
 
@@ -222,7 +221,7 @@ def run_command_line(cmd, path_logger=None):
         os.system(cmd)
         return True
     except Exception:
-        logging.error(traceback.format_exc())
+        logging.exception(cmd)
         return False
 
 
