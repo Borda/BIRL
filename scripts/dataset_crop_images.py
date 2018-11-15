@@ -93,6 +93,10 @@ def wrap_img_crop(img_path, padding=0.1):
 def main(path_images, padding, nb_jobs):
     image_paths = sorted(glob.glob(path_images))
 
+    if not image_paths:
+        logging.info('No images found on "%s"', path_images)
+        return
+
     _wrap_crop = partial(wrap_img_crop, padding=padding)
     list(wrap_execute_sequence(_wrap_crop, image_paths,
                                desc='Cut image objects', nb_jobs=nb_jobs))

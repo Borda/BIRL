@@ -106,6 +106,10 @@ def main(path_images, scales, overwrite, nb_jobs):
     image_path_scales = [(im_path, sc) for im_path in image_paths
                          for sc in scales]
 
+    if not image_paths:
+        logging.info('No images found on "%s"', path_images)
+        return
+
     _wrap_scale = partial(wrap_scale_image, overwrite=overwrite)
     list(wrap_execute_sequence(_wrap_scale, image_path_scales,
                                desc='scaling images', nb_jobs=nb_jobs))
