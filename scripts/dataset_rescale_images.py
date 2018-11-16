@@ -89,7 +89,7 @@ def scale_image(img_path, scale, overwrite=False):
     logging.debug('creating >> %s', path_img_scale)
     # save_large_image(path_img_scale, img_sc)
     # cv.imwrite(path_img_scale, img_sc)  # , params=IMWRITE_PARAMS
-    plt.imsave(path_img_scale, img_sc)
+    plt.imsave(path_img_scale, img_sc[:, :, :3])
     gc.collect(), time.sleep(1)
 
 
@@ -112,7 +112,7 @@ def main(path_images, scales, overwrite, nb_jobs):
 
     _wrap_scale = partial(wrap_scale_image, overwrite=overwrite)
     list(wrap_execute_sequence(_wrap_scale, image_path_scales,
-                               desc='scaling images', nb_jobs=nb_jobs))
+                               desc='Scaling images', nb_jobs=nb_jobs))
 
 
 if __name__ == '__main__':

@@ -159,6 +159,8 @@ def save_large_image(img_path, img):
     True
     >>> os.remove(img_path)
     """
+    if img.shape[2] == 4:
+        img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
     if np.max(img) <= 1.:
         img = (img * 255)
     if np.max(img) > 255:

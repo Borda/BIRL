@@ -71,7 +71,7 @@ def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
     # work with just a scaled version
     scale_factor = max(1, img.shape[cut_dim] / float(SCALE_SIZE))
     sc = 1. / scale_factor
-    order = cv.INTER_LINEAR if scale_factor > 1 else cv.INTER_CUBIC
+    order = cv.INTER_NEAREST if scale_factor > 1 else cv.INTER_LINEAR
     img_small = 255 - cv.resize(img, None, fx=sc, fy=sc, interpolation=order)
     img_edge = project_object_edge(img_small, cut_dim)
     del img_small
@@ -95,7 +95,7 @@ def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
         elif cut_dim == 1:
             img_cut = img[:, edges[i]:edges[i + 1], ...]
         else:
-            raise Exception('unsuposted dimensio: %i' % cut_dim)
+            raise Exception('unsupported dimension: %i' % cut_dim)
         save_large_image(path_img_cut, img_cut)
         gc.collect(), time.sleep(1)
 
@@ -109,7 +109,7 @@ def main(path_images, cut_dim, overwrite, nb_jobs):
 
     _wrap_split = partial(split_image, cut_dim=cut_dim, overwrite=overwrite)
     list(wrap_execute_sequence(_wrap_split, image_paths,
-                               desc='Cut image objects', nb_jobs=nb_jobs))
+                               desc='Cut image tissues', nb_jobs=nb_jobs))
 
 
 if __name__ == '__main__':

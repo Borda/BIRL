@@ -23,6 +23,7 @@ import multiprocessing as mproc
 from functools import partial
 
 import cv2 as cv
+import numpy as np
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.dataset import find_largest_object, project_object_edge
@@ -54,29 +55,32 @@ def arg_parse_params():
     return args
 
 
-def crop_image(img_path, crop_dim, padding=0.15):
+def crop_image(img_path, crop_dims=(0, 1), padding=0.15):
     img = load_large_image(img_path)
-    scale_factor = max(1, img.shape[crop_dim] / float(SCALE_SIZE))
+    scale_factor = max(1, np.mean(img.shape[:2]) / float(SCALE_SIZE))
     # work with just a scaled version
     sc = 1. / scale_factor
-    order = cv.INTER_LINEAR if scale_factor > 1 else cv.INTER_CUBIC
+    order = cv.INTER_NEAREST if scale_factor > 1 else cv.INTER_LINEAR
     img_small = 255 - cv.resize(img, None, fx=sc, fy=sc, interpolation=order)
 
-    img_edge = project_object_edge(img_small, crop_dim)
+    crops = {}
+    for crop_dim in crop_dims:
+        assert crop_dim in (0, 1), 'not supported dimension'
+        img_edge = project_object_edge(img_small, crop_dim)
+
+        begin, end = find_largest_object(img_edge, threshold=TISSUE_CONTENT)
+        # img_diag = int(np.sqrt(img.shape[0] ** 2 + img.shape[1] ** 2))
+        pad_px = padding * (end - begin) * scale_factor
+        begin_px = max(0, int((begin * scale_factor) - pad_px))
+        end_px = min(img.shape[crop_dim], int((end * scale_factor) + pad_px))
+        crops[crop_dim] = (begin_px, end_px)
     del img_small
 
-    begin, end = find_largest_object(img_edge, threshold=TISSUE_CONTENT)
-    # img_diag = int(np.sqrt(img.shape[0] ** 2 + img.shape[1] ** 2))
-    pad_px = padding * (end - begin) * scale_factor
-    begin_px = max(0, int((begin * scale_factor) - pad_px))
-    end_px = min(img.shape[crop_dim], int((end * scale_factor) + pad_px))
+    for dim in range(2):
+        if 0 not in crops:
+            crops[0] = (0, img.shape[0])
 
-    if crop_dim == 0:
-        img = img[begin_px:end_px, ...]
-    elif crop_dim == 1:
-        img = img[:, begin_px:end_px, ...]
-    else:
-        raise Exception('unsupported dimension %i' % crop_dim)
+    img = img[crops[0][0]:crops[0][1], crops[1][0]:crops[1][1], ...]
 
     save_large_image(img_path, img)
     gc.collect(), time.sleep(1)
@@ -84,10 +88,9 @@ def crop_image(img_path, crop_dim, padding=0.15):
 
 def wrap_img_crop(img_path, padding=0.1):
     try:
-        for dim in range(2):
-            crop_image(img_path, crop_dim=dim, padding=padding)
+        crop_image(img_path, crop_dims=(0, 1), padding=padding)
     except Exception:
-        logging.exception('dimension %i for image: %s', dim, img_path)
+        logging.exception('crop image: %s', img_path)
 
 
 def main(path_images, padding, nb_jobs):
@@ -99,7 +102,7 @@ def main(path_images, padding, nb_jobs):
 
     _wrap_crop = partial(wrap_img_crop, padding=padding)
     list(wrap_execute_sequence(_wrap_crop, image_paths,
-                               desc='Cut image objects', nb_jobs=nb_jobs))
+                               desc='Crop image tissue', nb_jobs=nb_jobs))
 
 
 if __name__ == '__main__':
