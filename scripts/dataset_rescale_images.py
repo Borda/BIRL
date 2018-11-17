@@ -26,15 +26,10 @@ import multiprocessing as mproc
 from functools import partial
 
 import cv2 as cv
-import matplotlib
-if os.environ.get('DISPLAY', '') == '':
-    logging.warning('No display found. Using non-interactive Agg backend')
-    matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.experiments import wrap_execute_sequence
-from benchmark.utilities.dataset import load_large_image
+from benchmark.utilities.dataset import load_large_image, save_large_image
 
 NB_THREADS = int(mproc.cpu_count() * .5)
 DEFAULT_SCALES = [5, 10, 25, 50]
@@ -87,9 +82,7 @@ def scale_image(img_path, scale, overwrite=False):
     del img
 
     logging.debug('creating >> %s', path_img_scale)
-    # save_large_image(path_img_scale, img_sc)
-    # cv.imwrite(path_img_scale, img_sc)  # , params=IMWRITE_PARAMS
-    plt.imsave(path_img_scale, img_sc[:, :, :3])
+    save_large_image(path_img_scale, img_sc)
     gc.collect(), time.sleep(1)
 
 
@@ -116,7 +109,7 @@ def main(path_images, scales, overwrite, nb_jobs):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
     arg_params = arg_parse_params()
     main(arg_params['path_images'], arg_params['scales'],

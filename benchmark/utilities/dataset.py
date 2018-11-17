@@ -135,18 +135,23 @@ def load_large_image(img_path):
     """ loading very large images
 
     Note, for the loading we have to use matplotlib while ImageMagic nor other
-     lib (opencv, skimage, Pillow) is able to load larger images then 32k.
+     lib (opencv, skimage, Pillow) is able to load larger images then 64k or 32k.
 
     :param str img_path: path to the image
     :return ndarray: image
     """
     assert os.path.isfile(img_path), 'missing image: %s' % img_path
     img = plt.imread(img_path)
+    if img.shape[2] == 4:
+        img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
     return img
 
 
 def save_large_image(img_path, img):
     """ saving large images more then 50k x 50k
+
+    Note, for the saving we have to use openCV while other
+    lib (matplotlib, Pillow) is not able to save larger images then 32k.
 
     :param str img_path: path to the new image
     :param ndarray img: image
@@ -161,12 +166,13 @@ def save_large_image(img_path, img):
     """
     if img.shape[2] == 4:
         img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
-    if np.max(img) <= 1.:
+    # for some reasons with linear interpolation some the range overflow (0, 1)
+    if np.max(img) <= 1.5:
         img = (img * 255)
-    if np.max(img) > 255:
-        img = (img / 255)
+    elif np.max(img) > 255:
+        img = (img / 255.)
     if img.dtype != np.uint8:
-        img = img.astype(np.uint8)
+        img = np.clip(img, a_min=0, a_max=255).astype(np.uint8)
     if os.path.isfile(img_path):
         logging.debug('image will be overwritten: %s', img_path)
-    plt.imsave(img_path, img)
+    cv.imwrite(img_path, img)

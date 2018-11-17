@@ -71,7 +71,7 @@ def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
     # work with just a scaled version
     scale_factor = max(1, img.shape[cut_dim] / float(SCALE_SIZE))
     sc = 1. / scale_factor
-    order = cv.INTER_NEAREST if scale_factor > 1 else cv.INTER_LINEAR
+    order = cv.INTER_AREA if scale_factor > 1 else cv.INTER_LINEAR
     img_small = 255 - cv.resize(img, None, fx=sc, fy=sc, interpolation=order)
     img_edge = project_object_edge(img_small, cut_dim)
     del img_small

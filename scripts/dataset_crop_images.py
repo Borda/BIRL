@@ -60,7 +60,7 @@ def crop_image(img_path, crop_dims=(0, 1), padding=0.15):
     scale_factor = max(1, np.mean(img.shape[:2]) / float(SCALE_SIZE))
     # work with just a scaled version
     sc = 1. / scale_factor
-    order = cv.INTER_NEAREST if scale_factor > 1 else cv.INTER_LINEAR
+    order = cv.INTER_AREA if scale_factor > 1 else cv.INTER_LINEAR
     img_small = 255 - cv.resize(img, None, fx=sc, fy=sc, interpolation=order)
 
     crops = {}
