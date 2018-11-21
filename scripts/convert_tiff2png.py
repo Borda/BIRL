@@ -95,7 +95,8 @@ def convert_image(path_img, level=DEFAULT_LEVEL, level_shift=DEFAULT_LEVEL_OFFSE
 
     logging.debug('save image: "%s"', path_img_new)
     cv.imwrite(path_img_new, image, params=(cv.IMWRITE_PNG_COMPRESSION, 9))
-    gc.collect(), time.sleep(1)
+    gc.collect()
+    time.sleep(1)
 
 
 def main(path_images, level=DEFAULT_LEVEL, level_shift=DEFAULT_LEVEL_OFFSET,

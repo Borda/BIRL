@@ -76,14 +76,15 @@ def crop_image(img_path, crop_dims=(0, 1), padding=0.15):
         crops[crop_dim] = (begin_px, end_px)
     del img_small
 
-    for dim in range(2):
+    for _ in range(2):
         if 0 not in crops:
             crops[0] = (0, img.shape[0])
 
     img = img[crops[0][0]:crops[0][1], crops[1][0]:crops[1][1], ...]
 
     save_large_image(img_path, img)
-    gc.collect(), time.sleep(1)
+    gc.collect()
+    time.sleep(1)
 
 
 def wrap_img_crop(img_path, padding=0.1):

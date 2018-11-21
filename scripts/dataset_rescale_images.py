@@ -64,8 +64,8 @@ def arg_parse_params():
 def scale_image(img_path, scale, overwrite=False):
     base = os.path.dirname(os.path.dirname(img_path))
     name = os.path.splitext(os.path.basename(img_path))[0]
-    dir = os.path.basename(os.path.dirname(img_path))
-    base_scale = int(re.findall('[0-9]+', dir)[0])
+    folder = os.path.basename(os.path.dirname(img_path))
+    base_scale = int(re.findall('[0-9]+', folder)[0])
 
     path_dir = os.path.join(base, FOLDER_TEMPLATE % scale)
     if not os.path.isdir(path_dir):
@@ -83,7 +83,8 @@ def scale_image(img_path, scale, overwrite=False):
 
     logging.debug('creating >> %s', path_img_scale)
     save_large_image(path_img_scale, img_sc)
-    gc.collect(), time.sleep(1)
+    gc.collect()
+    time.sleep(1)
 
 
 def wrap_scale_image(img_path_scale, overwrite=False):

@@ -59,9 +59,9 @@ def arg_parse_params():
 def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
     name = os.path.splitext(os.path.basename(img_path))[0]
     ext = os.path.splitext(os.path.basename(img_path))[-1]
-    dir = os.path.dirname(img_path)
+    folder = os.path.dirname(img_path)
     obj_names = name.split('_')
-    paths_img = [os.path.join(dir, obj_name + ext) for obj_name in obj_names]
+    paths_img = [os.path.join(folder, obj_name + ext) for obj_name in obj_names]
 
     if all(os.path.isfile(p) for p in paths_img) and not overwrite:
         logging.debug('existing all splits of %s', repr(paths_img))
@@ -97,7 +97,8 @@ def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
         else:
             raise Exception('unsupported dimension: %i' % cut_dim)
         save_large_image(path_img_cut, img_cut)
-        gc.collect(), time.sleep(1)
+        gc.collect()
+        time.sleep(1)
 
 
 def main(path_images, cut_dim, overwrite, nb_jobs):
