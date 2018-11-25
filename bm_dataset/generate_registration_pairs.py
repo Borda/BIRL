@@ -65,16 +65,17 @@ def generate_pairs(path_pattern_imgs, path_pattern_lnds, mode):
     assert len(list_imgs) >= 2, 'the minimum is 2 elements'
     logging.info('combining list %i files with "%s"', len(list_imgs), mode)
 
-    pairs = []
-    for i in range(len(list_imgs)):
-        if mode == 'first-all':
-            rec = (list_imgs[0], list_imgs[i], list_lnds[0], list_lnds[i])
-            pairs.append(dict(zip(COVER_COLUMNS, rec)))
-        elif mode == 'all-all':
-            for j in range(i + 1, len(list_imgs)):
-                rec = (list_imgs[i], list_imgs[j], list_lnds[i], list_lnds[j])
-                pairs.append(dict(zip(COVER_COLUMNS, rec)))
-    df_cover = pd.DataFrame(pairs)
+    pairs = [(0, i) for i in range(1, len(list_imgs))]
+    if mode == 'all-all':
+        pairs += [(i, j) for i in range(1, len(list_imgs))
+                  for j in range(i + 1, len(list_imgs))]
+
+    reg_pairs = []
+    for i, j in pairs:
+        rec = (list_imgs[i], list_imgs[j], list_lnds[i], list_lnds[j])
+        reg_pairs.append(dict(zip(COVER_COLUMNS, rec)))
+
+    df_cover = pd.DataFrame(reg_pairs)
     return df_cover
 
 
@@ -95,7 +96,8 @@ def main(params):
 
     df_ = generate_pairs(params['path_pattern_images'],
                          params['path_pattern_landmarks'], params['mode'])
-    df_cover = pd.concat((df_cover, df_))
+    df_cover = pd.concat((df_cover, df_), axis=0)
+    df_cover = df_cover[list(COVER_COLUMNS)].reset_index(drop=True)
 
     logging.info('saving csv file with %i records', len(df_cover))
     df_cover.to_csv(params['path_csv'])
