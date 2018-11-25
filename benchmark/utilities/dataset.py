@@ -7,9 +7,9 @@ Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 import os
 import logging
 
-import itk
 import numpy as np
 import cv2 as cv
+import matplotlib.pyplot as plt
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
 
@@ -141,8 +141,7 @@ def load_large_image(img_path):
     :return ndarray: image
     """
     assert os.path.isfile(img_path), 'missing image: %s' % img_path
-    image = itk.imread(img_path)
-    img = itk.GetArrayFromImage(image)
+    img = plt.imread(img_path)
     if img.ndim == 3 and img.shape[2] == 4:
         img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
     return img
