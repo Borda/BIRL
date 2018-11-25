@@ -7,7 +7,7 @@ Note, that using these scripts for 1+GB images take several tens of GB RAM
 
 EXAMPLE
 -------
->> python dataset_rescale_images.py \
+>> python rescale_dataset_images.py \
     -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*.png" \
     --scales 5 10 25 50 --nb_jobs 4
 

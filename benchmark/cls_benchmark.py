@@ -39,24 +39,24 @@ NAME_IMAGE_MOVE_WARP_POINTS = 'image_warped_landmarks_warped.jpg'
 NAME_IMAGE_REF_POINTS_WARP = 'image_ref_landmarks_warped.jpg'
 NAME_IMAGE_REGIST_VISUAL = 'registration_visual_landmarks.jpg'
 # columns names in cover and also registration table
-COL_IMAGE_REF = 'Reference image'
-COL_IMAGE_MOVE = 'Moving image'
+COL_IMAGE_REF = 'Target image'
+COL_IMAGE_MOVE = 'Source image'
 # moving image warped to the reference frame
-COL_IMAGE_REF_WARP = 'Moving image, Warped'
+COL_IMAGE_REF_WARP = 'Warped target image'
 # reference image warped to the moving frame
-COL_IMAGE_MOVE_WARP = 'Reference image, Warped'
-COL_POINTS_REF = 'Reference landmarks'
-COL_POINTS_MOVE = 'Moving landmarks'
+COL_IMAGE_MOVE_WARP = 'Warped target image'
+COL_POINTS_REF = 'Target landmarks'
+COL_POINTS_MOVE = 'Source landmarks'
 # moving landmarks warped to the reference frame
-COL_POINTS_REF_WARP = 'Moving landmarks, Warped'
+COL_POINTS_REF_WARP = 'Warped target landmarks'
 # reference landmarks warped to the moving frame
-COL_POINTS_MOVE_WARP = 'Reference landmarks, Warped'
+COL_POINTS_MOVE_WARP = 'Warped source landmarks'
 # registration folder for each particular experiment
-COL_REG_DIR = 'Regist. folder'
+COL_REG_DIR = 'Registration folder'
 
 # list of columns in cover csv
-COVER_COLUMNS = [COL_IMAGE_REF, COL_IMAGE_MOVE,
-                 COL_POINTS_REF, COL_POINTS_MOVE]
+COVER_COLUMNS = (COL_IMAGE_REF, COL_IMAGE_MOVE,
+                 COL_POINTS_REF, COL_POINTS_MOVE)
 
 
 # fixing ImportError: No module named 'copy_reg' for Python3

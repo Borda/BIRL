@@ -86,7 +86,7 @@ def generate_reg_pairs(rp_imgs, rp_lnds, pairs):
 
 
 def create_dataset_cover(dataset, path_images, path_landmarks, path_out,
-                         step_lnds, tissue_partial):
+                         step_landmarks, tissue_partial):
     name, scale_step = dataset
 
     reg_pairs = []
@@ -101,8 +101,8 @@ def create_dataset_cover(dataset, path_images, path_landmarks, path_out,
                                                      path_landmarks, path_images)
             assert len(rp_lnds) == len(rp_imgs), \
                 'the list of landmarks and images does not match'
-            step_lnds = step_lnds if tissue in tissue_partial else None
-            pairs = get_pairing(len(rp_lnds), step_lnds)
+            step_landmarks = step_landmarks if tissue in tissue_partial else None
+            pairs = get_pairing(len(rp_lnds), step_landmarks)
             reg_pairs += generate_reg_pairs(rp_imgs, rp_lnds, pairs)
 
     df_cover = pd.DataFrame(reg_pairs)

@@ -105,7 +105,7 @@ class TestBmRegistration(unittest.TestCase):
             (len(df_regist), len(self.benchmark._df_cover))
         # check existence of all mentioned files
         for _, row in df_regist.iterrows():
-            for col in bm.COVER_COLUMNS + \
+            for col in list(bm.COVER_COLUMNS) + \
                     [bm.COL_IMAGE_REF_WARP, bm.COL_POINTS_REF_WARP]:
                 assert os.path.exists(row[col]), \
                     'missing column "%s" in result table' % col

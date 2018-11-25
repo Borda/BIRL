@@ -5,7 +5,7 @@ Note, that using these scripts for 1+GB images take several tens of GB RAM
 
 EXAMPLE
 -------
->> python dataset_crop_images.py \
+>> python crop_dataset_images.py \
     -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*.png" \
     --padding 0.1 --nb_jobs 2
 
