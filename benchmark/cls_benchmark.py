@@ -321,23 +321,23 @@ class ImRegBenchmark(Experiment):
         if COL_POINTS_REF_WARP in dict_row:
             points_target = points_ref
             if isinstance(dict_row[COL_POINTS_REF_WARP], str):
-                points_estim = tl_io.load_landmarks(dict_row[COL_POINTS_REF_WARP])
+                points_warped = tl_io.load_landmarks(dict_row[COL_POINTS_REF_WARP])
             else:
-                points_estim = []
+                points_warped = []
         elif COL_POINTS_MOVE_WARP in dict_row:
             points_target = points_move
             if isinstance(dict_row[COL_POINTS_MOVE_WARP], str):
-                points_estim = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE_WARP])
+                points_warped = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE_WARP])
             else:
-                points_estim = []
+                points_warped = []
         else:
             logging.error('not allowed scenario: no output landmarks')
-            points_target, points_estim = [], []
+            points_target, points_warped = [], []
 
         # compute statistic
-        if len(points_estim) > 0:
-            self.__compute_landmarks_inaccuracy(idx, points_target, points_estim,
-                                                'final')
+        if len(points_warped) > 0:
+            self.__compute_landmarks_inaccuracy(idx, points_target,
+                                                points_warped, 'final')
 
     def __compute_landmarks_inaccuracy(self, idx, points1, points2, state=''):
         """ compute statistic on two points sets

@@ -104,7 +104,6 @@ def string_dict(d, headline='DICTIONARY:', offset=25):
 
     >>> string_dict({'a': 1, 'b': 2}, 'TEST:', 5)
     'TEST:\\n"a":  1\\n"b":  2'
-
     """
     template = '{:%is} {}' % offset
     rows = [template.format('"{}":'.format(n), d[n]) for n in sorted(d)]
@@ -145,7 +144,7 @@ def missing_paths(args, upper_dirs=None, pattern='path'):
     :param [str] upper_dirs: list of keys in parameters
         with item which must exist only the parent folder
     :param str pattern: patter specifying key with path
-    :return:
+    :return [str]: key of missing paths
     """
     if upper_dirs is None:
         upper_dirs = []
@@ -241,10 +240,10 @@ def compute_points_dist_statistic(points1, points2):
     >>> all(v == 0 for v in stat.values())
     True
     >>> dist, stat = compute_points_dist_statistic(points1, points2)
-    >>> dist
-    array([ 2.82842712,  3.16227766,  1.41421356])
-    >>> stat['Mean']
-    2.4683061157625548
+    >>> dist  #doctest: +ELLIPSIS
+    array([ 2.828...,  3.162...,  1.414...])
+    >>> stat['Mean']  #doctest: +ELLIPSIS
+    2.468...
     """
     points1 = np.asarray(points1)
     points2 = np.asarray(points2)
@@ -263,8 +262,9 @@ def compute_points_dist_statistic(points1, points2):
 
 
 class NoDaemonProcess(mproc.Process):
-    # make 'daemon' attribute always return False
+    @classmethod
     def _get_daemon(self):
+        # make 'daemon' attribute always return False
         return False
 
     def _set_daemon(self, value):

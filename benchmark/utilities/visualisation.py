@@ -65,8 +65,8 @@ def draw_image_points(image, points, color='green', marker_size=5, shape='o'):
     return image
 
 
-def draw_landmarks_origin_target_estim(ax, points_origin, points_target,
-                                       points_estim=None, marker='o'):
+def draw_landmarks_origin_target_warped(ax, points_origin, points_target,
+                                        points_warped=None, marker='o'):
     """ visualisation of transforming points, presenting 3 set of points:
     original points, targeting points, and the estimate of target points
 
@@ -87,15 +87,15 @@ def draw_landmarks_origin_target_estim(ax, points_origin, points_target,
     :param str marker: set the marker shape
 
     >>> points = np.array([[20, 30], [40, 10], [15, 25]])
-    >>> draw_landmarks_origin_target_estim(plt.figure().gca(),
+    >>> draw_landmarks_origin_target_warped(plt.figure().gca(),
     ...                                    points, points + 1, points - 1)
     """
     assert points_target.shape == points_origin.shape, \
         'image dimension has to match %s != %s' \
         % (repr(points_target.shape), repr(points_origin.shape))
-    assert points_origin.shape == points_estim.shape, \
+    assert points_origin.shape == points_warped.shape, \
         'image dimension has to match %s != %s' \
-        % (repr(points_origin.shape), repr(points_estim.shape))
+        % (repr(points_origin.shape), repr(points_warped.shape))
     ax.plot(points_origin[:, 0], points_origin[:, 1], marker, color='b',
             label='Original positions')
     # draw a dotted line between origin and where it should be
@@ -104,12 +104,12 @@ def draw_landmarks_origin_target_estim(ax, points_origin, points_target,
         ax.plot(x, y, '-.', color='b', linewidth=2)
     ax.plot(points_target[:, 0], points_target[:, 1], marker, color='m',
             label='Target positions')
-    if points_estim is not None:
+    if points_warped is not None:
         # draw line that  should be minimal between target and estimate
-        for start, stop in zip(points_target, points_estim):
+        for start, stop in zip(points_target, points_warped):
             x, y = zip(start, stop)
             ax.plot(x, y, '-', color='r', linewidth=2)
-        ax.plot(points_estim[:, 0], points_estim[:, 1], marker, color='g',
+        ax.plot(points_warped[:, 0], points_warped[:, 1], marker, color='g',
                 label='Estimated positions')
 
 
@@ -144,7 +144,7 @@ def overlap_two_images(image1, image2, transparent=0.5):
 
 
 def draw_images_warped_landmarks(image_target, image_source,
-                                 points_init, points_target, points_estim,
+                                 points_init, points_target, points_warped,
                                  figsize_max=MAX_FIGURE_SIZE):
     """ composed form several functions - images overlap + landmarks + legend
 
@@ -166,7 +166,7 @@ def draw_images_warped_landmarks(image_target, image_source,
     image = overlap_two_images(image_target, image_source, transparent=0.3)
     fig, ax = create_figure(image.shape, figsize_max)
     ax.imshow(image)
-    draw_landmarks_origin_target_estim(ax, points_init, points_target, points_estim)
+    draw_landmarks_origin_target_warped(ax, points_init, points_target, points_warped)
     ax.legend(loc='lower right', title='Legend')
     ax.set_xlim([0, image.shape[1]])
     ax.set_ylim([image.shape[0], 0])

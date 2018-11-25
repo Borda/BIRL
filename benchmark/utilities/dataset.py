@@ -7,9 +7,9 @@ Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 import os
 import logging
 
+import itk
 import numpy as np
 import cv2 as cv
-import matplotlib.pyplot as plt
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
 
@@ -141,8 +141,9 @@ def load_large_image(img_path):
     :return ndarray: image
     """
     assert os.path.isfile(img_path), 'missing image: %s' % img_path
-    img = plt.imread(img_path)
-    if img.shape[2] == 4:
+    image = itk.imread(img_path)
+    img = itk.GetArrayFromImage(image)
+    if img.ndim == 3 and img.shape[2] == 4:
         img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
     return img
 
@@ -151,7 +152,7 @@ def save_large_image(img_path, img):
     """ saving large images more then 50k x 50k
 
     Note, for the saving we have to use openCV while other
-    lib (matplotlib, Pillow) is not able to save larger images then 32k.
+    lib (matplotlib, Pillow, ITK) is not able to save larger images then 32k.
 
     :param str img_path: path to the new image
     :param ndarray img: image
@@ -164,7 +165,7 @@ def save_large_image(img_path, img):
     True
     >>> os.remove(img_path)
     """
-    if img.shape[2] == 4:
+    if img.ndim == 3 and img.shape[2] == 4:
         img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
     # for some reasons with linear interpolation some the range overflow (0, 1)
     if np.max(img) <= 1.5:
