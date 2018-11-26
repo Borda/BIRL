@@ -188,15 +188,15 @@ class ImRegBenchmark(Experiment):
         """
         # run the experiment in parallel of single thread
         if self.params.get('nb_jobs', 0) > 1:
+            self.nb_jobs = self.params['nb_jobs']
             self.__execute_parallel(method, in_table, path_csv,
-                                    name, self.params['nb_jobs'],
-                                    use_output=use_output)
+                                    name, use_output=use_output)
         else:
             self.__execute_serial(method, in_table, path_csv, name,
                                   use_output=use_output)
 
     def __execute_parallel(self, method, in_table, path_csv=None, name='',
-                           nb_jobs=NB_THREADS_USED, use_output=True):
+                           use_output=True):
         """ running several registration experiments in parallel
 
         :param method: executed self method which have as input row
@@ -206,11 +206,14 @@ class ImRegBenchmark(Experiment):
         :param int nb_jobs: number of experiment running in parallel
         :param bool use_output: append output to experiment DF
         """
-        logging.info('-> running %s in parallel, (%i threads)', name, nb_jobs)
+        if not hasattr(self, 'nb_jobs'):
+            self.nb_jobs = NB_THREADS
+        logging.info('-> running %s in parallel, (%i threads)',
+                     name, self.nb_jobs)
         tqdm_bar = tqdm.tqdm(total=len(in_table),
-                             desc='%s (@ %i threads)' % (name, nb_jobs))
+                             desc='%s (@ %i threads)' % (name, self.nb_jobs))
         iter_table = ((idx, dict(row)) for idx, row, in in_table.iterrows())
-        mproc_pool = mproc.Pool(nb_jobs)
+        mproc_pool = mproc.Pool(self.nb_jobs)
         for res in mproc_pool.imap(method, iter_table):
             tqdm_bar.update()
             if res is None or not use_output:

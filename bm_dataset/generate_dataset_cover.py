@@ -30,8 +30,8 @@ DATASET_TISSUE_PARTIAL = ('kidney_*', 'COAD_*')
 STEP_PARTIAL = 3
 DATASET_SCALES = {
     'small': 0,
-    'medium': 1,
-    'big': 2,
+    'medium': 2,
+    # 'large': 3,
 }
 IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 COLUMNS_EMPTY = (
@@ -116,9 +116,12 @@ def create_dataset_cover(dataset, path_images, path_landmarks, path_out,
 def main(path_images, path_landmarks, path_out, step_lnds, datasets,
          tissue_partial):
 
-    _create_cover = partial(create_dataset_cover, path_images=path_images,
-                            path_landmarks=path_landmarks, path_out=path_out,
-                            step_lnds=step_lnds, tissue_partial=tissue_partial)
+    _create_cover = partial(create_dataset_cover,
+                            path_images=path_images,
+                            path_landmarks=path_landmarks,
+                            path_out=path_out,
+                            step_landmarks=step_lnds,
+                            tissue_partial=tissue_partial)
 
     for name in datasets:
         scale_step = datasets[name]
