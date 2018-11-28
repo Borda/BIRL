@@ -5,9 +5,9 @@ and related computed new landmarks.
 
 Example run:
 >> python create_synth_dataset_real_image.py \
-    -img ../data_images/images/Rat_Kidney_HE.jpg \
-    -lnd ../data_images/landmarks/Rat_Kidney_HE.csv \
-    -out ../output/synth_dataset
+    -i ../data_images/images/Rat_Kidney_HE.jpg \
+    -l ../data_images/landmarks/Rat_Kidney_HE.csv \
+    -o ../output/synth_dataset
 
 Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -53,14 +53,14 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-img', '--path_image', type=str, required=True,
+    parser.add_argument('-i', '--path_image', type=str, required=True,
                         help='path to the input image')
-    parser.add_argument('-lnd', '--path_landmarks', type=str, required=True,
+    parser.add_argument('-l', '--path_landmarks', type=str, required=True,
                         help='path to the input landmarks')
-    parser.add_argument('-out', '--path_out', type=str, required=True,
+    parser.add_argument('-o', '--path_out', type=str, required=True,
                         help='path to the output folder')
-    parser.add_argument('-nb', '--nb_samples', type=int, required=False,
-                        help='number of deromed images',
+    parser.add_argument('-n', '--nb_samples', type=int, required=False,
+                        help='number of deformed images',
                         default=NB_DEFORMATIONS)
     parser.add_argument('--visual', action='store_true', required=False,
                         default=False, help='visualise the landmarks in images')

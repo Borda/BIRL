@@ -3,8 +3,8 @@ Script for generating
 
 Example run:
 >> python create_registration_pairs.py \
-    -imgs ../output/synth_dataset/*.jpg \
-    -lnds ../output/synth_dataset/*.csv \
+    -i ../output/synth_dataset/*.jpg \
+    -l ../output/synth_dataset/*.csv \
     -csv ../output/cover.csv --mode all-all
 
 Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
@@ -32,9 +32,9 @@ def arg_parse_params():
     :return dict: {str: str}
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('-imgs', '--path_pattern_images', type=str,
+    parser.add_argument('-i', '--path_pattern_images', type=str,
                         help='path to the input image', required=True)
-    parser.add_argument('-lnds', '--path_pattern_landmarks', type=str,
+    parser.add_argument('-l', '--path_pattern_landmarks', type=str,
                         help='path to the input landmarks', required=True)
     parser.add_argument('-csv', '--path_csv', type=str, required=True,
                         help='path to coordinate csv file')
