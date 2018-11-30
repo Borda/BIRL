@@ -5,9 +5,9 @@ and related computed new landmarks.
 
 Example run:
 >> python create_real_synth_dataset.py \
-    -i ../data_images/images/Rat_Kidney_HE.jpg \
-    -l ../data_images/landmarks/Rat_Kidney_HE.csv \
-    -o ../output/synth_dataset  --visual
+    -i ../data_images/rat-kidney_/scale-5pc/Rat_Kidney_HE.jpg \
+    -l ../data_images/rat-kidney_/scale-5pc/Rat_Kidney_HE.csv \
+    -o ../output/synth_dataset --visual
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -28,7 +28,7 @@ if os.environ.get('DISPLAY', '') == '':
 import tqdm
 import numpy as np
 import pandas as pd
-from PIL import Image
+import cv2 as cv
 from scipy import ndimage, stats, interpolate
 import matplotlib.pyplot as plt
 
@@ -70,47 +70,11 @@ def arg_parse_params():
     return args
 
 
-def generate_deformation_field_gauss(shape, points, max_deform=DEFORMATION_MAX,
-                                     deform_smooth=DEFORMATION_SMOOTH):
-    """ generate deformation field as combination of positive and
-    negative Galatians densities scaled in range +/- max_deform
+def estimate_transformation_tps(shape, points, max_deform=DEFORMATION_MAX,
+                                nb_bound_points=5):
+    """ generate deformation as thin plate spline deformation
 
-    :param (int, int) shape: tuple of size 2
-    :param points: <nb_points, 2> list of landmarks
-    :param float max_deform: maximal deformation distance in any direction
-    :param float deform_smooth: smoothing the deformation by Gaussian filter
-    :return: np.array<shape>
-    """
-    ndim = len(shape)
-    x, y = np.mgrid[0:shape[0], 0:shape[1]]
-    pos_grid = np.rollaxis(np.array([x, y]), 0, 3)
-    # initialise the deformation
-    deform = np.zeros(shape)
-    for point in points:
-        sign = np.random.choice([-1, 1])
-        cov = np.random.random((ndim, ndim))
-        cov[np.eye(ndim, dtype=bool)] = 100 * np.random.random(ndim)
-        # obtain a positive semi-definite matrix
-        cov = np.dot(cov, cov.T) * (0.1 * np.mean(shape))
-        gauss = stats.multivariate_normal(point, cov)
-        deform += sign * gauss.pdf(pos_grid)
-    # normalise the deformation and multiply by the amplitude
-    deform *= max_deform / np.abs(deform).max()
-    # set boundary region to zeros
-    fix_deform_bounds = DEFORMATION_BOUNDARY_COEF * deform_smooth
-    deform[:fix_deform_bounds, :] = 0
-    deform[-fix_deform_bounds:, :] = 0
-    deform[:, :fix_deform_bounds] = 0
-    deform[:, -fix_deform_bounds:] = 0
-    # smooth the deformation field
-    deform = ndimage.gaussian_filter(deform, sigma=deform_smooth, order=0)
-    return deform
-
-
-def generate_deformation_field_rbf(shape, points, max_deform=DEFORMATION_MAX,
-                                   nb_bound_points=25):
-    """ generate deformation field as thin plate spline  deformation
-    in range +/- max_deform
+    SEE" http://answers.opencv.org/question/186368
 
     :param (int, int) shape: tuple of size 2
     :param points: np.array<nb_points, 2> list of landmarks
@@ -118,31 +82,35 @@ def generate_deformation_field_rbf(shape, points, max_deform=DEFORMATION_MAX,
     :param int nb_bound_points: number of fix boundary points
     :return: np.array<shape>
     """
-    # x_point = points[:, 0]
-    # y_point = points[:, 1]
+    points_source = np.array(points)
     # generate random shifting
-    move = (np.random.random(points.shape[0]) - 0.5) * max_deform
-
+    # todo: normalise the random shift by distance to nearest landmarks
+    shift = (np.random.random(points.shape) - 0.5) * max_deform
+    points_target = np.array(points) + shift
     # fix boundary points
-    # set the boundary points
-    bound = np.ones(nb_bound_points - 1)
-    x_bound = np.linspace(0, shape[0] - 1, nb_bound_points)
-    y_bound = np.linspace(0, shape[1] - 1, nb_bound_points)
-    x_point = np.hstack((points[:, 0], 0 * bound, x_bound[:-1],
-                         (shape[0] - 1) * bound, x_bound[::-1][:-1]))
-    y_point = np.hstack((points[:, 1], y_bound[:-1], (shape[1] - 1) * bound,
-                         y_bound[::-1][:-1], 0 * bound))
-    # the boundary points sex as 0 shift
-    move = np.hstack((move, np.zeros(4 * nb_bound_points - 4)))
-    # create the interpolation function
-    smooth = 0.2 * max_deform
-    rbf = interpolate.Rbf(x_point, y_point, move, function='thin-plate',
-                          epsilon=1, smooth=smooth)
-    # interpolate in regular grid
-    x_grid, y_grid = np.mgrid[0:shape[0], 0:shape[1]].astype(np.int32)
-    # FIXME: it takes to much of RAM memory, for sample image more that 8GM !
-    deform = rbf(x_grid, y_grid)
-    return deform
+    if nb_bound_points > 1:
+        bound_one = np.ones(nb_bound_points - 1)
+        # set the boundary points
+        x_range = np.round(np.linspace(0, shape[0] - 1, nb_bound_points), 0)
+        y_range = np.round(np.linspace(0, shape[1] - 1, nb_bound_points), 0)
+        x_bound = np.hstack((0 * bound_one, x_range[:-1],
+                             (shape[0] - 1) * bound_one, x_range[::-1][:-1]))
+        y_bound = np.hstack((y_range[:-1], (shape[1] - 1) * bound_one,
+                             y_range[::-1][:-1], 0 * bound_one))
+        boundary = np.vstack((x_bound, y_bound)).T
+        # extend the points
+        points_source = np.vstack((points_source, boundary))
+        points_target = np.vstack((points_target, boundary))
+
+    assert len(points_source) == len(points_target)
+    matches = [cv.DMatch(i, i, 0) for i in range(len(points_source))]
+
+    tps = cv.createThinPlateSplineShapeTransformer()
+    tps.estimateTransformation(points_source.astype(np.float32).reshape(1, -1, 2),
+                               points_target.astype(np.float32).reshape(1, -1, 2),
+                               matches)
+
+    return tps
 
 
 def deform_image_landmarks(image, points, max_deform=DEFORMATION_MAX):
@@ -154,29 +122,18 @@ def deform_image_landmarks(image, points, max_deform=DEFORMATION_MAX):
     :param float max_deform: maximal deformation distance in any direction
     :return: np.array<height, width, 3>, np.array<nb_points, 2>
     """
-    x, y = np.mgrid[0:image.shape[0], 0:image.shape[1]]
-    # generate the deformation field
-    nb_fix_points = int(np.max(image.shape) / max_deform * 2.)
-    x_deform = generate_deformation_field_rbf(image.shape[:2], points,
-                                              max_deform, nb_fix_points)
-    # TODO: look for another elastic deformation which is friendly to Memory usage
-    # -> generate random elastic deformation and using this field get new landmarks
-    y_deform = generate_deformation_field_rbf(image.shape[:2], points,
-                                              max_deform, nb_fix_points)
-    # interpolate the image
-    img_warped = interpolate.griddata(zip(x.ravel(), y.ravel()),
-                                      image.reshape(-1, 3),
-                                      (x + x_deform, y + y_deform),
-                                      method='linear', fill_value=1.)
-    # compute new positions of landmarks
-    x_new = x - x_deform
-    y_new = y - y_deform
-    pts_warped = np.array([[x_new[pt[0], pt[1]], y_new[pt[0], pt[1]]]
-                           for pt in points])
+    nb_fix_points = int(np.max(image.shape) / max_deform * 0.5)
+    tps = estimate_transformation_tps(image.shape[:2], points,
+                                      max_deform, nb_fix_points)
+
+    img_warped = tps.warpImage(image)
+    ret, out = tps.applyTransformation(np.array(points).astype(np.float32).reshape(1, -1, 2))
+    pts_warped = out[0]
+
     return img_warped, pts_warped
 
 
-def image_color_shift_hue(image, change_satur=True):
+def image_color_hsv_shift(image, change_satur=True):
     """ take the original image and shift the colour space in HUE
 
     :param image: np.array<height, width, 3>
@@ -192,7 +149,7 @@ def image_color_shift_hue(image, change_satur=True):
     logging.debug('image color change with Hue shift %d and Sat power %f',
                   h_shift, s_power)
     # convert image into range (0, 1)
-    if image.max() > 1.:
+    if image.max() > 1.5:
         image = (image / 255.)
 
     img_hsv = matplotlib.colors.rgb_to_hsv(image)
@@ -215,8 +172,7 @@ def draw_image_landmarks(image, points):
     shape = np.array(image.shape[:2])
     fig_size = shape / float(max(shape)) * FIG_MAX_SIZE
     fig_size = fig_size.tolist()[-1::-1]
-    fig = plt.figure(figsize=fig_size)
-    ax = fig.gca()
+    fig, ax = plt.subplots(figsize=fig_size)
     ax.imshow(image)
     ax.plot(points[:, 1], points[:, 0], 'o', color='k')
     ax.plot(points[:, 1], points[:, 0], '.', color='w')
@@ -245,14 +201,14 @@ def export_image_landmarks(image, points, idx, path_out, name_img,
     # export the image
     path_image = os.path.join(path_out, name_img + '_%i.jpg' % idx)
     logging.debug('exporting image #%i: %s', idx, path_image)
-    Image.fromarray(image).save(path_image)
+    cv.imwrite(path_image, image)
     # export landmarks
     path_csv = os.path.join(path_out, name_img + '_%i.csv' % idx)
     logging.debug('exporting points #%i: %s', idx, path_csv)
     pd.DataFrame(points, columns=COLUMNS_COORD).to_csv(path_csv)
     if visual:  # visualisation
         fig = draw_image_landmarks(image, points)
-        path_fig = os.path.join(path_out, name_img + '_%i_landmarks.png' % idx)
+        path_fig = os.path.join(path_out, name_img + '_%i_landmarks.pdf' % idx)
         fig.savefig(path_fig)
         plt.close(fig)
 
@@ -268,11 +224,10 @@ def perform_deform_export(idx, image, points, path_out, name_img, visual=False):
     :param str name_img:
     :param bool visual:
     """
-    image_out = image_color_shift_hue(image)
-    max_deform = int(0.03 * np.mean(image.shape[:2]))
-    image_out, points_out = deform_image_landmarks(image_out, points,
-                                                   max_deform)
-    export_image_landmarks(image_out, points_out, idx + 1, path_out, name_img,
+    image_ = image_color_hsv_shift(image)
+    max_deform = int(0.03 * np.mean(image_.shape[:2]))
+    image_, points_ = deform_image_landmarks(image_, points, max_deform)
+    export_image_landmarks(image_, points_, idx + 1, path_out, name_img,
                            visual)
 
 
@@ -298,7 +253,7 @@ def main(params):
     else:
         logging.warning('using existing folder: %s', params['path_out'])
 
-    image = np.array(Image.open(params['path_image']))
+    image = np.array(plt.imread(params['path_image']))
     logging.debug('loaded image, shape: %s', image.shape)
     df_points = pd.read_csv(params['path_landmarks'], index_col=0)
     points = df_points[COLUMNS_COORD].values
