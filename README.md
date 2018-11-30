@@ -16,7 +16,8 @@ This project contains a set of sample images with related landmarks and experime
 
 As the data we use a [dataset of stain histological tissues](http://cmp.felk.cvut.cz/~borovji3/?page=dataset) image pairs of related (mainly consecutive cuts) sections where each of them in the pair is colour different stain. The apprentice difference and deformations during sensing makes the image registration challenging task.
 
-For evaluation we have set of manually placed landmarks in each image pair at least 40 uniformly spread over the tissue (we do not put any landmarks in backround)
+For evaluation we have set of manually placed landmarks in each image pair at least 40 uniformly spread over the tissue (we do not put any landmarks in backround).
+For more information about annotation creation and handling handling landmarks we refer special repository - [Dataset: histology landmarks](http://borda.github.com/dataset-histology-landmarks).
 
 The dataset is defined by CSV file containing paths to reference and sensed image and their related landmarks _(see `./data_images/pairs-imgs-lnds_mix.csv`)_.
 
@@ -26,12 +27,15 @@ The dataset is defined by CSV file containing paths to reference and sensed imag
 
 The project contains also a few folders and its brief description is:
 
-* `data_images` - folder with input sample data
-    * `images` - contains sample image pairs (reference and sensed one)
-    * `landmarks` - contains related landmarks to images in previous folder
-* `benchmarks` - directory with benchmark & template and general useful utils
+* `benchmarks` - package with benchmark & template and general useful utils
     * `utilities` - useful tools and functions
-* `bm_experiments` - directory with particular benchmark experiments
+* `bm_dataset` - package with handling dataset creation and servicing
+* `bm_experiments` - package with particular benchmark experiments
+* `data_images` - folder with input sample data
+    * `images` - sample image pairs (reference and sensed one)
+    * `landmarks` - related landmarks to images in previous folder
+    * `lesions_` - samples of histology tissue with annotation
+    * `rat-kidney_` - samples of histology tissue with annotation
 * `configs` - configs for registration methods 
 * `macros_ij` - macros mainly for ImageJ 
 * `scripts` - useful scripts handling some staff around the benchmark itself
@@ -46,10 +50,10 @@ In the `data_images` folder we provide some sample images with landmarks for reg
 There is an option to generate synthetic data, such that you set an initial image and landmarks and the script generates  set of geometrical deformed images with also change color space and related computed new landmarks.
 
 ```bash
-python scripts/create_synth_dataset_real_image.py \
-    -img ./data_images/images/Rat_Kidney_HE.jpg \
-    -lnd ./data_images/landmarks/Rat_Kidney_HE.csv \
-    -out ./output/synth_dataset \
+python scripts/create_real_synth_dataset.py \
+    -i ./data_images/images/Rat_Kidney_HE.jpg \
+    -l ./data_images/landmarks/Rat_Kidney_HE.csv \
+    -o ./output/synth_dataset \
     -nb 5 --nb_jobs 3 --visual
 ```
 
@@ -57,9 +61,9 @@ When you have generated the synthetic datasets we generate the cover csv file wh
 _(note A-B is the same as B-A so it is the just once)_
 
 ```bash
-python scripts/create_registration_pairs.py \
-    -imgs ./data_images/synth_dataset/*.jpg \
-    -lnds ./data_images/synth_dataset/*.csv \
+python scripts/generate_registration_pairs.py \
+    -i ./data_images/synth_dataset/*.jpg \
+    -l ./data_images/synth_dataset/*.csv \
     -csv ./data_images/cover_synth-dataset.csv \
     --mode all-all
 ```
@@ -69,9 +73,9 @@ python scripts/create_registration_pairs.py \
 ### Included registration methods
 
 * **[bUnwarpJ](http://imagej.net/BUnwarpJ)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for elastic registration (optional integration with [Feature Extraction](http://imagej.net/Feature_Extraction)).
+<!-- 
 * **[ANTs](https://sourceforge.net/projects/advants)** with variable transformations (elastic, diffeomorphic, diffeomorphisms, unbiased) and similarity metrics (landmarks, cross-correlation, mutual information, etc).
 * **[DROP](http://www.mrf-registration.net)** is a software for deformable image registration using discrete optimization.
-<!-- 
 * **[Elastix](http://elastix.isi.uu.nl)** is wide framework for image registration
 * **[RVSS](http://imagej.net/Register_Virtual_Stack_Slices)** is [ImageJ](https://imagej.nih.gov/ij/) plugin Register Virtual Stack Slices
 -->
@@ -89,14 +93,18 @@ mkdir results
 python benchmark/bm_template.py \
     -in ./data_images/pairs-imgs-lnds_mix.csv \
     -out ./results \
-    --unique --visual \
-    --an_executable none
+    --an_executable none \
+    --unique --visual
 ```
+
+### Add costume registration method
+
+[TODO]
 
 
 ## License
 
-The project is using the standard [BSD license](http://opensource.org/licenses/BSD-2-Clause).
+The project is using the standard [BSD license](http://opensource.org/licenses/BSD-3-Clause).
 
 
 ## References
