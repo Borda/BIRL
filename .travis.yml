@@ -20,6 +20,7 @@ matrix:
       env: TOXENV=py36
 
 install:
+  - sudo apt-get install python-opencv openslide-tools
   - pip install -r requirements.txt
   - pip install tox
 

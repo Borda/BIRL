@@ -3,8 +3,8 @@ Script for generating
 
 Example run:
 >> python create_registration_pairs.py \
-    -imgs ../output/synth_dataset/*.jpg \
-    -lnds ../output/synth_dataset/*.csv \
+    -i ../output/synth_dataset/*.jpg \
+    -l ../output/synth_dataset/*.csv \
     -csv ../output/cover.csv --mode all-all
 
 Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
@@ -20,6 +20,7 @@ import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 import benchmark.utilities.experiments as tl_expt
+from benchmark.cls_benchmark import COVER_COLUMNS
 
 # list of combination options
 OPTIONS_COMBINE = ['first-all', 'all-all']
@@ -31,9 +32,9 @@ def arg_parse_params():
     :return dict: {str: str}
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('-imgs', '--path_pattern_images', type=str,
+    parser.add_argument('-i', '--path_pattern_images', type=str,
                         help='path to the input image', required=True)
-    parser.add_argument('-lnds', '--path_pattern_landmarks', type=str,
+    parser.add_argument('-l', '--path_pattern_landmarks', type=str,
                         help='path to the input landmarks', required=True)
     parser.add_argument('-csv', '--path_csv', type=str, required=True,
                         help='path to coordinate csv file')
@@ -48,10 +49,9 @@ def arg_parse_params():
     return args
 
 
-def generate_pairs(df_cover, path_pattern_imgs, path_pattern_lnds, mode):
+def generate_pairs(path_pattern_imgs, path_pattern_lnds, mode):
     """ generate the registration pairs as reference and moving images
 
-    :param DF df_cover: DF
     :param str path_pattern_imgs: path to the images and image name pattern
     :param str path_pattern_lnds: path to the landmarks and its name pattern
     :param str mode: one of OPTIONS_COMBINE
@@ -65,23 +65,17 @@ def generate_pairs(df_cover, path_pattern_imgs, path_pattern_lnds, mode):
     assert len(list_imgs) >= 2, 'the minimum is 2 elements'
     logging.info('combining list %i files with "%s"', len(list_imgs), mode)
 
-    if type == 'first-all':
-        for i in range(1, len(list_imgs)):
-            df_cover = df_cover.append({
-                'Reference image': list_imgs[0],
-                'Moving image': list_lnds[0],
-                'Reference landmarks': list_imgs[i],
-                'Moving landmarks': list_lnds[i],
-            }, ignore_index=True)
-    elif type == 'all-all':
-        for i, _ in enumerate(list_imgs):
-            for j in range(i + 1, len(list_imgs)):
-                df_cover = df_cover.append({
-                    'Reference image': list_imgs[i],
-                    'Moving image': list_lnds[i],
-                    'Reference landmarks': list_imgs[j],
-                    'Moving landmarks': list_lnds[j],
-                }, ignore_index=True)
+    pairs = [(0, i) for i in range(1, len(list_imgs))]
+    if mode == 'all-all':
+        pairs += [(i, j) for i in range(1, len(list_imgs))
+                  for j in range(i + 1, len(list_imgs))]
+
+    reg_pairs = []
+    for i, j in pairs:
+        rec = (list_imgs[i], list_imgs[j], list_lnds[i], list_lnds[j])
+        reg_pairs.append(dict(zip(COVER_COLUMNS, rec)))
+
+    df_cover = pd.DataFrame(reg_pairs)
     return df_cover
 
 
@@ -100,8 +94,10 @@ def main(params):
         logging.info('creating new cover file')
         df_cover = pd.DataFrame()
 
-    df_cover = generate_pairs(df_cover, params['path_pattern_images'],
-                              params['path_pattern_landmarks'], params['mode'])
+    df_ = generate_pairs(params['path_pattern_images'],
+                         params['path_pattern_landmarks'], params['mode'])
+    df_cover = pd.concat((df_cover, df_), axis=0)
+    df_cover = df_cover[list(COVER_COLUMNS)].reset_index(drop=True)
 
     logging.info('saving csv file with %i records', len(df_cover))
     df_cover.to_csv(params['path_csv'])

@@ -1,7 +1,6 @@
 """
 General experiments methods
 
-
 Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
@@ -11,12 +10,15 @@ import time
 import random
 import logging
 import argparse
-import traceback
+import multiprocessing.pool
+import multiprocessing as mproc
 
+import tqdm
 import numpy as np
 
 import benchmark.utilities.data_io as tl_io
 
+NB_THREADS = mproc.cpu_count()
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 FILE_LOGS = 'logging.txt'
 LOG_FILE_FORMAT = logging.Formatter(
@@ -102,7 +104,6 @@ def string_dict(d, headline='DICTIONARY:', offset=25):
 
     >>> string_dict({'a': 1, 'b': 2}, 'TEST:', 5)
     'TEST:\\n"a":  1\\n"b":  2'
-
     """
     template = '{:%is} {}' % offset
     rows = [template.format('"{}":'.format(n), d[n]) for n in sorted(d)]
@@ -143,7 +144,7 @@ def missing_paths(args, upper_dirs=None, pattern='path'):
     :param [str] upper_dirs: list of keys in parameters
         with item which must exist only the parent folder
     :param str pattern: patter specifying key with path
-    :return:
+    :return [str]: key of missing paths
     """
     if upper_dirs is None:
         upper_dirs = []
@@ -219,7 +220,7 @@ def run_command_line(cmd, path_logger=None):
         os.system(cmd)
         return True
     except Exception:
-        logging.error(traceback.format_exc())
+        logging.exception(cmd)
         return False
 
 
@@ -239,10 +240,10 @@ def compute_points_dist_statistic(points1, points2):
     >>> all(v == 0 for v in stat.values())
     True
     >>> dist, stat = compute_points_dist_statistic(points1, points2)
-    >>> dist
-    array([ 2.82842712,  3.16227766,  1.41421356])
-    >>> stat['Mean']
-    2.4683061157625548
+    >>> dist  #doctest: +ELLIPSIS
+    array([ 2.828...,  3.162...,  1.414...])
+    >>> stat['Mean']  #doctest: +ELLIPSIS
+    2.468...
     """
     points1 = np.asarray(points1)
     points2 = np.asarray(points2)
@@ -258,3 +259,72 @@ def compute_points_dist_statistic(points1, points2):
         'Max': np.max(diffs),
     }
     return diffs, dict_stat
+
+
+class NoDaemonProcess(mproc.Process):
+    @classmethod
+    def _get_daemon(self):
+        # make 'daemon' attribute always return False
+        return False
+
+    def _set_daemon(self, value):
+        pass
+
+    daemon = property(_get_daemon, _set_daemon)
+
+
+class NDPool(multiprocessing.pool.Pool):
+    """ We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
+    because the latter is only a wrapper function, not a proper class.
+
+    >>> pool = NDPool(1)
+    """
+    Process = NoDaemonProcess
+
+
+def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
+                          desc='', ordered=False):
+    """ wrapper for execution parallel of single thread as for...
+
+    :param wrap_func: function which will be excited in the iterations
+    :param [] iterate_vals: list or iterator which will ide in iterations
+    :param int nb_jobs: number og jobs running in parallel
+    :param str desc: description for the bar,
+        if it is set None, bar is suppressed
+    :param bool ordered: whether enforce ordering in the parallelism
+
+    >>> [o for o in wrap_execute_sequence(lambda x: x ** 2, range(5),
+    ...                                   nb_jobs=1, ordered=True)]
+    [0, 1, 4, 9, 16]
+    >>> [o for o in wrap_execute_sequence(sum, [[0, 1]] * 5,
+    ...                                   nb_jobs=2, desc=None)]
+    [1, 1, 1, 1, 1]
+    """
+    iterate_vals = list(iterate_vals)
+
+    if desc is not None:
+        tqdm_bar = tqdm.tqdm(total=len(iterate_vals), desc=desc)
+    else:
+        tqdm_bar = None
+
+    if nb_jobs > 1:
+        logging.debug('perform parallel in %i threads', nb_jobs)
+        # Standard mproc.Pool created a demon processes which can be called
+        # inside its children, cascade or multiprocessing
+        # https://stackoverflow.com/questions/6974695/python-process-pool-non-daemonic
+        pool = NDPool(nb_jobs)
+
+        pooling = pool.imap if ordered else pool.imap_unordered
+
+        for out in pooling(wrap_func, iterate_vals):
+            yield out
+            if tqdm_bar is not None:
+                tqdm_bar.update()
+        pool.close()
+        pool.join()
+    else:
+        logging.debug('perform sequential')
+        for out in map(wrap_func, iterate_vals):
+            yield out
+            if tqdm_bar is not None:
+                tqdm_bar.update()

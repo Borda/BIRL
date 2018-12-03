@@ -4,10 +4,10 @@ The output is set of geometrical deformed images with also change color space
 and related computed new landmarks.
 
 Example run:
->> python create_synth_dataset_real_image.py \
-    -img ../data_images/images/Rat_Kidney_HE.jpg \
-    -lnd ../data_images/landmarks/Rat_Kidney_HE.csv \
-    -out ../output/synth_dataset
+>> python create_real_synth_dataset.py \
+    -i ../data_images/images/Rat_Kidney_HE.jpg \
+    -l ../data_images/landmarks/Rat_Kidney_HE.csv \
+    -o ../output/synth_dataset  --visual
 
 Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -53,14 +53,14 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-img', '--path_image', type=str, required=True,
+    parser.add_argument('-i', '--path_image', type=str, required=True,
                         help='path to the input image')
-    parser.add_argument('-lnd', '--path_landmarks', type=str, required=True,
+    parser.add_argument('-l', '--path_landmarks', type=str, required=True,
                         help='path to the input landmarks')
-    parser.add_argument('-out', '--path_out', type=str, required=True,
+    parser.add_argument('-o', '--path_out', type=str, required=True,
                         help='path to the output folder')
-    parser.add_argument('-nb', '--nb_samples', type=int, required=False,
-                        help='number of deromed images',
+    parser.add_argument('-n', '--nb_samples', type=int, required=False,
+                        help='number of deformed images',
                         default=NB_DEFORMATIONS)
     parser.add_argument('--visual', action='store_true', required=False,
                         default=False, help='visualise the landmarks in images')
@@ -234,7 +234,7 @@ def draw_image_landmarks(image, points):
     return fig
 
 
-def export_image_landmarks(image, points, idx, path_out, name_img, name_points,
+def export_image_landmarks(image, points, idx, path_out, name_img,
                            visual=False):
     """ export the image, landmarks as csv file and if the 'visual' is set,
     draw also landmarks in the image (in separate image)
@@ -244,7 +244,6 @@ def export_image_landmarks(image, points, idx, path_out, name_img, name_points,
     :param int idx:
     :param str path_out: path to the output directory
     :param str name_img: image file name
-    :param str name_points: landmarks file name
     :param bool visual:
     """
     if image.max() <= 1.:
@@ -254,7 +253,7 @@ def export_image_landmarks(image, points, idx, path_out, name_img, name_points,
     logging.debug('exporting image #%i: %s', idx, path_image)
     Image.fromarray(image).save(path_image)
     # export landmarks
-    path_csv = os.path.join(path_out, name_points + '_%i.csv' % idx)
+    path_csv = os.path.join(path_out, name_img + '_%i.csv' % idx)
     logging.debug('exporting points #%i: %s', idx, path_csv)
     pd.DataFrame(points, columns=COLUMNS_COORD).to_csv(path_csv)
     if visual:  # visualisation
@@ -264,8 +263,7 @@ def export_image_landmarks(image, points, idx, path_out, name_img, name_points,
         plt.close(fig)
 
 
-def perform_deform_export(idx, image, points, path_out, name_img, name_points,
-                          visual=False):
+def perform_deform_export(idx, image, points, path_out, name_img, visual=False):
     """ perform complete image colour change, and deformation on image
     and landmarks and if required draw a visualisation
 
@@ -274,15 +272,14 @@ def perform_deform_export(idx, image, points, path_out, name_img, name_points,
     :param points: np.array<nb_points, 2>
     :param str path_out:
     :param str name_img:
-    :param str name_points:
     :param bool visual:
     """
     image_out = image_color_shift_hue(image)
     max_deform = int(0.03 * np.mean(image.shape[:2]))
     image_out, points_out = deform_image_landmarks(image_out, points,
                                                    max_deform)
-    export_image_landmarks(image_out, points_out, idx + 1, path_out,
-                           name_img, name_points, visual)
+    export_image_landmarks(image_out, points_out, idx + 1, path_out, name_img,
+                           visual)
 
 
 def get_name(path):
@@ -314,16 +311,16 @@ def main(params):
     logging.debug('loaded landmarks, dim: %s', points.shape)
 
     name_img = get_name(params['path_image'])
-    name_points = get_name(params['path_landmarks'])
+    # name_points = get_name(params['path_landmarks'])
 
     export_image_landmarks(image, points, 0, params['path_out'],
-                           name_img, name_points, visual=params['visual'])
+                           name_img, visual=params['visual'])
 
     # create the wrapper for parallel usage
     wrapper_deform_export = partial(perform_deform_export, image=image,
                                     points=points, path_out=params['path_out'],
-                                    name_img=name_img, name_points=name_points,
-                                    visual=params['visual'])
+                                    name_img=name_img,
+                                    visual=params.get('visual', False))
 
     tqdm_bar = tqdm.tqdm(total=params['nb_samples'])
     if params['nb_jobs'] > 1:

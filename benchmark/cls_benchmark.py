@@ -39,24 +39,24 @@ NAME_IMAGE_MOVE_WARP_POINTS = 'image_warped_landmarks_warped.jpg'
 NAME_IMAGE_REF_POINTS_WARP = 'image_ref_landmarks_warped.jpg'
 NAME_IMAGE_REGIST_VISUAL = 'registration_visual_landmarks.jpg'
 # columns names in cover and also registration table
-COL_IMAGE_REF = 'Reference image'
-COL_IMAGE_MOVE = 'Moving image'
+COL_IMAGE_REF = 'Target image'
+COL_IMAGE_MOVE = 'Source image'
 # moving image warped to the reference frame
-COL_IMAGE_REF_WARP = 'Moving image, Warped'
+COL_IMAGE_REF_WARP = 'Warped target image'
 # reference image warped to the moving frame
-COL_IMAGE_MOVE_WARP = 'Reference image, Warped'
-COL_POINTS_REF = 'Reference landmarks'
-COL_POINTS_MOVE = 'Moving landmarks'
+COL_IMAGE_MOVE_WARP = 'Warped target image'
+COL_POINTS_REF = 'Target landmarks'
+COL_POINTS_MOVE = 'Source landmarks'
 # moving landmarks warped to the reference frame
-COL_POINTS_REF_WARP = 'Moving landmarks, Warped'
+COL_POINTS_REF_WARP = 'Warped target landmarks'
 # reference landmarks warped to the moving frame
-COL_POINTS_MOVE_WARP = 'Reference landmarks, Warped'
+COL_POINTS_MOVE_WARP = 'Warped source landmarks'
 # registration folder for each particular experiment
-COL_REG_DIR = 'Regist. folder'
+COL_REG_DIR = 'Registration folder'
 
 # list of columns in cover csv
-COVER_COLUMNS = [COL_IMAGE_REF, COL_IMAGE_MOVE,
-                 COL_POINTS_REF, COL_POINTS_MOVE]
+COVER_COLUMNS = (COL_IMAGE_REF, COL_IMAGE_MOVE,
+                 COL_POINTS_REF, COL_POINTS_MOVE)
 
 
 # fixing ImportError: No module named 'copy_reg' for Python3
@@ -188,15 +188,15 @@ class ImRegBenchmark(Experiment):
         """
         # run the experiment in parallel of single thread
         if self.params.get('nb_jobs', 0) > 1:
+            self.nb_jobs = self.params['nb_jobs']
             self.__execute_parallel(method, in_table, path_csv,
-                                    name, self.params['nb_jobs'],
-                                    use_output=use_output)
+                                    name, use_output=use_output)
         else:
             self.__execute_serial(method, in_table, path_csv, name,
                                   use_output=use_output)
 
     def __execute_parallel(self, method, in_table, path_csv=None, name='',
-                           nb_jobs=NB_THREADS_USED, use_output=True):
+                           use_output=True):
         """ running several registration experiments in parallel
 
         :param method: executed self method which have as input row
@@ -206,11 +206,14 @@ class ImRegBenchmark(Experiment):
         :param int nb_jobs: number of experiment running in parallel
         :param bool use_output: append output to experiment DF
         """
-        logging.info('-> running %s in parallel, (%i threads)', name, nb_jobs)
+        if not hasattr(self, 'nb_jobs'):
+            self.nb_jobs = NB_THREADS
+        logging.info('-> running %s in parallel, (%i threads)',
+                     name, self.nb_jobs)
         tqdm_bar = tqdm.tqdm(total=len(in_table),
-                             desc='%s (@ %i threads)' % (name, nb_jobs))
+                             desc='%s (@ %i threads)' % (name, self.nb_jobs))
         iter_table = ((idx, dict(row)) for idx, row, in in_table.iterrows())
-        mproc_pool = mproc.Pool(nb_jobs)
+        mproc_pool = mproc.Pool(self.nb_jobs)
         for res in mproc_pool.imap(method, iter_table):
             tqdm_bar.update()
             if res is None or not use_output:
@@ -321,23 +324,23 @@ class ImRegBenchmark(Experiment):
         if COL_POINTS_REF_WARP in dict_row:
             points_target = points_ref
             if isinstance(dict_row[COL_POINTS_REF_WARP], str):
-                points_estim = tl_io.load_landmarks(dict_row[COL_POINTS_REF_WARP])
+                points_warped = tl_io.load_landmarks(dict_row[COL_POINTS_REF_WARP])
             else:
-                points_estim = []
+                points_warped = []
         elif COL_POINTS_MOVE_WARP in dict_row:
             points_target = points_move
             if isinstance(dict_row[COL_POINTS_MOVE_WARP], str):
-                points_estim = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE_WARP])
+                points_warped = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE_WARP])
             else:
-                points_estim = []
+                points_warped = []
         else:
             logging.error('not allowed scenario: no output landmarks')
-            points_target, points_estim = [], []
+            points_target, points_warped = [], []
 
         # compute statistic
-        if len(points_estim) > 0:
-            self.__compute_landmarks_inaccuracy(idx, points_target, points_estim,
-                                                'final')
+        if len(points_warped) > 0:
+            self.__compute_landmarks_inaccuracy(idx, points_target,
+                                                points_warped, 'final')
 
     def __compute_landmarks_inaccuracy(self, idx, points1, points2, state=''):
         """ compute statistic on two points sets

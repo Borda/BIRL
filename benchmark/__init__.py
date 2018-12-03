@@ -1,3 +1,3 @@
-from benchmark.utilities import __init__
+import benchmark.utilities
 
-__init__
+benchmark.utilities

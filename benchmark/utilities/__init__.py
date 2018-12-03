@@ -6,7 +6,8 @@ import numpy as np
 import pandas as pd
 
 # in case you are running on machine without display, e.g. server
-if os.environ.get('DISPLAY', '') == '':
+if os.environ.get('DISPLAY', '') == '' \
+        and matplotlib.rcParams['backend'] != 'agg':
     logging.warning('No display found. Using non-interactive Agg backend')
     matplotlib.use('Agg')
 
