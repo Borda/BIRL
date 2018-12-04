@@ -10,6 +10,7 @@ import time
 import random
 import logging
 import argparse
+import subprocess
 import multiprocessing.pool
 import multiprocessing as mproc
 
@@ -217,7 +218,8 @@ def run_command_line(cmd, path_logger=None):
         cmd += " > " + path_logger
     try:
         # TODO: out = subprocess.call(cmd, timeout=TIMEOUT, shell=True)
-        os.system(cmd)
+        # https://www.quora.com/Whats-the-difference-between-os-system-and-subprocess-call-in-Python
+        subprocess.call(cmd, shell=True)
         return True
     except Exception:
         logging.exception(cmd)

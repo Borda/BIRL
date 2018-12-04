@@ -7,6 +7,7 @@ Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 
 import os
 import sys
+import subprocess
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from bm_dataset.generate_dataset_cover import (DATASET_TISSUE_SCALE, NAME_DIR_SCALE,
@@ -34,4 +35,4 @@ if __name__ == '__main__':
     # zip all datasets scales
     for scale in DATASET_SCALES:
         cmd = create_command(scale)
-        os.system(cmd)
+        subprocess.call(cmd, shell=True)
