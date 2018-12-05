@@ -39,8 +39,6 @@ The project contains the following folders:
     * `rat-kidney_` - samples of histology tissue with annotation
 * `configs` - configs for registration methods 
 * `macros_ij` - macros for ImageJ 
-* `scripts` - useful scripts handling some staff around the benchmark itself
-
 
 ## Before benchmarks (pre-processing) 
 
@@ -74,12 +72,6 @@ python scripts/generate_registration_pairs.py \
 ### Included registration methods
 
 * **[bUnwarpJ](http://imagej.net/BUnwarpJ)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for elastic registration (optional integration with [Feature Extraction](http://imagej.net/Feature_Extraction)).
-<!-- 
-* **[ANTs](https://sourceforge.net/projects/advants)** with variable transformations (elastic, diffeomorphic, diffeomorphisms, unbiased) and similarity metrics (landmarks, cross-correlation, mutual information, etc).
-* **[DROP](http://www.mrf-registration.net)** is a software for deformable image registration using discrete optimization.
-* **[Elastix](http://elastix.isi.uu.nl)** is a wide framework for image registration
-* **[RVSS](http://imagej.net/Register_Virtual_Stack_Slices)** is [ImageJ](https://imagej.nih.gov/ij/) plugin Register Virtual Stack Slices
--->
 * ...
 
 ### Install methods and run benchmarks
