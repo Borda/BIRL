@@ -38,6 +38,7 @@ script:
   # - nosetests --with-xunit --xunit-file=shippable/testresults/nosetests.xml
   - nosetests -v --exe --with-doctest --with-coverage --with-xunit --cover-package=benchmark --xunit-file=shippable/testresults/nosetests.xml
 
+  - python bm_experiments/bm_comp_perform.py -o ./results -n 1
   - python benchmark/bm_template.py -in data_images/pairs-imgs-lnds_mix.csv -out results --unique  --an_executable none
 
   - python bm_dataset/generate_registration_pairs.py -i "data_images/images/artificial_*.jpg" -l "data_images/landmarks/artificial_*.csv" -csv data_images/cover_artificial.csv --mode all-all

@@ -98,6 +98,14 @@ python benchmark/bm_template.py \
     --unique --visual
 ```
 
+Measure your computer performance using average execution time on several simple image registrations.
+The registration consists of loading images, denoising, feature detection, transform estimation and image warping. 
+```bash
+python bm_experiments/bm_comp_perform.py -o ./results
+```
+This script generate simple report exported in JSON file on given output path.
+
+
 ### Add custom registration method
 
 [TODO]
