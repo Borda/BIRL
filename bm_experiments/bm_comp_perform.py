@@ -24,6 +24,7 @@ import json
 import argparse
 import logging
 import platform
+import hashlib
 import multiprocessing as mproc
 from functools import partial
 
@@ -193,17 +194,25 @@ def main(path_out='', nb_runs=5):
 
     :param str path_out: path to export the report and save temporal images
     """
-    report = {'computer': {
-        'system': platform.system(),
-        'architecture': platform.architecture(),
-        'node': platform.node(),
-        'release': platform.release(),
-        'version': platform.version(),
-        'machine': platform.machine(),
-        'processor': platform.processor(),
-        'virtual CPUs': mproc.cpu_count(),
-        'python version': platform.python_version()
-    }}
+    hasher = hashlib.md5()
+    hasher.update(open(__file__, 'rb').read())
+    report = {
+        'computer': {
+            'system': platform.system(),
+            'architecture': platform.architecture(),
+            'node': platform.node(),
+            'release': platform.release(),
+            'version': platform.version(),
+            'machine': platform.machine(),
+            'processor': platform.processor(),
+            'virtual CPUs': mproc.cpu_count()
+        },
+        'created': time.time(),
+        'file': hasher.hexdigest(),
+        'nb. runs': nb_runs,
+        'python version': platform.python_version(),
+        'skimage version': skimage.__version__,
+    }
     report.update(measure_registration_single(path_out, nb_iter=nb_runs))
     nb_runs_ = max(1, int(nb_runs / 2.))
     report.update(measure_registration_parallel(path_out, nb_iter=nb_runs_))
