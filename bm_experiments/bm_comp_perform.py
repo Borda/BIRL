@@ -23,6 +23,7 @@ import time
 import json
 import argparse
 import logging
+import platform
 import multiprocessing as mproc
 from functools import partial
 
@@ -169,6 +170,7 @@ def measure_registration_parallel(path_out, nb_iter=2, nb_jobs=NB_THREADS):
     _regist = partial(register_image_pair, path_img_target=path_img_target,
                       path_img_source=path_img_source, path_out=path_out)
     nb_tasks = int(nb_jobs * nb_iter)
+    logging.info('>> running %i tasks in %i threads', nb_tasks, nb_jobs)
     tqdm_bar = tqdm.tqdm(total=nb_tasks, desc='parallel @ %i threads' % nb_jobs)
 
     pool = mproc.Pool(nb_jobs)
@@ -191,15 +193,26 @@ def main(path_out='', nb_runs=5):
 
     :param str path_out: path to export the report and save temporal images
     """
-    report = {'computer': os.uname(),
-              'nb. threads': mproc.cpu_count()}
+    report = {'computer': {
+        'system': platform.system(),
+        'architecture': platform.architecture(),
+        'node': platform.node(),
+        'release': platform.release(),
+        'version': platform.version(),
+        'machine': platform.machine(),
+        'processor': platform.processor(),
+        'virtual CPUs': mproc.cpu_count(),
+        'python version': platform.python_version()
+    }}
     report.update(measure_registration_single(path_out, nb_iter=nb_runs))
-    report.update(measure_registration_parallel(path_out, nb_iter=nb_runs))
+    nb_runs_ = max(1, int(nb_runs / 2.))
+    report.update(measure_registration_parallel(path_out, nb_iter=nb_runs_))
 
     path_json = os.path.join(path_out, NAME_REPORT)
     logging.info('exporting report: %s', path_json)
     with open(path_json, 'w') as fp:
         json.dump(report, fp)
+    logging.info('\n\t '.join('%s: \t %s' % (k, repr(report[k])) for k in report))
 
 
 if __name__ == '__main__':
