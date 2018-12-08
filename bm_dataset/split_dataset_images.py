@@ -101,14 +101,14 @@ def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
         time.sleep(1)
 
 
-def main(path_images, cut_dim, overwrite, nb_jobs):
+def main(path_images, dimension, overwrite, nb_jobs):
     image_paths = sorted(glob.glob(path_images))
 
     if not image_paths:
         logging.info('No images found on "%s"', path_images)
         return
 
-    _wrap_split = partial(split_image, cut_dim=cut_dim, overwrite=overwrite)
+    _wrap_split = partial(split_image, cut_dim=dimension, overwrite=overwrite)
     list(wrap_execute_sequence(_wrap_split, image_paths,
                                desc='Cut image tissues', nb_jobs=nb_jobs))
 
@@ -117,7 +117,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     arg_params = arg_parse_params()
-    main(arg_params['path_images'], arg_params['dimension'],
-         arg_params['overwrite'], arg_params['nb_jobs'])
+    main(**arg_params)
 
     logging.info('DONE')

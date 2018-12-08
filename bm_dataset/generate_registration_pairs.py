@@ -79,7 +79,7 @@ def generate_pairs(path_pattern_imgs, path_pattern_lnds, mode):
     return df_cover
 
 
-def main(params):
+def main(path_pattern_images, path_pattern_landmarks, path_csv, mode):
     """ main entry point
 
     :param dict params: {str: str}
@@ -87,20 +87,19 @@ def main(params):
     logging.info('running...')
 
     # if the cover file exist continue in it, otherwise create new
-    if os.path.isfile(params['path_csv']):
+    if os.path.isfile(path_csv):
         logging.info('loading existing csv file')
-        df_cover = pd.read_csv(params['path_csv'], index_col=0)
+        df_cover = pd.read_csv(path_csv, index_col=0)
     else:
         logging.info('creating new cover file')
         df_cover = pd.DataFrame()
 
-    df_ = generate_pairs(params['path_pattern_images'],
-                         params['path_pattern_landmarks'], params['mode'])
+    df_ = generate_pairs(path_pattern_images, path_pattern_landmarks, mode)
     df_cover = pd.concat((df_cover, df_), axis=0)
     df_cover = df_cover[list(COVER_COLUMNS)].reset_index(drop=True)
 
     logging.info('saving csv file with %i records', len(df_cover))
-    df_cover.to_csv(params['path_csv'])
+    df_cover.to_csv(path_csv)
 
     logging.info('DONE')
 
@@ -109,4 +108,4 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     arg_params = arg_parse_params()
-    main(arg_params)
+    main(**arg_params)

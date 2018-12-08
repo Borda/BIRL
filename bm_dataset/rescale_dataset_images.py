@@ -113,7 +113,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     arg_params = arg_parse_params()
-    main(arg_params['path_images'], arg_params['scales'],
-         arg_params['overwrite'], arg_params['nb_jobs'])
+    main(**arg_params)
 
     logging.info('DONE')
