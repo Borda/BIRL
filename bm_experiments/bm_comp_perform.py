@@ -45,9 +45,9 @@ SKIMAGE_VERSION = (0, 14, 0)
 
 NB_THREADS = mproc.cpu_count()
 NAME_REPORT = 'computer-performances.json'
-NAME_IMAGE_TARGET = 'bm_regist-image_target.png'
-NAME_IMAGE_SOURCE = 'bm_regist-image_source.png'
-NAME_IMAGE_WARPED = 'bm_regist-image_warped-%i.jpg'
+NAME_IMAGE_TARGET = 'temp_regist-image_target.png'
+NAME_IMAGE_SOURCE = 'temp_regist-image_source.png'
+NAME_IMAGE_WARPED = 'temp_regist-image_warped-%i.jpg'
 
 
 def arg_parse_params():
@@ -117,10 +117,10 @@ def register_image_pair(idx, path_img_target, path_img_source, path_out):
                                 detector_source.descriptors)
 
     # robustly estimate affine transform model with RANSAC
-    model, inliers = ransac((detector_target.keypoints[matches[:, 0]],
-                             detector_source.keypoints[matches[:, 1]]),
-                            AffineTransform, min_samples=25,
-                            residual_threshold=0.95, max_trials=500)
+    model, _ = ransac((detector_target.keypoints[matches[:, 0]],
+                       detector_source.keypoints[matches[:, 1]]),
+                      AffineTransform, min_samples=25, max_trials=500,
+                      residual_threshold=0.95)
 
     # warping source image with estimated transformations
     img_warped = warp(img_target, model.inverse, output_shape=img_target.shape[:2])
@@ -194,7 +194,15 @@ def main(path_out='', nb_runs=5):
 
     :param str path_out: path to export the report and save temporal images
     """
-    hasher = hashlib.md5()
+
+    skimage_version = skimage.__version__.split('.')
+    skimage_version = tuple(map(int, skimage_version))
+    if skimage_version < SKIMAGE_VERSION:
+        logging.warning('You are using older version of scikit-image then we expect.'
+                        ' Please upadte by `pip install -U --user scikit-image>=%s`',
+                        '.'.join(map(str, SKIMAGE_VERSION)))
+
+    hasher = hashlib.sha256()
     hasher.update(open(__file__, 'rb').read())
     report = {
         'computer': {
@@ -226,15 +234,7 @@ def main(path_out='', nb_runs=5):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-
-    skimage_version = skimage.__version__.split('.')
-    skimage_version = tuple(map(int, skimage_version))
-    if skimage_version < SKIMAGE_VERSION:
-        logging.warning('You are using older version of scikit-image then we expect.'
-                        ' Please upadte by `pip install -U --user scikit-image>=%s`',
-                        '.'.join(map(str, SKIMAGE_VERSION)))
-
     logging.info('running...')
     arg_params = arg_parse_params()
-    main(path_out=arg_params['path_out'], nb_runs=arg_params['nb_runs'])
+    main(**arg_params)
     logging.info('Done :]')
