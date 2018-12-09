@@ -246,7 +246,8 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
-    REQUIRED_PARAMS = bm.ImRegBenchmark.REQUIRED_PARAMS + ['path_fiji', 'path_config_bUnwarpJ']
+    REQUIRED_PARAMS = bm.ImRegBenchmark.REQUIRED_PARAMS + ['path_fiji',
+                                                           'path_config_bUnwarpJ']
 
     def _prepare(self):
         """ prepare BM - copy configurations """
@@ -284,7 +285,7 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
             lines = fp.readlines()
         # merge lines into one string
         config_bunwarpj = ' '.join(l.strip() for l in lines)
-        # define set of all possoble paremeters for macros generating
+        # define set of all possible parameters for macros generating
         dict_params = {
             'source': path_im_move, 'target': path_im_ref,
             'n_source': name_im_move, 'n_target': name_im_ref,
@@ -391,14 +392,14 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         return dict_row
 
 
-def main(arg_params):
+def main(params):
     """ run the Main of blank experiment
 
     :param arg_params: {str: value} set of input parameters
     """
     logging.info('running...')
     logging.info(__doc__)
-    benchmark = BmBUnwarpJ(arg_params)
+    benchmark = BmBUnwarpJ(params)
     benchmark.run()
     del benchmark
     logging.info('Done.')

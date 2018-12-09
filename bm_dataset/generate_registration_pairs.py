@@ -82,7 +82,10 @@ def generate_pairs(path_pattern_imgs, path_pattern_lnds, mode):
 def main(path_pattern_images, path_pattern_landmarks, path_csv, mode):
     """ main entry point
 
-    :param dict params: {str: str}
+    :param str path_pattern_images:
+    :param str path_pattern_landmarks:
+    :param str path_csv:
+    :param str mode:
     """
     logging.info('running...')
 

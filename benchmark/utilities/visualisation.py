@@ -83,7 +83,7 @@ def draw_landmarks_origin_target_warped(ax, points_origin, points_target,
     :param ax: matplotlib figure
     :param ndarray points_origin: np.array<nb_points, dim>
     :param ndarray points_target: np.array<nb_points, dim>
-    :param ndarray points_estim: np.array<nb_points, dim>
+    :param ndarray points_warped: np.array<nb_points, dim>
     :param str marker: set the marker shape
 
     >>> points = np.array([[20, 30], [40, 10], [15, 25]])
@@ -114,7 +114,7 @@ def draw_landmarks_origin_target_warped(ax, points_origin, points_target,
 
 
 def overlap_two_images(image1, image2, transparent=0.5):
-    """ merge two images togeher with transparency level
+    """ merge two images together with transparency level
 
     :param ndarray image1: np.array<height, with, dim>
     :param ndarray image2: np.array<height, with, dim>
@@ -152,7 +152,7 @@ def draw_images_warped_landmarks(image_target, image_source,
     :param ndarray image_source: np.array<height, with, dim>
     :param ndarray points_target: np.array<nb_points, dim>
     :param ndarray points_init: np.array<nb_points, dim>
-    :param ndarray points_estim: np.array<nb_points, dim>
+    :param ndarray points_warped: np.array<nb_points, dim>
     :param int figsize_max: maximal figure size for major image dimension
     :return: object
 

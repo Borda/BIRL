@@ -112,7 +112,7 @@ class TestBmRegistration(unittest.TestCase):
         # check existence of statistical results
         for stat_name in ['Mean', 'STD', 'Median', 'Min', 'Max']:
             assert any(stat_name in col for col in df_regist.columns), \
-                'missing statistis "%s"' % stat_name
+                'missing statistics "%s"' % stat_name
         # test specific results
         assert_array_almost_equal(sorted(df_regist['Mean [px] (init)'].values),
                                   np.array([28.055, 68.209, 73.175, 76.439]),

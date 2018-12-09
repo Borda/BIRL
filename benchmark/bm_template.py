@@ -136,14 +136,14 @@ class BmTemplate(bm.ImRegBenchmark):
         return dict_row
 
 
-def main(arg_params):
+def main(params):
     """ run the Main of blank experiment
 
     :param arg_params: {str: value} set of input parameters
     """
     logging.info('running...')
     logging.info(__doc__)
-    benchmark = BmTemplate(arg_params)
+    benchmark = BmTemplate(params)
     benchmark.run()
     del benchmark
     logging.info('Done.')

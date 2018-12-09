@@ -64,7 +64,7 @@ def list_landmarks_images(path_tissue, sc, path_landmarks, path_images):
 def get_pairing(count, step=None):
     idxs = list(range(count))
     priv = idxs[::step]
-    # prune image on diagonal and missing both landmarks (targer and source)
+    # prune image on diagonal and missing both landmarks (target and source)
     pairs = [(i, j) for i in idxs for j in idxs
              if i != j and (i not in priv or j in priv)]
     # prune symmetric image pairs
