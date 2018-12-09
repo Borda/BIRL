@@ -60,7 +60,11 @@ install:
   - pip freeze
   - dir
 
-test_script: tox
+test_script:
+  - tox
+  - mkdir results
+  - python bm_experiments/bm_comp_perform.py -o results -n 1
+  - python benchmark/bm_template.py -in data_images/pairs-imgs-lnds_mix.csv -out results --unique  --an_executable none
 
 on_success:
   - coverage report
