@@ -14,6 +14,8 @@ from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
 
 TISSUE_CONTENT = 0.01
+# supported image extensions
+IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 
 
 def detect_binary_blocks(vec_bin):
@@ -176,3 +178,26 @@ def save_large_image(img_path, img):
     if os.path.isfile(img_path):
         logging.debug('image will be overwritten: %s', img_path)
     cv.imwrite(img_path, img)
+
+
+def generate_pairing(count, step_hide=None):
+    """ generate registration pairs with an option of hidden landmarks
+
+    :param int count: total number of samples
+    :param int step_hide: hide every N sample
+    :return [(int, int)]: registration pairs
+
+    >>> generate_pairing(4, None)
+    [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+    >>> generate_pairing(4, step_hide=3)
+    [(0, 1), (0, 2), (1, 2), (3, 1), (3, 2)]
+    """
+    idxs_all = list(range(count))
+    idxs_hide = idxs_all[::step_hide] if step_hide is not None else []
+    # prune image on diagonal and missing both landmarks (target and source)
+    idxs_pairs = [(i, j) for i in idxs_all for j in idxs_all
+                  if i != j and j not in idxs_hide]
+    # prune symmetric image pairs
+    idxs_pairs = [(i, j) for k, (i, j) in enumerate(idxs_pairs)
+                  if (j, i) not in idxs_pairs[:k]]
+    return idxs_pairs

@@ -5,7 +5,7 @@ Note, that using these scripts for 1+GB images take several tens of GB RAM
 
 EXAMPLE
 -------
->> python crop_dataset_images.py \
+>> python crop_tissue_images.py \
     -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*.png" \
     --padding 0.1 --nb_jobs 2
 
@@ -65,7 +65,7 @@ def crop_image(img_path, crop_dims=(0, 1), padding=0.15):
 
     crops = {}
     for crop_dim in crop_dims:
-        assert crop_dim in (0, 1), 'not supported dimension'
+        assert crop_dim in (0, 1), 'not supported dimension: %i' % crop_dim
         img_edge = project_object_edge(img_small, crop_dim)
 
         begin, end = find_largest_object(img_edge, threshold=TISSUE_CONTENT)
@@ -110,7 +110,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     arg_params = arg_parse_params()
-    main(arg_params['path_images'], arg_params['padding'],
-         arg_params['nb_jobs'])
+    main(**arg_params)
 
     logging.info('DONE')

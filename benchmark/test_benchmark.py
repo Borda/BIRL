@@ -91,13 +91,13 @@ class TestBmRegistration(unittest.TestCase):
         assert os.path.exists(path_bm), 'missing benchmark: %s' % \
                                         self.benchmark.__class__.__name__
         # required output files
-        for file_name in [bm.NAME_CSV_REGIST_PAIRS,
+        for file_name in [bm.NAME_CSV_REGISTRATION_PAIRS,
                           bm.NAME_CSV_RESULTS,
                           bm.NAME_TXT_RESULTS]:
             assert os.path.isfile(os.path.join(path_bm, file_name)), \
                 'missing "%s" file in the benchmark experiment' % file_name
         # load registration file
-        df_regist = pd.read_csv(os.path.join(path_bm, bm.NAME_CSV_REGIST_PAIRS),
+        df_regist = pd.read_csv(os.path.join(path_bm, bm.NAME_CSV_REGISTRATION_PAIRS),
                                 index_col=0)
         # only two records in the benchmark
         assert len(df_regist) == len(self.benchmark._df_cover), \
@@ -112,7 +112,7 @@ class TestBmRegistration(unittest.TestCase):
         # check existence of statistical results
         for stat_name in ['Mean', 'STD', 'Median', 'Min', 'Max']:
             assert any(stat_name in col for col in df_regist.columns), \
-                'missing statistis "%s"' % stat_name
+                'missing statistics "%s"' % stat_name
         # test specific results
         assert_array_almost_equal(sorted(df_regist['Mean [px] (init)'].values),
                                   np.array([28.055, 68.209, 73.175, 76.439]),

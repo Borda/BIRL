@@ -7,9 +7,9 @@ from __future__ import absolute_import
 
 import os
 import time
-import random
 import logging
 import argparse
+import subprocess
 import multiprocessing.pool
 import multiprocessing as mproc
 
@@ -49,7 +49,7 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     path_exp = os.path.join(path_out, dir_name)
     while stamp_unique and os.path.isdir(path_exp):
         logging.warning('particular out folder already exists')
-        path_exp += ':' + str(random.randint(0, 9))
+        path_exp += ':' + str(np.random.randint(0, 10))
     logging.info('creating experiment folder "{}"'.format(path_exp))
     path_exp = tl_io.create_dir(path_exp)
     return path_exp
@@ -59,7 +59,7 @@ def release_logger_files():
     """ close all handlers to a file
 
     >>> release_logger_files()
-    >>> len([lh for lh in logging.getLogger().handlers
+    >>> len([1 for lh in logging.getLogger().handlers
     ...      if type(lh) is logging.FileHandler])
     0
     """
@@ -77,7 +77,7 @@ def set_experiment_logger(path_out, file_name=FILE_LOGS, reset=True):
     :param bool reset: reset all previous logging into a file
 
     >>> set_experiment_logger('.')
-    >>> len([lh for lh in logging.getLogger().handlers
+    >>> len([1 for lh in logging.getLogger().handlers
     ...      if type(lh) is logging.FileHandler])
     1
     >>> release_logger_files()
@@ -217,7 +217,8 @@ def run_command_line(cmd, path_logger=None):
         cmd += " > " + path_logger
     try:
         # TODO: out = subprocess.call(cmd, timeout=TIMEOUT, shell=True)
-        os.system(cmd)
+        # https://www.quora.com/Whats-the-difference-between-os-system-and-subprocess-call-in-Python
+        subprocess.call(cmd, shell=True)
         return True
     except Exception:
         logging.exception(cmd)
@@ -293,11 +294,10 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
         if it is set None, bar is suppressed
     :param bool ordered: whether enforce ordering in the parallelism
 
-    >>> [o for o in wrap_execute_sequence(lambda x: x ** 2, range(5),
-    ...                                   nb_jobs=1, ordered=True)]
+    >>> list(wrap_execute_sequence(lambda x: x ** 2, range(5),
+    ...                            nb_jobs=1, ordered=True))
     [0, 1, 4, 9, 16]
-    >>> [o for o in wrap_execute_sequence(sum, [[0, 1]] * 5,
-    ...                                   nb_jobs=2, desc=None)]
+    >>> list(wrap_execute_sequence(sum, [[0, 1]] * 5, nb_jobs=2, desc=None))
     [1, 1, 1, 1, 1]
     """
     iterate_vals = list(iterate_vals)

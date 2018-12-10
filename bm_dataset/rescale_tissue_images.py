@@ -7,7 +7,7 @@ Note, that using these scripts for 1+GB images take several tens of GB RAM
 
 EXAMPLE
 -------
->> python rescale_dataset_images.py \
+>> python rescale_tissue_images.py \
     -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*.png" \
     --scales 5 10 25 50 --nb_jobs 4
 
@@ -69,7 +69,7 @@ def scale_image(img_path, scale, overwrite=False):
 
     path_dir = os.path.join(base, FOLDER_TEMPLATE % scale)
     if not os.path.isdir(path_dir):
-        os.mkdir(path_dir)
+        os.makedirs(path_dir, exist_ok=True)
 
     path_img_scale = os.path.join(path_dir, name + IMAGE_EXTENSION)
     if os.path.isfile(path_img_scale) and not overwrite:
@@ -113,7 +113,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     arg_params = arg_parse_params()
-    main(arg_params['path_images'], arg_params['scales'],
-         arg_params['overwrite'], arg_params['nb_jobs'])
+    main(**arg_params)
 
     logging.info('DONE')
