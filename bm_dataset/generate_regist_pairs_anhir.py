@@ -32,14 +32,14 @@ SCALE_NAMES = (
 )
 # define tissues with all landmarks presented
 DATASET_TISSUE_SCALE_COMPLETE = {
-    'lesions_[1,3]': (5, 50),
-    'lesions_2': (2, 25),
+    'lung-lesion_[1,3]': (5, 50),
+    'lung-lesion_2': (5, 25),
     'lung-lobes_*': (5, 50),
-    'mammary-gland_*': (2, 25),
+    'mammary-gland_*': (5, 25),
 }
 # define tissues which hide some samples as test
 DATASET_TISSUE_SCALE_PARTIAL = {
-    'kidney_*': (2, 25),
+    'kidney_*': (5, 25),
     'COAD_*': (2, 25),
     'gastric_*': (2, 20),
 }
@@ -63,6 +63,9 @@ def get_relative_paths(paths, path_base):
 def list_landmarks_images(path_tissue, sc, path_landmarks, path_images):
     path_ = os.path.join(path_tissue, NAME_DIR_SCALE % sc, '*.csv')
     rp_lnds = get_relative_paths(glob.glob(path_), path_landmarks)
+    if not rp_lnds:
+        logging.debug('found no landmarks for: %s', path_)
+        return [], []
     paths_imgs = []
     for rp_lnd in rp_lnds:
         p_imgs = glob.glob(os.path.join(path_images,

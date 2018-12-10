@@ -3,6 +3,11 @@
 The paths and all other constants are set to run on CMP grid for ANHIR dataset
 zip only images mentioned in cover file and landmarks from source
 
+>> python zip_dataset_by_cover.py \
+    -i /datagrid/Medical/dataset_ANHIR/images \
+    -l /datagrid/Medical/dataset_ANHIR/landmarks_all \
+    -csv /datagrid/Medical/dataset_ANHIR/images/dataset_medium.csv
+
 Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
@@ -17,7 +22,7 @@ import pandas as pd
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.cls_benchmark import COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_MOVE
 
-ZIP_COMMAND = 'cd %s  && zip -R dataset_%s.zip %s'
+ZIP_COMMAND = 'cd %s  && zip %s.zip -r %s'
 
 
 def arg_parse_params():
