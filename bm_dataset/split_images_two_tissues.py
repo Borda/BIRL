@@ -5,7 +5,7 @@ Note, that using these scripts for 1+GB images take several tens of GB RAM
 
 EXAMPLE
 -------
->> python split_dataset_images.py \
+>> python split_images_two_tissues.py \
     -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*_*.png" \
     --nb_jobs 3
 

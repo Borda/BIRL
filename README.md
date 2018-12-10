@@ -14,9 +14,12 @@
 
 This project contains a set of sample images with related landmarks and experimental evaluation of state-of-the-art image registration methods.
 
-The [dataset of stained histological tissues](http://cmp.felk.cvut.cz/~borovji3/?page=dataset) is composed by image pairs of related sections (mainly, consecutive cuts). Each image in the pair is coloured with a different stain. The registration of those images is a challenging task due to both artifacts and deformations acquired during sample preparation and apparece differences due to staining. 
+The [dataset of stained histological tissues](http://cmp.felk.cvut.cz/~borovji3/?page=dataset) is composed by image pairs of related sections (mainly, consecutive cuts).
+Each image in the pair is coloured with a different stain. 
+The registration of those images is a challenging task due to both artifacts and deformations acquired during sample preparation and apparece differences due to staining. 
 
-For evaluation we have manually placed landmarks in each image pair. There are at least 40 uniformly spread over the tissue. We do not put any landmarks in the background.
+For evaluation we have manually placed landmarks in each image pair. There are at least 40 uniformly spread over the tissue. 
+We do not put any landmarks in the background.
 
 For more information about annotation creation and landmarks handling we refer to the special repository - [Dataset: histology landmarks](http://borda.github.com/dataset-histology-landmarks).
 
@@ -42,11 +45,14 @@ The project contains the following folders:
 
 ## Before benchmarks (pre-processing) 
 
-In the `data_images` folder we provide some sample images with landmarks for registration. These sample registration pairs are saved in `data_images/pairs-imgs-lnds_mix.csv`. 
+In the `data_images` folder we provide some sample images with landmarks for registration. 
+These sample registration pairs are saved in `data_images/pairs-imgs-lnds_mix.csv`. 
 
 ### Prepare Data
 
-There is a script to generate synthetic data. Just set an initial image and their corresponding landmarks. The script will generate a set of geometrically deformed images mimicking different stains and compute the new related landmarks.
+There is a script to generate synthetic data. 
+Just set an initial image and their corresponding landmarks. 
+The script will generate a set of geometrically deformed images mimicking different stains and compute the new related landmarks.
 
 ```bash
 python scripts/create_real_synth_dataset.py \
@@ -56,15 +62,16 @@ python scripts/create_real_synth_dataset.py \
     -nb 5 --nb_jobs 3 --visual
 ```
 
-When the synthetic datasets have been created, the cover csv file which contains the registration pairs (Reference and Moving image (landmarks)) is generated. Two modes are created: _"first-all"_ for registering the first image to all others and _"all-all"_ for registering each image to all other. 
+When the synthetic datasets have been created, the cover csv file which contains the registration pairs (Reference and Moving image (landmarks)) is generated. 
+Two modes are created: _"first2all"_ for registering the first image to all others and _"each2all"_ for registering each image to all other. 
 _(note A-B is the same as B-A)_
 
 ```bash
-python scripts/generate_registration_pairs.py \
+python scripts/generate_regist_pairs_all.py \
     -i ./data_images/synth_dataset/*.jpg \
     -l ./data_images/synth_dataset/*.csv \
     -csv ./data_images/cover_synth-dataset.csv \
-    --mode all-all
+    --mode each2all
 ```
 
 ## Experiments with included methods
@@ -78,7 +85,7 @@ python scripts/generate_registration_pairs.py \
 
 For each benchmark experiment, the explanation about how to install and use a particular registration method is given in the documentation. Brief text at the top of each file.
 
-For each registration method, different experiments can be performed independently usign different values of the parameters or image pairs sets. 
+For each registration method, different experiments can be performed independently using different values of the parameters or image pairs sets. 
 
 Sample execution of the "empty" benchmark template:
 ```bash

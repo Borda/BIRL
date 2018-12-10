@@ -348,7 +348,7 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         logging.debug('.. warp the registered image and get landmarks')
 
         path_dir = dict_row[bm.COL_REG_DIR]
-        path_log = os.path.join(path_dir, bm.NAME_LOG_REGIST)
+        path_log = os.path.join(path_dir, bm.NAME_LOG_REGISTRATION)
         # warp the image
         path_macro = os.path.join(path_dir, NAME_MACRO_WARP_IMAGE)
         cmd = '%s -batch %s' % (self.params['path_fiji'], path_macro)

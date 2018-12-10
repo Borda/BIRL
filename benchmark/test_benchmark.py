@@ -91,13 +91,13 @@ class TestBmRegistration(unittest.TestCase):
         assert os.path.exists(path_bm), 'missing benchmark: %s' % \
                                         self.benchmark.__class__.__name__
         # required output files
-        for file_name in [bm.NAME_CSV_REGIST_PAIRS,
+        for file_name in [bm.NAME_CSV_REGISTRATION_PAIRS,
                           bm.NAME_CSV_RESULTS,
                           bm.NAME_TXT_RESULTS]:
             assert os.path.isfile(os.path.join(path_bm, file_name)), \
                 'missing "%s" file in the benchmark experiment' % file_name
         # load registration file
-        df_regist = pd.read_csv(os.path.join(path_bm, bm.NAME_CSV_REGIST_PAIRS),
+        df_regist = pd.read_csv(os.path.join(path_bm, bm.NAME_CSV_REGISTRATION_PAIRS),
                                 index_col=0)
         # only two records in the benchmark
         assert len(df_regist) == len(self.benchmark._df_cover), \

@@ -29,15 +29,15 @@ import benchmark.utilities.visualisation as tl_visu
 from benchmark.utilities.cls_experiment import Experiment
 
 NB_THREADS = mproc.cpu_count()
-NB_THREADS_USED = int(NB_THREADS * .8)
+NB_THREADS_USED = max(1, int(NB_THREADS * .8))
 # some needed files
-NAME_CSV_REGIST_PAIRS = 'registration-results.csv'
+NAME_CSV_REGISTRATION_PAIRS = 'registration-results.csv'
 NAME_CSV_RESULTS = 'results-summary.csv'
 NAME_TXT_RESULTS = 'results-summary.txt'
-NAME_LOG_REGIST = 'registration.log'
+NAME_LOG_REGISTRATION = 'registration.log'
 NAME_IMAGE_MOVE_WARP_POINTS = 'image_warped_landmarks_warped.jpg'
 NAME_IMAGE_REF_POINTS_WARP = 'image_ref_landmarks_warped.jpg'
-NAME_IMAGE_REGIST_VISUAL = 'registration_visual_landmarks.jpg'
+NAME_IMAGE_WARPED_VISUAL = 'registration_visual_landmarks.jpg'
 # columns names in cover and also registration table
 COL_IMAGE_REF = 'Target image'
 COL_IMAGE_MOVE = 'Source image'
@@ -163,7 +163,7 @@ class ImRegBenchmark(Experiment):
 
         # load existing result of create new entity
         self._path_csv_regist = os.path.join(self.params['path_exp'],
-                                             NAME_CSV_REGIST_PAIRS)
+                                             NAME_CSV_REGISTRATION_PAIRS)
         if os.path.isfile(self._path_csv_regist):
             logging.info('loading existing csv: "%s"', self._path_csv_regist)
             self._df_experiments = pd.read_csv(self._path_csv_regist,
@@ -272,7 +272,7 @@ class ImRegBenchmark(Experiment):
 
         dict_row = self._prepare_registration(dict_row)
         str_cmd = self._generate_regist_command(dict_row)
-        path_log = os.path.join(dict_row[COL_REG_DIR], NAME_LOG_REGIST)
+        path_log = os.path.join(dict_row[COL_REG_DIR], NAME_LOG_REGISTRATION)
         # TODO, add lock to single thread, create pool with possible thread ids
         # (USE taskset [native], numactl [need install])
 
@@ -405,7 +405,7 @@ class ImRegBenchmark(Experiment):
         else:
             logging.error('not allowed scenario: no output image or landmarks')
             fig, _ = tl_visu.create_figure((1, 1))
-        path_fig = os.path.join(dict_row[COL_REG_DIR], NAME_IMAGE_REGIST_VISUAL)
+        path_fig = os.path.join(dict_row[COL_REG_DIR], NAME_IMAGE_WARPED_VISUAL)
         tl_visu.export_figure(path_fig, fig)
         return path_fig
 

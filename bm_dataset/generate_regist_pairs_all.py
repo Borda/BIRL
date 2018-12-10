@@ -5,7 +5,7 @@ Example run:
 >> python create_registration_pairs.py \
     -i ../output/synth_dataset/*.jpg \
     -l ../output/synth_dataset/*.csv \
-    -csv ../output/cover.csv --mode all-all
+    -csv ../output/cover.csv --mode each2all
 
 Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -23,7 +23,7 @@ import benchmark.utilities.experiments as tl_expt
 from benchmark.cls_benchmark import COVER_COLUMNS
 
 # list of combination options
-OPTIONS_COMBINE = ['first-all', 'all-all']
+OPTIONS_COMBINE = ('first2all', 'each2all')
 
 
 def arg_parse_params():
@@ -66,7 +66,7 @@ def generate_pairs(path_pattern_imgs, path_pattern_lnds, mode):
     logging.info('combining list %i files with "%s"', len(list_imgs), mode)
 
     pairs = [(0, i) for i in range(1, len(list_imgs))]
-    if mode == 'all-all':
+    if mode == 'each2all':
         pairs += [(i, j) for i in range(1, len(list_imgs))
                   for j in range(i + 1, len(list_imgs))]
 
@@ -85,13 +85,13 @@ def main(path_pattern_images, path_pattern_landmarks, path_csv, mode):
     :param str path_pattern_images:
     :param str path_pattern_landmarks:
     :param str path_csv:
-    :param str mode:
+    :param str mode: option first2all or all2all
     """
     logging.info('running...')
 
     # if the cover file exist continue in it, otherwise create new
     if os.path.isfile(path_csv):
-        logging.info('loading existing csv file')
+        logging.info('loading existing csv file: %s', path_csv)
         df_cover = pd.read_csv(path_csv, index_col=0)
     else:
         logging.info('creating new cover file')
