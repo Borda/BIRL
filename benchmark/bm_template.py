@@ -21,6 +21,7 @@ import logging
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 import benchmark.utilities.experiments as tl_expt
+import benchmark.utilities.data_io as tl_io
 import benchmark.cls_benchmark as bm
 
 
@@ -94,15 +95,14 @@ class BmTemplate(bm.ImRegBenchmark):
         """
         logging.debug('.. simulate registration: '
                       'copy the original image and landmarks')
-        target_img = os.path.join(dict_row[bm.COL_REG_DIR],
-                                  os.path.basename(dict_row[bm.COL_IMAGE_MOVE]))
-        target_lnd = os.path.join(dict_row[bm.COL_REG_DIR],
-                                  os.path.basename(dict_row[bm.COL_POINTS_REF]))
-        cmds = ['cp %s %s' % (os.path.abspath(dict_row[bm.COL_IMAGE_MOVE]),
-                              target_img),
-                'cp %s %s' % (os.path.abspath(dict_row[bm.COL_POINTS_REF]),
-                              target_lnd)]
-        command = ' && '.join(cmds)
+        reg_dir = dict_row[bm.COL_REG_DIR]
+        name_img = os.path.basename(dict_row[bm.COL_IMAGE_MOVE])
+        name_lnds = os.path.basename(dict_row[bm.COL_POINTS_MOVE])
+        cmd_img = 'cp %s %s' % (tl_io.update_path(dict_row[bm.COL_IMAGE_MOVE]),
+                                os.path.join(reg_dir, name_img))
+        cmd_lnds = 'cp %s %s' % (tl_io.update_path(dict_row[bm.COL_POINTS_MOVE]),
+                                 os.path.join(reg_dir, name_lnds))
+        command = ' && '.join([cmd_img, cmd_lnds])
         return command
 
     def _extract_warped_images_landmarks(self, dict_row):
@@ -117,8 +117,7 @@ class BmTemplate(bm.ImRegBenchmark):
         # detect landmarks
         path_lnd = os.path.join(dict_row[bm.COL_REG_DIR],
                                 os.path.basename(dict_row[bm.COL_POINTS_REF]))
-
-        return path_img, None, path_lnd, None
+        return None, path_img, None, path_lnd
 
     def _clear_after_registration(self, dict_row):
         """ clean unnecessarily files after the registration
