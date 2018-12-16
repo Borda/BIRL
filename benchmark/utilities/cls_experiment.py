@@ -37,14 +37,14 @@ class Experiment(object):
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
 
-    def __init__(self, dict_params, stamp_unique=True):
+    def __init__(self, exp_params, stamp_unique=True):
         """ initialise the experiment, create experiment folder and set logger
 
-        :param dict dict_params: {str: value}
+        :param dict exp_params: {str: value}
         :param bool stamp_unique: add at the end of experiment folder unique
             time stamp (actual date and time)
         """
-        self.params = copy.deepcopy(dict_params)
+        self.params = copy.deepcopy(exp_params)
         self.params['class'] = self.__class__.__name__
         self._check_required_params()
         self.__check_exist_path()

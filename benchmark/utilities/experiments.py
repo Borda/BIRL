@@ -122,9 +122,12 @@ def create_basic_parse():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-in', '--path_cover', type=str, required=True,
+    parser.add_argument('-c', '--path_cover', type=str, required=True,
                         help='path to the csv cover file')
-    parser.add_argument('-out', '--path_out', type=str, required=True,
+    parser.add_argument('-d', '--path_dataset', type=str, required=False,
+                        help='path to the dataset location, '
+                             'if missing in cover', default=None)
+    parser.add_argument('-o', '--path_out', type=str, required=True,
                         help='path to the output directory')
     parser.add_argument('--unique', dest='unique', action='store_true',
                         help='whether each experiment have unique time stamp')

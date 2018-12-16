@@ -8,7 +8,7 @@ INSTALLATION:
 EXAMPLE (usage):
 >> mkdir results
 >> python benchmark/bm_template.py \
-    -in data_images/pairs-imgs-lnds_mix.csv -out results --visual --unique \
+    -c data_images/pairs-imgs-lnds_mix.csv -o results --visual --unique \
     --an_executable none
 
 Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>

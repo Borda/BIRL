@@ -6,7 +6,7 @@ It also serves for evaluating the input registration pairs
 EXAMPLE (usage):
 >> mkdir results
 >> python benchmarks/bm_registration.py \
-    -in data_images/pairs-imgs-lnds_mix.csv -out results --unique
+    -c data_images/pairs-imgs-lnds_mix.csv -o results --unique
 
 Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -152,11 +152,14 @@ class ImRegBenchmark(Experiment):
         self._df_cover = pd.read_csv(self.params['path_cover'], index_col=None)
         assert all(col in self._df_cover.columns for col in COVER_COLUMNS), \
             'Some required columns are missing in the cover file.'
+        if 'path_dataset' in self.params:
+            _path_update = lambda p: os.path.abspath(os.path.join(
+                self.params['path_dataset'], p))
+        else:
+            _path_update = tl_io.update_path
         for col in COVER_COLUMNS:
-            # try to find the correct location, calls by test and running
-            self._df_cover[col] = self._df_cover[col].apply(tl_io.update_path)
-            # extend the complete path
-            self._df_cover[col] = self._df_cover[col].apply(os.path.abspath)
+            # try to find the correct location as bobble above current place
+            self._df_cover[col] = self._df_cover[col].apply(_path_update)
 
     def _run(self):
         """ perform complete benchmark experiment """
@@ -199,11 +202,16 @@ class ImRegBenchmark(Experiment):
                                   use_output=use_output)
 
     def __export_df_experiments(self, path_csv=None):
-        if path_csv is not None:
-            if 'ID' in self._df_experiments.columns:
-                self._df_experiments.set_index('ID').to_csv(path_csv, index=None)
-            else:
-                self._df_experiments.to_csv(path_csv, index=None)
+        """ export the DataFrame with registration results
+
+        :param str | None path_csv: path to output CSV file
+        """
+        if path_csv is None:
+            return
+        if 'ID' in self._df_experiments.columns:
+            self._df_experiments.set_index('ID').to_csv(path_csv, index=None)
+        else:
+            self._df_experiments.to_csv(path_csv, index=None)
 
     def __execute_parallel(self, method, in_table, path_csv=None, name='',
                            use_output=True):

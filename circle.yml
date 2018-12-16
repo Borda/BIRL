@@ -33,7 +33,7 @@ jobs:
           command: |
             mkdir applications && mkdir results
             # python bm_experiments/bm_comp_perform.py # reach time-out while running in 36 threads
-            python benchmark/bm_template.py -in data_images/pairs-imgs-lnds_mix.csv -out results --unique --visual --an_executable none
+            python benchmark/bm_template.py -c data_images/pairs-imgs-lnds_mix.csv -o results --unique --visual --an_executable none
             python bm_dataset/generate_regist_pairs_all.py -i "data_images/images/artificial_*.jpg" -l "data_images/landmarks/artificial_*.csv" -csv data_images/cover_artificial.csv --mode each2all
             # python bm_experiments/create_real_synth_dataset.py -i data_images/images/Rat_Kidney_HE.jpg -l data_images/landmarks/Rat_Kidney_HE.csv -o data_images/synth_dataset -nb 3 --nb_jobs 1
             # python bm_experiments/generate_regist_pairs_all.py -i "data_images/synth_dataset/*.jpg" -l "data_images/synth_dataset/*.csv" -csv data_images/cover_synth-dataset.csv --mode each2all
@@ -45,9 +45,9 @@ jobs:
             unzip -q applications/fiji-linux64.zip -d applications/
             rm applications/fiji-linux64.zip
             rm -rf results && mkdir results
-            python bm_experiments/bm_bunwarpj.py -in ./data_images/pairs-imgs-lnds_mix.csv -out ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ_histo-1k.txt --visual
-            python bm_experiments/bm_bunwarpj.py -in ./data_images/pairs-imgs-lnds_mix.csv -out ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_SIFT_histo-1k.txt -sift ./configs/ImageJ_SIFT_histo-1k.txt --unique
-            python bm_experiments/bm_bunwarpj.py -in ./data_images/pairs-imgs-lnds_mix.csv -out ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_SIFT_histo-1k.txt -mops ./configs/ImageJ_MOPS_histo-1k.txt --unique
+            python bm_experiments/bm_bunwarpj.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ_histo-1k.txt --visual
+            python bm_experiments/bm_bunwarpj.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_SIFT_histo-1k.txt -sift ./configs/ImageJ_SIFT_histo-1k.txt --unique
+            python bm_experiments/bm_bunwarpj.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_SIFT_histo-1k.txt -mops ./configs/ImageJ_MOPS_histo-1k.txt --unique
             tree -L 3 results
             rm -rf ./applications/Fiji.app
 

@@ -91,8 +91,8 @@ Sample execution of the "empty" benchmark template:
 ```bash
 mkdir results
 python benchmark/bm_template.py \
-    -in ./data_images/pairs-imgs-lnds_mix.csv \
-    -out ./results \
+    -c ./data_images/pairs-imgs-lnds_mix.csv \
+    -o ./results \
     --an_executable none \
     --unique --visual
 ```

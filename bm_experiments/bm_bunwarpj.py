@@ -14,16 +14,16 @@ INSTALLATION:
 
 Run the basic bUnwarpJ registration with original parameters:
 >> python bm_experiments/bm_bunwarpj.py \
-    -in ../data_images/pairs-imgs-lnds_mix.csv \
-    -out ../results \
+    -c ../data_images/pairs-imgs-lnds_mix.csv \
+    -o ../results \
     -fiji ../applications/Fiji.app/ImageJ-linux64 \
     -config ../configs/ImageJ_bUnwarpJ.txt
 
 The bUnwarpJ is supporting SIFT and MOPS feature extraction as landmarks
 see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support
 >> python bm_experiments/bm_bunwarpj.py \
-    -in ../data_images/pairs-imgs-lnds_mix.csv \
-    -out ../results \
+    -c ../data_images/pairs-imgs-lnds_mix.csv \
+    -o ../results \
     -fiji ../applications/Fiji.app/ImageJ-linux64 \
     -config ../configs/ImageJ_bUnwarpJ.txt \
     -sift ../configs/ImageJ_SIFT.txt
