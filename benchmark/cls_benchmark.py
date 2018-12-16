@@ -44,7 +44,7 @@ COL_IMAGE_MOVE = 'Source image'
 # reference image warped to the moving frame
 COL_IMAGE_REF_WARP = 'Warped target image'
 # moving image warped to the reference frame
-COL_IMAGE_MOVE_WARP = 'Warped target image'
+COL_IMAGE_MOVE_WARP = 'Warped source image'
 COL_POINTS_REF = 'Target landmarks'
 COL_POINTS_MOVE = 'Source landmarks'
 # reference landmarks warped to the moving frame
@@ -169,6 +169,8 @@ class ImRegBenchmark(Experiment):
             logging.info('loading existing csv: "%s"', self._path_csv_regist)
             self._df_experiments = pd.read_csv(self._path_csv_regist,
                                                index_col=None)
+            if 'ID' in self._df_experiments.columns:
+                self._df_experiment.set_index('ID', inplace=True)
         else:
             self._df_experiments = pd.DataFrame()
 
@@ -196,6 +198,13 @@ class ImRegBenchmark(Experiment):
             self.__execute_serial(method, in_table, path_csv, name,
                                   use_output=use_output)
 
+    def __export_df_experiments(self, path_csv=None):
+        if path_csv is not None:
+            if 'ID' in self._df_experiments.columns:
+                self._df_experiments.set_index('ID').to_csv(path_csv, index=None)
+            else:
+                self._df_experiments.to_csv(path_csv, index=None)
+
     def __execute_parallel(self, method, in_table, path_csv=None, name='',
                            use_output=True):
         """ running several registration experiments in parallel
@@ -219,13 +228,11 @@ class ImRegBenchmark(Experiment):
             tqdm_bar.update()
             if res is None or not use_output:
                 continue
-            self._df_experiments = self._df_experiments.append(
-                res, ignore_index=True)
+            self._df_experiments = self._df_experiments.append(res, ignore_index=True)
             # if len(self._df_experiments) == 0:
             #     logging.warning('no particular expt. results')
             #     continue
-            if path_csv is not None:
-                self._df_experiments.to_csv(path_csv, index=None)
+            self.__export_df_experiments(path_csv)
         mproc_pool.close()
         mproc_pool.join()
 
@@ -246,10 +253,9 @@ class ImRegBenchmark(Experiment):
             tqdm_bar.update()
             if res is None or not use_output:
                 continue
-            self._df_experiments = self._df_experiments.append(
-                res, ignore_index=True)
-            if path_csv is not None:
-                self._df_experiments.to_csv(path_csv, index=None)
+            self._df_experiments = self._df_experiments.append(res,
+                                                               ignore_index=True)
+            self.__export_df_experiments(path_csv)
 
     def _perform_registration(self, df_row):
         """ run single registration experiment with all sub-stages
@@ -304,7 +310,7 @@ class ImRegBenchmark(Experiment):
         if len(self._df_experiments) == 0:
             logging.warning('no experimental results were collected')
             return
-        self._df_experiments.to_csv(self._path_csv_regist, index=None)
+        self.__export_df_experiments(self._path_csv_regist)
         # export simple stat to txt
         self.__export_summary_txt()
 
@@ -319,8 +325,10 @@ class ImRegBenchmark(Experiment):
         points_ref = tl_io.load_landmarks(dict_row[COL_POINTS_REF])
         points_move = tl_io.load_landmarks(dict_row[COL_POINTS_MOVE])
         points_warped = []
+        img_size = tl_io.load_image(dict_row[COL_IMAGE_REF]).shape[:2]
         # compute statistic
-        self.__compute_landmarks_inaccuracy(idx, points_ref, points_move, 'init')
+        self.__compute_landmarks_inaccuracy(idx, points_ref, points_move,
+                                            'init', img_size)
         # load transformed landmarks
         if COL_POINTS_REF_WARP in dict_row:
             points_target = points_move
@@ -329,30 +337,40 @@ class ImRegBenchmark(Experiment):
             points_target = points_ref
             path_landmarks = dict_row[COL_POINTS_MOVE_WARP]
         else:
-            logging.error('not allowed scenario: no output landmarks')
+            logging.error('Statistic: no output landmarks')
             points_target, path_landmarks = [], None
         # load landmarks
         if isinstance(path_landmarks, str):
             points_warped = tl_io.load_landmarks(path_landmarks)
 
         # compute statistic
-        if len(points_warped) > 0:
+        img_size = tl_io.load_image(dict_row[COL_IMAGE_REF]).shape[:2]
+        if len(points_target) > 0 and len(points_warped) > 0:
             self.__compute_landmarks_inaccuracy(idx, points_target,
-                                                points_warped, 'final')
+                                                points_warped, 'final', img_size)
 
-    def __compute_landmarks_inaccuracy(self, idx, points1, points2, state=''):
+    def __compute_landmarks_inaccuracy(self, idx, points1, points2, state='',
+                                       img_size=None):
         """ compute statistic on two points sets
 
         :param int idx: index of tha particular record
         :param points1: np.array<nb_points, dim>
         :param points2: np.array<nb_points, dim>
         :param str state: whether it was before of after registration
+        :param (int, int) img_size: target image size
         """
         _, stat = tl_expt.compute_points_dist_statistic(points1, points2)
+        img_diag = None
+        if img_size is not None:
+            img_diag = np.sqrt(np.sum(np.array(img_size) ** 2))
         # update particular idx
         for name in stat:
-            col_name = '%s [px] (%s)' % (name, state)
+            col_name = 'TRE %s (%s)' % (name, state)
             self._df_experiments.at[idx, col_name] = stat[name]
+            if img_diag is not None:
+                self._df_experiments.at[idx, 'Image diagonal [px]'] = img_diag
+                col_name = 'rTRE %s (%s)' % (name, state)
+                self._df_experiments.at[idx, col_name] = stat[name] / img_diag
 
     @classmethod
     def __visual_image_ref_move_warp(self, dict_row, image_ref,
@@ -433,7 +451,7 @@ class ImRegBenchmark(Experiment):
             fig = self.__visual_image_ref_warp_move(dict_row, image_ref,
                                                     points_move, points_ref)
         else:
-            logging.error('not allowed scenario: no output image or landmarks')
+            logging.error('Visualisation: no output image or landmarks')
             fig, _ = tl_visu.create_figure((1, 1))
         path_fig = os.path.join(dict_row[COL_REG_DIR], NAME_IMAGE_WARPED_VISUAL)
         tl_visu.export_figure(path_fig, fig)
@@ -444,8 +462,10 @@ class ImRegBenchmark(Experiment):
         path_txt = os.path.join(self.params['path_exp'], NAME_TXT_RESULTS)
         costume_prec = np.arange(0., 1., 0.05)
         if len(self._df_experiments) == 0:
-            logging.error('no registration results')
+            logging.error('No registration results found.')
             return
+        if 'ID' in self._df_experiments.columns:
+            self._df_experiments.set_index('ID', inplace=True)
         df_summary = self._df_experiments.describe(percentiles=costume_prec).T
         df_summary['median'] = self._df_experiments.median()
         df_summary.sort_index(inplace=True)
@@ -479,13 +499,13 @@ class ImRegBenchmark(Experiment):
         :return: str, the execution string
         """
         logging.debug('.. simulate registration: '
-                      'copy the original image and landmarks')
+                      'copy the target image and landmarks, simulate ideal case')
         reg_dir = dict_row[COL_REG_DIR]
-        name_img = os.path.basename(dict_row[COL_IMAGE_MOVE])
-        name_lnds = os.path.basename(dict_row[COL_POINTS_MOVE])
-        cmd_img = 'cp %s %s' % (tl_io.update_path(dict_row[COL_IMAGE_MOVE]),
+        name_img = os.path.basename(dict_row[COL_IMAGE_REF])
+        name_lnds = os.path.basename(dict_row[COL_POINTS_REF])
+        cmd_img = 'cp %s %s' % (tl_io.update_path(dict_row[COL_IMAGE_REF]),
                                 os.path.join(reg_dir, name_img))
-        cmd_lnds = 'cp %s %s' % (tl_io.update_path(dict_row[COL_POINTS_MOVE]),
+        cmd_lnds = 'cp %s %s' % (tl_io.update_path(dict_row[COL_POINTS_REF]),
                                  os.path.join(reg_dir, name_lnds))
         command = ' && '.join([cmd_img, cmd_lnds])
         return command
@@ -500,13 +520,12 @@ class ImRegBenchmark(Experiment):
         """
         # detect image
         path_img = os.path.join(dict_row[COL_REG_DIR],
-                                os.path.basename(dict_row[COL_IMAGE_MOVE]))
+                                os.path.basename(dict_row[COL_IMAGE_REF]))
         # detect landmarks
         path_lnd = os.path.join(dict_row[COL_REG_DIR],
-                                os.path.basename(dict_row[COL_POINTS_MOVE]))
+                                os.path.basename(dict_row[COL_POINTS_REF]))
         return None, path_img, None, path_lnd
 
-    @classmethod
     def _parse_regist_results(self, dict_row):
         """ evaluate rests of the experiment and identity the registered image
         and landmarks when the process finished
@@ -515,11 +534,10 @@ class ImRegBenchmark(Experiment):
         :return: {str: value}
         """
         paths = self._extract_warped_images_landmarks(dict_row)
-
-        COLUMNS = (COL_IMAGE_REF_WARP, COL_IMAGE_MOVE_WARP,
+        columns = (COL_IMAGE_REF_WARP, COL_IMAGE_MOVE_WARP,
                    COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP)
 
-        for path, col in zip(paths, COLUMNS):
+        for path, col in zip(paths, columns):
             # detect image and landmarks
             if path is not None and os.path.isfile(path):
                 dict_row[col] = path
@@ -533,5 +551,5 @@ class ImRegBenchmark(Experiment):
         :param dict_row: {str: value}, dictionary with regist. params
         :return: {str: value}
         """
-        logging.debug('.. no cleaning after regist. experiment')
+        logging.debug('.. no cleaning after registration experiment')
         return dict_row

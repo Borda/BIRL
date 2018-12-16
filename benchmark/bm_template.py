@@ -7,7 +7,7 @@ INSTALLATION:
 
 EXAMPLE (usage):
 >> mkdir results
->> python benchmarks/bm_template.py \
+>> python benchmark/bm_template.py \
     -in data_images/pairs-imgs-lnds_mix.csv -out results --visual --unique \
     --an_executable none
 
@@ -41,7 +41,7 @@ class BmTemplate(bm.ImRegBenchmark):
      * _check_required_params
      * _prepare_registration
      * _generate_regist_command
-     * _evaluate_registration
+     * _extract_warped_images_landmarks
      * _clear_after_registration
 
     This template benchmark also presents that method can have registered
@@ -94,12 +94,12 @@ class BmTemplate(bm.ImRegBenchmark):
         :return: str, the execution string
         """
         logging.debug('.. simulate registration: '
-                      'copy the original image and landmarks')
+                      'copy the source image and landmarks, like regist. failed')
         reg_dir = dict_row[bm.COL_REG_DIR]
         name_img = os.path.basename(dict_row[bm.COL_IMAGE_MOVE])
-        name_lnds = os.path.basename(dict_row[bm.COL_POINTS_MOVE])
         cmd_img = 'cp %s %s' % (tl_io.update_path(dict_row[bm.COL_IMAGE_MOVE]),
                                 os.path.join(reg_dir, name_img))
+        name_lnds = os.path.basename(dict_row[bm.COL_POINTS_MOVE])
         cmd_lnds = 'cp %s %s' % (tl_io.update_path(dict_row[bm.COL_POINTS_MOVE]),
                                  os.path.join(reg_dir, name_lnds))
         command = ' && '.join([cmd_img, cmd_lnds])
@@ -116,7 +116,7 @@ class BmTemplate(bm.ImRegBenchmark):
                                 os.path.basename(dict_row[bm.COL_IMAGE_MOVE]))
         # detect landmarks
         path_lnd = os.path.join(dict_row[bm.COL_REG_DIR],
-                                os.path.basename(dict_row[bm.COL_POINTS_REF]))
+                                os.path.basename(dict_row[bm.COL_POINTS_MOVE]))
         return None, path_img, None, path_lnd
 
     def _clear_after_registration(self, dict_row):
