@@ -265,8 +265,8 @@ class ImRegBenchmark(Experiment):
         # sometimes the oder may mean failed experiment
         if os.path.exists(dict_row[COL_REG_DIR]) \
                 and idx in self._df_experiments['ID']:
-            logging.warning('particular regist. experiment already exists: '
-                            '"%s"', repr(idx))
+            logging.warning('particular registration experiment already exists:'
+                            ' "%s"', repr(idx))
             return None
         tl_io.create_dir(dict_row[COL_REG_DIR])
 
@@ -284,7 +284,7 @@ class ImRegBenchmark(Experiment):
         if not cmd_result:
             return None
 
-        dict_row = self._evaluate_registration(dict_row)
+        dict_row = self._parse_regist_results(dict_row)
         dict_row = self._clear_after_registration(dict_row)
         return dict_row
 
@@ -448,6 +448,8 @@ class ImRegBenchmark(Experiment):
         :param dict_row: {str: value}, dictionary with regist. params
         :return: str, the execution string
         """
+        logging.debug('.. simulate registration: '
+                      'copy the original image and landmarks')
         target_img = os.path.join(dict_row[COL_REG_DIR],
                                   os.path.basename(dict_row[COL_IMAGE_MOVE]))
         target_lnd = os.path.join(dict_row[COL_REG_DIR],
@@ -460,25 +462,38 @@ class ImRegBenchmark(Experiment):
         return cmd
 
     @classmethod
-    def _evaluate_registration(self, dict_row):
-        """ evaluate rests of the experiment and identity the registered image
-        and landmarks when the process finished
+    def _extract_warped_images_landmarks(self, dict_row):
+        """ get registration results - warped registered images and landmarks
 
-        :param dict_row: {str: value}, dictionary with regist. params
-        :return: {str: value}
+        :param dict_row: {str: value}, dictionary with registration params
+        :return (str, str, str, str): paths to img_ref_warp, img_move_warp,
+                                                lnds_ref_warp, lnds_move_warp
         """
-        logging.debug('.. simulate registration: '
-                      'copy the original image and landmarks')
         # detect image
         path_img = os.path.join(dict_row[COL_REG_DIR],
                                 os.path.basename(dict_row[COL_IMAGE_MOVE]))
-        if os.path.isfile(path_img):
-            dict_row[COL_IMAGE_REF_WARP] = path_img
         # detect landmarks
         path_lnd = os.path.join(dict_row[COL_REG_DIR],
                                 os.path.basename(dict_row[COL_POINTS_MOVE]))
-        if os.path.isfile(path_lnd):
-            dict_row[COL_POINTS_REF_WARP] = path_lnd
+        return path_img, None, path_lnd, None
+
+    @classmethod
+    def _parse_regist_results(self, dict_row):
+        """ evaluate rests of the experiment and identity the registered image
+        and landmarks when the process finished
+
+        :param dict_row: {str: value}, dictionary with registration params
+        :return: {str: value}
+        """
+        paths = self._extract_warped_images_landmarks(dict_row)
+
+        COLUMNS = (COL_IMAGE_REF_WARP, COL_IMAGE_MOVE_WARP,
+                   COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP)
+
+        for path, col in zip(paths, COLUMNS):
+            # detect image and landmarks
+            if path is not None and os.path.isfile(path):
+                dict_row[col] = path
 
         return dict_row
 

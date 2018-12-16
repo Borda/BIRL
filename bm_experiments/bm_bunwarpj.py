@@ -271,7 +271,7 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         :param dict dict_row: {str: value}, dictionary with regist. params
         :return dict: {str: value}
         """
-        logging.debug('.. generate macros before regist. experiment')
+        logging.debug('.. generate macros before registration experiment')
         # set the paths for this experiment
         path_dir = dict_row[bm.COL_REG_DIR]
         path_raw = os.path.join(path_dir, NAME_TXT_TRANSFORM_RAW)
@@ -338,12 +338,11 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         cmd = '%s -batch %s' % (self.params['path_fiji'], path_macro)
         return cmd
 
-    def _evaluate_registration(self, dict_row):
-        """ evaluate rests of the experiment and identity the registered image
-        and landmarks when the process finished
+    def _extract_warped_images_landmarks(self, dict_row):
+        """ get registration results - warped registered images and landmarks
 
-        :param dict_row: {str: value}, dictionary with regist. params
-        :return: {str: value}
+        :param dict_row: {str: value}, dictionary with registration params
+        :return (str, str, str, str): paths to
         """
         logging.debug('.. warp the registered image and get landmarks')
 
@@ -353,11 +352,8 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         path_macro = os.path.join(path_dir, NAME_MACRO_WARP_IMAGE)
         cmd = '%s -batch %s' % (self.params['path_fiji'], path_macro)
         tl_expt.run_command_line(cmd, path_logger=path_log)
-        path_img = os.path.join(path_dir,
-                                os.path.basename(dict_row[bm.COL_IMAGE_MOVE]))
-        # detect image
-        if os.path.isfile(path_img):
-            dict_row[bm.COL_IMAGE_REF_WARP] = path_img
+        name_img = os.path.basename(dict_row[bm.COL_IMAGE_MOVE])
+        path_img = os.path.join(path_dir, name_img)
 
         # convert the transform do obtain displacement field
         path_macro = os.path.join(path_dir, NAME_MACRO_CONVERT_TRANS)
@@ -371,13 +367,13 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         points_warp = load_parse_bunwarpj_displacements_warp_points(
                                                         path_raw, points_move)
         if points_warp is None:
-            return dict_row
-        path_lnd = os.path.join(path_dir,
-                                os.path.basename(dict_row[bm.COL_POINTS_MOVE]))
-        tl_io.save_landmarks_csv(path_lnd, points_warp)
-        dict_row[bm.COL_POINTS_REF_WARP] = path_lnd
+            path_lnd = None
+        else:
+            name_csv = os.path.basename(dict_row[bm.COL_POINTS_MOVE])
+            path_lnd = os.path.join(path_dir, name_csv)
+            tl_io.save_landmarks_csv(path_lnd, points_warp)
 
-        return dict_row
+        return path_img, None, path_lnd, None
 
     def _clear_after_registration(self, dict_row):
         """ clean unnecessarily files after the registration
