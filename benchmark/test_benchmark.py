@@ -21,7 +21,8 @@ from benchmark.utilities.data_io import update_path
 from benchmark.cls_benchmark import ImRegBenchmark
 from benchmark.cls_benchmark import (NAME_CSV_RESULTS, NAME_TXT_RESULTS,
                                      NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS,
-                                     COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP)
+                                     COL_IMAGE_MOVE_WARP,
+                                     COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP)
 from benchmark.bm_template import BmTemplate
 
 PATH_DATA = update_path('data_images')
@@ -59,6 +60,7 @@ class TestBmRegistration(unittest.TestCase):
             'path_dataset': PATH_DATA,
             'path_out': self.path_out,
             'nb_jobs': 2,
+            'visual': True,
             'unique': False,
         }
         self.benchmark = ImRegBenchmark(params)
@@ -74,6 +76,7 @@ class TestBmRegistration(unittest.TestCase):
             'path_out': self.path_out,
             'nb_jobs': 1,
             'unique': False,
+            'visual': True,
             'an_executable': None,
         }
         self.benchmark = BmTemplate(params)
@@ -104,14 +107,20 @@ class TestBmRegistration(unittest.TestCase):
             'Found only %i records instead of %i' % \
             (len(df_regist), len(self.benchmark._df_cover))
 
+        # test presence of particular columns
+        for col in list(COVER_COLUMNS) + [COL_IMAGE_MOVE_WARP]:
+            assert col in df_regist.columns, \
+                'Missing column "%s" in result table' % col
+        cols_lnds_warp = [col in df_regist.columns
+                          for col in [COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP]]
+        assert any(cols_lnds_warp), 'Missing any column of warped landmarks'
+        col_lnds_warp = COL_POINTS_REF_WARP if cols_lnds_warp[0] else COL_POINTS_MOVE_WARP
         # check existence of all mentioned files
         for _, row in df_regist.iterrows():
-            for col in list(COVER_COLUMNS) + \
-                    [COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP]:
-                assert col in row, 'Missing column "%s" in result table' % col
-            for col in [COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP]:
-                assert os.path.isfile(os.path.join(path_bm, row[col])), \
-                    'Missing file "%s"' % row[col]
+            assert os.path.isfile(os.path.join(path_bm, row[COL_IMAGE_MOVE_WARP])), \
+                'Missing image "%s"' % row[COL_IMAGE_MOVE_WARP]
+            assert os.path.isfile(os.path.join(path_bm, row[col_lnds_warp])), \
+                'Missing landmarks "%s"' % row[col_lnds_warp]
 
         # check existence of statistical results
         for stat_name in ['Mean', 'STD', 'Median', 'Min', 'Max']:

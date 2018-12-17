@@ -535,10 +535,10 @@ class ImRegBenchmark(Experiment):
                       'copy the target image and landmarks, simulate ideal case')
         path_reg_dir = self._get_path_reg_dir(record)
         name_img = os.path.basename(record[COL_IMAGE_REF])
-        name_lnds = os.path.basename(record[COL_POINTS_REF])
+        name_lnds = os.path.basename(record[COL_POINTS_MOVE])
         cmd_img = 'cp %s %s' % (self._update_path(record[COL_IMAGE_REF]),
                                 os.path.join(path_reg_dir, name_img))
-        cmd_lnds = 'cp %s %s' % (self._update_path(record[COL_POINTS_REF]),
+        cmd_lnds = 'cp %s %s' % (self._update_path(record[COL_POINTS_MOVE]),
                                  os.path.join(path_reg_dir, name_lnds))
         command = ' && '.join([cmd_img, cmd_lnds])
         return command
@@ -556,8 +556,8 @@ class ImRegBenchmark(Experiment):
                                 os.path.basename(record[COL_IMAGE_REF]))
         # detect landmarks
         path_lnd = os.path.join(record[COL_REG_DIR],
-                                os.path.basename(record[COL_POINTS_REF]))
-        return None, path_img, None, path_lnd
+                                os.path.basename(record[COL_POINTS_MOVE]))
+        return None, path_img, path_lnd, None
 
     def _parse_regist_results(self, record):
         """ evaluate rests of the experiment and identity the registered image
