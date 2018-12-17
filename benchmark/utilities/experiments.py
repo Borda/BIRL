@@ -21,9 +21,8 @@ import benchmark.utilities.data_io as tl_io
 NB_THREADS = mproc.cpu_count()
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 FILE_LOGS = 'logging.txt'
-LOG_FILE_FORMAT = logging.Formatter(
-    '%(asctime)s:%(levelname)s@%(filename)s:%(processName)s - %(message)s',
-    datefmt="%H:%M:%S")
+STR_LOG_FORMAT = '%(asctime)s:%(levelname)s@%(filename)s:%(processName)s - %(message)s'
+LOG_FILE_FORMAT = logging.Formatter(STR_LOG_FORMAT, datefmt="%H:%M:%S")
 
 
 def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
@@ -38,7 +37,6 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     >>> os.path.exists(p)
     True
     >>> os.rmdir(p)
-
     """
     assert os.path.exists(path_out), 'missing "%s"' % path_out
     date = time.gmtime()
@@ -214,6 +212,8 @@ def run_command_line(cmd, path_logger=None):
 
     >>> run_command_line('cd .')
     True
+    >>> run_command_line('cp abc def')
+    False
     """
     logging.debug('CMD ->> \n%s', cmd)
     if path_logger is not None:
@@ -221,8 +221,8 @@ def run_command_line(cmd, path_logger=None):
     try:
         # TODO: out = subprocess.call(cmd, timeout=TIMEOUT, shell=True)
         # https://www.quora.com/Whats-the-difference-between-os-system-and-subprocess-call-in-Python
-        subprocess.call(cmd, shell=True)
-        return True
+        state = subprocess.call(cmd, shell=True)
+        return state == 0
     except Exception:
         logging.exception(cmd)
         return False

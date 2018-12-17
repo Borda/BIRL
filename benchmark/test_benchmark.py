@@ -24,8 +24,9 @@ from benchmark.cls_benchmark import (NAME_CSV_RESULTS, NAME_TXT_RESULTS,
                                      COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP)
 from benchmark.bm_template import BmTemplate
 
-PATH_CSV_COVER = os.path.join(update_path('data_images'),
-                              'pairs-imgs-lnds_mix.csv')
+PATH_DATA = update_path('data_images')
+PATH_CSV_COVER_MIX = os.path.join(PATH_DATA, 'pairs-imgs-lnds_mix.csv')
+PATH_CSV_COVER_ANHIR = os.path.join(PATH_DATA, 'pairs-imgs-lnds_anhir.csv')
 logging.basicConfig(level=logging.INFO)
 
 
@@ -54,21 +55,22 @@ class TestBmRegistration(unittest.TestCase):
     def test_benchmark_parallel(self):
         """ test run in parallel (2 threads) """
         params = {
-            'path_cover': PATH_CSV_COVER,
+            'path_cover': PATH_CSV_COVER_ANHIR,
+            'path_dataset': PATH_DATA,
             'path_out': self.path_out,
             'nb_jobs': 2,
             'unique': False,
         }
         self.benchmark = ImRegBenchmark(params)
         self.benchmark.run()
-        self.check_benchmark_results(final_means=[0., 0., 0., 0.],
-                                     final_stds=[0., 0., 0., 0.])
+        self.check_benchmark_results(final_means=[0., 0.],
+                                     final_stds=[0., 0.])
         del self.benchmark
 
     def test_benchmark_simple(self):
         """ test run in single thread """
         params = {
-            'path_cover': PATH_CSV_COVER,
+            'path_cover': PATH_CSV_COVER_MIX,
             'path_out': self.path_out,
             'nb_jobs': 1,
             'unique': False,
@@ -92,23 +94,30 @@ class TestBmRegistration(unittest.TestCase):
                           NAME_TXT_RESULTS]:
             assert os.path.isfile(os.path.join(path_bm, file_name)), \
                 'Missing "%s" file in the benchmark experiment' % file_name
+
         # load registration file
         path_csv = os.path.join(path_bm, NAME_CSV_REGISTRATION_PAIRS)
         df_regist = pd.read_csv(path_csv, index_col=0)
+
         # only two records in the benchmark
         assert len(df_regist) == len(self.benchmark._df_cover), \
             'Found only %i records instead of %i' % \
             (len(df_regist), len(self.benchmark._df_cover))
+
         # check existence of all mentioned files
         for _, row in df_regist.iterrows():
             for col in list(COVER_COLUMNS) + \
                     [COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP]:
-                assert os.path.exists(row[col]), \
-                    'Missing column "%s" in result table' % col
+                assert col in row, 'Missing column "%s" in result table' % col
+            for col in [COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP]:
+                assert os.path.isfile(os.path.join(path_bm, row[col])), \
+                    'Missing file "%s"' % row[col]
+
         # check existence of statistical results
         for stat_name in ['Mean', 'STD', 'Median', 'Min', 'Max']:
             assert any(stat_name in col for col in df_regist.columns), \
                 'Missing statistics "%s"' % stat_name
+
         # test specific results
         assert_array_almost_equal(sorted(df_regist['TRE Mean (final)'].values),
                                   np.array(final_means), decimal=2)

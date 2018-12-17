@@ -21,7 +21,6 @@ import logging
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 import benchmark.utilities.experiments as tl_expt
-import benchmark.utilities.data_io as tl_io
 import benchmark.cls_benchmark as bm
 
 
@@ -77,56 +76,56 @@ class BmTemplate(bm.ImRegBenchmark):
     def _prepare(self):
         logging.info('-> copy configuration...')
 
-    def _prepare_registration(self, dict_row):
+    def _prepare_registration(self, record):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
 
-        :param dict dict_row: {str: value}, dictionary with regist. params
+        :param dict record: {str: value}, dictionary with regist. params
         :return dict: {str: value}
         """
         logging.debug('.. no preparing before registration experiment')
-        return dict_row
+        return record
 
-    def _generate_regist_command(self, dict_row):
+    def _generate_regist_command(self, record):
         """ generate the registration command
 
-        :param dict_row: {str: value}, dictionary with regist. params
+        :param record: {str: value}, dictionary with regist. params
         :return: str, the execution string
         """
         logging.debug('.. simulate registration: '
                       'copy the source image and landmarks, like regist. failed')
-        reg_dir = dict_row[bm.COL_REG_DIR]
-        name_img = os.path.basename(dict_row[bm.COL_IMAGE_MOVE])
-        cmd_img = 'cp %s %s' % (tl_io.update_path(dict_row[bm.COL_IMAGE_MOVE]),
-                                os.path.join(reg_dir, name_img))
-        name_lnds = os.path.basename(dict_row[bm.COL_POINTS_MOVE])
-        cmd_lnds = 'cp %s %s' % (tl_io.update_path(dict_row[bm.COL_POINTS_MOVE]),
-                                 os.path.join(reg_dir, name_lnds))
+        path_reg_dir = self._get_path_reg_dir(record)
+        name_img = os.path.basename(record[bm.COL_IMAGE_MOVE])
+        cmd_img = 'cp %s %s' % (self._update_path(record[bm.COL_IMAGE_MOVE]),
+                                os.path.join(path_reg_dir, name_img))
+        name_lnds = os.path.basename(record[bm.COL_POINTS_MOVE])
+        cmd_lnds = 'cp %s %s' % (self._update_path(record[bm.COL_POINTS_MOVE]),
+                                 os.path.join(path_reg_dir, name_lnds))
         command = ' && '.join([cmd_img, cmd_lnds])
         return command
 
-    def _extract_warped_images_landmarks(self, dict_row):
+    def _extract_warped_images_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
-        :param dict_row: {str: value}, dictionary with registration params
+        :param record: {str: value}, dictionary with registration params
         :return (str, str, str, str): paths to ...
         """
         # detect image
-        path_img = os.path.join(dict_row[bm.COL_REG_DIR],
-                                os.path.basename(dict_row[bm.COL_IMAGE_MOVE]))
+        path_img = os.path.join(record[bm.COL_REG_DIR],
+                                os.path.basename(record[bm.COL_IMAGE_MOVE]))
         # detect landmarks
-        path_lnd = os.path.join(dict_row[bm.COL_REG_DIR],
-                                os.path.basename(dict_row[bm.COL_POINTS_MOVE]))
+        path_lnd = os.path.join(record[bm.COL_REG_DIR],
+                                os.path.basename(record[bm.COL_POINTS_MOVE]))
         return None, path_img, None, path_lnd
 
-    def _clear_after_registration(self, dict_row):
+    def _clear_after_registration(self, record):
         """ clean unnecessarily files after the registration
 
-        :param dict_row: {str: value}, dictionary with regist. params
+        :param record: {str: value}, dictionary with regist. params
         :return: {str: value}
         """
         logging.debug('.. no cleaning after registration experiment')
-        return dict_row
+        return record
 
 
 def main(params):

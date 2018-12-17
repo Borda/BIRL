@@ -264,19 +264,18 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
             shutil.copy(path_cofig, os.path.join(self.params['path_exp'],
                                                  os.path.basename(path_cofig)))
 
-    def _prepare_registration(self, dict_row):
+    def _prepare_registration(self, record):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
 
-        :param dict dict_row: {str: value}, dictionary with regist. params
+        :param dict record: {str: value}, dictionary with regist. params
         :return dict: {str: value}
         """
         logging.debug('.. generate macros before registration experiment')
         # set the paths for this experiment
-        path_dir = dict_row[bm.COL_REG_DIR]
+        path_dir = self._get_path_reg_dir(record)
         path_raw = os.path.join(path_dir, NAME_TXT_TRANSFORM_RAW)
-        path_im_ref = dict_row[bm.COL_IMAGE_REF]
-        path_im_move = dict_row[bm.COL_IMAGE_MOVE]
+        path_im_ref, path_im_move, _, _ = self._get_paths(record)
         name_im_ref, name_im_move = [os.path.basename(p)
                                      for p in [path_im_ref, path_im_move]]
         path_regist = os.path.join(path_dir, os.path.basename(path_im_move))
@@ -325,67 +324,65 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         with open(os.path.join(path_dir, NAME_MACRO_CONVERT_TRANS), 'w') as fp:
             fp.write(macro_convert)
 
-        return dict_row
+        return record
 
-    def _generate_regist_command(self, dict_row):
+    def _generate_regist_command(self, record):
         """ generate the registration command
 
-        :param dict_row: {str: value}, dictionary with regist. params
+        :param record: {str: value}, dictionary with regist. params
         :return: str, the execution string
         """
-        path_macro = os.path.join(dict_row[bm.COL_REG_DIR],
+        path_macro = os.path.join(self._get_path_reg_dir(record),
                                   NAME_MACRO_REGISTRATION)
         cmd = '%s -batch %s' % (self.params['path_fiji'], path_macro)
         return cmd
 
-    def _extract_warped_images_landmarks(self, dict_row):
+    def _extract_warped_images_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
-        :param dict_row: {str: value}, dictionary with registration params
+        :param record: {str: value}, dictionary with registration params
         :return (str, str, str, str): paths to
         """
         logging.debug('.. warp the registered image and get landmarks')
-
-        path_dir = dict_row[bm.COL_REG_DIR]
+        path_dir = self._get_path_reg_dir(record)
+        _, _, _, path_lnds_move = self._get_paths(record)
         path_log = os.path.join(path_dir, bm.NAME_LOG_REGISTRATION)
         # warp the image
         path_macro = os.path.join(path_dir, NAME_MACRO_WARP_IMAGE)
         cmd = '%s -batch %s' % (self.params['path_fiji'], path_macro)
         tl_expt.run_command_line(cmd, path_logger=path_log)
-        name_img = os.path.basename(dict_row[bm.COL_IMAGE_MOVE])
+        name_img = os.path.basename(record[bm.COL_IMAGE_MOVE])
         path_img = os.path.join(path_dir, name_img)
-
         # convert the transform do obtain displacement field
         path_macro = os.path.join(path_dir, NAME_MACRO_CONVERT_TRANS)
         cmd = '%s -batch %s' % (self.params['path_fiji'], path_macro)
         tl_expt.run_command_line(cmd, path_logger=path_log)
-
         # load and parse raw transform to detect landmarks
         path_raw = os.path.join(path_dir, NAME_TXT_TRANSFORM_RAW)
-        # points_ref = tl_io.load_landmarks(dict_row[bm.COL_POINTS_REF])
-        points_move = tl_io.load_landmarks(dict_row[bm.COL_POINTS_MOVE])
+        # points_ref = tl_io.load_landmarks(record[bm.COL_POINTS_REF])
+        points_move = tl_io.load_landmarks(path_lnds_move)
         points_warp = load_parse_bunwarpj_displacements_warp_points(
                                                         path_raw, points_move)
         if points_warp is None:
             path_lnd = None
         else:
-            name_csv = os.path.basename(dict_row[bm.COL_POINTS_MOVE])
+            name_csv = os.path.basename(path_lnds_move)
             path_lnd = os.path.join(path_dir, name_csv)
             tl_io.save_landmarks_csv(path_lnd, points_warp)
-
         return path_img, None, path_lnd, None
 
-    def _clear_after_registration(self, dict_row):
+    def _clear_after_registration(self, record):
         """ clean unnecessarily files after the registration
 
-        :param dict_row: {str: value}, dictionary with regist. params
+        :param record: {str: value}, dictionary with regist. params
         :return: {str: value}
         """
         logging.debug('.. cleaning: remove raw transformation')
-        path_raw = os.path.join(dict_row[bm.COL_REG_DIR], NAME_TXT_TRANSFORM_RAW)
+        path_raw = os.path.join(self._get_path_reg_dir(record),
+                                NAME_TXT_TRANSFORM_RAW)
         if os.path.isfile(path_raw):
             os.remove(path_raw)
-        return dict_row
+        return record
 
 
 def main(params):
