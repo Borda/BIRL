@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
-LANDMARK_COORDS = ['Y', 'X']
+LANDMARK_COORDS = ['X', 'Y']
 
 
 def create_dir(path_dir):
