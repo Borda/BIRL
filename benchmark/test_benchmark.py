@@ -70,11 +70,27 @@ class TestBmRegistration(unittest.TestCase):
         del self.benchmark
 
     def test_benchmark_simple(self):
+        """ test run in parallel (2 threads) """
+        params = {
+            'path_cover': PATH_CSV_COVER_ANHIR,
+            'path_dataset': PATH_DATA,
+            'path_out': self.path_out,
+            'nb_jobs': 1,
+            'visual': True,
+            'unique': False,
+        }
+        self.benchmark = ImRegBenchmark(params)
+        self.benchmark.run()
+        self.check_benchmark_results(final_means=[0., 0.],
+                                     final_stds=[0., 0.])
+        del self.benchmark
+
+    def test_benchmark_template(self):
         """ test run in single thread """
         params = {
             'path_cover': PATH_CSV_COVER_MIX,
             'path_out': self.path_out,
-            'nb_jobs': 1,
+            'nb_jobs': 2,
             'unique': False,
             'visual': True,
             'an_executable': None,

@@ -172,7 +172,7 @@ class ImRegBenchmark(Experiment):
         return paths
 
     def _get_path_reg_dir(self, record):
-        return self._update_path(record[COL_REG_DIR], 'expt')
+        return self._update_path(str(record[COL_REG_DIR]), 'expt')
 
     def _load_data(self):
         """ loading data, the cover file with all registration pairs """
@@ -196,7 +196,7 @@ class ImRegBenchmark(Experiment):
             self._df_experiments = pd.read_csv(self._path_csv_regist,
                                                index_col=None)
             if 'ID' in self._df_experiments.columns:
-                self._df_experiment.set_index('ID', inplace=True)
+                self._df_experiments.set_index('ID', inplace=True)
         else:
             self._df_experiments = pd.DataFrame()
 
@@ -229,12 +229,11 @@ class ImRegBenchmark(Experiment):
 
         :param str | None path_csv: path to output CSV file
         """
-        if path_csv is None:
-            return
-        if 'ID' in self._df_experiments.columns:
-            self._df_experiments.set_index('ID').to_csv(path_csv, index=None)
-        else:
-            self._df_experiments.to_csv(path_csv, index=None)
+        if path_csv is not None:
+            if 'ID' in self._df_experiments.columns:
+                self._df_experiments.set_index('ID').to_csv(path_csv)
+            else:
+                self._df_experiments.to_csv(path_csv, index=None)
 
     def __execute_parallel(self, method, in_table, path_csv=None, name='',
                            use_output=True):
@@ -288,6 +287,25 @@ class ImRegBenchmark(Experiment):
                                                                ignore_index=True)
             self.__export_df_experiments(path_csv)
 
+    def __check_exist_regist(self, idx, path_dir_reg):
+        """ check whether the particular experiment already exists and have results
+
+        if the folder with experiment already exist and it is also part
+        of the loaded finished experiments, sometimes the oder may mean
+        failed experiment
+
+        :param int idx: index of particular
+        :param str path_dir_reg:
+        :return bool:
+        """
+        b_df_col = ('ID' in self._df_experiments.columns and idx in self._df_experiments['ID'])
+        b_df_idx = idx in self._df_experiments.index
+        check = os.path.exists(path_dir_reg) and (b_df_col or b_df_idx)
+        if check:
+            logging.warning('particular registration experiment already exists:'
+                            ' "%s"', repr(idx))
+        return check
+
     def _perform_registration(self, df_row):
         """ run single registration experiment with all sub-stages
 
@@ -299,12 +317,8 @@ class ImRegBenchmark(Experiment):
         row['ID'] = idx
         row[COL_REG_DIR] = str(idx)
         path_dir_reg = self._get_path_reg_dir(row)
-        # if the folder with experiment already exist and it is also part
-        # of the loaded finished experiments,
-        # sometimes the oder may mean failed experiment
-        if os.path.exists(path_dir_reg) and idx in self._df_experiments['ID']:
-            logging.warning('particular registration experiment already exists:'
-                            ' "%s"', repr(idx))
+        # check whether the particular experiment already exists and have result
+        if self.__check_exist_regist(idx, path_dir_reg):
             return None
         tl_io.create_dir(path_dir_reg)
 
@@ -417,13 +431,11 @@ class ImRegBenchmark(Experiment):
         """
         if COL_IMAGE_MOVE_WARP not in record \
                 or not isinstance(record[COL_IMAGE_MOVE_WARP], str):
-            logging.warning('Missing registered image "%s"',
-                            COL_IMAGE_MOVE_WARP)
+            logging.warning('Missing registered image "%s"', COL_IMAGE_MOVE_WARP)
             return None
         if COL_POINTS_MOVE_WARP not in record \
                 or not isinstance(record[COL_POINTS_MOVE_WARP], str):
-            logging.warning('Missing registered landmarks "%s"',
-                            COL_POINTS_MOVE_WARP)
+            logging.warning('Missing registered landmarks "%s"', COL_POINTS_MOVE_WARP)
             return None
         path_image_warp = self._update_path(record[COL_IMAGE_MOVE_WARP], 'expt')
         image_warp = tl_io.load_image(path_image_warp)
@@ -440,14 +452,14 @@ class ImRegBenchmark(Experiment):
         return fig
 
     def __visual_image_ref_warp_move(self, record, image_ref,
-                                     points_move, points_ref):
+                                     points_ref, points_move):
         """ visualise the case with warped reference landmarks to the move frame
 
         :param {} record: row with the experiment
-        :param ndarray image_ref:
-        :param ndarray points_move:
-        :param ndarray points_ref:
-        :return obj | None:
+        :param ndarray image_ref: reference image
+        :param ndarray points_ref: landmarks in reference frame
+        :param ndarray points_move: landmarks in moving frame
+        :return obj:
         """
         image_move = tl_io.load_image(self._update_path(record[COL_IMAGE_MOVE]))
         # image_warp = tl_io.load_image(row['Moving image, Transf.'])
@@ -481,8 +493,8 @@ class ImRegBenchmark(Experiment):
             if fig is None:
                 return None
         elif COL_POINTS_REF_WARP in row:
-            fig = self.__visual_image_ref_warp_move(row, image_ref,
-                                                    points_move, points_ref)
+            fig = self.__visual_image_ref_warp_move(row, image_ref, points_ref,
+                                                    points_move)
         else:
             logging.error('Visualisation: no output image or landmarks')
             fig, _ = tl_visu.create_figure((1, 1))
