@@ -152,8 +152,6 @@ class ImRegBenchmark(Experiment):
         """
         if tp == 'data' and 'path_dataset' in self.params:
             path = os.path.join(self.params['path_dataset'], path)
-        elif tp == 'out' and 'path_output' in self.params:
-            path = os.path.join(self.params['path_output'], path)
         elif tp == 'expt' and 'path_exp' in self.params:
             path = os.path.join(self.params['path_exp'], path)
         else:
@@ -366,12 +364,12 @@ class ImRegBenchmark(Experiment):
         :param (int, dict) df_row: tow from iterated table
         """
         idx, row = df_row
-        p_img_ref, p_img_move, p_lnds_ref, p_lnds_move = self._get_paths(row)
+        path_img_ref, _, path_lnds_ref, path_lnds_move = self._get_paths(row)
         # load initial landmarks
-        points_ref = tl_io.load_landmarks(p_lnds_ref)
-        points_move = tl_io.load_landmarks(p_lnds_move)
+        points_ref = tl_io.load_landmarks(path_lnds_ref)
+        points_move = tl_io.load_landmarks(path_lnds_move)
         points_warped = []
-        img_size = tl_io.load_image(p_img_ref).shape[:2]
+        img_size = tl_io.load_image(path_img_ref).shape[:2]
         # compute statistic
         self.__compute_landmarks_inaccuracy(idx, points_ref, points_move,
                                             'init', img_size)
@@ -390,7 +388,7 @@ class ImRegBenchmark(Experiment):
             points_warped = tl_io.load_landmarks(path_landmarks)
 
         # compute statistic
-        img_size = tl_io.load_image(p_img_ref).shape[:2]
+        img_size = tl_io.load_image(path_img_ref).shape[:2]
         if len(points_target) > 0 and len(points_warped) > 0:
             self.__compute_landmarks_inaccuracy(idx, points_target,
                                                 points_warped, 'final', img_size)
@@ -418,8 +416,8 @@ class ImRegBenchmark(Experiment):
                 col_name = 'rTRE %s (%s)' % (name, state)
                 self._df_experiments.at[idx, col_name] = stat[name] / img_diag
 
-    def __visual_image_ref_move_warp(self, record, image_ref,
-                                     points_move, points_ref):
+    def __visual_image_move_warp_lnds_move_warp(self, record, image_ref,
+                                                points_ref, points_move):
         """ visualise the case with warped moving image and landmarks
         to the reference frame so they are simple to overlap
 
@@ -451,8 +449,8 @@ class ImRegBenchmark(Experiment):
                                                    points_warp)
         return fig
 
-    def __visual_image_ref_warp_move(self, record, image_ref,
-                                     points_ref, points_move):
+    def __visual_image_ref_warp_lnds_move_warp(self, record, image_ref,
+                                               points_ref, points_move):
         """ visualise the case with warped reference landmarks to the move frame
 
         :param {} record: row with the experiment
@@ -482,19 +480,19 @@ class ImRegBenchmark(Experiment):
         :param (int, dict) df_row: tow from iterated table
         """
         _, row = df_row
-        p_img_ref, p_img_move, p_lnds_ref, p_lnds_move = self._get_paths(row)
-        image_ref = tl_io.load_image(p_img_ref)
-        points_ref = tl_io.load_landmarks(p_lnds_ref)
-        points_move = tl_io.load_landmarks(p_lnds_move)
+        path_img_ref, _, path_lnds_ref, path_lnds_move = self._get_paths(row)
+        image_ref = tl_io.load_image(path_img_ref)
+        points_ref = tl_io.load_landmarks(path_lnds_ref)
+        points_move = tl_io.load_landmarks(path_lnds_move)
         # visualise particular experiment by idx
         if COL_POINTS_MOVE_WARP in row:
-            fig = self.__visual_image_ref_move_warp(row, image_ref,
-                                                    points_move, points_ref)
+            fig = self.__visual_image_move_warp_lnds_move_warp(
+                row, image_ref, points_ref, points_move)
             if fig is None:
                 return None
         elif COL_POINTS_REF_WARP in row:
-            fig = self.__visual_image_ref_warp_move(row, image_ref, points_ref,
-                                                    points_move)
+            fig = self.__visual_image_ref_warp_lnds_move_warp(
+                row, image_ref, points_ref, points_move)
         else:
             logging.error('Visualisation: no output image or landmarks')
             fig, _ = tl_visu.create_figure((1, 1))
