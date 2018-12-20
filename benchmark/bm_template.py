@@ -7,8 +7,8 @@ INSTALLATION:
 
 EXAMPLE (usage):
 >> mkdir results
->> python benchmarks/bm_template.py \
-    -in data_images/pairs-imgs-lnds_mix.csv -out results --visual --unique \
+>> python benchmark/bm_template.py \
+    -c data_images/pairs-imgs-lnds_mix.csv -o results --visual --unique \
     --an_executable none
 
 Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
@@ -40,7 +40,7 @@ class BmTemplate(bm.ImRegBenchmark):
      * _check_required_params
      * _prepare_registration
      * _generate_regist_command
-     * _evaluate_registration
+     * _extract_warped_images_landmarks
      * _clear_after_registration
 
     This template benchmark also presents that method can have registered
@@ -76,64 +76,56 @@ class BmTemplate(bm.ImRegBenchmark):
     def _prepare(self):
         logging.info('-> copy configuration...')
 
-    def _prepare_registration(self, dict_row):
+    def _prepare_registration(self, record):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
 
-        :param dict dict_row: {str: value}, dictionary with regist. params
+        :param dict record: {str: value}, dictionary with regist. params
         :return dict: {str: value}
         """
-        logging.debug('.. no preparing before regist. experiment')
-        return dict_row
+        logging.debug('.. no preparing before registration experiment')
+        return record
 
-    def _generate_regist_command(self, dict_row):
+    def _generate_regist_command(self, record):
         """ generate the registration command
 
-        :param dict_row: {str: value}, dictionary with regist. params
+        :param record: {str: value}, dictionary with regist. params
         :return: str, the execution string
         """
-        target_img = os.path.join(dict_row[bm.COL_REG_DIR],
-                                  os.path.basename(dict_row[bm.COL_IMAGE_MOVE]))
-        target_lnd = os.path.join(dict_row[bm.COL_REG_DIR],
-                                  os.path.basename(dict_row[bm.COL_POINTS_REF]))
-        cmds = ['cp %s %s' % (os.path.abspath(dict_row[bm.COL_IMAGE_MOVE]),
-                              target_img),
-                'cp %s %s' % (os.path.abspath(dict_row[bm.COL_POINTS_REF]),
-                              target_lnd)]
-        command = ' && '.join(cmds)
+        logging.debug('.. simulate registration: '
+                      'copy the source image and landmarks, like regist. failed')
+        path_reg_dir = self._get_path_reg_dir(record)
+        name_img = os.path.basename(record[bm.COL_IMAGE_MOVE])
+        cmd_img = 'cp %s %s' % (self._update_path(record[bm.COL_IMAGE_MOVE]),
+                                os.path.join(path_reg_dir, name_img))
+        name_lnds = os.path.basename(record[bm.COL_POINTS_MOVE])
+        cmd_lnds = 'cp %s %s' % (self._update_path(record[bm.COL_POINTS_MOVE]),
+                                 os.path.join(path_reg_dir, name_lnds))
+        command = ' && '.join([cmd_img, cmd_lnds])
         return command
 
-    def _evaluate_registration(self, dict_row):
-        """ evaluate rests of the experiment and identity the registered image
-        and landmarks when the process finished
+    def _extract_warped_images_landmarks(self, record):
+        """ get registration results - warped registered images and landmarks
 
-        :param dict_row: {str: value}, dictionary with regist. params
-        :return: {str: value}
+        :param record: {str: value}, dictionary with registration params
+        :return (str, str, str, str): paths to ...
         """
-        logging.debug('.. simulate registration: '
-                      'copy the original image and landmarks')
         # detect image
-        path_img = os.path.join(dict_row[bm.COL_REG_DIR],
-                                os.path.basename(dict_row[bm.COL_IMAGE_MOVE]))
-        if os.path.isfile(path_img):
-            dict_row[bm.COL_IMAGE_REF_WARP] = path_img
+        path_img = os.path.join(record[bm.COL_REG_DIR],
+                                os.path.basename(record[bm.COL_IMAGE_MOVE]))
         # detect landmarks
-        path_lnd = os.path.join(dict_row[bm.COL_REG_DIR],
-                                os.path.basename(dict_row[bm.COL_POINTS_REF]))
-        # for inverse landmarks estimate
-        if os.path.isfile(path_img):
-            dict_row[bm.COL_POINTS_MOVE_WARP] = path_lnd
+        path_lnd = os.path.join(record[bm.COL_REG_DIR],
+                                os.path.basename(record[bm.COL_POINTS_MOVE]))
+        return None, path_img, None, path_lnd
 
-        return dict_row
-
-    def _clear_after_registration(self, dict_row):
+    def _clear_after_registration(self, record):
         """ clean unnecessarily files after the registration
 
-        :param dict_row: {str: value}, dictionary with regist. params
+        :param record: {str: value}, dictionary with regist. params
         :return: {str: value}
         """
-        logging.debug('.. no cleaning after regist. experiment')
-        return dict_row
+        logging.debug('.. no cleaning after registration experiment')
+        return record
 
 
 def main(params):

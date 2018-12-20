@@ -15,7 +15,7 @@ import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.dataset import IMAGE_EXTENSIONS, generate_pairing
-from benchmark.cls_benchmark import (COL_IMAGE_REF, COL_IMAGE_MOVE,
+from benchmark.cls_benchmark import (COL_IMAGE_REF, COL_IMAGE_MOVE, COL_TIME,
                                      COL_POINTS_REF, COL_POINTS_MOVE,
                                      COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP)
 
@@ -49,10 +49,7 @@ DATASET_TISSUE_SCALE.update(DATASET_TISSUE_SCALE_PARTIAL)
 # each N sample in test will be considers as test case
 HIDE_TEST_TISSUE_STEP = 3
 # requires empty columns in the dataset cover
-COLUMNS_EMPTY = (
-    COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP,
-    'Execution time [minutes]'
-)
+COLUMNS_EMPTY = (COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP, COL_TIME)
 
 
 def get_relative_paths(paths, path_base):

@@ -34,7 +34,7 @@ def draw_image_points(image, points, color='green', marker_size=5, shape='o'):
     >>> image = np.zeros((10, 10, 3))
     >>> points = np.array([[7, 9], [2, 2], [5, 5]])
     >>> img = draw_image_points(image, points, marker_size=1)
-    >>> img.shape == (10, 10, 3)
+    >>> img.shape == (10, 10, 3)  # Windows x64 returns (10L, 10L, 3L)
     True
     >>> np.round(img[:, :, 1], 2)
     array([[ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
