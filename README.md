@@ -55,7 +55,7 @@ Just set an initial image and their corresponding landmarks.
 The script will generate a set of geometrically deformed images mimicking different stains and compute the new related landmarks.
 
 ```bash
-python scripts/create_real_synth_dataset.py \
+python bm_dataset/create_real_synth_dataset.py \
     -i ./data_images/images/Rat_Kidney_HE.jpg \
     -l ./data_images/landmarks/Rat_Kidney_HE.csv \
     -o ./output/synth_dataset \
@@ -67,7 +67,7 @@ Two modes are created: _"first2all"_ for registering the first image to all othe
 _(note A-B is the same as B-A)_
 
 ```bash
-python scripts/generate_regist_pairs_all.py \
+python bm_dataset/generate_regist_pairs.py \
     -i ./data_images/synth_dataset/*.jpg \
     -l ./data_images/synth_dataset/*.csv \
     -csv ./data_images/cover_synth-dataset.csv \

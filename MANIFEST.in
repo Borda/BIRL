@@ -15,6 +15,7 @@ recursive-include figures *.jpg
 # Include the util scripts
 recursive-include bm_dataset *.py
 recursive-include bm_experiments *.py
+recursive-exclude bm_ANHIR *.py
 
 # Exclude the data files
 recursive-exclude data_images *
