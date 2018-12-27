@@ -14,16 +14,16 @@ fileName = File.openDialog("Select the file to import");
 allText = File.openAsString(fileName);
 tmp = split(fileName,".");
 // get file format {txt, csv}
-posix = tmp[lengthOf(tmp)-1];
+extension = tmp[lengthOf(tmp)-1];
 // parse text by lines
 text = split(allText, "\n");
 
 // define array for points
-var xpoints = newArray;
-var ypoints = newArray; 
+var xPoints = newArray;
+var yPoints = newArray; 
 
 // in case input is in TXT format
-if (posix=="txt") {	
+if (extension=="txt") {
 	print("importing TXT point set...");
 	//these are the column indexes
 	//hdr = split(text[0]);
@@ -33,12 +33,12 @@ if (posix=="txt") {
 	for (i = 2; i < (text.length); i++){
 	   line = split(text[i]," ");
 	   setOption("ExpandableArrays", true);   
-	   xpoints[i-2] = parseInt(line[iX]);
-	   ypoints[i-2] = parseInt(line[iY]); 
-	   print("p("+i-1+") ["+xpoints[i-2]+"; "+ypoints[i-2]+"]"); 
+	   xPoints[i-2] = parseInt(line[iX]);
+	   yPoints[i-2] = parseInt(line[iY]); 
+	   print("p("+i-1+") ["+xPoints[i-2]+"; "+yPoints[i-2]+"]"); 
 	} 
 // in case input is in CSV format
-} else if (posix=="csv") {
+} else if (extension=="csv") {
 	print("importing CSV point set...");
 	//these are the column indexes
 	//hdr = split(text[0]);
@@ -51,9 +51,9 @@ if (posix=="txt") {
 	for (i = 1; i < (text.length); i++){
 	   line = split(text[i],",");
 	   setOption("ExpandableArrays", true);   
-	   xpoints[i-1] = parseInt(line[iX]);
-	   ypoints[i-1] = parseInt(line[iY]);
-	   print("p("+i+") ["+xpoints[i-1]+"; "+ypoints[i-1]+"]"); 
+	   xPoints[i-1] = parseInt(line[iX]);
+	   yPoints[i-1] = parseInt(line[iY]);
+	   print("p("+i+") ["+xPoints[i-1]+"; "+yPoints[i-1]+"]"); 
 	} 
 // in case of any other format
 } else {
@@ -61,4 +61,6 @@ if (posix=="txt") {
 }
  
 // show the points in the image
-makeSelection("point", xpoints, ypoints); 
+makeSelection("point", xPoints, yPoints); 
+
+run("Point Tool...", "label");
