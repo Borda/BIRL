@@ -16,6 +16,8 @@ from skimage.exposure import rescale_intensity
 TISSUE_CONTENT = 0.01
 # supported image extensions
 IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg')
+IMAGE_COMPRESSION_OPTIONS = (cv.IMWRITE_JPEG_QUALITY, 98) + \
+                            (cv.IMWRITE_PNG_COMPRESSION, 9)
 
 
 def detect_binary_blocks(vec_bin):
@@ -159,11 +161,15 @@ def save_large_image(img_path, img):
     :param ndarray img: image
 
     >>> img = np.random.random((2500, 3200, 3))
-    >>> img_path = './sample-image.jpg'
+    >>> img_path = './sample-image.jpeg'
     >>> save_large_image(img_path, img)
     >>> img2 = load_large_image(img_path)
     >>> img.shape == img2.shape
     True
+    >>> os.remove(img_path)
+    >>> img_path = './sample-image.png'
+    >>> save_large_image(img_path, img)
+    >>> save_large_image(img_path, img)  # test overwrite message
     >>> os.remove(img_path)
     """
     if img.ndim == 3 and img.shape[2] == 4:
@@ -173,11 +179,12 @@ def save_large_image(img_path, img):
         img = (img * 255)
     elif np.max(img) > 255:
         img = (img / 255.)
+    # for images as integer clip the value range as (0, 255)
     if img.dtype != np.uint8:
         img = np.clip(img, a_min=0, a_max=255).astype(np.uint8)
     if os.path.isfile(img_path):
-        logging.debug('image will be overwritten: %s', img_path)
-    cv.imwrite(img_path, img)
+        logging.debug('WARNING: this image will be overwritten: %s', img_path)
+    cv.imwrite(img_path, img, IMAGE_COMPRESSION_OPTIONS)
 
 
 def generate_pairing(count, step_hide=None):
