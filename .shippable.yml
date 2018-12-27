@@ -41,6 +41,7 @@ script:
   - python bm_experiments/bm_comp_perform.py -o ./results -n 1
   - python benchmark/bm_template.py -c data_images/pairs-imgs-lnds_mix.csv -o results --unique  --an_executable none
 
+  - python bm_dataset/rescale_tissue_images.py -i "data_images/rat-kidney_/scale-5pc/*.jpg" --scales 5 -ext .png --nb_jobs 2
   - python bm_dataset/generate_regist_pairs.py -i "data_images/images/artificial_*.jpg" -l "data_images/landmarks/artificial_*.csv" -csv data_images/cover_artificial.csv --mode each2all
   # - python bm_experiments/create_real_synth_dataset.py -i data_images/images/Rat_Kidney_HE.jpg -l data_images/landmarks/Rat_Kidney_HE.csv -o data_images/synth_dataset -nb 3 --nb_jobs 1
   # - python bm_dataset/generate_regist_pairs.py -i "data_images/synth_dataset/*.jpg" -l "data_images/synth_dataset/*.csv" -csv data_images/cover_synth-dataset.csv --mode each2all

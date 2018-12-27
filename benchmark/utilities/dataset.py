@@ -16,6 +16,8 @@ from skimage.exposure import rescale_intensity
 TISSUE_CONTENT = 0.01
 # supported image extensions
 IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg')
+# https://github.com/opencv/opencv/issues/6729
+# https://www.life2coding.com/save-opencv-images-jpeg-quality-png-compression
 IMAGE_COMPRESSION_OPTIONS = (cv.IMWRITE_JPEG_QUALITY, 98) + \
                             (cv.IMWRITE_PNG_COMPRESSION, 9)
 
@@ -148,6 +150,8 @@ def load_large_image(img_path):
     img = plt.imread(img_path)
     if img.ndim == 3 and img.shape[2] == 4:
         img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
+    if np.max(img) <= 1.5:
+        img = (img * 255).astype(np.int16)
     return img
 
 
@@ -160,23 +164,30 @@ def save_large_image(img_path, img):
     :param str img_path: path to the new image
     :param ndarray img: image
 
-    >>> img = np.random.random((2500, 3200, 3))
-    >>> img_path = './sample-image.jpeg'
+    >>> img = np.zeros((2500, 3200, 3))
+    >>> img[:, :, 0] = 255
+    >>> img[:, :, 1] = 127
+    >>> img_path = './sample-image.jpg'
     >>> save_large_image(img_path, img)
     >>> img2 = load_large_image(img_path)
+    >>> img2[0, 0].tolist()
+    [255, 127, 0]
     >>> img.shape == img2.shape
     True
     >>> os.remove(img_path)
     >>> img_path = './sample-image.png'
     >>> save_large_image(img_path, img)
-    >>> save_large_image(img_path, img)  # test overwrite message
+    >>> img3 = load_large_image(img_path)
+    >>> img3[0, 0].tolist()
+    [255, 127, 0]
+    >>> save_large_image(img_path, img2)  # test overwrite message
     >>> os.remove(img_path)
     """
     if img.ndim == 3 and img.shape[2] == 4:
         img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
     # for some reasons with linear interpolation some the range overflow (0, 1)
     if np.max(img) <= 1.5:
-        img = (img * 255)
+        img = (img * 255).astype(np.int16)
     elif np.max(img) > 255:
         img = (img / 255.)
     # for images as integer clip the value range as (0, 255)
@@ -184,6 +195,9 @@ def save_large_image(img_path, img):
         img = np.clip(img, a_min=0, a_max=255).astype(np.uint8)
     if os.path.isfile(img_path):
         logging.debug('WARNING: this image will be overwritten: %s', img_path)
+    # why cv2 imwrite changes the color of pics
+    # https://stackoverflow.com/questions/42406338
+    img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
     cv.imwrite(img_path, img, IMAGE_COMPRESSION_OPTIONS)
 
 

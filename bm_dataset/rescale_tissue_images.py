@@ -48,6 +48,8 @@ def arg_parse_params():
                         help='path (pattern) to the input image')
     parser.add_argument('--scales', type=int, required=False, nargs='+',
                         help='list of output scales', default=DEFAULT_SCALES)
+    parser.add_argument('-ext', '--image_extension', type=str, required=False,
+                        help='output image extension', default=IMAGE_EXTENSION)
     parser.add_argument('--overwrite', action='store_true', required=False,
                         default=False, help='visualise the landmarks in images')
     parser.add_argument('--nb_jobs', type=int, required=False,
@@ -61,7 +63,7 @@ def arg_parse_params():
     return args
 
 
-def scale_image(img_path, scale, overwrite=False):
+def scale_image(img_path, scale, image_ext=IMAGE_EXTENSION, overwrite=False):
     base = os.path.dirname(os.path.dirname(img_path))
     name = os.path.splitext(os.path.basename(img_path))[0]
     folder = os.path.basename(os.path.dirname(img_path))
@@ -71,7 +73,7 @@ def scale_image(img_path, scale, overwrite=False):
     if not os.path.isdir(path_dir):
         os.makedirs(path_dir, exist_ok=True)
 
-    path_img_scale = os.path.join(path_dir, name + IMAGE_EXTENSION)
+    path_img_scale = os.path.join(path_dir, name + image_ext)
     if os.path.isfile(path_img_scale) and not overwrite:
         logging.debug('existing "%s"', path_img_scale)
         return
@@ -89,15 +91,15 @@ def scale_image(img_path, scale, overwrite=False):
     time.sleep(1)
 
 
-def wrap_scale_image(img_path_scale, overwrite=False):
+def wrap_scale_image(img_path_scale, image_ext=IMAGE_EXTENSION, overwrite=False):
     img_path, scale = img_path_scale
     try:
-        return scale_image(img_path, scale, overwrite)
+        return scale_image(img_path, scale, image_ext, overwrite)
     except Exception:
         logging.exception('scaling %i of image: %s', scale, img_path)
 
 
-def main(path_images, scales, overwrite, nb_jobs):
+def main(path_images, scales, image_extension, overwrite, nb_jobs):
     image_paths = sorted(glob.glob(path_images))
     image_path_scales = [(im_path, sc) for im_path in image_paths
                          for sc in scales]
@@ -106,7 +108,8 @@ def main(path_images, scales, overwrite, nb_jobs):
         logging.info('No images found on "%s"', path_images)
         return
 
-    _wrap_scale = partial(wrap_scale_image, overwrite=overwrite)
+    _wrap_scale = partial(wrap_scale_image, image_ext=image_extension,
+                          overwrite=overwrite)
     list(wrap_execute_sequence(_wrap_scale, image_path_scales,
                                desc='Scaling images', nb_jobs=nb_jobs))
 
