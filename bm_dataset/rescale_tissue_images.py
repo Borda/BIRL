@@ -78,7 +78,9 @@ def scale_image(img_path, scale, overwrite=False):
 
     img = load_large_image(img_path)
     sc = scale / float(base_scale)
-    img_sc = cv.resize(img, None, fx=sc, fy=sc, interpolation=cv.INTER_CUBIC)
+    # for down-scaling use just linear
+    interp = cv.INTER_CUBIC if sc > 1 else cv.INTER_LINEAR
+    img_sc = cv.resize(img, None, fx=sc, fy=sc, interpolation=interp)
     del img
 
     logging.debug('creating >> %s', path_img_scale)
