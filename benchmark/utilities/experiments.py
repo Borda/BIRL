@@ -306,6 +306,7 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
     iterate_vals = list(iterate_vals)
 
     if desc is not None:
+        desc = '%s @%i-threads' % (desc, nb_jobs)
         tqdm_bar = tqdm.tqdm(total=len(iterate_vals), desc=desc)
     else:
         tqdm_bar = None
