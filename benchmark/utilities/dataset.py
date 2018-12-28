@@ -164,7 +164,7 @@ def save_large_image(img_path, img):
     :param str img_path: path to the new image
     :param ndarray img: image
 
-    >>> img = np.zeros((2500, 3200, 3))
+    >>> img = np.zeros((2500, 3200, 4), dtype=np.uint8)
     >>> img[:, :, 0] = 255
     >>> img[:, :, 1] = 127
     >>> img_path = './sample-image.jpg'
@@ -172,22 +172,25 @@ def save_large_image(img_path, img):
     >>> img2 = load_large_image(img_path)
     >>> img2[0, 0].tolist()
     [255, 127, 0]
-    >>> img.shape == img2.shape
+    >>> img.shape[:2] == img2.shape[:2]
     True
     >>> os.remove(img_path)
     >>> img_path = './sample-image.png'
-    >>> save_large_image(img_path, img)
+    >>> save_large_image(img_path, img.astype(np.uint16) * 255)
     >>> img3 = load_large_image(img_path)
     >>> img3[0, 0].tolist()
     [255, 127, 0]
-    >>> save_large_image(img_path, img2)  # test overwrite message
+    >>> save_large_image(img_path, img2 / 255. * 1.15)  # test overwrite message
     >>> os.remove(img_path)
     """
+    # drop transparency
     if img.ndim == 3 and img.shape[2] == 4:
-        img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
+        img = img[:, :, :3]
     # for some reasons with linear interpolation some the range overflow (0, 1)
     if np.max(img) <= 1.5:
-        img = (img * 255).astype(np.int16)
+        img = np.clip(img, a_min=0, a_max=1).astype(np.float16)
+        img = (img * 255).astype(np.uint8)
+    # some tiff images have higher ranger int16
     elif np.max(img) > 255:
         img = (img / 255.)
     # for images as integer clip the value range as (0, 255)
@@ -205,7 +208,7 @@ def generate_pairing(count, step_hide=None):
     """ generate registration pairs with an option of hidden landmarks
 
     :param int count: total number of samples
-    :param int step_hide: hide every N sample
+    :param int|None step_hide: hide every N sample
     :return [(int, int)]: registration pairs
 
     >>> generate_pairing(4, None)

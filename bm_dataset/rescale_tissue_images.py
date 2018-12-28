@@ -8,8 +8,8 @@ Note, that using these scripts for 1+GB images take several tens of GB RAM
 EXAMPLE
 -------
 >> python rescale_tissue_images.py \
-    -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*.png" \
-    --scales 5 10 25 50 --nb_jobs 4
+    -i "/datagrid/Medical/dataset_ANHIR/images_private/COAD_*/scale-100pc/*.png" \
+    --scales 5 10 25 50 -ext .jpg --nb_jobs 4
 
 Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -81,9 +81,12 @@ def scale_image(img_path, scale, image_ext=IMAGE_EXTENSION, overwrite=False):
     img = load_large_image(img_path)
     sc = scale / float(base_scale)
     # for down-scaling use just linear
-    interp = cv.INTER_CUBIC if sc > 1 else cv.INTER_LINEAR
-    img_sc = cv.resize(img, None, fx=sc, fy=sc, interpolation=interp)
-    del img
+    if sc == 1.:
+        img_sc = img
+    else:
+        interp = cv.INTER_CUBIC if sc > 1 else cv.INTER_LINEAR
+        img_sc = cv.resize(img, None, fx=sc, fy=sc, interpolation=interp)
+        del img
 
     logging.debug('creating >> %s', path_img_scale)
     save_large_image(path_img_scale, img_sc)
