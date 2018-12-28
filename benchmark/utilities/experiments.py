@@ -293,7 +293,7 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
     :param wrap_func: function which will be excited in the iterations
     :param [] iterate_vals: list or iterator which will ide in iterations
     :param int nb_jobs: number og jobs running in parallel
-    :param str desc: description for the bar,
+    :param str|None desc: description for the bar,
         if it is set None, bar is suppressed
     :param bool ordered: whether enforce ordering in the parallelism
 

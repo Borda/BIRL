@@ -182,7 +182,7 @@ def create_figure(im_size, figsize_max=MAX_FIGURE_SIZE):
     :param float figsize_max:
     :return:
 
-    >>> fig, ax = create_figure((100, 150, 3))
+    >>> fig, ax = create_figure((100, 150))
     >>> isinstance(fig, plt.Figure)
     True
     """
