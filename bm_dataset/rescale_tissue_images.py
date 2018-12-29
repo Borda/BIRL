@@ -71,7 +71,9 @@ def scale_image(img_path, scale, image_ext=IMAGE_EXTENSION, overwrite=False):
 
     path_dir = os.path.join(base, FOLDER_TEMPLATE % scale)
     if not os.path.isdir(path_dir):
-        os.makedirs(path_dir, exist_ok=True)
+        try:  # in case parallel creating the same dir in different threads
+            os.mkdir(path_dir)
+        except: pass
 
     path_img_scale = os.path.join(path_dir, name + image_ext)
     if os.path.isfile(path_img_scale) and not overwrite:
