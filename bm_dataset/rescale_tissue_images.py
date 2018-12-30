@@ -73,7 +73,8 @@ def scale_image(img_path, scale, image_ext=IMAGE_EXTENSION, overwrite=False):
     if not os.path.isdir(path_dir):
         try:  # in case parallel creating the same dir in different threads
             os.mkdir(path_dir)
-        except: pass
+        except Exception:
+            logging.exception('Parallel folder creation of %s', path_dir)
 
     path_img_scale = os.path.join(path_dir, name + image_ext)
     if os.path.isfile(path_img_scale) and not overwrite:

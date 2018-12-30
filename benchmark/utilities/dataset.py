@@ -7,6 +7,7 @@ Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 import os
 import logging
 
+from PIL import Image
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
@@ -20,6 +21,10 @@ IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 # https://www.life2coding.com/save-opencv-images-jpeg-quality-png-compression
 IMAGE_COMPRESSION_OPTIONS = (cv.IMWRITE_JPEG_QUALITY, 98) + \
                             (cv.IMWRITE_PNG_COMPRESSION, 9)
+# ERROR:root:error: Image size (... pixels) exceeds limit of ... pixels,
+# could be decompression bomb DOS attack.
+# SEE: https://gitlab.mister-muffin.de/josch/img2pdf/issues/42
+Image.MAX_IMAGE_PIXELS = None
 
 
 def detect_binary_blocks(vec_bin):
@@ -151,7 +156,8 @@ def load_large_image(img_path):
     if img.ndim == 3 and img.shape[2] == 4:
         img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
     if np.max(img) <= 1.5:
-        img = (img * 255).astype(np.int16)
+        img = np.clip(img, a_min=0, a_max=1).astype(np.float16)
+        img = (img * 255).astype(np.uint8)
     return img
 
 
