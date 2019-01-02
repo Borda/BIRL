@@ -3,8 +3,8 @@
 The paths and all other constants are set to run on CMP grid for ANHIR dataset
 zip only images mentioned in cover file and landmarks from source
 
->> python zip_dataset_by_cover.py \
-    -i /datagrid/Medical/dataset_ANHIR/images \
+>> python bm_ANHIR/zip_dataset_by_cover.py \
+    -i /datagrid/Medical/dataset_ANHIR/images_private \
     -l /datagrid/Medical/dataset_ANHIR/landmarks \
     -la /datagrid/Medical/dataset_ANHIR/landmarks_all \
     -csv /datagrid/Medical/dataset_ANHIR/images/dataset_medium.csv

@@ -19,7 +19,7 @@ from benchmark.cls_benchmark import (COL_IMAGE_REF, COL_IMAGE_MOVE, COL_TIME,
                                      COL_POINTS_REF, COL_POINTS_MOVE,
                                      COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP)
 
-DATASET_IMAGES = '/datagrid/Medical/dataset_ANHIR/images'
+DATASET_IMAGES = '/datagrid/Medical/dataset_ANHIR/images_private'
 DATASET_LANDMARKS = '/datagrid/Medical/dataset_ANHIR/landmarks_all'
 DATASET_COVERS = '/datagrid/Medical/dataset_ANHIR/images'
 NAME_COVER_FILE = 'dataset_%s.csv'
@@ -40,7 +40,7 @@ DATASET_TISSUE_SCALE_COMPLETE = {
 # define tissues which hide some samples as test
 DATASET_TISSUE_SCALE_PARTIAL = {
     'mice-kidney_*': {'small': 5, 'medium': 25},
-    'COAD_*': {'small': 2, 'medium': 25},
+    'COAD_*': {'small': 5, 'medium': 25},
     'gastric_*': {'small': 2, 'medium': 15},
     'breast_*': {'small': 2, 'medium': 20},
     'kidney_*': {'small': 5, 'medium': 25},
