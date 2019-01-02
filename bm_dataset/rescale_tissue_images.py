@@ -32,7 +32,7 @@ from benchmark.utilities.experiments import wrap_execute_sequence
 from benchmark.utilities.dataset import load_large_image, save_large_image
 
 NB_THREADS = int(mproc.cpu_count() * .5)
-DEFAULT_SCALES = [5, 10, 25, 50]
+DEFAULT_SCALES = (5, 10, 15, 20, 25, 50)
 IMAGE_EXTENSION = '.jpg'
 # IMWRITE_PARAMS = (cv.IMWRITE_JPEG_QUALITY, 100)
 FOLDER_TEMPLATE = 'scale-%ipc'

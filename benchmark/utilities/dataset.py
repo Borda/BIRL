@@ -156,7 +156,7 @@ def load_large_image(img_path):
     if img.ndim == 3 and img.shape[2] == 4:
         img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
     if np.max(img) <= 1.5:
-        img = np.clip(img.astype(np.float16), a_min=0, a_max=1)
+        img = np.clip(img, a_min=0, a_max=1)
         img = (img * 255).astype(np.uint8)
     return img
 
@@ -194,7 +194,7 @@ def save_large_image(img_path, img):
         img = img[:, :, :3]
     # for some reasons with linear interpolation some the range overflow (0, 1)
     if np.max(img) <= 1.5:
-        img = np.clip(img, a_min=0, a_max=1).astype(np.float16)
+        img = np.clip(img, a_min=0, a_max=1)
         img = (img * 255).astype(np.uint8)
     # some tiff images have higher ranger int16
     elif np.max(img) > 255:
