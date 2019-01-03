@@ -16,15 +16,17 @@ jobs:
           name: Install PyPI dependences
           command: |
             pip install -r requirements.txt --user
-            sudo pip install coverage pytest pytest-cov codecov
+            sudo pip install coverage pytest pytest-cov codecov flake8
             python --version ; pip --version ; pwd ; ls
 
       - run:
           name: Testing
           command: |
+            unset DISPLAY
             mkdir test-reports && mkdir results
             coverage run --source benchmark -m py.test benchmark bm_experiments -v --doctest-modules --junitxml=test-reports/pytest_junit.xml
             coverage report && coverage xml -o test-reports/coverage.xml
+            flake8 . --max-line-length=100
             codecov
             rm -rf results
 

@@ -361,8 +361,8 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         path_raw = os.path.join(path_dir, NAME_TXT_TRANSFORM_RAW)
         # points_ref = tl_io.load_landmarks(record[bm.COL_POINTS_REF])
         points_move = tl_io.load_landmarks(path_lnds_move)
-        points_warp = load_parse_bunwarpj_displacements_warp_points(
-                                                        path_raw, points_move)
+        points_warp = load_parse_bunwarpj_displacements_warp_points(path_raw,
+                                                                    points_move)
         if points_warp is None:
             path_lnd = None
         else:

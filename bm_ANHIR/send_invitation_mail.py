@@ -19,9 +19,13 @@ SUBJECT = 'ISBI 2019 - ANHIR - Image Registration Challenge'
 MAIL_INVITATION = """
 Dear <NAME>,
 
-We are writing to you on behalf of your work on image registration and you work: “<PAPER-TITLE>” (<PAPER-LINK>).
-We would like to invite you to participate in image registration methods to participate in the new Automatic Non-rigid Histological Image Registration (ANHIR) challenge to be held at the ISBI 2019 conference in Venice in April 2019.
-The task consists of registering multi-stain histology images. For more detail visit our webpage:
+We are writing to you on behalf of your work on image registration and you work:
+“<PAPER-TITLE>” (<PAPER-LINK>).
+We would like to invite you to participate in image registration methods to participate
+in the new Automatic Non-rigid Histological Image Registration (ANHIR) challenge
+to be held at the ISBI 2019 conference in Venice in April 2019.
+The task consists of registering multi-stain histology images.
+For more detail visit our webpage:
 
 https://anhir.grand-challenge.org
 
