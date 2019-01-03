@@ -15,8 +15,9 @@ jobs:
       - run:
           name: Install PyPI dependences
           command: |
-            pip install -r requirements.txt --user
+            sudo pip install -U backports.functools_lru_cache  # required for matplotlib @py2
             sudo pip install coverage pytest pytest-cov codecov flake8
+            pip install -r requirements.txt --user
             python --version ; pip --version ; pwd ; ls
 
       - run:
