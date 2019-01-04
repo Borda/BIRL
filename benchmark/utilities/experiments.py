@@ -40,7 +40,7 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     """
     assert os.path.exists(path_out), 'missing "%s"' % path_out
     date = time.gmtime()
-    if isinstance(name, str) and len(name) > 0:
+    if isinstance(name, str) and name:
         dir_name = '{}_{}'.format(dir_name, name)
     if stamp_unique:
         dir_name += '_' + time.strftime(FORMAT_DATE_TIME, date)

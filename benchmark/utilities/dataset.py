@@ -110,7 +110,7 @@ def find_largest_object(hist, threshold=TISSUE_CONTENT):
     hist_bin = hist > threshold
     begins, ends, lengths = detect_binary_blocks(hist_bin)
 
-    assert len(lengths) > 0, 'no object found'
+    assert lengths, 'no object found'
 
     # select only the number of largest objects
     obj_sorted = sorted(zip(lengths, range(len(lengths))), reverse=True)

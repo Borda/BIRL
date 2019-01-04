@@ -20,6 +20,7 @@ build:
   ci:
     - echo $CI_REPORTS && mkdir -p $CI_REPORTS
     - echo $COVERAGE_REPORTS && mkdir -p $COVERAGE_REPORTS
+    - DISPLAY=""
 
 before_install:
   - apt-get update # --fix-missing
@@ -34,7 +35,6 @@ install:
   - pip install nose coverage codecov pytest codacy-coverage
 
 script:
-  - unset DISPLAY
   - mkdir results
   # - nosetests --with-xunit --xunit-file=shippable/testresults/nosetests.xml
   - nosetests -v --exe --with-doctest --with-coverage --with-xunit --cover-package=benchmark --xunit-file=shippable/testresults/nosetests.xml
