@@ -70,9 +70,10 @@ if sys.version_info.major == 2:
         #   Can't pickle <type 'instancemethod'>:
         #       attribute lookup __builtin__.instancemethod failed
         if m.im_self is None:
-            return getattr, (m.im_class, m.im_func.func_name)
+            tp = m.im_class
         else:
-            return getattr, (m.im_self, m.im_func.func_name)
+            tp = m.im_self
+        return getattr, (tp, m.im_func.func_name)
 
     copy_reg.pickle(types.MethodType, _reduce_method)
 
@@ -350,7 +351,7 @@ class ImRegBenchmark(Experiment):
                                   self._df_experiments, use_output=False,
                                   name='visualise results')
         # export stat to csv
-        if len(self._df_experiments) == 0:
+        if self._df_experiments.empty:
             logging.warning('no experimental results were collected')
             return
         self.__export_df_experiments(self._path_csv_regist)
@@ -389,7 +390,7 @@ class ImRegBenchmark(Experiment):
 
         # compute statistic
         img_size = tl_io.load_image(path_img_ref).shape[:2]
-        if len(points_target) > 0 and len(points_warped) > 0:
+        if list(points_target) and list(points_warped):
             self.__compute_landmarks_inaccuracy(idx, points_target,
                                                 points_warped, 'final', img_size)
 
@@ -505,7 +506,7 @@ class ImRegBenchmark(Experiment):
         """ export the summary as CSV and TXT """
         path_txt = os.path.join(self.params['path_exp'], NAME_TXT_RESULTS)
         costume_prec = np.arange(0., 1., 0.05)
-        if len(self._df_experiments) == 0:
+        if self._df_experiments.empty:
             logging.error('No registration results found.')
             return
         if 'ID' in self._df_experiments.columns:

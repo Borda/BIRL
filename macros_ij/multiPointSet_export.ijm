@@ -19,7 +19,7 @@ getSelectionCoordinates(xCoordinates, yCoordinates);
 // just to have name of file...
 f = File.open("");
 File.close(f)
-// remove this temporar file
+// remove this temporary file
 res = File.delete(File.directory + File.name)
 
 tmp = split(File.name,".");

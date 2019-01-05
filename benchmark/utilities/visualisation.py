@@ -9,7 +9,7 @@ import os
 
 # import matplotlib
 # if os.environ.get('DISPLAY', '') == '':
-#     logging.warning('No display found. Using non-interactive Agg backend')
+#     print('No display found. Using non-interactive Agg backend')
 #     matplotlib.use('Agg')
 
 import numpy as np
@@ -182,7 +182,7 @@ def create_figure(im_size, figsize_max=MAX_FIGURE_SIZE):
     :param float figsize_max:
     :return:
 
-    >>> fig, ax = create_figure((100, 150, 3))
+    >>> fig, ax = create_figure((100, 150))
     >>> isinstance(fig, plt.Figure)
     True
     """

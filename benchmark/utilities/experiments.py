@@ -40,7 +40,7 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     """
     assert os.path.exists(path_out), 'missing "%s"' % path_out
     date = time.gmtime()
-    if isinstance(name, str) and len(name) > 0:
+    if isinstance(name, str) and name:
         dir_name = '{}_{}'.format(dir_name, name)
     if stamp_unique:
         dir_name += '_' + time.strftime(FORMAT_DATE_TIME, date)
@@ -293,7 +293,7 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
     :param wrap_func: function which will be excited in the iterations
     :param [] iterate_vals: list or iterator which will ide in iterations
     :param int nb_jobs: number og jobs running in parallel
-    :param str desc: description for the bar,
+    :param str|None desc: description for the bar,
         if it is set None, bar is suppressed
     :param bool ordered: whether enforce ordering in the parallelism
 
@@ -306,6 +306,7 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
     iterate_vals = list(iterate_vals)
 
     if desc is not None:
+        desc = '%s @%i-threads' % (desc, nb_jobs)
         tqdm_bar = tqdm.tqdm(total=len(iterate_vals), desc=desc)
     else:
         tqdm_bar = None
@@ -316,7 +317,6 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
         # inside its children, cascade or multiprocessing
         # https://stackoverflow.com/questions/6974695/python-process-pool-non-daemonic
         pool = NDPool(nb_jobs)
-
         pooling = pool.imap if ordered else pool.imap_unordered
 
         for out in pooling(wrap_func, iterate_vals):

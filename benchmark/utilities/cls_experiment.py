@@ -62,7 +62,6 @@ class Experiment(object):
     def _check_required_params(self):
         """ check some extra required parameters for this experiment """
         logging.debug('.. check if Experiment have all required parameters')
-        pass
 
     def run(self):
         """ running experiment """
@@ -109,8 +108,8 @@ class Experiment(object):
                                           % repr(self.params.keys())
         # create results folder for experiments
         path_exp = tl_expt.create_experiment_folder(
-                        self.params.get('path_out'), self.__class__.__name__,
-                        self.params.get('name'), stamp_unique)
+            self.params.get('path_out'), self.__class__.__name__,
+            self.params.get('name'), stamp_unique)
         self.params['path_exp'] = path_exp
         with open(os.path.join(path_exp, CONFIG_JSON), 'w') as f:
             json.dump(self.params, f)

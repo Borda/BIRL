@@ -5,8 +5,10 @@ Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
+import re
 import logging
 
+from PIL import Image
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
@@ -16,6 +18,15 @@ from skimage.exposure import rescale_intensity
 TISSUE_CONTENT = 0.01
 # supported image extensions
 IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg')
+# https://github.com/opencv/opencv/issues/6729
+# https://www.life2coding.com/save-opencv-images-jpeg-quality-png-compression
+IMAGE_COMPRESSION_OPTIONS = (cv.IMWRITE_JPEG_QUALITY, 98) + \
+                            (cv.IMWRITE_PNG_COMPRESSION, 9)
+REEXP_FOLDER_SCALE = r'\S*scale-(\d+)pc'
+# ERROR:root:error: Image size (... pixels) exceeds limit of ... pixels,
+# could be decompression bomb DOS attack.
+# SEE: https://gitlab.mister-muffin.de/josch/img2pdf/issues/42
+Image.MAX_IMAGE_PIXELS = None
 
 
 def detect_binary_blocks(vec_bin):
@@ -99,7 +110,7 @@ def find_largest_object(hist, threshold=TISSUE_CONTENT):
     hist_bin = hist > threshold
     begins, ends, lengths = detect_binary_blocks(hist_bin)
 
-    assert len(lengths) > 0, 'no object found'
+    assert lengths, 'no object found'
 
     # select only the number of largest objects
     obj_sorted = sorted(zip(lengths, range(len(lengths))), reverse=True)
@@ -146,6 +157,11 @@ def load_large_image(img_path):
     img = plt.imread(img_path)
     if img.ndim == 3 and img.shape[2] == 4:
         img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
+    if np.max(img) <= 1.5:
+        np.clip(img, a_min=0, a_max=1, out=img)
+        # this command split should reduce mount of required memory
+        np.multiply(img, 255, out=img)
+        img = img.astype(np.uint8, copy=False)
     return img
 
 
@@ -158,33 +174,56 @@ def save_large_image(img_path, img):
     :param str img_path: path to the new image
     :param ndarray img: image
 
-    >>> img = np.random.random((2500, 3200, 3))
+    >>> img = np.zeros((2500, 3200, 4), dtype=np.uint8)
+    >>> img[:, :, 0] = 255
+    >>> img[:, :, 1] = 127
     >>> img_path = './sample-image.jpg'
     >>> save_large_image(img_path, img)
     >>> img2 = load_large_image(img_path)
-    >>> img.shape == img2.shape
+    >>> img2[0, 0].tolist()
+    [255, 127, 0]
+    >>> img.shape[:2] == img2.shape[:2]
     True
     >>> os.remove(img_path)
+    >>> img_path = './sample-image.png'
+    >>> save_large_image(img_path, img.astype(np.uint16) * 255)
+    >>> img3 = load_large_image(img_path)
+    >>> img.shape[:2] == img3.shape[:2]
+    True
+    >>> img3[0, 0].tolist()
+    [255, 127, 0]
+    >>> save_large_image(img_path, img2 / 255. * 1.15)  # test overwrite message
+    >>> os.remove(img_path)
     """
+    # drop transparency
     if img.ndim == 3 and img.shape[2] == 4:
-        img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
+        img = img[:, :, :3]
     # for some reasons with linear interpolation some the range overflow (0, 1)
     if np.max(img) <= 1.5:
-        img = (img * 255)
+        np.clip(img, a_min=0, a_max=1, out=img)
+        # this command split should reduce mount of required memory
+        np.multiply(img, 255, out=img)
+        img = img.astype(np.uint8, copy=False)
+    # some tiff images have higher ranger int16
     elif np.max(img) > 255:
-        img = (img / 255.)
+        img = img / 255
+    # for images as integer clip the value range as (0, 255)
     if img.dtype != np.uint8:
-        img = np.clip(img, a_min=0, a_max=255).astype(np.uint8)
+        np.clip(img, a_min=0, a_max=255, out=img)
+        img = img.astype(np.uint8, copy=False)
     if os.path.isfile(img_path):
-        logging.debug('image will be overwritten: %s', img_path)
-    cv.imwrite(img_path, img)
+        logging.debug('WARNING: this image will be overwritten: %s', img_path)
+    # why cv2 imwrite changes the color of pics
+    # https://stackoverflow.com/questions/42406338
+    img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
+    cv.imwrite(img_path, img, IMAGE_COMPRESSION_OPTIONS)
 
 
 def generate_pairing(count, step_hide=None):
     """ generate registration pairs with an option of hidden landmarks
 
     :param int count: total number of samples
-    :param int step_hide: hide every N sample
+    :param int|None step_hide: hide every N sample
     :return [(int, int)]: registration pairs
 
     >>> generate_pairing(4, None)
@@ -201,3 +240,24 @@ def generate_pairing(count, step_hide=None):
     idxs_pairs = [(i, j) for k, (i, j) in enumerate(idxs_pairs)
                   if (j, i) not in idxs_pairs[:k]]
     return idxs_pairs
+
+
+def parse_path_scale(path):
+    """ from given path with annotation parse scale
+
+    :param str path: path to the user folder
+    :return int:
+
+    >>> parse_path_scale('scale-.1pc')
+    nan
+    >>> parse_path_scale('user-JB_scale-50pc')
+    50
+    >>> parse_path_scale('scale-10pc')
+    10
+    """
+    name = os.path.basename(path)
+    obj = re.match(REEXP_FOLDER_SCALE, name)
+    if obj is None:
+        return np.nan
+    scale = int(obj.groups()[0])
+    return scale

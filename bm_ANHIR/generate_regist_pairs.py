@@ -19,11 +19,11 @@ from benchmark.cls_benchmark import (COL_IMAGE_REF, COL_IMAGE_MOVE, COL_TIME,
                                      COL_POINTS_REF, COL_POINTS_MOVE,
                                      COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP)
 
-DATASET_IMAGES = '/datagrid/Medical/dataset_ANHIR/images'
+DATASET_IMAGES = '/datagrid/Medical/dataset_ANHIR/images_private'
 DATASET_LANDMARKS = '/datagrid/Medical/dataset_ANHIR/landmarks_all'
 DATASET_COVERS = '/datagrid/Medical/dataset_ANHIR/images'
 NAME_COVER_FILE = 'dataset_%s.csv'
-GENERATED_SCALES = (5, 10, 25, 50, 100)
+GENERATED_SCALES = (5, 10, 15, 20, 25, 50, 100)
 NAME_DIR_SCALE = 'scale-%ipc'
 # define datasets scale size names and the shift in GENERATED_SCALES
 SCALE_NAMES = (
@@ -32,16 +32,18 @@ SCALE_NAMES = (
 )
 # define tissues with all landmarks presented
 DATASET_TISSUE_SCALE_COMPLETE = {
-    'lung-lesion_[1,3]': (5, 50),
-    'lung-lesion_2': (5, 25),
-    'lung-lobes_*': (5, 50),
-    'mammary-gland_*': (5, 25),
+    'lung-lesion_[1,3]': {'small': 5, 'medium': 50},
+    'lung-lesion_2': {'small': 5, 'medium': 25},
+    'lung-lobes_*': {'small': 5, 'medium': 50},
+    'mammary-gland_*': {'small': 5, 'medium': 25},
 }
 # define tissues which hide some samples as test
 DATASET_TISSUE_SCALE_PARTIAL = {
-    'kidney_*': (5, 25),
-    'COAD_*': (2, 25),
-    'gastric_*': (2, 20),
+    'mice-kidney_*': {'small': 5, 'medium': 25},
+    'COAD_*': {'small': 5, 'medium': 25},
+    'gastric_*': {'small': 2, 'medium': 15},
+    'breast_*': {'small': 2, 'medium': 20},
+    'kidney_*': {'small': 5, 'medium': 25},
 }
 # define tissues to be part of the dataset
 DATASET_TISSUE_SCALE = DATASET_TISSUE_SCALE_COMPLETE.copy()
@@ -69,7 +71,7 @@ def list_landmarks_images(path_tissue, sc, path_landmarks, path_images):
                                         os.path.splitext(rp_lnd)[0] + '.*'))
         p_imgs = [p for p in p_imgs
                   if os.path.splitext(p)[-1] in IMAGE_EXTENSIONS]
-        if not len(p_imgs):
+        if not p_imgs:
             logging.error('missing image for "%s"', rp_lnd)
             return [], []
         paths_imgs.append(sorted(p_imgs)[0])
@@ -106,7 +108,7 @@ def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out,
 
     reg_pairs = []
     for tissue in sorted(dataset):
-        sc = dataset[tissue][SCALE_NAMES.index(name)]
+        sc = dataset[tissue][name]
         paths_tissue = [p for p in glob.glob(os.path.join(path_landmarks, tissue))
                         if os.path.isdir(p)]
         for p_tissue in sorted(paths_tissue):

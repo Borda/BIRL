@@ -8,8 +8,8 @@ Note, that using these scripts for 1+GB images take several tens of GB RAM
 EXAMPLE
 -------
 >> python rescale_tissue_images.py \
-    -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*.png" \
-    --scales 5 10 25 50 --nb_jobs 4
+    -i "/datagrid/Medical/dataset_ANHIR/images_private/COAD_*/scale-100pc/*.png" \
+    --scales 5 10 25 50 -ext .jpg --nb_jobs 4
 
 Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -32,7 +32,7 @@ from benchmark.utilities.experiments import wrap_execute_sequence
 from benchmark.utilities.dataset import load_large_image, save_large_image
 
 NB_THREADS = int(mproc.cpu_count() * .5)
-DEFAULT_SCALES = [5, 10, 25, 50]
+DEFAULT_SCALES = (5, 10, 15, 20, 25, 50)
 IMAGE_EXTENSION = '.jpg'
 # IMWRITE_PARAMS = (cv.IMWRITE_JPEG_QUALITY, 100)
 FOLDER_TEMPLATE = 'scale-%ipc'
@@ -48,6 +48,8 @@ def arg_parse_params():
                         help='path (pattern) to the input image')
     parser.add_argument('--scales', type=int, required=False, nargs='+',
                         help='list of output scales', default=DEFAULT_SCALES)
+    parser.add_argument('-ext', '--image_extension', type=str, required=False,
+                        help='output image extension', default=IMAGE_EXTENSION)
     parser.add_argument('--overwrite', action='store_true', required=False,
                         default=False, help='visualise the landmarks in images')
     parser.add_argument('--nb_jobs', type=int, required=False,
@@ -61,7 +63,7 @@ def arg_parse_params():
     return args
 
 
-def scale_image(img_path, scale, overwrite=False):
+def scale_image(img_path, scale, image_ext=IMAGE_EXTENSION, overwrite=False):
     base = os.path.dirname(os.path.dirname(img_path))
     name = os.path.splitext(os.path.basename(img_path))[0]
     folder = os.path.basename(os.path.dirname(img_path))
@@ -69,17 +71,25 @@ def scale_image(img_path, scale, overwrite=False):
 
     path_dir = os.path.join(base, FOLDER_TEMPLATE % scale)
     if not os.path.isdir(path_dir):
-        os.makedirs(path_dir, exist_ok=True)
+        try:  # in case parallel creating the same dir in different threads
+            os.mkdir(path_dir)
+        except Exception:
+            logging.exception('Parallel folder creation of %s', path_dir)
 
-    path_img_scale = os.path.join(path_dir, name + IMAGE_EXTENSION)
+    path_img_scale = os.path.join(path_dir, name + image_ext)
     if os.path.isfile(path_img_scale) and not overwrite:
         logging.debug('existing "%s"', path_img_scale)
         return
 
     img = load_large_image(img_path)
     sc = scale / float(base_scale)
-    img_sc = cv.resize(img, None, fx=sc, fy=sc, interpolation=cv.INTER_CUBIC)
-    del img
+    # for down-scaling use just linear
+    if sc == 1.:
+        img_sc = img
+    else:
+        interp = cv.INTER_CUBIC if sc > 1 else cv.INTER_LINEAR
+        img_sc = cv.resize(img, None, fx=sc, fy=sc, interpolation=interp)
+        del img
 
     logging.debug('creating >> %s', path_img_scale)
     save_large_image(path_img_scale, img_sc)
@@ -87,15 +97,15 @@ def scale_image(img_path, scale, overwrite=False):
     time.sleep(1)
 
 
-def wrap_scale_image(img_path_scale, overwrite=False):
+def wrap_scale_image(img_path_scale, image_ext=IMAGE_EXTENSION, overwrite=False):
     img_path, scale = img_path_scale
     try:
-        return scale_image(img_path, scale, overwrite)
+        return scale_image(img_path, scale, image_ext, overwrite)
     except Exception:
         logging.exception('scaling %i of image: %s', scale, img_path)
 
 
-def main(path_images, scales, overwrite, nb_jobs):
+def main(path_images, scales, image_extension, overwrite, nb_jobs):
     image_paths = sorted(glob.glob(path_images))
     image_path_scales = [(im_path, sc) for im_path in image_paths
                          for sc in scales]
@@ -104,7 +114,8 @@ def main(path_images, scales, overwrite, nb_jobs):
         logging.info('No images found on "%s"', path_images)
         return
 
-    _wrap_scale = partial(wrap_scale_image, overwrite=overwrite)
+    _wrap_scale = partial(wrap_scale_image, image_ext=image_extension,
+                          overwrite=overwrite)
     list(wrap_execute_sequence(_wrap_scale, image_path_scales,
                                desc='Scaling images', nb_jobs=nb_jobs))
 
