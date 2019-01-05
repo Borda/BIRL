@@ -62,7 +62,6 @@ class Experiment(object):
     def _check_required_params(self):
         """ check some extra required parameters for this experiment """
         logging.debug('.. check if Experiment have all required parameters')
-        pass
 
     def run(self):
         """ running experiment """

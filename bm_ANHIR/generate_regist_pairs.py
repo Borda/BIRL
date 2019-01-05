@@ -71,7 +71,7 @@ def list_landmarks_images(path_tissue, sc, path_landmarks, path_images):
                                         os.path.splitext(rp_lnd)[0] + '.*'))
         p_imgs = [p for p in p_imgs
                   if os.path.splitext(p)[-1] in IMAGE_EXTENSIONS]
-        if not len(p_imgs):
+        if not p_imgs:
             logging.error('missing image for "%s"', rp_lnd)
             return [], []
         paths_imgs.append(sorted(p_imgs)[0])

@@ -70,9 +70,10 @@ if sys.version_info.major == 2:
         #   Can't pickle <type 'instancemethod'>:
         #       attribute lookup __builtin__.instancemethod failed
         if m.im_self is None:
-            return getattr, (m.im_class, m.im_func.func_name)
+            tp = m.im_class
         else:
-            return getattr, (m.im_self, m.im_func.func_name)
+            tp = m.im_self
+        return getattr, (tp, m.im_func.func_name)
 
     copy_reg.pickle(types.MethodType, _reduce_method)
 

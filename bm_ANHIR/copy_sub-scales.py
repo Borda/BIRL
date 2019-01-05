@@ -27,11 +27,11 @@ def main(path_csv, path_in, path_out, col_name):
     df = pd.read_csv(path_csv)
     files = df[col_name]
 
-    for file in tqdm.tqdm(files, desc=col_name):
-        scale = parse_path_scale(os.path.dirname(file))
+    for p_file in tqdm.tqdm(files, desc=col_name):
+        scale = parse_path_scale(os.path.dirname(p_file))
         # print(scale, SCALES[:SCALES.index(scale)])
-        tissue_name = file.split(os.path.sep)[0]
-        case_name = os.path.basename(file)
+        tissue_name = p_file.split(os.path.sep)[0]
+        case_name = os.path.basename(p_file)
         for sc in SCALES[:SCALES.index(scale) + 1]:
             path_file = os.path.join(tissue_name, FOLDER_NAME % sc, case_name)
             path_dir = os.path.join(path_out, tissue_name, FOLDER_NAME % sc)
