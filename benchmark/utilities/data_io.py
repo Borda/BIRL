@@ -1,7 +1,7 @@
 """
 Useful function for managing Input/Output
 
-Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os

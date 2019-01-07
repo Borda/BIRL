@@ -2,7 +2,7 @@
 Testing default benchmarks in single thred and parallel configuration
 Check whether it generates correct outputs and resulting values
 
-Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 

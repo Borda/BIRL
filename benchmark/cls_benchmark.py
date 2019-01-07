@@ -8,7 +8,7 @@ EXAMPLE (usage):
 >> python benchmarks/bm_registration.py \
     -c data_images/pairs-imgs-lnds_mix.csv -o results --unique
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 

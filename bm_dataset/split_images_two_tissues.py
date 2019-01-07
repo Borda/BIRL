@@ -9,7 +9,7 @@ EXAMPLE
     -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*_*.png" \
     --nb_jobs 3
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os

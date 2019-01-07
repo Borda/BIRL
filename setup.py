@@ -4,7 +4,7 @@ See:
 https://packaging.python.org/en/latest/distributing.html
 https://github.com/pypa/sampleproject
 
-Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 # Always prefer setuptools over distutils
@@ -56,6 +56,6 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     keywords='benchmark image registration landmarks',
-    packages=find_packages(exclude=['docs', 'tests']),
+    packages=find_packages(exclude=['bm_*', 'docs', 'tests']),
     install_requires=requirements,
 )

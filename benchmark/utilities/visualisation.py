@@ -1,7 +1,7 @@
 """
 Function for drawing and visualisations
 
-Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 

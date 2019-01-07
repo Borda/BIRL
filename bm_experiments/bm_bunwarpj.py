@@ -31,7 +31,7 @@ see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support
 NOTE:
 * tested for version ImageJ 2.35
 
-Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 

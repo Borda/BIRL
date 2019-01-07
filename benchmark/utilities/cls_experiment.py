@@ -1,7 +1,7 @@
 """
 General template for experiments
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 

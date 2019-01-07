@@ -1,17 +1,19 @@
 """
 Some functionality related to dataset
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
 import re
 import logging
 
+from scipy import spatial
 from PIL import Image
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
+from matplotlib.path import Path
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
 
@@ -261,3 +263,46 @@ def parse_path_scale(path):
         return np.nan
     scale = int(obj.groups()[0])
     return scale
+
+
+def compute_convex_hull(landmarks):
+    """ compute convex hull around landmarks
+
+    http://lagrange.univ-lyon1.fr/docs/scipy/0.17.1/generated/scipy.spatial.ConvexHull.html
+    https://stackoverflow.com/questions/21727199
+
+    :param ndarray landmarks:
+    :return ndarray:
+
+    >>> np.random.seed(0)
+    >>> pts = np.random.randint(15, 30, (10, 2))
+    >>> compute_convex_hull(pts)
+    array([[27, 20],
+           [27, 25],
+           [22, 24],
+           [16, 21],
+           [15, 18],
+           [26, 18]])
+    """
+    chull = spatial.ConvexHull(landmarks)
+    chull_points = landmarks[chull.vertices]
+    return chull_points
+
+
+def inside_polygon(polygon, point):
+    """ check if a point is strictly inside the polygon
+
+    :param ndarray|[] polygon: polygon contour
+    :param ()|[] point: sample point
+    :return bool: inside
+
+    >>> poly = [[1, 1], [1, 3], [3, 3], [3, 1]]
+    >>> inside_polygon(poly, [0, 0])
+    False
+    >>> inside_polygon(poly, [1, 1])
+    False
+    >>> inside_polygon(poly, [2, 2])
+    True
+    """
+    path = Path(polygon)
+    return path.contains_points([point])[0]

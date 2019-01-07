@@ -11,7 +11,7 @@ EXAMPLE
     -i "/datagrid/Medical/dataset_ANHIR/images_private/COAD_*/scale-100pc/*.png" \
     --scales 5 10 25 50 -ext .jpg --nb_jobs 4
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os

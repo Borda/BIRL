@@ -9,7 +9,7 @@ Example run:
     -l ../data_images/landmarks/Rat_Kidney_HE.csv \
     -o ../output/synth_dataset  --visual
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os

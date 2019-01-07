@@ -2,7 +2,7 @@
 Creating cover file for configuring registration image pairs
 The paths and all other constants are set to run on CMP grid for ANHIR dataset
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
