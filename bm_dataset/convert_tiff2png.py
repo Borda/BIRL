@@ -114,7 +114,7 @@ def main(path_images, level=DEFAULT_LEVEL, overwrite=False, nb_jobs=1):
                             overwrite=overwrite)
 
     list(wrap_execute_sequence(_wrap_convert, paths_img,
-                               desc='converting images', nb_jobs=nb_jobs))
+                               desc='Converting images', nb_jobs=nb_jobs))
 
 
 if __name__ == '__main__':

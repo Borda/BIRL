@@ -226,12 +226,14 @@ def generate_pairing(count, step_hide=None):
 
     :param int count: total number of samples
     :param int|None step_hide: hide every N sample
-    :return [(int, int)]: registration pairs
+    :return [(int, int)], [bool]: registration pairs
 
-    >>> generate_pairing(4, None)
-    [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
-    >>> generate_pairing(4, step_hide=3)
-    [(0, 1), (0, 2), (1, 2), (3, 1), (3, 2)]
+    >>> generate_pairing(4, None)  # doctest: +NORMALIZE_WHITESPACE
+    ([(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+     [True, True, True, True, True, True])
+    >>> generate_pairing(4, step_hide=3)  # doctest: +NORMALIZE_WHITESPACE
+    ([(0, 1), (0, 2), (1, 2), (3, 1), (3, 2)],
+     [False, False, True, False, False])
     """
     idxs_all = list(range(count))
     idxs_hide = idxs_all[::step_hide] if step_hide is not None else []
@@ -241,7 +243,8 @@ def generate_pairing(count, step_hide=None):
     # prune symmetric image pairs
     idxs_pairs = [(i, j) for k, (i, j) in enumerate(idxs_pairs)
                   if (j, i) not in idxs_pairs[:k]]
-    return idxs_pairs
+    public = [not (i in idxs_hide or j in idxs_hide) for i, j in idxs_pairs]
+    return idxs_pairs, public
 
 
 def parse_path_scale(path):
