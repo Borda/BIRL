@@ -33,6 +33,7 @@ before_install:
 install:
   - pip install -r requirements.txt
   - pip install nose coverage codecov pytest codacy-coverage
+  - pip --version ; pip freeze
 
 script:
   - mkdir results
