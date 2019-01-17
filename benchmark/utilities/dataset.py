@@ -136,7 +136,7 @@ def project_object_edge(img, dimension):
      0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0, 0.0, 0.0]
     """
     assert dimension in (0, 1), 'not supported dimension %i' % dimension
-    assert img.ndim == 3, 'unsupported image shape %s' % repr(img.shape)
+    assert img.ndim == 3, 'unsupported image shape %r' % img.shape
     img_gray = np.mean(img, axis=-1)
     img_gray = cv.GaussianBlur(img_gray, (5, 5), 0)
     p_low, p_high = np.percentile(img_gray, (1, 95))

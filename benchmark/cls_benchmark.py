@@ -131,8 +131,7 @@ class ImRegBenchmark(Experiment):
 
         :param dict params:  {str: value}
         """
-        assert 'unique' in params, 'missing "unique" among %s' \
-                                   % repr(params.keys())
+        assert 'unique' in params, 'missing "unique" among %r' % params.keys()
         super(ImRegBenchmark, self).__init__(params, params['unique'])
         logging.info(self.__doc__)
 
@@ -141,8 +140,7 @@ class ImRegBenchmark(Experiment):
         logging.debug('.. check if the BM have all required parameters')
         super(ImRegBenchmark, self)._check_required_params()
         for n in self.REQUIRED_PARAMS:
-            assert n in self.params, 'missing "%s" among %s' \
-                                     % (n, repr(self.params.keys()))
+            assert n in self.params, 'missing "%s" among %r' % (n, self.params.keys())
 
     def _update_path(self, path, tp='data'):
         """ update te path to the datset or output
@@ -302,7 +300,7 @@ class ImRegBenchmark(Experiment):
         check = os.path.exists(path_dir_reg) and (b_df_col or b_df_idx)
         if check:
             logging.warning('particular registration experiment already exists:'
-                            ' "%s"', repr(idx))
+                            ' "%r"', idx)
         return check
 
     def _perform_registration(self, df_row):

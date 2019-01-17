@@ -74,8 +74,7 @@ def load_landmarks_txt(path_file):
         lines = data.split('\n')
         # lines = [re.sub("(\\r|)\\n$", '', line) for line in lines]
     if len(lines) < 2:
-        logging.warning('invalid format: file has less then 2 lines, "%s"',
-                        repr(lines))
+        logging.warning('invalid format: file has less then 2 lines, "%r"', lines)
         return np.zeros((0, 2))
     nb_points = int(lines[1])
     points = [[float(n) for n in line.split()]

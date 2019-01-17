@@ -60,7 +60,7 @@ def arg_parse_params():
                         default=NB_THREADS)
     args = vars(parser.parse_args())
     args['path_images'] = os.path.expanduser(args['path_images'])
-    logging.info('ARGUMENTS: \n%s' % repr(args))
+    logging.info('ARGUMENTS: \n%r' % args)
     return args
 
 

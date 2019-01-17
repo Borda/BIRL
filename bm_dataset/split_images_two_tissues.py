@@ -52,7 +52,7 @@ def arg_parse_params():
                         default=NB_THREADS)
     args = vars(parser.parse_args())
     args['path_images'] = os.path.expanduser(args['path_images'])
-    logging.info('ARGUMENTS: \n%s' % repr(args))
+    logging.info('ARGUMENTS: \n%r' % args)
     return args
 
 
@@ -64,7 +64,7 @@ def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
     paths_img = [os.path.join(folder, obj_name + ext) for obj_name in obj_names]
 
     if all(os.path.isfile(p) for p in paths_img) and not overwrite:
-        logging.debug('existing all splits of %s', repr(paths_img))
+        logging.debug('existing all splits of %r', paths_img)
         return
 
     img = load_large_image(img_path)
@@ -88,7 +88,7 @@ def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
     # cutting images
     for i, path_img_cut in enumerate(paths_img):
         if os.path.isfile(path_img_cut) and not overwrite:
-            logging.debug('existing "%s"', repr(paths_img))
+            logging.debug('existing "%s"', path_img_cut)
             continue
         if cut_dim == 0:
             img_cut = img[edges[i]:edges[i + 1], ...]

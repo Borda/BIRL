@@ -195,12 +195,12 @@ def parse_params(parser):
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     args = vars(parser.parse_args())
-    logging.debug('ARG PARAMS: \n %s', repr(args))
+    logging.info('ARG PARAMETERS: \n %r', args)
     # remove all None parameters
     args = {k: args[k] for k in args if args[k] is not None}
     # extend nd test all paths in params
-    assert check_paths(args), 'missing paths: %s' % \
-                              repr({k: args[k] for k in missing_paths(args)})
+    assert check_paths(args), 'missing paths: %r' % {k: args[k]
+                                                     for k in missing_paths(args)}
     return args
 
 
@@ -275,8 +275,7 @@ def compute_points_dist_statistic(points1, points2):
     points1 = np.asarray(points1)
     points2 = np.asarray(points2)
     assert points1.shape == points2.shape, \
-        'points sizes do not match %s != %s' \
-        % (repr(points1.shape), repr(points2.shape))
+        'points sizes do not match %r != %r' % (points1.shape, points2.shape)
     diffs = np.sqrt(np.sum(np.power(points1 - points2, 2), axis=1))
     dict_stat = {
         'Mean': np.mean(diffs),

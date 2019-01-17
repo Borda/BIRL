@@ -69,9 +69,8 @@ def arg_parse_params():
                         default=NB_THREADS)
     args = vars(parser.parse_args())
     logging.info(tl_expt.string_dict(args, 'ARGUMENTS:'))
-    assert tl_expt.check_paths(args, ['path_out']), \
-        'missing some paths: %s' \
-        % repr({k: args[k] for k in tl_expt.missing_paths(args, ['path_out'])})
+    assert tl_expt.check_paths(args, ['path_out']), 'missing some paths: %r' \
+        % {k: args[k] for k in tl_expt.missing_paths(args, ['path_out'])}
     args['visual'] = bool(args['visual'])
     return args
 

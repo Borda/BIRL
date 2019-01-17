@@ -43,9 +43,8 @@ def arg_parse_params():
                         default=OPTIONS_COMBINE[0], choices=OPTIONS_COMBINE)
     args = vars(parser.parse_args())
     logging.info(tl_expt.string_dict(args, 'ARGUMENTS:'))
-    assert tl_expt.check_paths(args, ['path_csv']), \
-        'some paths are missing: %s' \
-        % repr({k: args[k] for k in tl_expt.missing_paths(args, ['path_csv'])})
+    assert tl_expt.check_paths(args, ['path_csv']), 'some paths are missing: %r' \
+        % {k: args[k] for k in tl_expt.missing_paths(args, ['path_csv'])}
     return args
 
 

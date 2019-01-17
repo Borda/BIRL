@@ -61,7 +61,7 @@ def arg_parse_params():
     parser.add_argument('-n', '--nb_runs', type=int, required=False,
                         help='number of run experiments', default=5)
     args = vars(parser.parse_args())
-    logging.info('ARGUMENTS: \n%s' % repr(args))
+    logging.info('ARGUMENTS: \n%r' % args)
     return args
 
 
@@ -229,7 +229,7 @@ def main(path_out='', nb_runs=5):
     logging.info('exporting report: %s', path_json)
     with open(path_json, 'w') as fp:
         json.dump(report, fp)
-    logging.info('\n\t '.join('%s: \t %s' % (k, repr(report[k])) for k in report))
+    logging.info('\n\t '.join('%s: \t %r' % (k, report[k]) for k in report))
 
 
 if __name__ == '__main__':

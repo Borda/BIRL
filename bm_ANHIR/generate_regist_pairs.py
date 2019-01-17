@@ -128,8 +128,7 @@ def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out,
                if os.path.isdir(p)]
 
     reg_pairs = []
-    logging.debug('found: %s', repr(sorted(set([os.path.basename(tp[1])
-                                                for tp in tissues]))))
+    logging.debug('found: %r', sorted(set([os.path.basename(tp[1]) for tp in tissues])))
     for tissue, p_tissue in tqdm.tqdm(sorted(tissues)):
         sc = dataset[tissue][name]
         rp_lnds, rp_imgs = list_landmarks_images(p_tissue, sc, path_landmarks,
