@@ -61,6 +61,14 @@ def get_relative_paths(paths, path_base):
 
 
 def list_landmarks_images(path_tissue, sc, path_landmarks, path_images):
+    """ list image and landmarks paths
+
+    :param str path_tissue: path to a tissue - image set
+    :param int sc: used scale
+    :param str path_landmarks:
+    :param str path_images:
+    :return ([str], [str]):
+    """
     path_ = os.path.join(path_tissue, NAME_DIR_SCALE % sc, '*.csv')
     rp_lnds = get_relative_paths(glob.glob(path_), path_landmarks)
     if not rp_lnds:
@@ -81,6 +89,14 @@ def list_landmarks_images(path_tissue, sc, path_landmarks, path_images):
 
 
 def generate_reg_pairs(rp_imgs, rp_lnds, pairs, public):
+    """ format a registration pair as dictionaryies/rows in cover table for a set
+
+    :param [str] rp_imgs: relative paths to images
+    :param rp_lnds: relative paths to related landmarks
+    :param [(int, int)] pairs: pairing among images/landmarks
+    :param [bool] public: marks whether the particular pair is training or evaluation
+    :return [{}]:
+    """
     reg_pairs = []
     for k, (i, j) in enumerate(pairs):
         reg_pairs.append({
