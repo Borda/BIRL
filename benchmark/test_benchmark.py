@@ -97,8 +97,8 @@ class TestBmRegistration(unittest.TestCase):
         }
         self.benchmark = BmTemplate(params)
         self.benchmark.run()
-        self.check_benchmark_results(final_means=[28.05, 68.21, 73.18, 76.44],
-                                     final_stds=[12.77, 28.12, 28.26, 34.42])
+        self.check_benchmark_results(final_means=[28., 68., 73., 76.],
+                                     final_stds=[13., 28., 28., 34.])
         del self.benchmark
 
     def check_benchmark_results(self, final_means, final_stds):
@@ -145,6 +145,6 @@ class TestBmRegistration(unittest.TestCase):
 
         # test specific results
         assert_array_almost_equal(sorted(df_regist['TRE Mean (final)'].values),
-                                  np.array(final_means), decimal=2)
+                                  np.array(final_means), decimal=0)
         assert_array_almost_equal(sorted(df_regist['TRE STD (final)'].values),
-                                  np.array(final_stds), decimal=2)
+                                  np.array(final_stds), decimal=0)

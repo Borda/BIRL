@@ -159,7 +159,7 @@ def missing_paths(args, upper_dirs=None, pattern='path'):
             args[k] = tl_io.update_path(args[k])
             p = args[k]
         if not os.path.exists(p):
-            logging.warning('missing "%s": %s' % (k, p))
+            logging.warning('missing "%s": %s', k, p)
             missing.append(k)
     return missing
 
@@ -264,7 +264,7 @@ def compute_points_dist_statistic(points1, points2):
     >>> dist, stat = compute_points_dist_statistic(points1, points1)
     >>> dist
     array([ 0.,  0.,  0.])
-    >>> all(v == 0 for v in stat.values())
+    >>> all(stat[k] == 0 for k in stat if k not in ['Overlap'])
     True
     >>> dist, stat = compute_points_dist_statistic(points1, points2)
     >>> dist  #doctest: +ELLIPSIS
@@ -272,10 +272,11 @@ def compute_points_dist_statistic(points1, points2):
     >>> stat['Mean']  #doctest: +ELLIPSIS
     2.468...
     """
-    points1 = np.asarray(points1)
-    points2 = np.asarray(points2)
-    assert points1.shape == points2.shape, \
-        'points sizes do not match %r != %r' % (points1.shape, points2.shape)
+    lnd_sizes = [len(points1), len(points2)]
+    nb_common = min(lnd_sizes)
+    assert nb_common > 0, 'no common landamrks for metric'
+    points1 = np.asarray(points1)[:nb_common]
+    points2 = np.asarray(points2)[:nb_common]
     diffs = np.sqrt(np.sum(np.power(points1 - points2, 2), axis=1))
     dict_stat = {
         'Mean': np.mean(diffs),
@@ -283,6 +284,7 @@ def compute_points_dist_statistic(points1, points2):
         'Median': np.median(diffs),
         'Min': np.min(diffs),
         'Max': np.max(diffs),
+        'Overlap': nb_common / float(max(lnd_sizes))
     }
     return diffs, dict_stat
 
