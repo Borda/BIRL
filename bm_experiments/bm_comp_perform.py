@@ -22,6 +22,7 @@ import os
 import time
 import json
 import argparse
+import datetime
 import logging
 import platform
 import hashlib
@@ -115,7 +116,6 @@ def register_image_pair(idx, path_img_target, path_img_source, path_out):
     detector_source.detect_and_extract(img_source_gray)
     matches = match_descriptors(detector_target.descriptors,
                                 detector_source.descriptors)
-
     # robustly estimate affine transform model with RANSAC
     model, _ = ransac((detector_target.keypoints[matches[:, 0]],
                        detector_source.keypoints[matches[:, 1]]),
@@ -156,7 +156,7 @@ def measure_registration_single(path_out, nb_iter=5):
     return res
 
 
-def measure_registration_parallel(path_out, nb_iter=2, nb_jobs=NB_THREADS):
+def measure_registration_parallel(path_out, nb_iter=3, nb_jobs=NB_THREADS):
     """ measure mean execration time for image registration running in N thread
 
     :param str path_out: path to the temporary output space
@@ -215,7 +215,7 @@ def main(path_out='', nb_runs=5):
             'processor': platform.processor(),
             'virtual CPUs': mproc.cpu_count()
         },
-        'created': time.time(),
+        'created': str(datetime.datetime.now()),
         'file': hasher.hexdigest(),
         'nb. runs': nb_runs,
         'python version': platform.python_version(),
