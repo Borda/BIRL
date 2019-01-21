@@ -289,25 +289,29 @@ def compute_points_dist_statistic(points1, points2):
     return diffs, dict_stat
 
 
-class NoDaemonProcess(mproc.Process):
-    @classmethod
-    def _get_daemon(self):
-        # make 'daemon' attribute always return False
-        return False
-
-    def _set_daemon(self, value):
-        pass
-
-    daemon = property(_get_daemon, _set_daemon)
-
-
-class NDPool(multiprocessing.pool.Pool):
+class NonDaemonPool(multiprocessing.pool.Pool):
     """ We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
     because the latter is only a wrapper function, not a proper class.
 
-    >>> pool = NDPool(1)
+    See: https://github.com/nipy/nipype/pull/2754
+
+    >>> pool = NonDaemonPool(1)
     """
-    Process = NoDaemonProcess
+    def Process(self, *args, **kwds):
+        proc = super(NonDaemonPool, self).Process(*args, **kwds)
+
+        class NonDaemonProcess(proc.__class__):
+            """Monkey-patch process to ensure it is never daemonized"""
+            @property
+            def daemon(self):
+                return False
+
+            @daemon.setter
+            def daemon(self, val):
+                pass
+
+        proc.__class__ = NonDaemonProcess
+        return proc
 
 
 def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
@@ -340,7 +344,7 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
         # Standard mproc.Pool created a demon processes which can be called
         # inside its children, cascade or multiprocessing
         # https://stackoverflow.com/questions/6974695/python-process-pool-non-daemonic
-        pool = NDPool(nb_jobs)
+        pool = NonDaemonPool(nb_jobs)
         pooling = pool.imap if ordered else pool.imap_unordered
 
         for out in pooling(wrap_func, iterate_vals):
