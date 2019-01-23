@@ -288,7 +288,7 @@ class NonDaemonPool(multiprocessing.pool.Pool):
 
     See: https://github.com/nipy/nipype/pull/2754
 
-    >>> pool = NonDaemonPool(1)
+    FIXME: fails on Windows
     """
     def Process(self, *args, **kwds):
         proc = super(NonDaemonPool, self).Process(*args, **kwds)
@@ -318,9 +318,8 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
         if it is set None, bar is suppressed
     :param bool ordered: whether enforce ordering in the parallelism
 
-    >>> list(wrap_execute_sequence(lambda x: x ** 2, range(5),
-    ...                            nb_jobs=1, ordered=True))
-    [0, 1, 4, 9, 16]
+    >>> list(wrap_execute_sequence(np.sqrt, range(5), nb_jobs=1, ordered=True))  # doctest: +ELLIPSIS
+    [0.0, 1.0, 1.41..., 1.73..., 2.0]
     >>> list(wrap_execute_sequence(sum, [[0, 1]] * 5, nb_jobs=2, desc=None))
     [1, 1, 1, 1, 1]
     """
@@ -337,7 +336,7 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
         # Standard mproc.Pool created a demon processes which can be called
         # inside its children, cascade or multiprocessing
         # https://stackoverflow.com/questions/6974695/python-process-pool-non-daemonic
-        pool = NonDaemonPool(nb_jobs)
+        pool = mproc.Pool(nb_jobs)
         pooling = pool.imap if ordered else pool.imap_unordered
 
         for out in pooling(wrap_func, iterate_vals):
