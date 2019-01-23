@@ -14,6 +14,7 @@ def transform_points(points, matrix):
     :param ndarray matrix: transformation matrix of shape (3, 3)
     :return ndarray: warped points  of shape (N, 2)
     """
+    points = np.array(points)
     # Pad the data with ones, so that our transformation can do translations
     pts_pad = np.hstack([points, np.ones((points.shape[0], 1))])
     points_warp = np.dot(pts_pad, matrix.T)

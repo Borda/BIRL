@@ -25,7 +25,7 @@ class Experiment(object):
     None, all required parameters used in future have to come in init phase
 
     >>> import benchmark.utilities.data_io as tl_io
-    >>> path_out = tl_io.create_dir('output')
+    >>> path_out = tl_io.create_folder('output')
     >>> params = {'path_out': path_out, 'name': 'my_Experiment'}
     >>> expt = Experiment(params, False)
     >>> 'path_exp' in expt.params

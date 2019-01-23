@@ -248,11 +248,11 @@ def generate_pairing(count, step_hide=None):
     return idxs_pairs, public
 
 
-def parse_path_scale(path):
+def parse_path_scale(path_folder):
     """ from given path with annotation parse scale
 
-    :param str path: path to the user folder
-    :return int:
+    :param str path: path to the scale folder
+    :return int: scale
 
     >>> parse_path_scale('scale-.1pc')
     nan
@@ -261,8 +261,8 @@ def parse_path_scale(path):
     >>> parse_path_scale('scale-10pc')
     10
     """
-    name = os.path.basename(path)
-    obj = re.match(REEXP_FOLDER_SCALE, name)
+    folder = os.path.basename(path_folder)
+    obj = re.match(REEXP_FOLDER_SCALE, folder)
     if obj is None:
         return np.nan
     scale = int(obj.groups()[0])

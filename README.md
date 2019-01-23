@@ -11,11 +11,12 @@
 <!--
 [![codebeat badge](https://codebeat.co/badges/6dd13229-ca9e-4dae-9394-caf5f363082d)](https://codebeat.co/projects/github-com-borda-birl-master)
 [![Coverage Badge](https://api.shippable.com/projects/585bfa66e18a291000c15f24/coverageBadge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
+[![Image.sc 
+forum](https://img.shields.io/badge/dynamic/json.svg?label=forum&url=https%3A%2F%2Fforum.image.sc%2Ftags%2Fanhir.json&query=%24.topic_list.tags.0.topic_count&colorB=brightgreen&suffix=%20topics&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAABPklEQVR42m3SyyqFURTA8Y2BER0TDyExZ+aSPIKUlPIITFzKeQWXwhBlQrmFgUzMMFLKZeguBu5y+//17dP3nc5vuPdee6299gohUYYaDGOyyACq4JmQVoFujOMR77hNfOAGM+hBOQqB9TjHD36xhAa04RCuuXeKOvwHVWIKL9jCK2bRiV284QgL8MwEjAneeo9VNOEaBhzALGtoRy02cIcWhE34jj5YxgW+E5Z4iTPkMYpPLCNY3hdOYEfNbKYdmNngZ1jyEzw7h7AIb3fRTQ95OAZ6yQpGYHMMtOTgouktYwxuXsHgWLLl+4x++Kx1FJrjLTagA77bTPvYgw1rRqY56e+w7GNYsqX6JfPwi7aR+Y5SA+BXtKIRfkfJAYgj14tpOF6+I46c4/cAM3UhM3JxyKsxiOIhH0IO6SH/A1Kb1WBeUjbkAAAAAElFTkSuQmCC)](https://forum.image.sc/tags/anhir)
 -->
 
 
-This project becomes part of **[Automatic Non-rigid Histological Image Registration (ANHIR)](https://anhir.grand-challenge.org)** hosted at [ISBI 2019](https://biomedicalimaging.org/2019/challenges/) conference. The related discussion is hosted on [forum.image.sc](forum.image.sc), see [![Image.sc 
-forum](https://img.shields.io/badge/dynamic/json.svg?label=forum&url=https%3A%2F%2Fforum.image.sc%2Ftags%2Fanhir.json&query=%24.topic_list.tags.0.topic_count&colorB=brightgreen&suffix=%20topics&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAABPklEQVR42m3SyyqFURTA8Y2BER0TDyExZ+aSPIKUlPIITFzKeQWXwhBlQrmFgUzMMFLKZeguBu5y+//17dP3nc5vuPdee6299gohUYYaDGOyyACq4JmQVoFujOMR77hNfOAGM+hBOQqB9TjHD36xhAa04RCuuXeKOvwHVWIKL9jCK2bRiV284QgL8MwEjAneeo9VNOEaBhzALGtoRy02cIcWhE34jj5YxgW+E5Z4iTPkMYpPLCNY3hdOYEfNbKYdmNngZ1jyEzw7h7AIb3fRTQ95OAZ6yQpGYHMMtOTgouktYwxuXsHgWLLl+4x++Kx1FJrjLTagA77bTPvYgw1rRqY56e+w7GNYsqX6JfPwi7aR+Y5SA+BXtKIRfkfJAYgj14tpOF6+I46c4/cAM3UhM3JxyKsxiOIhH0IO6SH/A1Kb1WBeUjbkAAAAAElFTkSuQmCC)](https://forum.image.sc/tags/anhir).
+_This project becomes part of **[Automatic Non-rigid Histological Image Registration (ANHIR)](https://anhir.grand-challenge.org)** hosted at [ISBI 2019](https://biomedicalimaging.org/2019/challenges/) conference. The related discussion is hosted on [forum.image.sc](https://forum.image.sc/tags/anhir)._
 
 The project contains a set of sample images with related landmark annotations and experimental evaluation of state-of-the-art image registration methods.
 
@@ -85,6 +86,28 @@ python bm_dataset/generate_regist_pairs.py \
     --mode each2all
 ```
 
+### Customize the images and landmarks
+
+We offer a script for scaling images in to particular scales for example
+
+```bash
+python bm_dataset/rescale_tissue_images.py \
+    -i "./data_images/rat-kidney_/scale-5pc/*.jpg" \
+    -scales 10 -ext .png --nb_jobs 2
+```
+
+We introduce an option how to randomly take only a subset (use `nb_selected`) of annotated landmarks and also add some synthetic point (filling points up to `nb_total`) which are across set aligned using estimate affine transformation
+
+```bash
+python bm_dataset/rescale_tissue_landmarks.py \
+    -a ./data_images -d ./output \
+    --nb_selected 0.5 --nb_total 200
+``` 
+
+Moreover we developed two additional script for converting large images, handling multiple tissue samples in single image and crop to wide background.
+ * `bm_dataset/convert_tiff2png.py` converts TIFF or SVS image to PNG in a particular level
+ * `bm_dataset/split_images_two_tissues.py` splits two tissue samples with clear wide bound in vertical or horizontal direction
+ * `bm_dataset/crop_tissue_images.py` crops the tissue sample removing wide homogeneous background
 
 
 ## Experiments with included methods

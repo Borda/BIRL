@@ -123,7 +123,7 @@ class BmUnwarpJ(bm.ImRegBenchmark):
     """ Benchmark for ImageJ plugin - bUnwarpJ
     no run test while this method requires manual installation of ImageJ
 
-    >>> path_out = tl_io.create_dir('temp_results')
+    >>> path_out = tl_io.create_folder('temp_results')
     >>> fn_path_conf = lambda n: os.path.join(tl_io.update_path('configs'), n)
     >>> params = {'nb_jobs': 1, 'unique': False,
     ...           'path_out': path_out,

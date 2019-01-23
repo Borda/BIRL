@@ -19,7 +19,6 @@ import sys
 import glob
 import time
 import gc
-import re
 import logging
 import argparse
 import multiprocessing as mproc
@@ -29,7 +28,9 @@ import cv2 as cv
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.experiments import wrap_execute_sequence
-from benchmark.utilities.dataset import load_large_image, save_large_image
+from benchmark.utilities.dataset import (load_large_image, save_large_image,
+                                         parse_path_scale)
+from benchmark.utilities.data_io import create_folder
 
 NB_THREADS = int(mproc.cpu_count() * .5)
 DEFAULT_SCALES = (5, 10, 15, 20, 25, 50)
@@ -66,15 +67,10 @@ def arg_parse_params():
 def scale_image(img_path, scale, image_ext=IMAGE_EXTENSION, overwrite=False):
     base = os.path.dirname(os.path.dirname(img_path))
     name = os.path.splitext(os.path.basename(img_path))[0]
-    folder = os.path.basename(os.path.dirname(img_path))
-    base_scale = int(re.findall('[0-9]+', folder)[0])
+    base_scale = parse_path_scale(os.path.dirname(img_path))
 
     path_dir = os.path.join(base, FOLDER_TEMPLATE % scale)
-    if not os.path.isdir(path_dir):
-        try:  # in case parallel creating the same dir in different threads
-            os.mkdir(path_dir)
-        except Exception:
-            logging.exception('Parallel folder creation of %s', path_dir)
+    create_folder(path_dir)
 
     path_img_scale = os.path.join(path_dir, name + image_ext)
     if os.path.isfile(path_img_scale) and not overwrite:

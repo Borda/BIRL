@@ -14,17 +14,27 @@ from PIL import Image
 LANDMARK_COORDS = ['X', 'Y']
 
 
-def create_dir(path_dir):
+def create_folder(path_folder, note_existing=False):
     """ create a folder if it not exists
 
-    :param str path_dir:
+    :param str path_folder: path to creating folder
+    :return str: path to created folder
+
+    >>> p_dir = create_folder('./sample-folder')
+    >>> import shutil
+    >>> shutil.rmtree(p_dir)
     """
-    path_dir = os.path.abspath(path_dir)
-    if not os.path.isdir(path_dir):
-        os.makedirs(path_dir, mode=0o775)
-    else:
-        logging.warning('Folder already exists: %s', path_dir)
-    return path_dir
+    path_folder = os.path.abspath(path_folder)
+    if not os.path.isdir(path_folder):
+        try:
+            os.makedirs(path_folder, mode=0o775)
+        except Exception:
+            logging.debug('Something went wrong (probably parallel access),'
+                          ' the staus of "%s" is %s', path_folder,
+                          os.path.isdir(path_folder))
+    elif note_existing:
+        logging.warning('Folder already exists: %s', path_folder)
+    return path_folder
 
 
 def load_landmarks(path_file):

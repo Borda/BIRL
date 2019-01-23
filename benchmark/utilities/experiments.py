@@ -13,6 +13,7 @@ import argparse
 import subprocess
 import multiprocessing.pool
 import multiprocessing as mproc
+from functools import wraps
 
 import tqdm
 import numpy as np
@@ -50,7 +51,7 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
         logging.warning('particular out folder already exists')
         path_exp += ':' + str(np.random.randint(0, 10))
     logging.info('creating experiment folder "{}"'.format(path_exp))
-    path_exp = tl_io.create_dir(path_exp)
+    path_exp = tl_io.create_folder(path_exp)
     return path_exp
 
 
@@ -351,3 +352,18 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
             yield out
             if tqdm_bar is not None:
                 tqdm_bar.update()
+
+
+def try_decorator(func):
+    """ costume decorator to wrap function in try/except
+
+    :param func:
+    :return:
+    """
+    @wraps(func)
+    def wrap(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            logging.exception('%r with %r and %r', func.__name__, args, kwargs)
+    return wrap
