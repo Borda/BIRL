@@ -67,10 +67,7 @@ def arg_parse_params():
     parser.add_argument('--nb_jobs', type=int, required=False,
                         help='number of processes in parallel',
                         default=NB_THREADS)
-    args = vars(parser.parse_args())
-    logging.info(tl_expt.string_dict(args, 'ARGUMENTS:'))
-    assert tl_expt.check_paths(args, ['path_out']), 'missing some paths: %r' \
-        % {k: args[k] for k in tl_expt.missing_paths(args, ['path_out'])}
+    args = tl_expt.parse_arg_params(parser, upper_dirs=['path_out'])
     args['visual'] = bool(args['visual'])
     return args
 

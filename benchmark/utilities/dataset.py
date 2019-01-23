@@ -6,6 +6,7 @@ Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 
 import os
 import re
+import glob
 import logging
 
 from scipy import spatial
@@ -309,3 +310,15 @@ def inside_polygon(polygon, point):
     """
     path = Path(polygon)
     return path.contains_points([point])[0]
+
+
+def list_sub_folders(path_folder, name='*'):
+    """ list all sub folders with particular name pattern
+
+    :param str path_folder: path to a particular folder
+    :param str name: name pattern
+    :return [str]:
+    """
+    sub_dirs = sorted([p for p in glob.glob(os.path.join(path_folder, name))
+                       if os.path.isdir(p)])
+    return sub_dirs

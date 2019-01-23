@@ -139,14 +139,24 @@ def create_basic_parse():
     return parser
 
 
-def missing_paths(args, upper_dirs=None, pattern='path'):
+def update_paths(args, upper_dirs=None, pattern='path'):
     """ find params with not existing paths
 
     :param {} args: dictionary with all parameters
     :param [str] upper_dirs: list of keys in parameters
-        with item which must exist only the parent folder
+        with item for which only the parent folder must exist
     :param str pattern: patter specifying key with path
     :return [str]: key of missing paths
+
+    >>> update_paths({'sample': 123})[1]
+    []
+    >>> update_paths({'path_': '.'})[1]
+    []
+    >>> params = {'path_out': './nothing'}
+    >>> update_paths(params)[1]
+    ['path_out']
+    >>> update_paths(params, upper_dirs=['path_out'])[1]
+    []
     """
     if upper_dirs is None:
         upper_dirs = []
@@ -161,46 +171,28 @@ def missing_paths(args, upper_dirs=None, pattern='path'):
         if not os.path.exists(p):
             logging.warning('missing "%s": %s', k, p)
             missing.append(k)
-    return missing
+    return args, missing
 
 
-def check_paths(args, restrict_dir=None):
-    """ check if all paths in dictionary exists
-
-    :param {} args:
-    :param [str] restrict_dir:
-
-    >>> check_paths({'sample': 123})
-    True
-    >>> check_paths({'path_': '.'})
-    True
-    >>> check_paths({'path_out': './nothing'}, restrict_dir=['path_out'])
-    True
-    >>> check_paths({'path_out': './nothing'})  # doctest: +ELLIPSIS
-    False
-    """
-    missing = missing_paths(args, restrict_dir)
-    status = (len(missing) == 0)
-    return status
-
-
-def parse_params(parser):
+def parse_arg_params(parser, upper_dirs=None):
     """ parse all params
 
     :param parser: object of parser
-    :return: {str: any}, int
+    :param [str] upper_dirs: list of keys in parameters
+        with item for which only the parent folder must exist
+    :return {str: any}:
 
     >>> args = create_basic_parse()
-    >>> parse_params(args)  # doctest: +SKIP
+    >>> parse_arg_params(args)  # doctest: +SKIP
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     args = vars(parser.parse_args())
-    logging.info('ARG PARAMETERS: \n %r', args)
+    logging.info('ARGUMENTS: \n %r', args)
     # remove all None parameters
     args = {k: args[k] for k in args if args[k] is not None}
-    # extend nd test all paths in params
-    assert check_paths(args), 'missing paths: %r' % {k: args[k]
-                                                     for k in missing_paths(args)}
+    # extend and test all paths in params
+    args, missing = update_paths(args, upper_dirs=upper_dirs)
+    assert not missing, 'missing paths: %r' % {k: args[k] for k in missing}
     return args
 
 

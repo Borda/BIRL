@@ -272,5 +272,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     arg_parser = tl_expt.create_basic_parse()
     arg_parser = extend_parse(arg_parser)
-    arg_params = tl_expt.parse_params(arg_parser)
+    arg_params = tl_expt.parse_arg_params(arg_parser)
     main(arg_params)
