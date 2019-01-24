@@ -102,6 +102,7 @@ def draw_landmarks_origin_target_warped(ax, points_origin, points_target,
     for start, stop in zip(points_target, points_origin):
         x, y = zip(start, stop)
         ax.plot(x, y, '-.', color='b', linewidth=2)
+    ax.plot([0, 0], [0, 0], '-.', color='b', linewidth=2, label='registration shift')
     ax.plot(points_target[:, 0], points_target[:, 1], marker, color='m',
             label='Target positions')
     if points_warped is not None:
@@ -109,6 +110,7 @@ def draw_landmarks_origin_target_warped(ax, points_origin, points_target,
         for start, stop in zip(points_target, points_warped):
             x, y = zip(start, stop)
             ax.plot(x, y, '-', color='r', linewidth=2)
+        ax.plot([0, 0], [0, 0], '-', color='r', linewidth=2., label='regist. error (TRE)')
         ax.plot(points_warped[:, 0], points_warped[:, 1], marker, color='g',
                 label='Estimated positions')
 

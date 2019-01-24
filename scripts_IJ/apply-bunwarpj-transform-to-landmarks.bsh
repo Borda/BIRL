@@ -1,0 +1,110 @@
+/*
+ * Transform landmarks using estimated transformation
+ *
+ * Usage:
+ * >> ~/Applications/Fiji.app/ImageJ-linux64 --java-home /usr/lib/jvm/java-8-openjdk-amd64  \
+          --headless apply-bunwarpj-transform-to-landmarks.bsh deformed-bridge.png bridge.png \
+          moving-landmarks.txt warped-landmarks.txt bridge_inverse_transf.txt
+ *
+ * Copyright (C) 2019 Ignacio Arganda-Carreras <ignacio.arganda@ehu.eus>
+ */
+
+
+import ij.ImagePlus;
+import bunwarpj.MiscTools;
+import bunwarpj.trakem2.transform.CubicBSplineTransform;
+import ij.gui.PointRoi;
+import ij.IJ;
+
+if( bsh.args.length < 5 )
+{
+	IJ.log( "apply-bunwarpj-transform-to-landmarks.bsh" );
+	IJ.log( "USAGE: apply-bunwarpj-transform-to-landmarks.bsh movingImage fixedImage movingLandmarks warpedLandmarks transfFile" );
+	IJ.log( "       'movingImage' path to moving image" );
+	IJ.log( "       'fixedImage' path to fixed image" );
+	IJ.log( "       'movingLandmarks' path to moving landmarks file (txt/TXT)" );
+	IJ.log( "       'warpedLandmarks' path to output landmarks file to be created (txt/TXT)" );
+	IJ.log( "       'transfFile' path to bUnwarpJ transform file to apply to landmarks" );
+	return;
+}
+
+movingImage = new ImagePlus( bsh.args[ 0 ] );
+fixedImage = new ImagePlus( bsh.args[ 1 ] );
+movingLandmarks = new File( bsh.args[ 2 ] );
+warpedLandmarks = new File( bsh.args[ 3 ] );
+transfFile = new File( bsh.args[ 4 ] );
+
+// read number of intervals
+intervals = MiscTools.numberOfIntervalsOfTransformation( transfFile.getAbsolutePath() );
+// x B-spline coefficients
+cx = new double[ intervals + 3][ intervals + 3 ];
+// y B-spline coefficients
+cy = new double[ intervals + 3][ intervals + 3 ];
+// read coefficients from file
+MiscTools.loadTransformation( transfFile.getAbsolutePath(), cx, cy );
+
+// Convert to format understandable by RVSS
+ct = new CubicBSplineTransform( intervals, cx, cy, movingImage.getWidth(), movingImage.getHeight() );
+
+br = new BufferedReader(new FileReader( movingLandmarks.getAbsolutePath() ));
+
+pointList = new ArrayList();
+
+try {
+    sb = new StringBuilder();
+    line = br.readLine(); // skip tag "points"
+    line = br.readLine(); // skip number of points
+    line = br.readLine();
+
+    while (line != null) {
+        //IJ.log( line );
+        fi = new Scanner( line );
+        point = new double[2];
+		point[0] = fi.nextDouble();
+		point[1] = fi.nextDouble();
+		pointList.add( point );
+        line = br.readLine();
+    }
+    
+} finally {
+    br.close();
+}
+
+// Apply transform to points
+warpedPointList = new ArrayList();
+for( point : pointList )
+{
+	newPoint = ct.apply( point );
+	warpedPointList.add( newPoint );
+	IJ.log( "Moving landmark (" + point[0] + ", " + point[1] + ") => Fixed point (" + newPoint[0] + ", " + newPoint[1] +")"  );
+}
+
+try {
+	writer = new BufferedWriter(	new OutputStreamWriter(
+              new FileOutputStream( warpedLandmarks.getAbsolutePath() ), "utf-8") );
+	writer.write("point\n");
+	writer.write("" + warpedPointList.size() + "\n");
+	for( point : warpedPointList )
+	{
+   		writer.write("" + point[0] + " " + point[1] + "\n");
+	}
+	writer.close();
+}
+catch (IOException ex) {
+    IJ.log( ex.printStackTrace());
+} finally {
+   
+}
+
+// Show results
+/*
+movingRoi = new PointRoi();
+for( point : pointList )
+	movingRoi.addPoint( point[0], point[1] );
+movingImage.setRoi( movingRoi );
+
+fixedRoi = new PointRoi();
+for( point : warpedPointList )
+	fixedRoi.addPoint( point[0], point[1] );
+fixedImage.setRoi( fixedRoi );
+*/
