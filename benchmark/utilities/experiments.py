@@ -203,29 +203,38 @@ def parse_params(parser):
     return args
 
 
-def run_command_line(cmd, path_logger=None):
+def run_command_line(cmd, path_logger=None, timeout=None):
     """ run the given command in system Command Line
+
+    SEE: https://stackoverflow.com/questions/1996518
+    https://www.quora.com/Whats-the-difference-between-os-system-and-subprocess-call-in-Python
 
     :param str cmd: command to be executed
     :param str path_logger: path to the logger
+    :param int timeout: timeout for max cmd length
     :return bool: whether the command passed
 
-    >>> run_command_line('cd .')
+    >>> run_command_line('ls', path_logger='./sample-output.log')
     True
-    >>> run_command_line('cp abc def')
+    >>> os.remove('./sample-output.log')
+    >>> run_command_line('cp abc def', timeout=10)
     False
     """
     logging.debug('CMD ->> \n%s', cmd)
-    if path_logger is not None:
-        cmd += " > " + path_logger
+    options = dict(stderr=subprocess.STDOUT)
+    if timeout is not None and timeout > 0:
+        options['timeout'] = timeout
     try:
-        # TODO: out = subprocess.call(cmd, timeout=TIMEOUT, shell=True)
-        # https://www.quora.com/Whats-the-difference-between-os-system-and-subprocess-call-in-Python
-        state = subprocess.call(cmd, shell=True)
-        return state == 0
-    except Exception:
+        output = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT).decode()
+        success = True
+    except subprocess.CalledProcessError as e:
         logging.exception(cmd)
-        return False
+        output = e.output.decode()
+        success = False
+    if path_logger is not None:
+        with open(path_logger, 'a') as fp:
+            fp.write(output)
+    return success
 
 
 def compute_points_dist_statistic(points1, points2):
