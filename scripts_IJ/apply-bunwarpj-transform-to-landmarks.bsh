@@ -2,46 +2,51 @@
  * Transform landmarks using estimated transformation
  *
  * Usage:
- * >> ~/Applications/Fiji.app/ImageJ-linux64 --java-home /usr/lib/jvm/java-8-openjdk-amd64  \
-          --headless apply-bunwarpj-transform-to-landmarks.bsh deformed-bridge.png bridge.png \
-          moving-landmarks.txt warped-landmarks.txt bridge_inverse_transf.txt
+ * >> ~/Applications/Fiji.app/ImageJ-linux64 --java-home /usr/lib/jvm/java-8-openjdk-amd64 \
+        --headless apply-bunwarpj-transform-to-landmarks.bsh deformed-bridge.png bridge.png \
+        moving-landmarks.txt warped-landmarks.txt bridge_inverse_transf.txt deformed-bridge_direct_transf.txt deformed.tif
  *
  * Copyright (C) 2019 Ignacio Arganda-Carreras <ignacio.arganda@ehu.eus>
  */
 
-
 import ij.ImagePlus;
 import bunwarpj.MiscTools;
 import bunwarpj.trakem2.transform.CubicBSplineTransform;
+import bunwarpj.bUnwarpJ_;
 import ij.gui.PointRoi;
 import ij.IJ;
 
-if( bsh.args.length < 5 )
+if( bsh.args.length < 7 )
 {
 	IJ.log( "apply-bunwarpj-transform-to-landmarks.bsh" );
-	IJ.log( "USAGE: apply-bunwarpj-transform-to-landmarks.bsh movingImage fixedImage movingLandmarks warpedLandmarks transfFile" );
+	IJ.log( "USAGE: apply-bunwarpj-transform-to-landmarks.bsh movingImage fixedImage movingLandmarks outputLandmarks inverseTransFile" );
 	IJ.log( "       'movingImage' path to moving image" );
 	IJ.log( "       'fixedImage' path to fixed image" );
 	IJ.log( "       'movingLandmarks' path to moving landmarks file (txt/TXT)" );
-	IJ.log( "       'warpedLandmarks' path to output landmarks file to be created (txt/TXT)" );
-	IJ.log( "       'transfFile' path to bUnwarpJ transform file to apply to landmarks" );
+	IJ.log( "       'outputLandmarks' path to output landmarks file to be created (txt/TXT)" );
+	IJ.log( "       'inverseTransFile' path to bUnwarpJ transform file to apply to landmarks" );
+	IJ.log( "       'directTransFile' path to bUnwarpJ transform file to apply to moving image" );
+	IJ.log( "       'outputImage' path to output image file to be created (deformed moving image)" );
 	return;
 }
 
 movingImage = new ImagePlus( bsh.args[ 0 ] );
 fixedImage = new ImagePlus( bsh.args[ 1 ] );
 movingLandmarks = new File( bsh.args[ 2 ] );
-warpedLandmarks = new File( bsh.args[ 3 ] );
-transfFile = new File( bsh.args[ 4 ] );
+outputLandmarks = new File( bsh.args[ 3 ] );
+inverseTransFile = new File( bsh.args[ 4 ] );
+directTransFile = new File( bsh.args[ 5 ] );
+outputImage = new File( bsh.args[ 6 ] );
+
 
 // read number of intervals
-intervals = MiscTools.numberOfIntervalsOfTransformation( transfFile.getAbsolutePath() );
+intervals = MiscTools.numberOfIntervalsOfTransformation( inverseTransFile.getAbsolutePath() );
 // x B-spline coefficients
 cx = new double[ intervals + 3][ intervals + 3 ];
 // y B-spline coefficients
 cy = new double[ intervals + 3][ intervals + 3 ];
 // read coefficients from file
-MiscTools.loadTransformation( transfFile.getAbsolutePath(), cx, cy );
+MiscTools.loadTransformation( inverseTransFile.getAbsolutePath(), cx, cy );
 
 // Convert to format understandable by RVSS
 ct = new CubicBSplineTransform( intervals, cx, cy, movingImage.getWidth(), movingImage.getHeight() );
@@ -65,7 +70,7 @@ try {
 		pointList.add( point );
         line = br.readLine();
     }
-    
+
 } finally {
     br.close();
 }
@@ -81,7 +86,8 @@ for( point : pointList )
 
 try {
 	writer = new BufferedWriter(	new OutputStreamWriter(
-              new FileOutputStream( warpedLandmarks.getAbsolutePath() ), "utf-8") );
+              new FileOutputStream( outputLandmarks.getAbsolutePath() ), "utf-8") );
+
 	writer.write("point\n");
 	writer.write("" + warpedPointList.size() + "\n");
 	for( point : warpedPointList )
@@ -93,18 +99,9 @@ try {
 catch (IOException ex) {
     IJ.log( ex.printStackTrace());
 } finally {
-   
+
 }
 
-// Show results
-/*
-movingRoi = new PointRoi();
-for( point : pointList )
-	movingRoi.addPoint( point[0], point[1] );
-movingImage.setRoi( movingRoi );
-
-fixedRoi = new PointRoi();
-for( point : warpedPointList )
-	fixedRoi.addPoint( point[0], point[1] );
-fixedImage.setRoi( fixedRoi );
-*/
+warpedMoving = movingImage.duplicate();
+bUnwarpJ_.applyTransformToSource( directTransFile.getAbsolutePath(), fixedImage, warpedMoving );
+IJ.save( warpedMoving, outputImage.getAbsolutePath() );

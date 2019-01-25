@@ -51,10 +51,13 @@ PATH_SCRIPT_WARP_LANDMARKS = os.path.join(tl_io.update_path('scripts_IJ'),
                                           'apply-bunwarpj-transform-to-landmarks.bsh')
 NAME_LANDMARKS = 'source_landmarks.txt'
 NAME_LANDMARKS_WARPED = 'warped_source_landmarks.txt'
-COMMAND_WARP_LANDMARKS = '%(path_fiji)s --headless %(path_bsh)s %(source)s %(target)s' \
+COMMAND_WARP_LANDMARKS = '%(path_fiji)s --headless %(path_bsh)s' \
+                         ' %(source)s %(target)s' \
                          ' %(output)s/' + NAME_LANDMARKS + \
                          ' %(output)s/' + NAME_LANDMARKS_WARPED + \
-                         ' %(output)s/invers_transform.txt'
+                         ' %(output)s/inverse_transform.txt' \
+                         ' %(output)s/direct_transform.txt' \
+                         ' %(warp)s'
 
 # macro for feature extraction - SIFT
 MACRO_SIFT = '''
@@ -85,7 +88,7 @@ run("bUnwarpJ",
     "source_image=%(name_source)s target_image=%(name_target)s "
     + " registration=%(config_bUnwarpJ)s save_transformations "
     + " save_direct_transformation=%(output)s/direct_transform.txt "
-    + " save_inverse_transformation=%(output)s/invers_transform.txt");
+    + " save_inverse_transformation=%(output)s/inverse_transform.txt");
 time = getTime() - time;
 print ("-> registration finished");
 print("TIME: " + time + "ms");
@@ -97,18 +100,6 @@ print(file, time);
 run("Close All");
 run("Quit");
 exit();'''
-
-# macro or warping registered image
-MACRO_WARP_IMAGE = '''// Transform image
-call("bunwarpj.bUnwarpJ_.elasticTransformImageMacro",
-     "%(target)s", "%(source)s",
-     "%(output)s/direct_transform.txt", "%(warp)s");
-// re-save image while bunwarpj macro have an issue
-open("%(warp)s");
-saveAs("%(warp)s");
-run("Quit");
-exit();
-'''
 
 
 def extend_parse(a_parser):
@@ -128,7 +119,7 @@ def extend_parse(a_parser):
     return a_parser
 
 
-class BmBUnwarpJ(bm.ImRegBenchmark):
+class BmUnwarpJ(bm.ImRegBenchmark):
     """ Benchmark for ImageJ plugin - bUnwarpJ
     no run test while this method requires manual installation of ImageJ
 
@@ -140,10 +131,10 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
     ...                                      'pairs-imgs-lnds_mix.csv'),
     ...           'path_fiji': '.',
     ...           'path_config_bUnwarpJ': fn_path_conf('ImageJ_bUnwarpJ_histo-1k.txt')}
-    >>> benchmark = BmBUnwarpJ(params)
+    >>> benchmark = BmUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
     >>> params['path_config_IJ_SIFT'] = fn_path_conf('ImageJ_SIFT_histo-1k.txt')
-    >>> benchmark = BmBUnwarpJ(params)
+    >>> benchmark = BmUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
@@ -215,11 +206,6 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         with open(os.path.join(path_dir, NAME_MACRO_REGISTRATION), 'w') as fp:
             fp.write(macro_regist)
 
-        # generate macro or warping registered image
-        macro_warp = MACRO_WARP_IMAGE % dict_params
-        with open(os.path.join(path_dir, NAME_MACRO_WARP_IMAGE), 'w') as fp:
-            fp.write(macro_warp)
-
         return record
 
     def _generate_regist_command(self, record):
@@ -244,19 +230,13 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
         path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(record)
         path_log = os.path.join(path_dir, bm.NAME_LOG_REGISTRATION)
 
-        # warp the image
-        path_macro = os.path.join(path_dir, NAME_MACRO_WARP_IMAGE)
-        cmd = '%s -batch %s' % (self.params['path_fiji'], path_macro)
-        tl_expt.run_command_line(cmd, path_logger=path_log)
-        name_img = os.path.basename(record[bm.COL_IMAGE_MOVE])
-        path_img = os.path.join(path_dir, name_img)
-
-        # warp moving landmarks to refence frame
+        # warp moving landmarks to reference frame
+        path_regist = os.path.join(path_dir, os.path.basename(path_im_move))
         dict_params = {
             'path_fiji': self.params['path_fiji'],
             'path_bsh': PATH_SCRIPT_WARP_LANDMARKS,
             'source': path_im_move, 'target': path_im_ref,
-            'output': path_dir}
+            'output': path_dir, 'warp': path_regist}
         # export source points to TXT
         pts_source = tl_io.load_landmarks(path_lnds_move)
         tl_io.save_landmarks(os.path.join(path_dir, NAME_LANDMARKS), pts_source)
@@ -271,7 +251,7 @@ class BmBUnwarpJ(bm.ImRegBenchmark):
             tl_io.save_landmarks_csv(path_lnds, points_warp)
         else:
             path_lnds = None
-        return None, path_img, None, path_lnds
+        return None, path_regist, None, path_lnds
 
 
 def main(params):
@@ -281,7 +261,7 @@ def main(params):
     """
     logging.info('running...')
     logging.info(__doc__)
-    benchmark = BmBUnwarpJ(params)
+    benchmark = BmUnwarpJ(params)
     benchmark.run()
     del benchmark
     logging.info('Done.')
