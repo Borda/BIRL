@@ -48,7 +48,7 @@ import benchmark.cls_benchmark as bm
 NAME_MACRO_REGISTRATION = 'macro_registration.ijm'
 NAME_MACRO_WARP_IMAGE = 'macro_warp_image.ijm'
 PATH_SCRIPT_WARP_LANDMARKS = os.path.join(tl_io.update_path('scripts_IJ'),
-                                          'apply-bunwarpj-transform-to-landmarks.bsh')
+                                          'apply-bunwarpj-transform.bsh')
 NAME_LANDMARKS = 'source_landmarks.txt'
 NAME_LANDMARKS_WARPED = 'warped_source_landmarks.txt'
 COMMAND_WARP_LANDMARKS = '%(path_fiji)s --headless %(path_bsh)s' \
