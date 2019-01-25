@@ -203,7 +203,7 @@ def parse_params(parser):
     return args
 
 
-def run_command_line(cmd, path_logger=None, timeout=None):
+def run_command_line(command, path_logger=None, timeout=None):
     """ run the given command in system Command Line
 
     SEE: https://stackoverflow.com/questions/1996518
@@ -211,25 +211,27 @@ def run_command_line(cmd, path_logger=None, timeout=None):
 
     :param str cmd: command to be executed
     :param str path_logger: path to the logger
-    :param int timeout: timeout for max cmd length
+    :param int timeout: timeout for max command length
     :return bool: whether the command passed
 
-    >>> run_command_line('ls', path_logger='./sample-output.log')
+    >>> run_command_line('ls && ls -l', path_logger='./sample-output.log')
     True
     >>> os.remove('./sample-output.log')
     >>> run_command_line('cp abc def', timeout=10)
     False
     """
-    logging.debug('CMD ->> \n%s', cmd)
+    logging.debug('CMD ->> \n%s', command)
     options = dict(stderr=subprocess.STDOUT)
     if timeout is not None and timeout > 0:
         options['timeout'] = timeout
+    output = ''
     try:
-        output = subprocess.check_output(cmd.split(), stderr=subprocess.STDOUT).decode()
+        for cmd in command.split(' && '):
+            output += subprocess.check_output(cmd.split(), **options).decode()
         success = True
     except subprocess.CalledProcessError as e:
-        logging.exception(cmd)
-        output = e.output.decode()
+        logging.exception(command)
+        output += e.output.decode()
         success = False
     if path_logger is not None:
         with open(path_logger, 'a') as fp:
