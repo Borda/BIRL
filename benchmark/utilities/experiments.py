@@ -6,6 +6,7 @@ Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 from __future__ import absolute_import
 
 import os
+import sys
 import time
 import logging
 import argparse
@@ -203,16 +204,16 @@ def parse_params(parser):
     return args
 
 
-def run_command_line(command, path_logger=None, timeout=None):
-    """ run the given command in system Command Line
+def run_command_line(commands, path_logger=None, timeout=None):
+    """ run the given commands in system Command Line
 
     SEE: https://stackoverflow.com/questions/1996518
     https://www.quora.com/Whats-the-difference-between-os-system-and-subprocess-call-in-Python
 
-    :param str cmd: command to be executed
+    :param [str] commands: commands to be executed
     :param str path_logger: path to the logger
-    :param int timeout: timeout for max command length
-    :return bool: whether the command passed
+    :param int timeout: timeout for max commands length
+    :return bool: whether the commands passed
 
     >>> run_command_line('ls && ls -l', path_logger='./sample-output.log')
     True
@@ -220,17 +221,20 @@ def run_command_line(command, path_logger=None, timeout=None):
     >>> run_command_line('cp abc def', timeout=10)
     False
     """
-    logging.debug('CMD ->> \n%s', command)
+    logging.debug('CMD ->> \n%s', commands)
     options = dict(stderr=subprocess.STDOUT)
-    if timeout is not None and timeout > 0:
+    # timeout in check_output is not supported by Python 2
+    if timeout is not None and timeout > 0 and sys.version_info.major >= 3:
         options['timeout'] = timeout
+    if not hasattr(commands, '__iter__'):
+        commands = [commands]
     output = ''
     try:
-        for cmd in command.split(' && '):
+        for cmd in commands:
             output += subprocess.check_output(cmd.split(), **options).decode()
         success = True
     except subprocess.CalledProcessError as e:
-        logging.exception(command)
+        logging.exception(commands)
         output += e.output.decode()
         success = False
     if path_logger is not None:
