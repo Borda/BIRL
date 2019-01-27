@@ -48,7 +48,7 @@ The project contains the following folders:
     * `lesions_` - samples of histology tissue with annotation
     * `rat-kidney_` - samples of histology tissue with annotation
 * `configs` - configs for registration methods 
-* `macros_ij` - macros for ImageJ 
+* `scripts_IJ` - macros for ImageJ 
 
 
 

@@ -1,5 +1,5 @@
 """
-
+Image registration tools
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
