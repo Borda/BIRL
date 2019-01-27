@@ -241,9 +241,13 @@ def run_command_line(commands, path_logger=None, timeout=None):
             outputs += [e.output]
             success = False
     # export the output if path exists
-    if path_logger is not None:
+    if path_logger is not None and outputs:
+        if isinstance(outputs[0], bytes):
+            outputs = [out.decode() for out in outputs]
+        elif isinstance(outputs[0], str):
+            outputs = [out.decode().encode('utf-8') for out in outputs]
         with open(path_logger, 'a') as fp:
-            fp.write('\n'.join(out.decode().encode('utf-8') for out in outputs))
+            fp.write('\n'.join(outputs))
     return success
 
 
