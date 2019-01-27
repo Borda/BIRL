@@ -220,7 +220,7 @@ def run_command_line(commands, path_logger=None, timeout=None):
     >>> run_command_line('mv sample-output.log moved-output.log', timeout=10)
     True
     >>> os.remove('./moved-output.log')
-    >>> run_command_line('cp abc def', timeout=10)
+    >>> run_command_line('cp sample-output.log moved-output.log')
     False
     """
     logging.debug('CMD ->> \n%s', commands)
@@ -230,7 +230,7 @@ def run_command_line(commands, path_logger=None, timeout=None):
         options['timeout'] = timeout
     if isinstance(commands, str):
         commands = [commands]
-    output = ''
+    output = u''
     try:
         for cmd in commands:
             output += subprocess.check_output(cmd.split(), **options).decode()
