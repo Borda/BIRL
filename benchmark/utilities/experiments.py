@@ -215,9 +215,11 @@ def run_command_line(commands, path_logger=None, timeout=None):
     :param int timeout: timeout for max commands length
     :return bool: whether the commands passed
 
-    >>> run_command_line('ls && ls -l', path_logger='./sample-output.log')
+    >>> run_command_line(('ls', 'ls -l'), path_logger='./sample-output.log')
     True
-    >>> os.remove('./sample-output.log')
+    >>> run_command_line('mv sample-output.log moved-output.log', timeout=10)
+    True
+    >>> os.remove('./moved-output.log')
     >>> run_command_line('cp abc def', timeout=10)
     False
     """
@@ -226,7 +228,7 @@ def run_command_line(commands, path_logger=None, timeout=None):
     # timeout in check_output is not supported by Python 2
     if timeout is not None and timeout > 0 and sys.version_info.major >= 3:
         options['timeout'] = timeout
-    if not hasattr(commands, '__iter__'):
+    if isinstance(commands, str):
         commands = [commands]
     output = ''
     try:
