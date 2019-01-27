@@ -551,7 +551,7 @@ class ImRegBenchmark(Experiment):
                                 os.path.join(path_reg_dir, name_img))
         cmd_lnds = 'cp %s %s' % (self._update_path(record[COL_POINTS_MOVE]),
                                  os.path.join(path_reg_dir, name_lnds))
-        command = ' && '.join([cmd_img, cmd_lnds])
+        command = [cmd_img, cmd_lnds]
         return command
 
     @classmethod

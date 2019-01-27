@@ -101,7 +101,7 @@ class BmTemplate(bm.ImRegBenchmark):
         name_lnds = os.path.basename(record[bm.COL_POINTS_MOVE])
         cmd_lnds = 'cp %s %s' % (self._update_path(record[bm.COL_POINTS_MOVE]),
                                  os.path.join(path_reg_dir, name_lnds))
-        command = ' && '.join([cmd_img, cmd_lnds])
+        command = [cmd_img, cmd_lnds]
         return command
 
     def _extract_warped_images_landmarks(self, record):
@@ -131,7 +131,7 @@ class BmTemplate(bm.ImRegBenchmark):
 def main(params):
     """ run the Main of blank experiment
 
-    :param arg_params: {str: value} set of input parameters
+    :param params: {str: value} set of input parameters
     """
     logging.info('running...')
     logging.info(__doc__)

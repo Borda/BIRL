@@ -96,20 +96,26 @@ def draw_landmarks_origin_target_warped(ax, points_origin, points_target,
     assert points_origin.shape == points_warped.shape, \
         'image dimension has to match %s != %s' \
         % (repr(points_origin.shape), repr(points_warped.shape))
-    ax.plot(points_origin[:, 0], points_origin[:, 1], marker, color='b',
+
+    def _draw_lines(points1, points2, style, color, label):
+        for start, stop in zip(points1, points2):
+            x, y = zip(start, stop)
+            ax.plot(x, y, style, color=color, linewidth=2)
+        ax.plot([0, 0], [0, 0], style, color=color, linewidth=2, label=label)
+
+    ax.plot(points_origin[:, 0], points_origin[:, 1], marker, color='g',
             label='Original positions')
-    # draw a dotted line between origin and where it should be
-    for start, stop in zip(points_target, points_origin):
-        x, y = zip(start, stop)
-        ax.plot(x, y, '-.', color='b', linewidth=2)
+    # draw a dotted line between origin and target
+    _draw_lines(points_target, points_origin, '-.', 'g', 'true shift')
     ax.plot(points_target[:, 0], points_target[:, 1], marker, color='m',
             label='Target positions')
     if points_warped is not None:
+        # draw a dotted line between origin and warped
+        _draw_lines(points_origin, points_warped, '-.', 'b', 'warped shift')
         # draw line that  should be minimal between target and estimate
-        for start, stop in zip(points_target, points_warped):
-            x, y = zip(start, stop)
-            ax.plot(x, y, '-', color='r', linewidth=2)
-        ax.plot(points_warped[:, 0], points_warped[:, 1], marker, color='g',
+
+        _draw_lines(points_target, points_warped, '-', 'r', 'regist. error (TRE)')
+        ax.plot(points_warped[:, 0], points_warped[:, 1], marker, color='b',
                 label='Estimated positions')
 
 

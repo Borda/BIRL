@@ -78,7 +78,8 @@ def load_landmarks_txt(path_file):
                         repr(lines))
         return np.zeros((0, 2))
     nb_points = int(lines[1])
-    points = [[float(n) for n in line.split()] for line in lines[2:]]
+    points = [[float(n) for n in line.split()]
+              for line in lines[2:] if line]
     assert nb_points == len(points), 'number of declared (%i) and found (%i) ' \
                                      'does not match' % (nb_points, len(points))
     return np.array(points, dtype=np.float)

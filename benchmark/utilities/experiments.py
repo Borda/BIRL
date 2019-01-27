@@ -6,6 +6,7 @@ Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 from __future__ import absolute_import
 
 import os
+import sys
 import time
 import logging
 import argparse
@@ -203,29 +204,51 @@ def parse_params(parser):
     return args
 
 
-def run_command_line(cmd, path_logger=None):
-    """ run the given command in system Command Line
+def run_command_line(commands, path_logger=None, timeout=None):
+    """ run the given commands in system Command Line
 
-    :param str cmd: command to be executed
+    SEE: https://stackoverflow.com/questions/1996518
+    https://www.quora.com/Whats-the-difference-between-os-system-and-subprocess-call-in-Python
+
+    :param [str] commands: commands to be executed
     :param str path_logger: path to the logger
-    :return bool: whether the command passed
+    :param int timeout: timeout for max commands length
+    :return bool: whether the commands passed
 
-    >>> run_command_line('cd .')
+    >>> run_command_line(('ls', 'ls -l'), path_logger='./sample-output.log')
     True
-    >>> run_command_line('cp abc def')
+    >>> run_command_line('mv sample-output.log moved-output.log', timeout=10)
+    True
+    >>> os.remove('./moved-output.log')
+    >>> run_command_line('cp sample-output.log moved-output.log')
     False
     """
-    logging.debug('CMD ->> \n%s', cmd)
-    if path_logger is not None:
-        cmd += " > " + path_logger
-    try:
-        # TODO: out = subprocess.call(cmd, timeout=TIMEOUT, shell=True)
-        # https://www.quora.com/Whats-the-difference-between-os-system-and-subprocess-call-in-Python
-        state = subprocess.call(cmd, shell=True)
-        return state == 0
-    except Exception:
-        logging.exception(cmd)
-        return False
+    logging.debug('CMD ->> \n%s', commands)
+    options = dict(stderr=subprocess.STDOUT)
+    # timeout in check_output is not supported by Python 2
+    if timeout is not None and timeout > 0 and sys.version_info.major >= 3:
+        options['timeout'] = timeout
+    if isinstance(commands, str):
+        commands = [commands]
+    outputs = []
+    success = True
+    # try to execute all commands in stack
+    for cmd in commands:
+        try:
+            outputs += [subprocess.check_output(cmd.split(), **options)]
+        except subprocess.CalledProcessError as e:
+            logging.exception(commands)
+            outputs += [e.output]
+            success = False
+    # export the output if path exists
+    if path_logger is not None and outputs:
+        if isinstance(outputs[0], bytes):
+            outputs = [out.decode() for out in outputs]
+        elif isinstance(outputs[0], str):
+            outputs = [out.decode().encode('utf-8') for out in outputs]
+        with open(path_logger, 'a') as fp:
+            fp.write('\n'.join(outputs))
+    return success
 
 
 def compute_points_dist_statistic(points1, points2):
