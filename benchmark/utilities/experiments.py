@@ -230,18 +230,20 @@ def run_command_line(commands, path_logger=None, timeout=None):
         options['timeout'] = timeout
     if isinstance(commands, str):
         commands = [commands]
-    output = u''
-    try:
-        for cmd in commands:
-            output += subprocess.check_output(cmd.split(), **options).decode()
-        success = True
-    except subprocess.CalledProcessError as e:
-        logging.exception(commands)
-        output += e.output.decode()
-        success = False
+    outputs = []
+    success = True
+    # try to execute all commands in stack
+    for cmd in commands:
+        try:
+            outputs += [subprocess.check_output(cmd.split(), **options)]
+        except subprocess.CalledProcessError as e:
+            logging.exception(commands)
+            outputs += [e.output]
+            success = False
+    # export the output if path exists
     if path_logger is not None:
         with open(path_logger, 'a') as fp:
-            fp.write(output)
+            fp.write('\n'.join(out.decode().encode('utf-8') for out in outputs))
     return success
 
 
