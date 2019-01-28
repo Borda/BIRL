@@ -8,3 +8,4 @@ tqdm>=4.7.4
 scikit-image
 opencv-python
 openslide-python
+mock

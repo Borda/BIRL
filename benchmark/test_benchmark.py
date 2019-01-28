@@ -12,7 +12,10 @@ import logging
 import unittest
 import shutil
 import argparse
-from unittest.mock import patch
+try:  # python 3
+    from unittest.mock import patch
+except ImportError:  # python 2
+    from mock import patch
 
 import numpy as np
 import pandas as pd
