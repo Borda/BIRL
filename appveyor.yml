@@ -54,7 +54,7 @@ install:
   - choco install opencv -y
   - SET PATH=%PYTHON%;%PYTHON%\\Scripts;%path%
   - python --version
-  - pip install -U pip
+  - pip install -U --user pip
   - pip --version
   - pip install -r requirements.txt
   - pip install tox coverage codecov
