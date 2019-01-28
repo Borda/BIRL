@@ -35,26 +35,30 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     :param str dir_name: special folder name
     :param bool stamp_unique: whether add at the end of new folder unique tag
 
-    >>> from functools import partial
-    >>> create = partial(create_experiment_folder, dir_name='my_test', stamp_unique=True)
-    >>> dirs = list(wrap_execute_sequence(create, ['.'] * 10))
+    >>> p_dir = create_experiment_folder('.', 'my_test', stamp_unique=False)
+    >>> os.rmdir(p_dir)
+    >>> dirs = [create_experiment_folder('.', 'my_test', stamp_unique=True)
+    ...         for _ in range(3)]
     >>> all(map(os.path.isdir, dirs))
     True
     >>> _= [os.rmdir(p) for p in set(dirs)]
     """
-    assert os.path.exists(path_out), 'missing "%s"' % path_out
+    assert os.path.exists(path_out), 'missing base folder "%s"' % path_out
     date = time.gmtime()
     if isinstance(name, str) and name:
         dir_name = '{}_{}'.format(dir_name, name)
-    if stamp_unique:
-        dir_name += '_' + time.strftime(FORMAT_DATE_TIME, date)
     path_exp = os.path.join(path_out, dir_name)
-    while stamp_unique and os.path.isdir(path_exp):
-        logging.warning('particular out folder already exists')
-        path_exp += ':' + str(np.random.randint(0, 100))
-    logging.info('creating experiment folder "{}"'.format(path_exp))
-    path_exp = tl_io.create_folder(path_exp)
-    return path_exp
+    if stamp_unique:
+        path_exp += '_' + time.strftime(FORMAT_DATE_TIME, date)
+        path_created = None
+        while not isinstance(path_created, str):
+            logging.warning('particular out folder already exists')
+            path_exp += ':' + str(np.random.randint(0, 10))
+            path_created = tl_io.create_folder(path_exp)
+    else:
+        path_created = tl_io.create_folder(path_exp)
+    logging.info('created experiment folder "r"', path_created)
+    return path_created
 
 
 def release_logger_files():

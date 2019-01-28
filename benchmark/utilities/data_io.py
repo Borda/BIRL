@@ -18,9 +18,11 @@ def create_folder(path_folder, note_existing=False):
     """ create a folder if it not exists
 
     :param str path_folder: path to creating folder
-    :return str: path to created folder
+    :return str|None: path to created folder
 
-    >>> p_dir = create_folder('./sample-folder')
+    >>> p_dir = create_folder('./sample-folder', note_existing=True)
+    >>> create_folder('./sample-folder', note_existing=True)
+    False
     >>> import shutil
     >>> shutil.rmtree(p_dir)
     """
@@ -30,10 +32,12 @@ def create_folder(path_folder, note_existing=False):
             os.makedirs(path_folder, mode=0o775)
         except Exception:
             logging.debug('Something went wrong (probably parallel access),'
-                          ' the staus of "%s" is %s', path_folder,
+                          ' the status of "%s" is %s', path_folder,
                           os.path.isdir(path_folder))
+            path_folder = None
     elif note_existing:
         logging.warning('Folder already exists: %s', path_folder)
+        path_folder = False
     return path_folder
 
 
