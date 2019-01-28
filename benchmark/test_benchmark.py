@@ -11,6 +11,8 @@ import sys
 import logging
 import unittest
 import shutil
+import argparse
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -18,7 +20,7 @@ from numpy.testing import assert_raises, assert_array_almost_equal
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.data_io import update_path
-from benchmark.utilities.experiments import try_decorator
+from benchmark.utilities.experiments import (parse_arg_params, try_decorator)
 from benchmark.cls_benchmark import ImRegBenchmark
 from benchmark.cls_benchmark import (NAME_CSV_RESULTS, NAME_TXT_RESULTS,
                                      NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS,
@@ -153,3 +155,7 @@ class TestBmRegistration(unittest.TestCase):
     @try_decorator
     def test_try_wrap(self):
         print('%i' % '42')
+
+    def test_argparse(self):
+        with patch('argparse._sys.argv', ['script.py']):
+            parse_arg_params(argparse.ArgumentParser())

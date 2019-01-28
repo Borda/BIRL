@@ -3,7 +3,6 @@ General experiments methods
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
-from __future__ import absolute_import
 
 import os
 import sys
@@ -37,11 +36,8 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
 
     >>> p_dir = create_experiment_folder('.', 'my_test', stamp_unique=False)
     >>> os.rmdir(p_dir)
-    >>> dirs = [create_experiment_folder('.', 'my_test', stamp_unique=True)
-    ...         for _ in range(3)]
-    >>> all(map(os.path.isdir, dirs))
-    True
-    >>> _= [os.rmdir(p) for p in set(dirs)]
+    >>> p_dir = create_experiment_folder('.', 'my_test', stamp_unique=True)
+    >>> os.rmdir(p_dir)
     """
     assert os.path.exists(path_out), 'missing base folder "%s"' % path_out
     date = time.gmtime()
@@ -51,14 +47,15 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     if stamp_unique:
         path_exp += '_' + time.strftime(FORMAT_DATE_TIME, date)
         path_created = None
-        while not isinstance(path_created, str):
+        while not path_created:
             logging.warning('particular out folder already exists')
-            path_exp += ':' + str(np.random.randint(0, 10))
-            path_created = tl_io.create_folder(path_exp)
+            if path_created is not None:
+                path_exp += '-' + str(np.random.randint(0, 100))
+            path_created = tl_io.create_folder(path_exp, ok_existing=False)
     else:
-        path_created = tl_io.create_folder(path_exp)
-    logging.info('created experiment folder "r"', path_created)
-    return path_created
+        path_created = tl_io.create_folder(path_exp, ok_existing=False)
+    logging.info('created experiment folder "%r"', path_created)
+    return path_exp
 
 
 def release_logger_files():
@@ -330,6 +327,8 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
     [0.0, 1.0, 1.41..., 1.73..., 2.0]
     >>> list(wrap_execute_sequence(sum, [[0, 1]] * 5, nb_jobs=2, desc=None))
     [1, 1, 1, 1, 1]
+    >>> list(wrap_execute_sequence(max, [[2, 1]] * 5, nb_jobs=2, desc=''))
+    [2, 2, 2, 2, 2]
     """
     iterate_vals = list(iterate_vals)
 
