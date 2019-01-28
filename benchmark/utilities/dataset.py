@@ -324,7 +324,7 @@ def list_sub_folders(path_folder, name='*'):
 
     >>> paths = list_sub_folders(tl_io.update_path('data_images'))
     >>> list(map(os.path.basename, paths))
-    ['images', 'landmarks', 'lesions_', 'rat-kidney_', 'synth_dataset']
+    ['images', 'landmarks', 'lesions_', 'rat-kidney_']
     """
     sub_dirs = sorted([p for p in glob.glob(os.path.join(path_folder, name))
                        if os.path.isdir(p)])
