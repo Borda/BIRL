@@ -3,6 +3,7 @@ Some functionality related to dataset
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
+from __future__ import absolute_import
 
 import os
 import re
@@ -17,6 +18,8 @@ import matplotlib.pyplot as plt
 from matplotlib.path import Path
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
+
+import benchmark.utilities.data_io as tl_io
 
 TISSUE_CONTENT = 0.01
 # supported image extensions
@@ -318,6 +321,10 @@ def list_sub_folders(path_folder, name='*'):
     :param str path_folder: path to a particular folder
     :param str name: name pattern
     :return [str]:
+
+    >>> paths = list_sub_folders(tl_io.update_path('data_images'))
+    >>> list(map(os.path.basename, paths))
+    ['images', 'landmarks', 'lesions_', 'rat-kidney_', 'synth_dataset']
     """
     sub_dirs = sorted([p for p in glob.glob(os.path.join(path_folder, name))
                        if os.path.isdir(p)])

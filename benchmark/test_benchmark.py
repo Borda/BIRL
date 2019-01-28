@@ -18,6 +18,7 @@ from numpy.testing import assert_raises, assert_array_almost_equal
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.data_io import update_path
+from benchmark.utilities.experiments import try_decorator
 from benchmark.cls_benchmark import ImRegBenchmark
 from benchmark.cls_benchmark import (NAME_CSV_RESULTS, NAME_TXT_RESULTS,
                                      NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS,
@@ -148,3 +149,7 @@ class TestBmRegistration(unittest.TestCase):
                                   np.array(final_means), decimal=0)
         assert_array_almost_equal(sorted(df_regist['TRE STD (final)'].values),
                                   np.array(final_stds), decimal=0)
+
+    @try_decorator
+    def test_try_wrap(self):
+        print('%i' % '42')

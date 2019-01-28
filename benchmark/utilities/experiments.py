@@ -35,10 +35,12 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     :param str dir_name: special folder name
     :param bool stamp_unique: whether add at the end of new folder unique tag
 
-    >>> p = create_experiment_folder('.', 'my_test', stamp_unique=False)
-    >>> os.path.exists(p)
+    >>> from functools import partial
+    >>> create = partial(create_experiment_folder, dir_name='my_test', stamp_unique=True)
+    >>> dirs = list(wrap_execute_sequence(create, ['.'] * 10))
+    >>> all(map(os.path.isdir, dirs))
     True
-    >>> os.rmdir(p)
+    >>> _= [os.rmdir(p) for p in set(dirs)]
     """
     assert os.path.exists(path_out), 'missing "%s"' % path_out
     date = time.gmtime()
@@ -49,7 +51,7 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     path_exp = os.path.join(path_out, dir_name)
     while stamp_unique and os.path.isdir(path_exp):
         logging.warning('particular out folder already exists')
-        path_exp += ':' + str(np.random.randint(0, 10))
+        path_exp += ':' + str(np.random.randint(0, 100))
     logging.info('creating experiment folder "{}"'.format(path_exp))
     path_exp = tl_io.create_folder(path_exp)
     return path_exp
@@ -289,6 +291,8 @@ class NonDaemonPool(multiprocessing.pool.Pool):
     See: https://github.com/nipy/nipype/pull/2754
 
     FIXME: fails on Windows
+
+    >>> NonDaemonPool(1)  # doctest: +SKIP
     """
     def Process(self, *args, **kwds):
         proc = super(NonDaemonPool, self).Process(*args, **kwds)
