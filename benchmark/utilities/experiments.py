@@ -10,7 +10,7 @@ import time
 import logging
 import argparse
 import subprocess
-import multiprocessing.pool
+# import multiprocessing.pool
 import multiprocessing as mproc
 from functools import wraps
 
@@ -285,31 +285,31 @@ def compute_points_dist_statistic(points1, points2):
     return diffs, dict_stat
 
 
-class NonDaemonPool(multiprocessing.pool.Pool):
-    """ We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
-    because the latter is only a wrapper function, not a proper class.
-
-    See: https://github.com/nipy/nipype/pull/2754
-
-    FIXME: fails on Windows
-
-    >>> NonDaemonPool(1)  # doctest: +SKIP
-    """
-    def Process(self, *args, **kwds):
-        proc = super(NonDaemonPool, self).Process(*args, **kwds)
-
-        class NonDaemonProcess(proc.__class__):
-            """Monkey-patch process to ensure it is never daemonized"""
-            @property
-            def daemon(self):
-                return False
-
-            @daemon.setter
-            def daemon(self, val):
-                pass
-
-        proc.__class__ = NonDaemonProcess
-        return proc
+# class NonDaemonPool(multiprocessing.pool.Pool):
+#     """ We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
+#     because the latter is only a wrapper function, not a proper class.
+#
+#     See: https://github.com/nipy/nipype/pull/2754
+#
+#     ERROR: fails on Windows
+#
+#     >>> NonDaemonPool(1)  # doctest: +SKIP
+#     """
+#     def Process(self, *args, **kwds):
+#         proc = super(NonDaemonPool, self).Process(*args, **kwds)
+#
+#         class NonDaemonProcess(proc.__class__):
+#             """Monkey-patch process to ensure it is never daemonized"""
+#             @property
+#             def daemon(self):
+#                 return False
+#
+#             @daemon.setter
+#             def daemon(self, val):
+#                 pass
+#
+#         proc.__class__ = NonDaemonProcess
+#         return proc
 
 
 def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
