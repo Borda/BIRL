@@ -9,7 +9,7 @@ EXAMPLE
     -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*.png" \
     --padding 0.1 --nb_jobs 2
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
@@ -28,7 +28,7 @@ import numpy as np
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.dataset import find_largest_object, project_object_edge
 from benchmark.utilities.dataset import load_large_image, save_large_image
-from benchmark.utilities.experiments import wrap_execute_sequence
+from benchmark.utilities.experiments import wrap_execute_sequence, try_decorator
 
 NB_THREADS = int(mproc.cpu_count() * .5)
 SCALE_SIZE = 512
@@ -51,10 +51,11 @@ def arg_parse_params():
                         default=NB_THREADS)
     args = vars(parser.parse_args())
     args['path_images'] = os.path.expanduser(args['path_images'])
-    logging.info('ARGUMENTS: \n%s' % repr(args))
+    logging.info('ARGUMENTS: \n%r' % args)
     return args
 
 
+@try_decorator
 def crop_image(img_path, crop_dims=(0, 1), padding=0.15):
     img = load_large_image(img_path)
     scale_factor = max(1, np.mean(img.shape[:2]) / float(SCALE_SIZE))
@@ -87,13 +88,6 @@ def crop_image(img_path, crop_dims=(0, 1), padding=0.15):
     time.sleep(1)
 
 
-def wrap_img_crop(img_path, padding=0.1):
-    try:
-        crop_image(img_path, crop_dims=(0, 1), padding=padding)
-    except Exception:
-        logging.exception('crop image: %s', img_path)
-
-
 def main(path_images, padding, nb_jobs):
     image_paths = sorted(glob.glob(path_images))
 
@@ -101,7 +95,7 @@ def main(path_images, padding, nb_jobs):
         logging.info('No images found on "%s"', path_images)
         return
 
-    _wrap_crop = partial(wrap_img_crop, padding=padding)
+    _wrap_crop = partial(crop_image, padding=padding)
     list(wrap_execute_sequence(_wrap_crop, image_paths,
                                desc='Crop image tissue', nb_jobs=nb_jobs))
 

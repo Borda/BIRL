@@ -1,19 +1,24 @@
 """
 Some functionality related to dataset
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
 import re
+import glob
 import logging
 
+from scipy import spatial
 from PIL import Image
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
+from matplotlib.path import Path
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
+
+import benchmark.utilities.data_io as tl_io
 
 TISSUE_CONTENT = 0.01
 # supported image extensions
@@ -134,7 +139,7 @@ def project_object_edge(img, dimension):
      0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0, 0.0, 0.0]
     """
     assert dimension in (0, 1), 'not supported dimension %i' % dimension
-    assert img.ndim == 3, 'unsupported image shape %s' % repr(img.shape)
+    assert img.ndim == 3, 'unsupported image shape %r' % img.shape
     img_gray = np.mean(img, axis=-1)
     img_gray = cv.GaussianBlur(img_gray, (5, 5), 0)
     p_low, p_high = np.percentile(img_gray, (1, 95))
@@ -224,12 +229,14 @@ def generate_pairing(count, step_hide=None):
 
     :param int count: total number of samples
     :param int|None step_hide: hide every N sample
-    :return [(int, int)]: registration pairs
+    :return [(int, int)], [bool]: registration pairs
 
-    >>> generate_pairing(4, None)
-    [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
-    >>> generate_pairing(4, step_hide=3)
-    [(0, 1), (0, 2), (1, 2), (3, 1), (3, 2)]
+    >>> generate_pairing(4, None)  # doctest: +NORMALIZE_WHITESPACE
+    ([(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
+     [True, True, True, True, True, True])
+    >>> generate_pairing(4, step_hide=3)  # doctest: +NORMALIZE_WHITESPACE
+    ([(0, 1), (0, 2), (1, 2), (3, 1), (3, 2)],
+     [False, False, True, False, False])
     """
     idxs_all = list(range(count))
     idxs_hide = idxs_all[::step_hide] if step_hide is not None else []
@@ -239,14 +246,15 @@ def generate_pairing(count, step_hide=None):
     # prune symmetric image pairs
     idxs_pairs = [(i, j) for k, (i, j) in enumerate(idxs_pairs)
                   if (j, i) not in idxs_pairs[:k]]
-    return idxs_pairs
+    public = [not (i in idxs_hide or j in idxs_hide) for i, j in idxs_pairs]
+    return idxs_pairs, public
 
 
-def parse_path_scale(path):
+def parse_path_scale(path_folder):
     """ from given path with annotation parse scale
 
-    :param str path: path to the user folder
-    :return int:
+    :param str path: path to the scale folder
+    :return int: scale
 
     >>> parse_path_scale('scale-.1pc')
     nan
@@ -255,9 +263,68 @@ def parse_path_scale(path):
     >>> parse_path_scale('scale-10pc')
     10
     """
-    name = os.path.basename(path)
-    obj = re.match(REEXP_FOLDER_SCALE, name)
+    folder = os.path.basename(path_folder)
+    obj = re.match(REEXP_FOLDER_SCALE, folder)
     if obj is None:
         return np.nan
     scale = int(obj.groups()[0])
     return scale
+
+
+def compute_convex_hull(landmarks):
+    """ compute convex hull around landmarks
+
+    http://lagrange.univ-lyon1.fr/docs/scipy/0.17.1/generated/scipy.spatial.ConvexHull.html
+    https://stackoverflow.com/questions/21727199
+
+    :param ndarray landmarks:
+    :return ndarray:
+
+    >>> np.random.seed(0)
+    >>> pts = np.random.randint(15, 30, (10, 2))
+    >>> compute_convex_hull(pts)
+    array([[27, 20],
+           [27, 25],
+           [22, 24],
+           [16, 21],
+           [15, 18],
+           [26, 18]])
+    """
+    chull = spatial.ConvexHull(landmarks)
+    chull_points = landmarks[chull.vertices]
+    return chull_points
+
+
+def inside_polygon(polygon, point):
+    """ check if a point is strictly inside the polygon
+
+    :param ndarray|[] polygon: polygon contour
+    :param ()|[] point: sample point
+    :return bool: inside
+
+    >>> poly = [[1, 1], [1, 3], [3, 3], [3, 1]]
+    >>> inside_polygon(poly, [0, 0])
+    False
+    >>> inside_polygon(poly, [1, 1])
+    False
+    >>> inside_polygon(poly, [2, 2])
+    True
+    """
+    path = Path(polygon)
+    return path.contains_points([point])[0]
+
+
+def list_sub_folders(path_folder, name='*'):
+    """ list all sub folders with particular name pattern
+
+    :param str path_folder: path to a particular folder
+    :param str name: name pattern
+    :return [str]:
+
+    >>> paths = list_sub_folders(tl_io.update_path('data_images'))
+    >>> list(map(os.path.basename, paths))
+    ['images', 'landmarks', 'lesions_', 'rat-kidney_']
+    """
+    sub_dirs = sorted([p for p in glob.glob(os.path.join(path_folder, name))
+                       if os.path.isdir(p)])
+    return sub_dirs

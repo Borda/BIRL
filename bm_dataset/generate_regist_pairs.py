@@ -7,7 +7,7 @@ Example run:
     -l ../output/synth_dataset/*.csv \
     -csv ../output/cover.csv --mode each2all
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
@@ -41,11 +41,7 @@ def arg_parse_params():
     parser.add_argument('--mode', type=str, required=False,
                         help='type of combination of registration pairs',
                         default=OPTIONS_COMBINE[0], choices=OPTIONS_COMBINE)
-    args = vars(parser.parse_args())
-    logging.info(tl_expt.string_dict(args, 'ARGUMENTS:'))
-    assert tl_expt.check_paths(args, ['path_csv']), \
-        'some paths are missing: %s' \
-        % repr({k: args[k] for k in tl_expt.missing_paths(args, ['path_csv'])})
+    args = tl_expt.parse_arg_params(parser, upper_dirs=['path_csv'])
     return args
 
 

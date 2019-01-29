@@ -1,0 +1,11 @@
+Dear <NAME>,
+
+You are receiving this email because we believe you can be interested to participate in the Automatic Non-rigid Histological Image Registration (ANHIR, https://anhir.grand-challenge.org) challenge. If you consider participating, please join the challenge at your earliest convenience (you need to create an account at grand-challenge.org if you have not done yet). This will allow us for better planning. Joining is also a prerequisite for downloading the data.
+
+A large number of images are now available for download. We have updated our download instructions (https://anhir.grand-challenge.org/Download).
+
+Let us remind you that we will have a challenge workshop at the ISBI conference (https://biomedicalimaging.org/2019) where the winners will be announced and the best methods presented. We would also like to write a journal article with the challenge results.
+
+Do not hesitate to ask if you have any questions or comments.
+Good luck and we are looking forward to meeting you in Venice.
+Jiří Borovec & Arrate Munoz-Barrutia & Jan Kybic & Ignacio Arganda

@@ -1,7 +1,7 @@
 """
 General template for experiments
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 
@@ -25,7 +25,7 @@ class Experiment(object):
     None, all required parameters used in future have to come in init phase
 
     >>> import benchmark.utilities.data_io as tl_io
-    >>> path_out = tl_io.create_dir('output')
+    >>> path_out = tl_io.create_folder('output')
     >>> params = {'path_out': path_out, 'name': 'my_Experiment'}
     >>> expt = Experiment(params, False)
     >>> 'path_exp' in expt.params
@@ -104,8 +104,8 @@ class Experiment(object):
 
     def __create_folder(self, stamp_unique=True):
         """ create the experiment folder (iterate if necessary) """
-        assert 'path_out' in self.params, 'missing "path_out" among %s' \
-                                          % repr(self.params.keys())
+        assert 'path_out' in self.params, 'missing "path_out" among %r' \
+                                          % self.params.keys()
         # create results folder for experiments
         path_exp = tl_expt.create_experiment_folder(
             self.params.get('path_out'), self.__class__.__name__,

@@ -2,7 +2,7 @@
 Testing default benchmarks in single thred and parallel configuration
 Check whether it generates correct outputs and resulting values
 
-Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 
@@ -11,6 +11,11 @@ import sys
 import logging
 import unittest
 import shutil
+import argparse
+try:  # python 3
+    from unittest.mock import patch
+except ImportError:  # python 2
+    from mock import patch
 
 import numpy as np
 import pandas as pd
@@ -18,6 +23,7 @@ from numpy.testing import assert_raises, assert_array_almost_equal
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.data_io import update_path
+from benchmark.utilities.experiments import (parse_arg_params, try_decorator)
 from benchmark.cls_benchmark import ImRegBenchmark
 from benchmark.cls_benchmark import (NAME_CSV_RESULTS, NAME_TXT_RESULTS,
                                      NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS,
@@ -97,8 +103,8 @@ class TestBmRegistration(unittest.TestCase):
         }
         self.benchmark = BmTemplate(params)
         self.benchmark.run()
-        self.check_benchmark_results(final_means=[28.05, 68.21, 73.18, 76.44],
-                                     final_stds=[12.77, 28.12, 28.26, 34.42])
+        self.check_benchmark_results(final_means=[28., 68., 73., 76.],
+                                     final_stds=[13., 28., 28., 34.])
         del self.benchmark
 
     def check_benchmark_results(self, final_means, final_stds):
@@ -145,6 +151,14 @@ class TestBmRegistration(unittest.TestCase):
 
         # test specific results
         assert_array_almost_equal(sorted(df_regist['TRE Mean (final)'].values),
-                                  np.array(final_means), decimal=2)
+                                  np.array(final_means), decimal=0)
         assert_array_almost_equal(sorted(df_regist['TRE STD (final)'].values),
-                                  np.array(final_stds), decimal=2)
+                                  np.array(final_stds), decimal=0)
+
+    @try_decorator
+    def test_try_wrap(self):
+        print('%i' % '42')
+
+    def test_argparse(self):
+        with patch('argparse._sys.argv', ['script.py']):
+            parse_arg_params(argparse.ArgumentParser())

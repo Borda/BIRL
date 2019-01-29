@@ -1,10 +1,11 @@
-numpy>=1.8.2
+numpy>=1.8.2,<1.16.0  # version 1.16 breaks skimage 0.14
 scipy>=0.10.0
 pandas>=0.17.1
 six>=1.7.3
 pillow>=2.1.0
-matplotlib>=2.0.2<3.0.0  # new version does not support py2
+matplotlib>=2.0.2,<3.0.0  # new version does not support py2
 tqdm>=4.7.4
 scikit-image
 opencv-python
 openslide-python
+mock

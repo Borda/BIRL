@@ -9,7 +9,7 @@ Example run:
     -l ../data_images/landmarks/Rat_Kidney_HE.csv \
     -o ../output/synth_dataset  --visual
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
@@ -67,11 +67,7 @@ def arg_parse_params():
     parser.add_argument('--nb_jobs', type=int, required=False,
                         help='number of processes in parallel',
                         default=NB_THREADS)
-    args = vars(parser.parse_args())
-    logging.info(tl_expt.string_dict(args, 'ARGUMENTS:'))
-    assert tl_expt.check_paths(args, ['path_out']), \
-        'missing some paths: %s' \
-        % repr({k: args[k] for k in tl_expt.missing_paths(args, ['path_out'])})
+    args = tl_expt.parse_arg_params(parser, upper_dirs=['path_out'])
     args['visual'] = bool(args['visual'])
     return args
 

@@ -1,9 +1,8 @@
 """
 General experiments methods
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
-from __future__ import absolute_import
 
 import os
 import sys
@@ -11,8 +10,9 @@ import time
 import logging
 import argparse
 import subprocess
-import multiprocessing.pool
+# import multiprocessing.pool
 import multiprocessing as mproc
+from functools import wraps
 
 import tqdm
 import numpy as np
@@ -34,23 +34,27 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     :param str dir_name: special folder name
     :param bool stamp_unique: whether add at the end of new folder unique tag
 
-    >>> p = create_experiment_folder('.', 'my_test', stamp_unique=False)
-    >>> os.path.exists(p)
-    True
-    >>> os.rmdir(p)
+    >>> p_dir = create_experiment_folder('.', 'my_test', stamp_unique=False)
+    >>> os.rmdir(p_dir)
+    >>> p_dir = create_experiment_folder('.', 'my_test', stamp_unique=True)
+    >>> os.rmdir(p_dir)
     """
-    assert os.path.exists(path_out), 'missing "%s"' % path_out
+    assert os.path.exists(path_out), 'missing base folder "%s"' % path_out
     date = time.gmtime()
     if isinstance(name, str) and name:
         dir_name = '{}_{}'.format(dir_name, name)
-    if stamp_unique:
-        dir_name += '_' + time.strftime(FORMAT_DATE_TIME, date)
     path_exp = os.path.join(path_out, dir_name)
-    while stamp_unique and os.path.isdir(path_exp):
-        logging.warning('particular out folder already exists')
-        path_exp += ':' + str(np.random.randint(0, 10))
-    logging.info('creating experiment folder "{}"'.format(path_exp))
-    path_exp = tl_io.create_dir(path_exp)
+    if stamp_unique:
+        path_exp += '_' + time.strftime(FORMAT_DATE_TIME, date)
+        path_created = None
+        while not path_created:
+            logging.warning('particular out folder already exists')
+            if path_created is not None:
+                path_exp += '-' + str(np.random.randint(0, 100))
+            path_created = tl_io.create_folder(path_exp, ok_existing=False)
+    else:
+        path_created = tl_io.create_folder(path_exp, ok_existing=False)
+    logging.info('created experiment folder "%r"', path_created)
     return path_exp
 
 
@@ -139,14 +143,24 @@ def create_basic_parse():
     return parser
 
 
-def missing_paths(args, upper_dirs=None, pattern='path'):
+def update_paths(args, upper_dirs=None, pattern='path'):
     """ find params with not existing paths
 
     :param {} args: dictionary with all parameters
     :param [str] upper_dirs: list of keys in parameters
-        with item which must exist only the parent folder
+        with item for which only the parent folder must exist
     :param str pattern: patter specifying key with path
     :return [str]: key of missing paths
+
+    >>> update_paths({'sample': 123})[1]
+    []
+    >>> update_paths({'path_': '.'})[1]
+    []
+    >>> params = {'path_out': './nothing'}
+    >>> update_paths(params)[1]
+    ['path_out']
+    >>> update_paths(params, upper_dirs=['path_out'])[1]
+    []
     """
     if upper_dirs is None:
         upper_dirs = []
@@ -159,48 +173,30 @@ def missing_paths(args, upper_dirs=None, pattern='path'):
             args[k] = tl_io.update_path(args[k])
             p = args[k]
         if not os.path.exists(p):
-            logging.warning('missing "%s": %s' % (k, p))
+            logging.warning('missing "%s": %s', k, p)
             missing.append(k)
-    return missing
+    return args, missing
 
 
-def check_paths(args, restrict_dir=None):
-    """ check if all paths in dictionary exists
-
-    :param {} args:
-    :param [str] restrict_dir:
-
-    >>> check_paths({'sample': 123})
-    True
-    >>> check_paths({'path_': '.'})
-    True
-    >>> check_paths({'path_out': './nothing'}, restrict_dir=['path_out'])
-    True
-    >>> check_paths({'path_out': './nothing'})  # doctest: +ELLIPSIS
-    False
-    """
-    missing = missing_paths(args, restrict_dir)
-    status = (len(missing) == 0)
-    return status
-
-
-def parse_params(parser):
+def parse_arg_params(parser, upper_dirs=None):
     """ parse all params
 
     :param parser: object of parser
-    :return: {str: any}, int
+    :param [str] upper_dirs: list of keys in parameters
+        with item for which only the parent folder must exist
+    :return {str: any}:
 
     >>> args = create_basic_parse()
-    >>> parse_params(args)  # doctest: +SKIP
+    >>> parse_arg_params(args)  # doctest: +SKIP
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     args = vars(parser.parse_args())
-    logging.debug('ARG PARAMS: \n %s', repr(args))
+    logging.info('ARGUMENTS: \n %r', args)
     # remove all None parameters
     args = {k: args[k] for k in args if args[k] is not None}
-    # extend nd test all paths in params
-    assert check_paths(args), 'missing paths: %s' % \
-                              repr({k: args[k] for k in missing_paths(args)})
+    # extend and test all paths in params
+    args, missing = update_paths(args, upper_dirs=upper_dirs)
+    assert not missing, 'missing paths: %r' % {k: args[k] for k in missing}
     return args
 
 
@@ -264,7 +260,7 @@ def compute_points_dist_statistic(points1, points2):
     >>> dist, stat = compute_points_dist_statistic(points1, points1)
     >>> dist
     array([ 0.,  0.,  0.])
-    >>> all(v == 0 for v in stat.values())
+    >>> all(stat[k] == 0 for k in stat if k not in ['Overlap'])
     True
     >>> dist, stat = compute_points_dist_statistic(points1, points2)
     >>> dist  #doctest: +ELLIPSIS
@@ -272,11 +268,11 @@ def compute_points_dist_statistic(points1, points2):
     >>> stat['Mean']  #doctest: +ELLIPSIS
     2.468...
     """
-    points1 = np.asarray(points1)
-    points2 = np.asarray(points2)
-    assert points1.shape == points2.shape, \
-        'points sizes do not match %s != %s' \
-        % (repr(points1.shape), repr(points2.shape))
+    lnd_sizes = [len(points1), len(points2)]
+    nb_common = min(lnd_sizes)
+    assert nb_common > 0, 'no common landamrks for metric'
+    points1 = np.asarray(points1)[:nb_common]
+    points2 = np.asarray(points2)[:nb_common]
     diffs = np.sqrt(np.sum(np.power(points1 - points2, 2), axis=1))
     dict_stat = {
         'Mean': np.mean(diffs),
@@ -284,29 +280,36 @@ def compute_points_dist_statistic(points1, points2):
         'Median': np.median(diffs),
         'Min': np.min(diffs),
         'Max': np.max(diffs),
+        'Overlap': nb_common / float(max(lnd_sizes))
     }
     return diffs, dict_stat
 
 
-class NoDaemonProcess(mproc.Process):
-    @classmethod
-    def _get_daemon(self):
-        # make 'daemon' attribute always return False
-        return False
-
-    def _set_daemon(self, value):
-        pass
-
-    daemon = property(_get_daemon, _set_daemon)
-
-
-class NDPool(multiprocessing.pool.Pool):
-    """ We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
-    because the latter is only a wrapper function, not a proper class.
-
-    >>> pool = NDPool(1)
-    """
-    Process = NoDaemonProcess
+# class NonDaemonPool(multiprocessing.pool.Pool):
+#     """ We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
+#     because the latter is only a wrapper function, not a proper class.
+#
+#     See: https://github.com/nipy/nipype/pull/2754
+#
+#     ERROR: fails on Windows
+#
+#     >>> NonDaemonPool(1)  # doctest: +SKIP
+#     """
+#     def Process(self, *args, **kwds):
+#         proc = super(NonDaemonPool, self).Process(*args, **kwds)
+#
+#         class NonDaemonProcess(proc.__class__):
+#             """Monkey-patch process to ensure it is never daemonized"""
+#             @property
+#             def daemon(self):
+#                 return False
+#
+#             @daemon.setter
+#             def daemon(self, val):
+#                 pass
+#
+#         proc.__class__ = NonDaemonProcess
+#         return proc
 
 
 def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
@@ -320,11 +323,12 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
         if it is set None, bar is suppressed
     :param bool ordered: whether enforce ordering in the parallelism
 
-    >>> list(wrap_execute_sequence(lambda x: x ** 2, range(5),
-    ...                            nb_jobs=1, ordered=True))
-    [0, 1, 4, 9, 16]
+    >>> list(wrap_execute_sequence(np.sqrt, range(5), nb_jobs=1, ordered=True))  # doctest: +ELLIPSIS
+    [0.0, 1.0, 1.41..., 1.73..., 2.0]
     >>> list(wrap_execute_sequence(sum, [[0, 1]] * 5, nb_jobs=2, desc=None))
     [1, 1, 1, 1, 1]
+    >>> list(wrap_execute_sequence(max, [[2, 1]] * 5, nb_jobs=2, desc=''))
+    [2, 2, 2, 2, 2]
     """
     iterate_vals = list(iterate_vals)
 
@@ -339,7 +343,7 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
         # Standard mproc.Pool created a demon processes which can be called
         # inside its children, cascade or multiprocessing
         # https://stackoverflow.com/questions/6974695/python-process-pool-non-daemonic
-        pool = NDPool(nb_jobs)
+        pool = mproc.Pool(nb_jobs)
         pooling = pool.imap if ordered else pool.imap_unordered
 
         for out in pooling(wrap_func, iterate_vals):
@@ -354,3 +358,18 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
             yield out
             if tqdm_bar is not None:
                 tqdm_bar.update()
+
+
+def try_decorator(func):
+    """ costume decorator to wrap function in try/except
+
+    :param func:
+    :return:
+    """
+    @wraps(func)
+    def wrap(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception:
+            logging.exception('%r with %r and %r', func.__name__, args, kwargs)
+    return wrap

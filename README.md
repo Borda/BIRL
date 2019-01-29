@@ -7,26 +7,31 @@
 [![codecov](https://codecov.io/gh/Borda/BIRL/branch/master/graph/badge.svg?token=JZwA1rlUGA)](https://codecov.io/gh/Borda/BIRL)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b12d7a4a99d549a9baba6c9a83ad6b59)](https://www.codacy.com/project/Borda/BIRL/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Borda/BIRL&amp;utm_campaign=Badge_Grade_Dashboard)
 [![Code Health](https://landscape.io/github/Borda/BIRL/master/landscape.svg?style=flat)](https://landscape.io/github/Borda/BIRL/master)
-[![codebeat badge](https://codebeat.co/badges/6dd13229-ca9e-4dae-9394-caf5f363082d)](https://codebeat.co/projects/github-com-borda-birl-master)
 [![CodeFactor](https://www.codefactor.io/repository/github/borda/birl/badge)](https://www.codefactor.io/repository/github/borda/birl)
 <!--
+[![codebeat badge](https://codebeat.co/badges/6dd13229-ca9e-4dae-9394-caf5f363082d)](https://codebeat.co/projects/github-com-borda-birl-master)
 [![Coverage Badge](https://api.shippable.com/projects/585bfa66e18a291000c15f24/coverageBadge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
+[![Image.sc 
+forum](https://img.shields.io/badge/dynamic/json.svg?label=forum&url=https%3A%2F%2Fforum.image.sc%2Ftags%2Fanhir.json&query=%24.topic_list.tags.0.topic_count&colorB=brightgreen&suffix=%20topics&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAABPklEQVR42m3SyyqFURTA8Y2BER0TDyExZ+aSPIKUlPIITFzKeQWXwhBlQrmFgUzMMFLKZeguBu5y+//17dP3nc5vuPdee6299gohUYYaDGOyyACq4JmQVoFujOMR77hNfOAGM+hBOQqB9TjHD36xhAa04RCuuXeKOvwHVWIKL9jCK2bRiV284QgL8MwEjAneeo9VNOEaBhzALGtoRy02cIcWhE34jj5YxgW+E5Z4iTPkMYpPLCNY3hdOYEfNbKYdmNngZ1jyEzw7h7AIb3fRTQ95OAZ6yQpGYHMMtOTgouktYwxuXsHgWLLl+4x++Kx1FJrjLTagA77bTPvYgw1rRqY56e+w7GNYsqX6JfPwi7aR+Y5SA+BXtKIRfkfJAYgj14tpOF6+I46c4/cAM3UhM3JxyKsxiOIhH0IO6SH/A1Kb1WBeUjbkAAAAAElFTkSuQmCC)](https://forum.image.sc/tags/anhir)
 -->
 
-This project contains a set of sample images with related landmarks and experimental evaluation of state-of-the-art image registration methods.
 
-The [dataset of stained histological tissues](http://cmp.felk.cvut.cz/~borovji3/?page=dataset) is composed by image pairs of related sections (mainly, consecutive cuts).
+_This project becomes part of **[Automatic Non-rigid Histological Image Registration (ANHIR)](https://anhir.grand-challenge.org)** hosted at [ISBI 2019](https://biomedicalimaging.org/2019/challenges/) conference. The related discussion is hosted on [forum.image.sc](https://forum.image.sc/tags/anhir)._
+
+The project contains a set of sample images with related landmark annotations and experimental evaluation of state-of-the-art image registration methods.
+
+The initial [dataset of stained histological tissues](http://cmp.felk.cvut.cz/~borovji3/?page=dataset) is composed by image pairs of related sections (mainly, consecutive cuts).
 Each image in the pair is coloured with a different stain. 
-The registration of those images is a challenging task due to both artifacts and deformations acquired during sample preparation and apparece differences due to staining. 
-
+The registration of those images is a challenging task due to both artefacts and deformations acquired during sample preparation and appearance differences due to staining. 
 For evaluation we have manually placed landmarks in each image pair. There are at least 40 uniformly spread over the tissue. 
 We do not put any landmarks in the background.
-
 For more information about annotation creation and landmarks handling we refer to the special repository - [Dataset: histology landmarks](http://borda.github.com/dataset-histology-landmarks).
 
-The dataset is defined by a CSV file containing paths to reference and sensed image and their related landmarks _(see `./data_images/pairs-imgs-lnds_mix.csv`)_.
-
 ![images-landmarks](figures/images-landmarks.jpg)
+
+The dataset is defined by a CSV file containing paths to target and sensed image and their related landmarks _(see `./data_images/pairs-imgs-lnds_mix.csv`)_. With the change of the cover table, the benchmarks can be used for any other image dataset.
+
+
 
 ## Structure
 
@@ -34,6 +39,7 @@ The project contains the following folders:
 
 * `benchmarks` - package with benchmark & template and general useful utils
     * `utilities` - useful tools and functions
+* `bm_ANHIR` - scripts related directly to ANHIR challenge
 * `bm_dataset` - package handling dataset creation and servicing
 * `bm_experiments` - package with particular benchmark experiments
 * `data_images` - folder with input sample data
@@ -42,14 +48,17 @@ The project contains the following folders:
     * `lesions_` - samples of histology tissue with annotation
     * `rat-kidney_` - samples of histology tissue with annotation
 * `configs` - configs for registration methods 
-* `macros_ij` - macros for ImageJ 
+* `scripts_IJ` - macros for ImageJ 
+
+
 
 ## Before benchmarks (pre-processing) 
 
 In the `data_images` folder we provide some sample images with landmarks for registration. 
 These sample registration pairs are saved in `data_images/pairs-imgs-lnds_mix.csv`. 
+You can create your own costume cover table for a given dataset (folder with images and landmarks) by hand or use script `bm_dataset/create_registration_pairs.py` assuming the same folder structure `<dataset>/<image-set>/<scale>/<images-and-landmarks>` as for the [CIMA dataset](http://cmp.felk.cvut.cz/~borovji3/?page=dataset).
 
-### Prepare Data
+### Prepare synthetic data
 
 There is a script to generate synthetic data. 
 Just set an initial image and their corresponding landmarks. 
@@ -63,6 +72,8 @@ python bm_dataset/create_real_synth_dataset.py \
     -nb 5 --nb_jobs 3 --visual
 ```
 
+### Creating image-pairs table
+
 When the synthetic datasets have been created, the cover csv file which contains the registration pairs (Reference and Moving image (landmarks)) is generated. 
 Two modes are created: _"first2all"_ for registering the first image to all others and _"each2all"_ for registering each image to all other. 
 _(note A-B is the same as B-A)_
@@ -74,6 +85,30 @@ python bm_dataset/generate_regist_pairs.py \
     -csv ./data_images/cover_synth-dataset.csv \
     --mode each2all
 ```
+
+### Customize the images and landmarks
+
+We offer a script for scaling images in to particular scales for example
+
+```bash
+python bm_dataset/rescale_tissue_images.py \
+    -i "./data_images/rat-kidney_/scale-5pc/*.jpg" \
+    -scales 10 -ext .png --nb_jobs 2
+```
+
+We introduce an option how to randomly take only a subset (use `nb_selected`) of annotated landmarks and also add some synthetic point (filling points up to `nb_total`) which are across set aligned using estimate affine transformation
+
+```bash
+python bm_dataset/rescale_tissue_landmarks.py \
+    -a ./data_images -d ./output \
+    --nb_selected 0.5 --nb_total 200
+``` 
+
+Moreover we developed two additional script for converting large images, handling multiple tissue samples in single image and crop to wide background.
+ * `bm_dataset/convert_tiff2png.py` converts TIFF or SVS image to PNG in a particular level
+ * `bm_dataset/split_images_two_tissues.py` splits two tissue samples with clear wide bound in vertical or horizontal direction
+ * `bm_dataset/crop_tissue_images.py` crops the tissue sample removing wide homogeneous background
+
 
 ## Experiments with included methods
 

@@ -2,7 +2,7 @@
 Creating cover file for configuring registration image pairs
 The paths and all other constants are set to run on CMP grid for ANHIR dataset
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
@@ -11,6 +11,7 @@ import glob
 import logging
 from functools import partial
 
+import tqdm
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
@@ -60,40 +61,57 @@ def get_relative_paths(paths, path_base):
 
 
 def list_landmarks_images(path_tissue, sc, path_landmarks, path_images):
+    """ list image and landmarks paths
+
+    :param str path_tissue: path to a tissue - image set
+    :param int sc: used scale
+    :param str path_landmarks:
+    :param str path_images:
+    :return ([str], [str]):
+    """
     path_ = os.path.join(path_tissue, NAME_DIR_SCALE % sc, '*.csv')
     rp_lnds = get_relative_paths(glob.glob(path_), path_landmarks)
     if not rp_lnds:
         logging.debug('found no landmarks for: %s', path_)
         return [], []
-    paths_imgs = []
+    paths_imgs, rp_lnds_filter = [], []
     for rp_lnd in rp_lnds:
         p_imgs = glob.glob(os.path.join(path_images,
                                         os.path.splitext(rp_lnd)[0] + '.*'))
-        p_imgs = [p for p in p_imgs
-                  if os.path.splitext(p)[-1] in IMAGE_EXTENSIONS]
+        p_imgs = [p for p in p_imgs if os.path.splitext(p)[-1] in IMAGE_EXTENSIONS]
         if not p_imgs:
-            logging.error('missing image for "%s"', rp_lnd)
-            return [], []
-        paths_imgs.append(sorted(p_imgs)[0])
+            logging.warning('missing image for "%s"', rp_lnd)
+        else:
+            rp_lnds_filter.append(rp_lnd)
+            paths_imgs.append(sorted(p_imgs)[0])
     rp_imgs = get_relative_paths(paths_imgs, path_images)
-    return rp_lnds, rp_imgs
+    return rp_lnds_filter, rp_imgs
 
 
-def generate_reg_pairs(rp_imgs, rp_lnds, pairs):
+def generate_reg_pairs(rp_imgs, rp_lnds, pairs, public):
+    """ format a registration pair as dictionaryies/rows in cover table for a set
+
+    :param [str] rp_imgs: relative paths to images
+    :param rp_lnds: relative paths to related landmarks
+    :param [(int, int)] pairs: pairing among images/landmarks
+    :param [bool] public: marks whether the particular pair is training or evaluation
+    :return [{}]:
+    """
     reg_pairs = []
-    for i, j in pairs:
+    for k, (i, j) in enumerate(pairs):
         reg_pairs.append({
             COL_IMAGE_REF: rp_imgs[i],
             COL_IMAGE_MOVE: rp_imgs[j],
             COL_POINTS_REF: rp_lnds[i],
             COL_POINTS_MOVE: rp_lnds[j],
+            'status': 'training' if public[k] else 'evaluation'
         })
     return reg_pairs
 
 
 def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out,
                          step_hide_landmarks, tissue_partial):
-    """ geberate cover CSV file for particular dataset size/scale
+    """ generate cover CSV file for particular dataset size/scale
 
     :param str name:
     :param {} dataset:
@@ -105,20 +123,21 @@ def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out,
     :return:
     """
     # name, scale_step = dataset
+    tissues = [(tissue, p) for tissue in sorted(dataset)
+               for p in glob.glob(os.path.join(path_landmarks, tissue))
+               if os.path.isdir(p)]
 
     reg_pairs = []
-    for tissue in sorted(dataset):
+    logging.debug('found: %r', sorted(set([os.path.basename(tp[1]) for tp in tissues])))
+    for tissue, p_tissue in tqdm.tqdm(sorted(tissues)):
         sc = dataset[tissue][name]
-        paths_tissue = [p for p in glob.glob(os.path.join(path_landmarks, tissue))
-                        if os.path.isdir(p)]
-        for p_tissue in sorted(paths_tissue):
-            rp_lnds, rp_imgs = list_landmarks_images(p_tissue, sc,
-                                                     path_landmarks, path_images)
-            assert len(rp_lnds) == len(rp_imgs), \
-                'the list of landmarks and images does not match'
-            step_hide_landmarks = step_hide_landmarks if tissue in tissue_partial else None
-            pairs = generate_pairing(len(rp_lnds), step_hide_landmarks)
-            reg_pairs += generate_reg_pairs(rp_imgs, rp_lnds, pairs)
+        rp_lnds, rp_imgs = list_landmarks_images(p_tissue, sc, path_landmarks,
+                                                 path_images)
+        assert len(rp_lnds) == len(rp_imgs), \
+            'the list of landmarks and images does not match'
+        step_hide_lnds = step_hide_landmarks if tissue in tissue_partial else None
+        pairs, pub = generate_pairing(len(rp_lnds), step_hide_lnds)
+        reg_pairs += generate_reg_pairs(rp_imgs, rp_lnds, pairs, pub)
 
     df_cover = pd.DataFrame(reg_pairs)
     for col in COLUMNS_EMPTY:

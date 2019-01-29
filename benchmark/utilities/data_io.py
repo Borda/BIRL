@@ -1,7 +1,7 @@
 """
 Useful function for managing Input/Output
 
-Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
@@ -14,17 +14,32 @@ from PIL import Image
 LANDMARK_COORDS = ['X', 'Y']
 
 
-def create_dir(path_dir):
+def create_folder(path_folder, ok_existing=True):
     """ create a folder if it not exists
 
-    :param str path_dir:
+    :param str path_folder: path to creating folder
+    :return str|None: path to created folder
+
+    >>> p_dir = create_folder('./sample-folder', ok_existing=True)
+    >>> create_folder('./sample-folder', ok_existing=False)
+    False
+    >>> import shutil
+    >>> shutil.rmtree(p_dir)
     """
-    path_dir = os.path.abspath(path_dir)
-    if not os.path.isdir(path_dir):
-        os.makedirs(path_dir, mode=0o775)
-    else:
-        logging.warning('Folder already exists: %s', path_dir)
-    return path_dir
+    path_folder = os.path.abspath(path_folder)
+    if not os.path.isdir(path_folder):
+        try:
+            os.makedirs(path_folder, mode=0o775)
+        except Exception:
+            logging.exception('Something went wrong (probably parallel access),'
+                              ' the status of "%s" is %s', path_folder,
+                              os.path.isdir(path_folder))
+            path_folder = None
+    elif not ok_existing:
+        logging.warning('Folder already exists: %s', path_folder)
+        path_folder = False
+
+    return path_folder
 
 
 def load_landmarks(path_file):
@@ -41,6 +56,11 @@ def load_landmarks(path_file):
     True
     >>> os.remove('./sample_landmarks.csv')
     >>> os.remove('./sample_landmarks.txt')
+
+    Wrong loading
+    >>> open('./sample_landmarks.file', 'w').close()
+    >>> load_landmarks('./sample_landmarks.file')
+    >>> os.remove('./sample_landmarks.file')
     """
     assert os.path.isfile(path_file), 'missing file "%s"' % path_file
     ext = os.path.splitext(path_file)[-1]
@@ -67,6 +87,12 @@ def load_landmarks_txt(path_file):
            [ 3.,  4.],
            [ 5.,  6.]])
     >>> os.remove('./sample_landmarks.txt')
+
+    Empty landmarks
+    >>> open('./sample_landmarks.txt', 'w').close()
+    >>> load_landmarks_txt('./sample_landmarks.txt').size
+    0
+    >>> os.remove('./sample_landmarks.txt')
     """
     assert os.path.isfile(path_file), 'missing file "%s"' % path_file
     with open(path_file, 'r') as fp:
@@ -74,8 +100,7 @@ def load_landmarks_txt(path_file):
         lines = data.split('\n')
         # lines = [re.sub("(\\r|)\\n$", '', line) for line in lines]
     if len(lines) < 2:
-        logging.warning('invalid format: file has less then 2 lines, "%s"',
-                        repr(lines))
+        logging.warning('invalid format: file has less then 2 lines, "%r"', lines)
         return np.zeros((0, 2))
     nb_points = int(lines[1])
     points = [[float(n) for n in line.split()]
@@ -223,6 +248,9 @@ def save_image(path_image, image):
 
     :param str path_image: path to the image
     :param image: np.array<height, width, ch>
+
+    Wrong path
+    >>> save_image('./missing-path/any-image.png', np.zeros((10, 20)))
     """
     image = convert_ndarray_2_image(image)
     path_dir = os.path.dirname(path_image)

@@ -15,7 +15,7 @@ EXAMPLE
     -i "/datagrid/Medical/dataset_ANHIR/images_raw/*/*.svs"
 
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 
@@ -60,7 +60,7 @@ def arg_parse_params():
                         default=NB_THREADS)
     args = vars(parser.parse_args())
     args['path_images'] = os.path.expanduser(args['path_images'])
-    logging.info('ARGUMENTS: \n%s' % repr(args))
+    logging.info('ARGUMENTS: \n%r' % args)
     return args
 
 
@@ -114,7 +114,7 @@ def main(path_images, level=DEFAULT_LEVEL, overwrite=False, nb_jobs=1):
                             overwrite=overwrite)
 
     list(wrap_execute_sequence(_wrap_convert, paths_img,
-                               desc='converting images', nb_jobs=nb_jobs))
+                               desc='Converting images', nb_jobs=nb_jobs))
 
 
 if __name__ == '__main__':

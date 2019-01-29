@@ -1,9 +1,8 @@
 """
 Function for drawing and visualisations
 
-Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
-from __future__ import absolute_import
 
 import os
 
@@ -88,14 +87,15 @@ def draw_landmarks_origin_target_warped(ax, points_origin, points_target,
 
     >>> points = np.array([[20, 30], [40, 10], [15, 25]])
     >>> draw_landmarks_origin_target_warped(plt.figure().gca(),
-    ...                                    points, points + 1, points - 1)
+    ...                                     points, points + 1, points - 1)
     """
-    assert points_target.shape == points_origin.shape, \
-        'image dimension has to match %s != %s' \
-        % (repr(points_target.shape), repr(points_origin.shape))
-    assert points_origin.shape == points_warped.shape, \
-        'image dimension has to match %s != %s' \
-        % (repr(points_origin.shape), repr(points_warped.shape))
+    pts_sizes = [len(pts) for pts in [points_origin, points_target, points_warped]
+                 if pts is not None]
+    assert pts_sizes, 'no landmarks points given'
+    min_pts = min(pts_sizes)
+    assert min(pts_sizes) > 0, 'no points given for sizes: %r' % pts_sizes
+    points_origin = points_origin[:min_pts]
+    points_target = points_target[:min_pts]
 
     def _draw_lines(points1, points2, style, color, label):
         for start, stop in zip(points1, points2):
@@ -109,7 +109,9 @@ def draw_landmarks_origin_target_warped(ax, points_origin, points_target,
     _draw_lines(points_target, points_origin, '-.', 'g', 'true shift')
     ax.plot(points_target[:, 0], points_target[:, 1], marker, color='m',
             label='Target positions')
+
     if points_warped is not None:
+        points_warped = points_warped[:min_pts]
         # draw a dotted line between origin and warped
         _draw_lines(points_origin, points_warped, '-.', 'b', 'warped shift')
         # draw line that  should be minimal between target and estimate
@@ -138,9 +140,9 @@ def overlap_two_images(image1, image2, transparent=0.5):
            [ 0.5,  0.5,  0.5,  0.5,  0.5,  0.1],
            [ 0.4,  0.4,  0.4,  0.4,  0.4,  0. ]])
     """
-    assert image1.ndim == 3, 'required RGB images, got %s' % repr(image1.ndim)
-    assert image1.ndim == image2.ndim, 'image dimension has to match, %s != %s' \
-                                       % (repr(image1.ndim), repr(image2.ndim))
+    assert image1.ndim == 3, 'required RGB images, got %i' % image1.ndim
+    assert image1.ndim == image2.ndim, 'image dimension has to match, %r != %r' \
+                                       % (image1.ndim, image2.ndim)
     size1, size2 = image1.shape, image2.shape
     max_size = np.max(np.array([size1, size2]), axis=0)
     image = np.zeros(max_size)
@@ -192,7 +194,7 @@ def create_figure(im_size, figsize_max=MAX_FIGURE_SIZE):
     >>> isinstance(fig, plt.Figure)
     True
     """
-    assert len(im_size) >= 2, 'not valid image size - %s' % repr(im_size)
+    assert len(im_size) >= 2, 'not valid image size - %r' % im_size
     size = np.array(im_size[:2])
     fig_size = size[::-1] / float(size.max()) * figsize_max
     fig, ax = plt.subplots(figsize=fig_size)

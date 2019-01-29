@@ -8,6 +8,8 @@
 # this file is *not* meant to cover or endorse the use of travis, but rather to
 # help confirm pull requests to this project.
 
+dist: xenial  # Ubuntu 16.04
+
 env:
   global:
     - DISPLAY=""
@@ -27,6 +29,7 @@ install:
   - sudo apt-get install python-opencv openslide-tools
   - pip install -r requirements.txt
   - pip install tox
+  - pip --version ; pip freeze
 
 script: tox coverage
 

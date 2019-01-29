@@ -8,7 +8,7 @@ EXAMPLE (usage):
 >> python benchmarks/bm_registration.py \
     -c data_images/pairs-imgs-lnds_mix.csv -o results --unique
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 
@@ -97,7 +97,7 @@ class ImRegBenchmark(Experiment):
     4. visualise results abd evaluate registration results
 
     Running in single thread:
-    >>> path_out = tl_io.create_dir('temp_results')
+    >>> path_out = tl_io.create_folder('temp_results')
     >>> path_csv = os.path.join(tl_io.update_path('data_images'),
     ...                         'pairs-imgs-lnds_mix.csv')
     >>> params = {'nb_jobs': 1, 'unique': False,
@@ -111,7 +111,7 @@ class ImRegBenchmark(Experiment):
     >>> shutil.rmtree(path_out, ignore_errors=True)
 
     Running in 2 threads:
-    >>> path_out = tl_io.create_dir('temp_results')
+    >>> path_out = tl_io.create_folder('temp_results')
     >>> path_csv = os.path.join(tl_io.update_path('data_images'),
     ...                         'pairs-imgs-lnds_mix.csv')
     >>> params = {'nb_jobs': 2, 'unique': False,
@@ -131,8 +131,7 @@ class ImRegBenchmark(Experiment):
 
         :param dict params:  {str: value}
         """
-        assert 'unique' in params, 'missing "unique" among %s' \
-                                   % repr(params.keys())
+        assert 'unique' in params, 'missing "unique" among %r' % params.keys()
         super(ImRegBenchmark, self).__init__(params, params['unique'])
         logging.info(self.__doc__)
 
@@ -141,8 +140,7 @@ class ImRegBenchmark(Experiment):
         logging.debug('.. check if the BM have all required parameters')
         super(ImRegBenchmark, self)._check_required_params()
         for n in self.REQUIRED_PARAMS:
-            assert n in self.params, 'missing "%s" among %s' \
-                                     % (n, repr(self.params.keys()))
+            assert n in self.params, 'missing "%s" among %r' % (n, self.params.keys())
 
     def _update_path(self, path, tp='data'):
         """ update te path to the datset or output
@@ -302,7 +300,7 @@ class ImRegBenchmark(Experiment):
         check = os.path.exists(path_dir_reg) and (b_df_col or b_df_idx)
         if check:
             logging.warning('particular registration experiment already exists:'
-                            ' "%s"', repr(idx))
+                            ' "%r"', idx)
         return check
 
     def _perform_registration(self, df_row):
@@ -319,7 +317,7 @@ class ImRegBenchmark(Experiment):
         # check whether the particular experiment already exists and have result
         if self.__check_exist_regist(idx, path_dir_reg):
             return None
-        tl_io.create_dir(path_dir_reg)
+        tl_io.create_folder(path_dir_reg)
 
         row = self._prepare_registration(row)
         str_cmd = self._generate_regist_command(row)

@@ -9,7 +9,7 @@ zip only images mentioned in cover file and landmarks from source
     -la /datagrid/Medical/dataset_ANHIR/landmarks_all \
     -csv /datagrid/Medical/dataset_ANHIR/images/dataset_medium.csv
 
-Copyright (C) 2016-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os

@@ -11,7 +11,7 @@ EXAMPLE (usage):
     -c data_images/pairs-imgs-lnds_mix.csv -o results --visual --unique \
     --an_executable none
 
-Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 
@@ -49,7 +49,7 @@ class BmTemplate(bm.ImRegBenchmark):
 
     Running in single thread:
     >>> import benchmark.utilities.data_io as tl_io
-    >>> path_out = tl_io.create_dir('temp_results')
+    >>> path_out = tl_io.create_folder('temp_results')
     >>> path_csv = os.path.join(tl_io.update_path('data_images'),
     ...                         'pairs-imgs-lnds_mix.csv')
     >>> main({'nb_jobs': 1, 'unique': False, 'path_out': path_out,
@@ -59,7 +59,7 @@ class BmTemplate(bm.ImRegBenchmark):
 
     Running in 2 threads:
     >>> import benchmark.utilities.data_io as tl_io
-    >>> path_out = tl_io.create_dir('temp_results')
+    >>> path_out = tl_io.create_folder('temp_results')
     >>> path_csv = os.path.join(tl_io.update_path('data_images'),
     ...                         'pairs-imgs-lnds_mix.csv')
     >>> params = {'nb_jobs': 2, 'unique': False, 'path_out': path_out,
@@ -146,5 +146,5 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     arg_parser = tl_expt.create_basic_parse()
     arg_parser = extend_parse(arg_parser)
-    arg_params = tl_expt.parse_params(arg_parser)
+    arg_params = tl_expt.parse_arg_params(arg_parser)
     main(arg_params)

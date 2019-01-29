@@ -31,7 +31,7 @@ see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support
 NOTE:
 * tested for version ImageJ 2.35
 
-Copyright (C) 2017-2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
 
@@ -123,7 +123,7 @@ class BmUnwarpJ(bm.ImRegBenchmark):
     """ Benchmark for ImageJ plugin - bUnwarpJ
     no run test while this method requires manual installation of ImageJ
 
-    >>> path_out = tl_io.create_dir('temp_results')
+    >>> path_out = tl_io.create_folder('temp_results')
     >>> fn_path_conf = lambda n: os.path.join(tl_io.update_path('configs'), n)
     >>> params = {'nb_jobs': 1, 'unique': False,
     ...           'path_out': path_out,
@@ -272,5 +272,5 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     arg_parser = tl_expt.create_basic_parse()
     arg_parser = extend_parse(arg_parser)
-    arg_params = tl_expt.parse_params(arg_parser)
+    arg_params = tl_expt.parse_arg_params(arg_parser)
     main(arg_params)
