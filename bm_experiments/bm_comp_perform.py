@@ -67,8 +67,7 @@ def arg_parse_params():
 
 
 def prepare_images(path_out, im_size=IMAGE_SIZE):
-    image = resize(data.astronaut(), output_shape=im_size, mode='constant',
-                   anti_aliasing=False)
+    image = resize(data.astronaut(), output_shape=im_size, mode='constant')
     img_target = random_noise(image, var=IMAGE_NOISE)
     path_img_target = os.path.join(path_out, NAME_IMAGE_TARGET)
     io.imsave(path_img_target, img_target)

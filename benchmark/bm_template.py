@@ -137,8 +137,10 @@ def main(params):
     logging.info(__doc__)
     benchmark = BmTemplate(params)
     benchmark.run()
+    path_expt = benchmark.params['path_exp']
     del benchmark
     logging.info('Done.')
+    return path_expt
 
 
 # RUN by given parameters
@@ -147,4 +149,11 @@ if __name__ == '__main__':
     arg_parser = tl_expt.create_basic_parse()
     arg_parser = extend_parse(arg_parser)
     arg_params = tl_expt.parse_arg_params(arg_parser)
-    main(arg_params)
+    path_expt = main(arg_params)
+
+    if arg_params.get('run_comp_benchmark', False):
+        logging.info('Here you can call the separate benchmark'
+                     ' to measure your computer performances.')
+
+        # from bm_experiments import bm_comp_perform
+        # bm_comp_perform.main(path_expt)

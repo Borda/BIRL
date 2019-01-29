@@ -44,6 +44,7 @@ sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 import benchmark.utilities.data_io as tl_io
 import benchmark.utilities.experiments as tl_expt
 import benchmark.cls_benchmark as bm
+from bm_experiments import bm_comp_perform
 
 NAME_MACRO_REGISTRATION = 'macro_registration.ijm'
 NAME_MACRO_WARP_IMAGE = 'macro_warp_image.ijm'
@@ -255,7 +256,7 @@ class BmUnwarpJ(bm.ImRegBenchmark):
 
 
 def main(params):
-    """ run the Main of blank experiment
+    """ run the Main of bUnwarpJ experiment
 
     :param params: {str: value} set of input parameters
     """
@@ -263,8 +264,10 @@ def main(params):
     logging.info(__doc__)
     benchmark = BmUnwarpJ(params)
     benchmark.run()
+    path_expt = benchmark.params['path_exp']
     del benchmark
     logging.info('Done.')
+    return path_expt
 
 
 # RUN by given parameters
@@ -273,4 +276,8 @@ if __name__ == "__main__":
     arg_parser = tl_expt.create_basic_parse()
     arg_parser = extend_parse(arg_parser)
     arg_params = tl_expt.parse_arg_params(arg_parser)
-    main(arg_params)
+    path_expt = main(arg_params)
+
+    if arg_params.get('run_comp_benchmark', False):
+        logging.info('Running the computer benchmark.')
+        bm_comp_perform.main(path_expt)
