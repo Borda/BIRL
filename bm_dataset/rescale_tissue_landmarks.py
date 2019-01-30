@@ -31,7 +31,8 @@ import numpy as np
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.experiments import wrap_execute_sequence, parse_arg_params
+from benchmark.utilities.experiments import (wrap_execute_sequence,
+                                             parse_arg_params, is_iterable)
 from benchmark.utilities.data_io import create_folder, load_landmarks_csv, save_landmarks_csv
 from benchmark.utilities.dataset import (list_sub_folders, parse_path_scale,
                                          compute_convex_hull, inside_polygon)
@@ -59,6 +60,8 @@ def arg_parse_params():
     parser.add_argument('--nb_jobs', type=int, required=False, default=NB_THREADS,
                         help='number of processes in parallel')
     args = parse_arg_params(parser)
+    if not is_iterable(args['scales']):
+        args['scales'] = [args['scales']]
     return args
 
 

@@ -42,9 +42,8 @@ def arg_parse_params():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--path_images', type=str, required=True,
                         help='path (pattern) to the input image')
-    parser.add_argument('--dimension', type=int, required=False,
-                        help='cutting dimension', default=CUT_DIMENSION,
-                        choices=[0, 1])
+    parser.add_argument('--dimension', type=int, required=False, choices=[0, 1],
+                        help='cutting dimension', default=CUT_DIMENSION)
     parser.add_argument('--overwrite', action='store_true', required=False,
                         default=False, help='overwrite existing images')
     parser.add_argument('--nb_jobs', type=int, required=False, default=NB_THREADS,

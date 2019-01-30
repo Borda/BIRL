@@ -31,7 +31,11 @@ install:
   - pip install tox
   - pip --version ; pip freeze
 
-script: tox coverage
+script:
+  - tox
+  - mkdir results
+  - python bm_experiments/bm_comp_perform.py -o ./results -n 1
+  - python benchmark/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --unique --visual --an_executable none
 
 after_success:
   - coverage report

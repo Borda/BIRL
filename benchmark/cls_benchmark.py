@@ -362,7 +362,7 @@ class ImRegBenchmark(Experiment):
             return
         self.__export_df_experiments(self._path_csv_regist)
         # export simple stat to txt
-        export_summary_txt(self._df_experiments, self.params['path_exp'], self.params)
+        export_summary(self._df_experiments, self.params['path_exp'], self.params)
 
     @classmethod
     def _prepare_registration(self, record):
@@ -439,7 +439,7 @@ class ImRegBenchmark(Experiment):
 
 
 def _update_path(path, path_base=None):
-    path = os.path.join(path_base, path) if path_base is not None else path
+    path = os.path.join(path_base, str(path)) if path_base else path
     return tl_io.update_path(path, absolute=True)
 
 
@@ -606,13 +606,16 @@ def visualise_registration(df_row, path_dataset=None, path_experiment=None):
     return path_fig
 
 
-def export_summary_txt(df_experiments, path_out, params=None):
+def export_summary(df_experiments, path_out, params=None,
+                   name_txt=NAME_TXT_RESULTS, name_csv=NAME_CSV_RESULTS):
     """ export the summary as CSV and TXT
 
     :param DF df_experiments: DataFrame with experiments
+    :param str path_out: path to the output folder
     :param {str: any} params: experiment parameters
+    :param str name_csv: results file name
+    :param str name_txt: results file name
     """
-    path_txt = os.path.join(path_out, NAME_TXT_RESULTS)
     costume_prec = np.arange(0., 1., 0.05)
     if df_experiments.empty:
         logging.error('No registration results found.')
@@ -622,13 +625,20 @@ def export_summary_txt(df_experiments, path_out, params=None):
     df_summary = df_experiments.describe(percentiles=costume_prec).T
     df_summary['median'] = df_experiments.median()
     df_summary.sort_index(inplace=True)
+    path_csv = os.path.join(path_out, name_csv)
+    logging.debug('exporting CSV summary: %s', path_csv)
+    df_summary.to_csv(path_csv)
+
+    path_txt = os.path.join(path_out, name_txt)
+    logging.debug('exporting TXT summary: %s', path_txt)
+    pd.set_option('display.float_format', '{:10,.3f}'.format)
+    pd.set_option('expand_frame_repr', False)
     with open(path_txt, 'w') as fp:
-        fp.write(tl_expt.string_dict(params, 'CONFIGURATION:'))
+        if params:
+            fp.write(tl_expt.string_dict(params, 'CONFIGURATION:'))
         fp.write('\n' * 3 + 'RESULTS:\n')
-        fp.write('completed regist. experiments: %i' % len(df_experiments))
+        fp.write('completed registration experiments: %i' % len(df_experiments))
         fp.write('\n' * 2)
         fp.write(repr(df_summary[['mean', 'std', 'median', 'min', 'max']]))
         fp.write('\n' * 2)
         fp.write(repr(df_summary[['5%', '25%', '50%', '75%', '95%']]))
-    path_csv = os.path.join(path_out, NAME_CSV_RESULTS)
-    df_summary.to_csv(path_csv)

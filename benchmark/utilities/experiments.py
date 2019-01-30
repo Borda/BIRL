@@ -7,6 +7,7 @@ Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 import os
 import sys
 import time
+import types
 import logging
 import argparse
 import subprocess
@@ -122,7 +123,7 @@ def create_basic_parse():
     >>> parser = create_basic_parse()
     >>> type(parser)
     <class 'argparse.ArgumentParser'>
-    >>> parse_arg_params(args)  # doctest: +SKIP
+    >>> parse_arg_params(parser)  # doctest: +SKIP
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
@@ -373,3 +374,19 @@ def try_decorator(func):
         except Exception:
             logging.exception('%r with %r and %r', func.__name__, args, kwargs)
     return wrap
+
+
+def is_iterable(var):
+    """ check if the variable is iterable
+
+    :param var:
+    :return bool:
+
+    >>> is_iterable('abc')
+    False
+    >>> is_iterable([0])
+    True
+    >>> is_iterable((1, ))
+    True
+    """
+    return any(isinstance(var, cls) for cls in [list, tuple, types.GeneratorType])

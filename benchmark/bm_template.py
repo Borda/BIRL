@@ -53,7 +53,8 @@ class BmTemplate(bm.ImRegBenchmark):
     >>> path_csv = os.path.join(tl_io.update_path('data_images'),
     ...                         'pairs-imgs-lnds_mix.csv')
     >>> main({'nb_jobs': 1, 'unique': False, 'path_out': path_out,
-    ...       'path_cover': path_csv, 'an_executable': ''})
+    ...       'path_cover': path_csv, 'an_executable': ''})  # doctest: +ELLIPSIS
+    '...'
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
 

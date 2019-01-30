@@ -27,7 +27,7 @@ from functools import partial
 import cv2 as cv
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.experiments import wrap_execute_sequence
+from benchmark.utilities.experiments import wrap_execute_sequence, is_iterable
 from benchmark.utilities.dataset import (load_large_image, save_large_image,
                                          parse_path_scale)
 from benchmark.utilities.data_io import create_folder
@@ -57,7 +57,7 @@ def arg_parse_params():
                         help='number of processes running in parallel')
     args = vars(parser.parse_args())
     args['path_images'] = os.path.expanduser(args['path_images'])
-    if not isinstance(args['scales'], list):
+    if not is_iterable(args['scales']):
         args['scales'] = [args['scales']]
     logging.info('ARGUMENTS: \n%r' % args)
     return args
