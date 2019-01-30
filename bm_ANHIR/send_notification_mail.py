@@ -15,7 +15,7 @@ import pandas as pd
 SERVER = 'imap.feld.cvut.cz'
 PORT = 25
 LOGIN = 'username'  # univ user name
-PASS = 'XXXXX'  # my password
+PASS = 'PASSWORD'  # my password
 SENDER = 'Jiri Borovec <jiri.borovec@fel.cvut.cz>'
 SUBJECT = 'ISBI 2019 - ANHIR - Image Registration Challenge'
 

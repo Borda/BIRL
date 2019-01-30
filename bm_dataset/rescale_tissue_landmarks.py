@@ -56,9 +56,8 @@ def arg_parse_params():
                         help='number ot ration of selected landmarks')
     parser.add_argument('--nb_total', type=int, required=False, default=None,
                         help='total number of generated landmarks')
-    parser.add_argument('--nb_jobs', type=int, required=False,
-                        help='number of processes in parallel',
-                        default=NB_THREADS)
+    parser.add_argument('--nb_jobs', type=int, required=False, default=NB_THREADS,
+                        help='number of processes in parallel')
     args = parse_arg_params(parser)
     return args
 

@@ -19,7 +19,7 @@ import logging
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-import benchmark.utilities.experiments as tl_expt
+from benchmark.utilities.experiments import parse_arg_params
 from benchmark.cls_benchmark import COVER_COLUMNS
 
 # list of combination options
@@ -41,7 +41,7 @@ def arg_parse_params():
     parser.add_argument('--mode', type=str, required=False,
                         help='type of combination of registration pairs',
                         default=OPTIONS_COMBINE[0], choices=OPTIONS_COMBINE)
-    args = tl_expt.parse_arg_params(parser, upper_dirs=['path_csv'])
+    args = parse_arg_params(parser, upper_dirs=['path_csv'])
     return args
 
 

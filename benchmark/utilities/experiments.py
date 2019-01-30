@@ -122,6 +122,7 @@ def create_basic_parse():
     >>> parser = create_basic_parse()
     >>> type(parser)
     <class 'argparse.ArgumentParser'>
+    >>> parse_arg_params(args)  # doctest: +SKIP
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
@@ -187,9 +188,6 @@ def parse_arg_params(parser, upper_dirs=None):
     :param [str] upper_dirs: list of keys in parameters
         with item for which only the parent folder must exist
     :return {str: any}:
-
-    >>> args = create_basic_parse()
-    >>> parse_arg_params(args)  # doctest: +SKIP
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     args = vars(parser.parse_args())

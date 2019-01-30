@@ -52,10 +52,9 @@ def arg_parse_params():
     parser.add_argument('-ext', '--image_extension', type=str, required=False,
                         help='output image extension', default=IMAGE_EXTENSION)
     parser.add_argument('--overwrite', action='store_true', required=False,
-                        default=False, help='visualise the landmarks in images')
-    parser.add_argument('--nb_jobs', type=int, required=False,
-                        help='number of processes running in parallel',
-                        default=NB_THREADS)
+                        default=False, help='overwrite existing images')
+    parser.add_argument('--nb_jobs', type=int, required=False, default=NB_THREADS,
+                        help='number of processes running in parallel')
     args = vars(parser.parse_args())
     args['path_images'] = os.path.expanduser(args['path_images'])
     if not isinstance(args['scales'], list):

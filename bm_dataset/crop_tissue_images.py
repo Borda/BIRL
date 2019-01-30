@@ -46,9 +46,8 @@ def arg_parse_params():
                         help='path (pattern) to the input image')
     parser.add_argument('--padding', type=float, required=False, default=0.1,
                         help='padding around the object in image percents')
-    parser.add_argument('--nb_jobs', type=int, required=False,
-                        help='number of processes running in parallel',
-                        default=NB_THREADS)
+    parser.add_argument('--nb_jobs', type=int, required=False, default=NB_THREADS,
+                        help='number of processes running in parallel')
     args = vars(parser.parse_args())
     args['path_images'] = os.path.expanduser(args['path_images'])
     logging.info('ARGUMENTS: \n%r' % args)

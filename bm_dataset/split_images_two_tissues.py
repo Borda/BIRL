@@ -46,10 +46,9 @@ def arg_parse_params():
                         help='cutting dimension', default=CUT_DIMENSION,
                         choices=[0, 1])
     parser.add_argument('--overwrite', action='store_true', required=False,
-                        default=False, help='visualise the landmarks in images')
-    parser.add_argument('--nb_jobs', type=int, required=False,
-                        help='number of processes running in parallel',
-                        default=NB_THREADS)
+                        default=False, help='overwrite existing images')
+    parser.add_argument('--nb_jobs', type=int, required=False, default=NB_THREADS,
+                        help='number of processes running in parallel')
     args = vars(parser.parse_args())
     args['path_images'] = os.path.expanduser(args['path_images'])
     logging.info('ARGUMENTS: \n%r' % args)
