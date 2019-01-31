@@ -40,7 +40,7 @@ from benchmark.utilities.experiments import wrap_execute_sequence
 DEFAULT_LEVEL = 1
 MAX_LOAD_IMAGE_SIZE = 16000
 IMAGE_EXTENSION = '.png'
-NB_THREADS = int(mproc.cpu_count() * .5)
+NB_THREADS = max(1, int(mproc.cpu_count() * .5))
 
 
 def arg_parse_params():

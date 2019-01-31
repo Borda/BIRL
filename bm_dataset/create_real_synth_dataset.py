@@ -37,7 +37,7 @@ from benchmark.utilities.experiments import parse_arg_params
 from benchmark.utilities.data_io import LANDMARK_COORDS
 
 COLUMNS_COORD = LANDMARK_COORDS
-NB_THREADS = int(mproc.cpu_count() * .8)
+NB_THREADS = max(1, int(mproc.cpu_count() * .8))
 NB_DEFORMATIONS = 5
 HUE_SHIFT_MIN = 20
 HUE_SHIFT_MAX = 120

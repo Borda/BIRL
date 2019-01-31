@@ -44,7 +44,7 @@ IMAGE_SIZE = (2000, 2000)
 IMAGE_NOISE = 0.01
 SKIMAGE_VERSION = (0, 14, 0)
 
-NB_THREADS = mproc.cpu_count()
+NB_THREADS = int(mproc.cpu_count())
 NAME_REPORT = 'computer-performances.json'
 NAME_IMAGE_TARGET = 'temp_regist-image_target.png'
 NAME_IMAGE_SOURCE = 'temp_regist-image_source.png'

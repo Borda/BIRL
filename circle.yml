@@ -22,7 +22,7 @@ jobs:
             pip --version ; pip freeze
 
       - run:
-          name: Testing
+          name: Testing and Formating
           command: |
             unset DISPLAY
             mkdir test-reports && mkdir results
@@ -48,8 +48,9 @@ jobs:
             mkdir applications && mkdir results
             # python bm_experiments/bm_comp_perform.py  -o ./results -n 1 # reach time-out while running in 36 threads
             python benchmark/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique --an_executable none
-            python benchmark/bm_template.py -c ./data_images/pairs-imgs-lnds_anhir.csv -d ./data_images -o ./results --visual --an_executable none
+            python benchmark/bm_template.py -c ./data_images/pairs-imgs-lnds_anhir.csv -d ./data_images -o ./results --an_executable none
             python bm_experiments/evaluate_experiment.py -d ./data_images -e ./results/BmTemplate --visual
+            tree ./results/BmTemplate
 
       - run:
           name: Experiment - bUnwarpJ
@@ -61,7 +62,7 @@ jobs:
             python bm_experiments/bm_bunwarpj.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ_histo-1k.txt --visual
             python bm_experiments/bm_bunwarpj.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_SIFT_histo-1k.txt -sift ./configs/ImageJ_SIFT_histo-1k.txt --unique
             python bm_experiments/bm_bunwarpj.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_SIFT_histo-1k.txt -mops ./configs/ImageJ_MOPS_histo-1k.txt --unique
-            tree -L 3 results
+            tree -L 3 ./results
             rm -rf ./applications/Fiji.app
 
       - store_test_results:

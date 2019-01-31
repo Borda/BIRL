@@ -1,10 +1,16 @@
 """
-Evaluating passed experiments, for instance if metric was changed
+Evaluating passed experiments produced bu this benchmark,
+for instance if metric was changed or some visualisations are missing
+
+The expected experiment structure is following:
+ * `registration-results.csv` coordinate file with path to landmarks and images
+ * particular experiment with warped landmarks
 
 EXAMPLE
 -------
 >> python evaluate_experiment.py \
     -e ./results/BmUnwarpJ \
+    -d ./data_images \
     --visual
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
@@ -21,10 +27,10 @@ import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.experiments import wrap_execute_sequence, parse_arg_params
-from benchmark.cls_benchmark import (NAME_CSV_REGISTRATION_PAIRS, export_summary,
+from benchmark.cls_benchmark import (NAME_CSV_REGISTRATION_PAIRS, export_summary_results,
                                      compute_landmarks_statistic, visualise_registration)
 
-NB_THREADS = int(mproc.cpu_count() * .5)
+NB_THREADS = max(1, int(mproc.cpu_count() * .75))
 NAME_CSV_RESULTS = 'registration-results_NEW.csv'
 NAME_CSV_SUMMARY = 'results-summary_NEW.csv'
 NAME_TXT_SUMMARY = 'results-summary_NEW.txt'
@@ -47,7 +53,14 @@ def create_parser():
     return parser
 
 
-def main(path_experiment, path_dataset, visual=False, nb_jobs=1):
+def main(path_experiment, path_dataset, visual=False, nb_jobs=NB_THREADS):
+    """ main entry points
+
+    :param str path_experiment: path to the experiment folder
+    :param str path_dataset: path to the dataset with all landmarks
+    :param bool visual: whether visualise the registration results
+    :param int nb_jobs: number of parallel jobs
+    """
     path_results = os.path.join(path_experiment, NAME_CSV_REGISTRATION_PAIRS)
     assert os.path.isfile(path_results)
 
@@ -61,9 +74,9 @@ def main(path_experiment, path_dataset, visual=False, nb_jobs=1):
 
     path_csv = os.path.join(path_experiment, NAME_CSV_RESULTS)
     logging.debug('exporting CSV results: %s', path_csv)
-    df_results.to_csv(path_csv)
-    export_summary(df_results, path_experiment, None, name_csv=NAME_CSV_SUMMARY,
-                   name_txt=NAME_TXT_SUMMARY)
+    df_results.to_csv(path_csv, index=None)
+    export_summary_results(df_results, path_experiment, None, name_csv=NAME_CSV_SUMMARY,
+                           name_txt=NAME_TXT_SUMMARY)
 
     if visual:
         _visualise_regist = partial(visualise_registration, path_dataset=path_dataset,

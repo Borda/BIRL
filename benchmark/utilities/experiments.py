@@ -20,7 +20,7 @@ import numpy as np
 
 import benchmark.utilities.data_io as tl_io
 
-NB_THREADS = mproc.cpu_count()
+NB_THREADS = int(mproc.cpu_count())
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 FILE_LOGS = 'logging.txt'
 STR_LOG_FORMAT = '%(asctime)s:%(levelname)s@%(filename)s:%(processName)s - %(message)s'

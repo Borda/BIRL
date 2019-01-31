@@ -30,7 +30,7 @@ from benchmark.utilities.dataset import find_largest_object, project_object_edge
 from benchmark.utilities.dataset import load_large_image, save_large_image
 from benchmark.utilities.experiments import wrap_execute_sequence, try_decorator
 
-NB_THREADS = int(mproc.cpu_count() * .5)
+NB_THREADS = max(1, int(mproc.cpu_count() * .5))
 SCALE_SIZE = 512
 CUT_DIMENSION = 0
 TISSUE_CONTENT = 0.01

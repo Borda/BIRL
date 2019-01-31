@@ -32,7 +32,7 @@ from benchmark.utilities.dataset import (load_large_image, save_large_image,
                                          parse_path_scale)
 from benchmark.utilities.data_io import create_folder
 
-NB_THREADS = int(mproc.cpu_count() * .5)
+NB_THREADS = max(1, int(mproc.cpu_count() * .5))
 DEFAULT_SCALES = (5, 10, 15, 20, 25, 50)
 IMAGE_EXTENSION = '.jpg'
 # IMWRITE_PARAMS = (cv.IMWRITE_JPEG_QUALITY, 100)

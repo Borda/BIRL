@@ -225,19 +225,19 @@ def load_image(path_image):
     return image
 
 
-def convert_ndarray_2_image(image):
+def convert_ndarray2image(image):
     """ convert ndarray to PIL image if it not already
 
     :param image: np.ndarray
     :return: Image
 
     >>> img = np.random.random((50, 50, 3))
-    >>> image = convert_ndarray_2_image(img)
+    >>> image = convert_ndarray2image(img)
     >>> isinstance(image, Image.Image)
     True
     """
     if isinstance(image, np.ndarray):
-        if np.max(image) <= 1.:
+        if np.max(image) <= 1.5:
             image = (image * 255)
         image = Image.fromarray(np.round(image).astype(np.uint8))
     return image
@@ -252,7 +252,7 @@ def save_image(path_image, image):
     Wrong path
     >>> save_image('./missing-path/any-image.png', np.zeros((10, 20)))
     """
-    image = convert_ndarray_2_image(image)
+    image = convert_ndarray2image(image)
     path_dir = os.path.dirname(path_image)
     if os.path.isdir(path_dir):
         image.save(path_image)

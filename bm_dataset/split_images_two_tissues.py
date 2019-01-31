@@ -29,7 +29,7 @@ from benchmark.utilities.dataset import find_split_objects, project_object_edge
 from benchmark.utilities.dataset import load_large_image, save_large_image
 from benchmark.utilities.experiments import wrap_execute_sequence
 
-NB_THREADS = int(mproc.cpu_count() * .5)
+NB_THREADS = max(1, int(mproc.cpu_count() * .5))
 SCALE_SIZE = 512
 CUT_DIMENSION = 0
 
