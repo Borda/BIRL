@@ -101,9 +101,8 @@ class ImRegBenchmark(Experiment):
     >>> path_out = tl_io.create_folder('temp_results')
     >>> path_csv = os.path.join(tl_io.update_path('data_images'),
     ...                         'pairs-imgs-lnds_mix.csv')
-    >>> params = {'nb_jobs': 1, 'unique': False,
-    ...           'path_out': path_out,
-    ...           'path_cover': path_csv}
+    >>> params = {'nb_jobs': 1, 'unique': False, 'visual': True,
+    ...           'path_out': path_out, 'path_cover': path_csv}
     >>> benchmark = ImRegBenchmark(params)
     >>> benchmark.run()
     True
@@ -111,13 +110,12 @@ class ImRegBenchmark(Experiment):
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
 
-    Running in 2 threads:
+    Running in multiple parallel threads:
     >>> path_out = tl_io.create_folder('temp_results')
     >>> path_csv = os.path.join(tl_io.update_path('data_images'),
     ...                         'pairs-imgs-lnds_mix.csv')
-    >>> params = {'nb_jobs': 2, 'unique': False,
-    ...           'path_out': path_out,
-    ...           'path_cover': path_csv}
+    >>> params = {'nb_jobs': 2, 'unique': False, 'visual': True,
+    ...           'path_out': path_out, 'path_cover': path_csv}
     >>> benchmark = ImRegBenchmark(params)
     >>> benchmark.run()
     True
@@ -137,7 +135,7 @@ class ImRegBenchmark(Experiment):
         logging.info(self.__doc__)
         self._df_cover = None
         self._df_experiments = None
-        self.nb_jobs = params.get('nb_jobs', 1)
+        self.nb_jobs = params.get('nb_jobs', NB_THREADS)
         self._path_csv_regist = os.path.join(self.params['path_exp'],
                                              NAME_CSV_REGISTRATION_PAIRS)
 
@@ -245,8 +243,6 @@ class ImRegBenchmark(Experiment):
         :param int nb_jobs: number of experiment running in parallel
         :param bool use_output: append output to experiment DF
         """
-        if not hasattr(self, 'nb_jobs'):
-            self.nb_jobs = NB_THREADS
         logging.info('-> running %s in parallel, (%i threads)',
                      name, self.nb_jobs)
         tqdm_bar = tqdm.tqdm(total=len(in_table),
@@ -493,6 +489,7 @@ def compute_landmarks_inaccuracy(df_experiments, idx, points1, points2,
                                  state='', img_size=None):
     """ compute statistic on two points sets
 
+    :param DF df_experiments: DataFrame with experiments
     :param int idx: index of tha particular record
     :param points1: np.array<nb_points, dim>
     :param points2: np.array<nb_points, dim>
@@ -520,14 +517,12 @@ def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
     to the reference frame so they are simple to overlap
 
     :param {} record: row with the experiment
-    :param ndarray image_ref: reference image
-    :param ndarray points_ref: landmarks in reference frame
-    :param ndarray points_move: landmarks in moving frame
     :param str|None path_dataset: path to the dataset folder
     :param str|None path_experiment: path to the experiment folder
-    :return obj | None:
+    :return obj|None:
     """
-    assert COL_POINTS_MOVE_WARP in record
+    assert COL_POINTS_MOVE_WARP in record and isinstance(record[COL_POINTS_MOVE_WARP], str), \
+        'Missing registered image "%s"' % COL_POINTS_MOVE_WARP
     path_points_warp = _update_path(record[COL_POINTS_MOVE_WARP], path_experiment)
     if not os.path.isfile(path_points_warp):
         logging.warning('missing warped landmarks for: %r', dict(record))
@@ -560,18 +555,17 @@ def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
     return fig
 
 
-def _visual_image_ref_warp_lnds_move_warp(record, path_dataset=None, path_experiment=None):
+def _visual_image_ref_warp_lnds_move_warp(record, path_dataset=None,
+                                          path_experiment=None):
     """ visualise the case with warped reference landmarks to the move frame
 
     :param {} record: row with the experiment
-    :param ndarray image_ref: reference image
-    :param ndarray points_ref: landmarks in reference frame
-    :param ndarray points_move: landmarks in moving frame
     :param str|None path_dataset: path to the dataset folder
     :param str|None path_experiment: path to the experiment folder
-    :return obj:
+    :return obj|None:
     """
-    assert COL_POINTS_REF_WARP in record
+    assert COL_IMAGE_MOVE_WARP in record and isinstance(record[COL_POINTS_REF_WARP], str), \
+        'Missing registered image "%s"' % COL_POINTS_REF_WARP
     path_points_warp = _update_path(record[COL_POINTS_REF_WARP], path_experiment)
     if not os.path.isfile(path_points_warp):
         logging.warning('missing warped landmarks for: %r', dict(record))
@@ -610,9 +604,9 @@ def visualise_registration(df_row, path_dataset=None, path_experiment=None):
     _, row = df_row
     fig, path_fig = None, None
     # visualise particular experiment by idx
-    if COL_POINTS_MOVE_WARP in row:
+    if COL_POINTS_MOVE_WARP in row and isinstance(row[COL_IMAGE_MOVE_WARP], str):
         fig = _visual_image_move_warp_lnds_move_warp(row, path_dataset, path_experiment)
-    elif COL_POINTS_REF_WARP in row:
+    elif COL_POINTS_REF_WARP in row and isinstance(row[COL_POINTS_REF_WARP], str):
         fig = _visual_image_ref_warp_lnds_move_warp(row, path_dataset, path_experiment)
     else:
         logging.error('Visualisation: no output image or landmarks')
@@ -634,6 +628,8 @@ def export_summary_results(df_experiments, path_out, params=None,
     :param {str: any} params: experiment parameters
     :param str name_csv: results file name
     :param str name_txt: results file name
+
+    >>> export_summary_results(pd.DataFrame(), '')
     """
     costume_precision = np.arange(0., 1., 0.05)
     if df_experiments.empty:

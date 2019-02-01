@@ -52,19 +52,21 @@ class BmTemplate(bm.ImRegBenchmark):
     >>> path_out = tl_io.create_folder('temp_results')
     >>> path_csv = os.path.join(tl_io.update_path('data_images'),
     ...                         'pairs-imgs-lnds_mix.csv')
-    >>> main({'nb_jobs': 1, 'unique': False, 'path_out': path_out,
-    ...       'path_cover': path_csv, 'an_executable': ''})  # doctest: +ELLIPSIS
+    >>> main({'nb_jobs': 1, 'unique': False, 'visual': True,
+    ...       'path_out': path_out, 'path_cover': path_csv,
+    ...       'an_executable': ''})  # doctest: +ELLIPSIS
     '...'
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
 
-    Running in 2 threads:
+    Running in multiple parallel threads:
     >>> import benchmark.utilities.data_io as tl_io
     >>> path_out = tl_io.create_folder('temp_results')
     >>> path_csv = os.path.join(tl_io.update_path('data_images'),
     ...                         'pairs-imgs-lnds_mix.csv')
-    >>> params = {'nb_jobs': 2, 'unique': False, 'path_out': path_out,
-    ...           'path_cover': path_csv, 'an_executable': ''}
+    >>> params = {'nb_jobs': 2, 'unique': False, 'visual': True,
+    ...           'path_out': path_out, 'path_cover':
+    ...            path_csv, 'an_executable': ''}
     >>> benchmark = BmTemplate(params)
     >>> benchmark.run()
     True

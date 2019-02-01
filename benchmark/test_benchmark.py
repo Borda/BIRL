@@ -110,44 +110,44 @@ class TestBmRegistration(unittest.TestCase):
     def check_benchmark_results(self, final_means, final_stds):
         """ check whether the benchmark folder contains all required files
         and compute statistic correctly """
-        path_bm = os.path.join(self.path_out, self.benchmark.__class__.__name__)
-        assert os.path.exists(path_bm), 'missing benchmark: %s' % \
-                                        self.benchmark.__class__.__name__
+        bm_name = self.benchmark.__class__.__name__
+        path_bm = os.path.join(self.path_out, bm_name)
+        self.assertTrue(os.path.exists(path_bm), msg='missing benchmark: %s' % bm_name)
         # required output files
         for file_name in [NAME_CSV_REGISTRATION_PAIRS,
                           NAME_CSV_RESULTS,
                           NAME_TXT_RESULTS]:
-            assert os.path.isfile(os.path.join(path_bm, file_name)), \
-                'Missing "%s" file in the benchmark experiment' % file_name
+            self.assertTrue(os.path.isfile(os.path.join(path_bm, file_name)),
+                            msg='Missing "%s" file in the BM experiment' % file_name)
 
         # load registration file
         path_csv = os.path.join(path_bm, NAME_CSV_REGISTRATION_PAIRS)
         df_regist = pd.read_csv(path_csv, index_col=0)
 
         # only two records in the benchmark
-        assert len(df_regist) == len(self.benchmark._df_cover), \
-            'Found only %i records instead of %i' % \
-            (len(df_regist), len(self.benchmark._df_cover))
+        self.assertEqual(len(df_regist), len(self.benchmark._df_cover),
+                         msg='Found only %i records instead of %i'
+                             % (len(df_regist), len(self.benchmark._df_cover)))
 
         # test presence of particular columns
         for col in list(COVER_COLUMNS) + [COL_IMAGE_MOVE_WARP]:
-            assert col in df_regist.columns, \
-                'Missing column "%s" in result table' % col
+            self.assertIn(col, df_regist.columns,
+                          msg='Missing column "%s" in result table' % col)
         cols_lnds_warp = [col in df_regist.columns
                           for col in [COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP]]
-        assert any(cols_lnds_warp), 'Missing any column of warped landmarks'
+        self.assertTrue(any(cols_lnds_warp), msg='Missing any column of warped landmarks')
         col_lnds_warp = COL_POINTS_REF_WARP if cols_lnds_warp[0] else COL_POINTS_MOVE_WARP
         # check existence of all mentioned files
         for _, row in df_regist.iterrows():
-            assert os.path.isfile(os.path.join(path_bm, row[COL_IMAGE_MOVE_WARP])), \
-                'Missing image "%s"' % row[COL_IMAGE_MOVE_WARP]
-            assert os.path.isfile(os.path.join(path_bm, row[col_lnds_warp])), \
-                'Missing landmarks "%s"' % row[col_lnds_warp]
+            self.assertTrue(os.path.isfile(os.path.join(path_bm, row[COL_IMAGE_MOVE_WARP])),
+                            msg='Missing image "%s"' % row[COL_IMAGE_MOVE_WARP])
+            self.assertTrue(os.path.isfile(os.path.join(path_bm, row[col_lnds_warp])),
+                            msg='Missing landmarks "%s"' % row[col_lnds_warp])
 
         # check existence of statistical results
         for stat_name in ['Mean', 'STD', 'Median', 'Min', 'Max']:
-            assert any(stat_name in col for col in df_regist.columns), \
-                'Missing statistics "%s"' % stat_name
+            self.assertTrue(any(stat_name in col for col in df_regist.columns),
+                            msg='Missing statistics "%s"' % stat_name)
 
         # test specific results
         assert_array_almost_equal(sorted(df_regist['TRE Mean (final)'].values),
