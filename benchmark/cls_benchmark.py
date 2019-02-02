@@ -54,11 +54,14 @@ COL_POINTS_REF_WARP = 'Warped target landmarks'
 COL_POINTS_MOVE_WARP = 'Warped source landmarks'
 # registration folder for each particular experiment
 COL_REG_DIR = 'Registration folder'
+COL_ROBUSTNESS = 'Robustness'
 COL_TIME = 'Execution time [minutes]'
+COL_IMAGE_SIZE = 'Image size [pixels]'
+COL_IMAGE_DIAGONAL = 'Image diagonal [pixels]'
 
 # list of columns in cover csv
-COVER_COLUMNS = (COL_IMAGE_REF, COL_IMAGE_MOVE,
-                 COL_POINTS_REF, COL_POINTS_MOVE)
+COVER_COLUMNS = (COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_REF, COL_POINTS_MOVE)
+COVER_COLUMNS_EXT = tuple(list(COVER_COLUMNS) + [COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL])
 
 
 # fixing ImportError: No module named 'copy_reg' for Python3
@@ -98,9 +101,9 @@ class ImRegBenchmark(Experiment):
     4. visualise results abd evaluate registration results
 
     Running in single thread:
-    >>> path_out = tl_io.create_folder('temp_results')
-    >>> path_csv = os.path.join(tl_io.update_path('data_images'),
-    ...                         'pairs-imgs-lnds_mix.csv')
+    >>> from benchmark.utilities.data_io import create_folder, update_path
+    >>> path_out = create_folder('temp_results')
+    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'nb_jobs': 1, 'unique': False, 'visual': True,
     ...           'path_out': path_out, 'path_cover': path_csv}
     >>> benchmark = ImRegBenchmark(params)
@@ -111,9 +114,9 @@ class ImRegBenchmark(Experiment):
     >>> shutil.rmtree(path_out, ignore_errors=True)
 
     Running in multiple parallel threads:
-    >>> path_out = tl_io.create_folder('temp_results')
-    >>> path_csv = os.path.join(tl_io.update_path('data_images'),
-    ...                         'pairs-imgs-lnds_mix.csv')
+    >>> from benchmark.utilities.data_io import create_folder, update_path
+    >>> path_out = create_folder('temp_results')
+    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'nb_jobs': 2, 'unique': False, 'visual': True,
     ...           'path_out': path_out, 'path_cover': path_csv}
     >>> benchmark = ImRegBenchmark(params)
@@ -438,39 +441,62 @@ class ImRegBenchmark(Experiment):
         return record
 
 
-def _update_path(path, path_base=None):
+def update_path_(path, path_base=None):
+    """ update the iamge path with possible base path
+
+    :param str path: the last path of the path
+    :param str|None path_base: optional base path
+    :return str: update path
+    """
     path = os.path.join(path_base, str(path)) if path_base else path
     return tl_io.update_path(path, absolute=True)
 
 
-def compute_landmarks_statistic(df_row, df_experiments,
+def _image_diag(record, path_img_ref=None):
+    """ get the image diagonal from several sources
+        1. diagonal exists in the table
+        2. image size exist in the table
+        3. reference image exists
+
+    :param {}|DF record: one row from the table
+    :param str path_img_ref: optional path to the reference image
+    :return float|None: image diagonal
+    """
+    img_diag = record[COL_IMAGE_DIAGONAL] if COL_IMAGE_DIAGONAL in record else None
+    if not img_diag and path_img_ref and os.path.isfile(path_img_ref):
+        img_size, img_diag = tl_io.image_size(path_img_ref)
+    return img_diag
+
+
+def compute_landmarks_statistic(idx_row, df_experiments,
                                 path_dataset=None, path_experiment=None):
     """ after successful registration load initial nad estimated landmarks
     afterwords compute various statistic for init, and final alignment
 
-    :param (int, dict) df_row: tow from iterated table
+    :param (int, dict) idx_row: tow from iterated table
     :param DF df_experiments: DataFrame with experiments
     :param str|None path_dataset: path to the dataset folder
     :param str|None path_experiment: path to the experiment folder
     """
-    idx, row = df_row
+    idx, row = idx_row
     path_img_ref, _, path_lnds_ref, path_lnds_move = \
-        [_update_path(row[col], path_dataset) for col in COVER_COLUMNS]
+        [update_path_(row[col], path_dataset) for col in COVER_COLUMNS]
     # load initial landmarks
     points_ref = tl_io.load_landmarks(path_lnds_ref)
     points_move = tl_io.load_landmarks(path_lnds_move)
     points_warped = []
-    img_size = tl_io.load_image(path_img_ref).shape[:2]
+    img_diag = _image_diag(row, path_img_ref)
+    df_experiments.loc[idx, COL_IMAGE_DIAGONAL] = img_diag
     # compute statistic
     compute_landmarks_inaccuracy(df_experiments, idx, points_ref, points_move,
-                                 'init', img_size)
+                                 'init', img_diag)
     # load transformed landmarks
     if COL_POINTS_MOVE_WARP in row:
         points_target = points_ref
-        path_landmarks = _update_path(row[COL_POINTS_MOVE_WARP], path_experiment)
+        path_landmarks = update_path_(row[COL_POINTS_MOVE_WARP], path_experiment)
     elif COL_POINTS_REF_WARP in row:
         points_target = points_move
-        path_landmarks = _update_path(row[COL_POINTS_REF_WARP], path_experiment)
+        path_landmarks = update_path_(row[COL_POINTS_REF_WARP], path_experiment)
     else:
         logging.error('Statistic: no output landmarks')
         points_target, path_landmarks = [], None
@@ -479,14 +505,16 @@ def compute_landmarks_statistic(df_row, df_experiments,
         points_warped = tl_io.load_landmarks(path_landmarks)
 
     # compute statistic
-    img_size = tl_io.load_image(path_img_ref).shape[:2]
     if list(points_target) and list(points_warped):
         compute_landmarks_inaccuracy(df_experiments, idx, points_target, points_warped,
-                                     'final', img_size)
+                                     'final', img_diag)
+        row2 = df_experiments.loc[idx]
+        robust = row2['TRE Mean (final)'] < row2['TRE Mean (init)']
+        df_experiments.loc[idx, COL_ROBUSTNESS] = int(robust)
 
 
 def compute_landmarks_inaccuracy(df_experiments, idx, points1, points2,
-                                 state='', img_size=None):
+                                 state='', img_diag=None):
     """ compute statistic on two points sets
 
     :param DF df_experiments: DataFrame with experiments
@@ -494,21 +522,18 @@ def compute_landmarks_inaccuracy(df_experiments, idx, points1, points2,
     :param points1: np.array<nb_points, dim>
     :param points2: np.array<nb_points, dim>
     :param str state: whether it was before of after registration
-    :param (int, int) img_size: target image size
+    :param float img_diag: target image diagonal
     """
     _, stat = tl_expt.compute_points_dist_statistic(points1, points2)
-    img_diag = None
-    if img_size is not None:
-        img_diag = np.sqrt(np.sum(np.array(img_size) ** 2))
     if img_diag is not None:
-        df_experiments.at[idx, 'Image diagonal [px]'] = img_diag
+        df_experiments.at[idx, COL_IMAGE_DIAGONAL] = img_diag
     # update particular idx
-    for name in stat:
+    for name in (n for n in stat if n not in ['Overlap points']):
         if img_diag is not None:
-            col_name = 'rTRE %s (%s)' % (name, state)
-            df_experiments.at[idx, col_name] = stat[name] / img_diag
-        col_name = 'TRE %s (%s)' % (name, state)
-        df_experiments.at[idx, col_name] = stat[name]
+            df_experiments.at[idx, 'rTRE %s (%s)' % (name, state)] = stat[name] / img_diag
+        df_experiments.at[idx, 'TRE %s (%s)' % (name, state)] = stat[name]
+    for name in ['Overlap points']:
+        df_experiments.at[idx, '%s (%s)' % (name, state)] = stat[name]
 
 
 def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
@@ -523,13 +548,13 @@ def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
     """
     assert COL_POINTS_MOVE_WARP in record and isinstance(record[COL_POINTS_MOVE_WARP], str), \
         'Missing registered image "%s"' % COL_POINTS_MOVE_WARP
-    path_points_warp = _update_path(record[COL_POINTS_MOVE_WARP], path_experiment)
+    path_points_warp = update_path_(record[COL_POINTS_MOVE_WARP], path_experiment)
     if not os.path.isfile(path_points_warp):
         logging.warning('missing warped landmarks for: %r', dict(record))
         return
 
     path_img_ref, _, path_lnds_ref, path_lnds_move = \
-        [_update_path(record[col], path_dataset) for col in COVER_COLUMNS]
+        [update_path_(record[col], path_dataset) for col in COVER_COLUMNS]
     image_ref = tl_io.load_image(path_img_ref)
     points_ref = tl_io.load_landmarks(path_lnds_ref)
     points_move = tl_io.load_landmarks(path_lnds_move)
@@ -538,7 +563,7 @@ def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
         logging.warning('Missing registered image "%s"', COL_IMAGE_MOVE_WARP)
         image_warp = None
     else:
-        path_image_warp = _update_path(record[COL_IMAGE_MOVE_WARP], path_experiment)
+        path_image_warp = update_path_(record[COL_IMAGE_MOVE_WARP], path_experiment)
         image_warp = tl_io.load_image(path_image_warp)
 
     points_warp = tl_io.load_landmarks(path_points_warp)
@@ -546,7 +571,7 @@ def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
         return
     # draw image with landmarks
     image = tl_visu.draw_image_points(image_warp, points_warp)
-    tl_io.save_image(os.path.join(_update_path(record[COL_REG_DIR], path_experiment),
+    tl_io.save_image(os.path.join(update_path_(record[COL_REG_DIR], path_experiment),
                                   NAME_IMAGE_MOVE_WARP_POINTS), image)
     # visualise the landmarks move during registration
     fig = tl_visu.draw_images_warped_landmarks(image_ref, image_warp,
@@ -566,13 +591,13 @@ def _visual_image_ref_warp_lnds_move_warp(record, path_dataset=None,
     """
     assert COL_IMAGE_MOVE_WARP in record and isinstance(record[COL_POINTS_REF_WARP], str), \
         'Missing registered image "%s"' % COL_POINTS_REF_WARP
-    path_points_warp = _update_path(record[COL_POINTS_REF_WARP], path_experiment)
+    path_points_warp = update_path_(record[COL_POINTS_REF_WARP], path_experiment)
     if not os.path.isfile(path_points_warp):
         logging.warning('missing warped landmarks for: %r', dict(record))
         return
 
     path_img_ref, _, path_lnds_ref, path_lnds_move = \
-        [_update_path(record[col], path_dataset) for col in COVER_COLUMNS]
+        [update_path_(record[col], path_dataset) for col in COVER_COLUMNS]
     image_ref = tl_io.load_image(path_img_ref)
     points_ref = tl_io.load_landmarks(path_lnds_ref)
     points_move = tl_io.load_landmarks(path_lnds_move)
@@ -581,10 +606,10 @@ def _visual_image_ref_warp_lnds_move_warp(record, path_dataset=None,
     if not list(points_warp):
         return
     # draw image with landmarks
-    image_move = tl_io.load_image(_update_path(record[COL_IMAGE_MOVE], path_dataset))
+    image_move = tl_io.load_image(update_path_(record[COL_IMAGE_MOVE], path_dataset))
     # image_warp = tl_io.load_image(row['Moving image, Transf.'])
     image = tl_visu.draw_image_points(image_move, points_warp)
-    tl_io.save_image(os.path.join(_update_path(record[COL_REG_DIR], path_experiment),
+    tl_io.save_image(os.path.join(update_path_(record[COL_REG_DIR], path_experiment),
                                   NAME_IMAGE_REF_POINTS_WARP), image)
     # visualise the landmarks move during registration
     fig = tl_visu.draw_images_warped_landmarks(image_ref, image_move,
@@ -612,7 +637,7 @@ def visualise_registration(df_row, path_dataset=None, path_experiment=None):
         logging.error('Visualisation: no output image or landmarks')
 
     if fig is not None:
-        path_fig = os.path.join(_update_path(row[COL_REG_DIR], path_experiment),
+        path_fig = os.path.join(update_path_(row[COL_REG_DIR], path_experiment),
                                 NAME_IMAGE_WARPED_VISUAL)
         tl_visu.export_figure(path_fig, fig)
 
@@ -631,13 +656,13 @@ def export_summary_results(df_experiments, path_out, params=None,
 
     >>> export_summary_results(pd.DataFrame(), '')
     """
-    costume_precision = np.arange(0., 1., 0.05)
+    costume_percentiles = np.arange(0., 1., 0.05)
     if df_experiments.empty:
         logging.error('No registration results found.')
         return
     if 'ID' in df_experiments.columns:
         df_experiments.set_index('ID', inplace=True)
-    df_summary = df_experiments.describe(percentiles=costume_precision).T
+    df_summary = df_experiments.describe(percentiles=costume_percentiles).T
     df_summary['median'] = df_experiments.median()
     df_summary.sort_index(inplace=True)
     path_csv = os.path.join(path_out, name_csv)

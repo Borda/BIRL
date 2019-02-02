@@ -15,10 +15,13 @@ import tqdm
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
+from benchmark.utilities.data_io import image_size
 from benchmark.utilities.dataset import IMAGE_EXTENSIONS, generate_pairing
 from benchmark.cls_benchmark import (COL_IMAGE_REF, COL_IMAGE_MOVE, COL_TIME,
                                      COL_POINTS_REF, COL_POINTS_MOVE,
-                                     COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP)
+                                     COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP,
+                                     COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL,
+                                     update_path_)
 
 DATASET_IMAGES = '/datagrid/Medical/dataset_ANHIR/images_private'
 DATASET_LANDMARKS = '/datagrid/Medical/dataset_ANHIR/landmarks_all'
@@ -35,7 +38,7 @@ SCALE_NAMES = (
 DATASET_TISSUE_SCALE_COMPLETE = {
     'lung-lesion_[1,3]': {'small': 5, 'medium': 50},
     'lung-lesion_2': {'small': 5, 'medium': 25},
-    'lung-lobes_*': {'small': 5, 'medium': 50},
+    'lung-lobes_*': {'small': 5, 'medium': 100},
     'mammary-gland_*': {'small': 5, 'medium': 25},
 }
 # define tissues which hide some samples as test
@@ -88,23 +91,27 @@ def list_landmarks_images(path_tissue, sc, path_landmarks, path_images):
     return rp_lnds_filter, rp_imgs
 
 
-def generate_reg_pairs(rp_imgs, rp_lnds, pairs, public):
-    """ format a registration pair as dictionaryies/rows in cover table for a set
+def generate_reg_pairs(rp_imgs, rp_lnds, pairs, public, path_images=DATASET_IMAGES):
+    """ format a registration pair as dictionaries/rows in cover table for a set
 
     :param [str] rp_imgs: relative paths to images
     :param rp_lnds: relative paths to related landmarks
     :param [(int, int)] pairs: pairing among images/landmarks
     :param [bool] public: marks whether the particular pair is training or evaluation
-    :return [{}]:
+    :param str path_images: path to the dataset folder
+    :return [{}]: registration pairs
     """
     reg_pairs = []
     for k, (i, j) in enumerate(pairs):
+        img_size, img_diag = image_size(update_path_(rp_imgs[i], path_images))
         reg_pairs.append({
             COL_IMAGE_REF: rp_imgs[i],
             COL_IMAGE_MOVE: rp_imgs[j],
             COL_POINTS_REF: rp_lnds[i],
             COL_POINTS_MOVE: rp_lnds[j],
-            'status': 'training' if public[k] else 'evaluation'
+            'status': 'training' if public[k] else 'evaluation',
+            COL_IMAGE_SIZE: img_size,
+            COL_IMAGE_DIAGONAL: img_diag,
         })
     return reg_pairs
 
@@ -120,7 +127,6 @@ def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out,
     :param str path_out:
     :param int step_hide_landmarks:
     :param [str] tissue_partial:
-    :return:
     """
     # name, scale_step = dataset
     tissues = [(tissue, p) for tissue in sorted(dataset)

@@ -19,8 +19,10 @@ import logging
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
+from benchmark.utilities.data_io import image_size
 from benchmark.utilities.experiments import parse_arg_params
-from benchmark.cls_benchmark import COVER_COLUMNS
+from benchmark.cls_benchmark import (COVER_COLUMNS, COVER_COLUMNS_EXT, COL_IMAGE_REF,
+                                     COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL)
 
 # list of combination options
 OPTIONS_COMBINE = ('first2all', 'each2all')
@@ -68,8 +70,14 @@ def generate_pairs(path_pattern_imgs, path_pattern_lnds, mode):
 
     reg_pairs = []
     for i, j in pairs:
-        rec = (list_imgs[i], list_imgs[j], list_lnds[i], list_lnds[j])
-        reg_pairs.append(dict(zip(COVER_COLUMNS, rec)))
+        rec = dict(zip(COVER_COLUMNS,
+                       (list_imgs[i], list_imgs[j], list_lnds[i], list_lnds[j])))
+        img_size, img_diag = image_size(rec[COL_IMAGE_REF])
+        rec.update({
+            COL_IMAGE_SIZE: img_size,
+            COL_IMAGE_DIAGONAL: img_diag,
+        })
+        reg_pairs.append(rec)
 
     df_cover = pd.DataFrame(reg_pairs)
     return df_cover
@@ -94,10 +102,10 @@ def main(path_pattern_images, path_pattern_landmarks, path_csv, mode):
         df_cover = pd.DataFrame()
 
     df_ = generate_pairs(path_pattern_images, path_pattern_landmarks, mode)
-    df_cover = pd.concat((df_cover, df_), axis=0)
-    df_cover = df_cover[list(COVER_COLUMNS)].reset_index(drop=True)
+    df_cover = pd.concat((df_cover, df_), axis=0, sort=True)
+    df_cover = df_cover[list(COVER_COLUMNS_EXT)].reset_index(drop=True)
 
-    logging.info('saving csv file with %i records', len(df_cover))
+    logging.info('saving csv file with %i records \n %s', len(df_cover), path_csv)
     df_cover.to_csv(path_csv)
 
     logging.info('DONE')

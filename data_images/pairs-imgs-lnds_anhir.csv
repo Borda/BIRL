@@ -1,3 +1,3 @@
-Target image,Source image,Target landmarks,Source landmarks
-rat-kidney_/scale-5pc/Rat_Kidney_HE.jpg,rat-kidney_/scale-5pc/Rat_Kidney_PanCytokeratin.jpg,rat-kidney_/scale-5pc/Rat_Kidney_HE.csv,rat-kidney_/scale-5pc/Rat_Kidney_PanCytokeratin.csv
-lesions_/scale-5pc/Izd2-29-041-w35-He.jpg,lesions_/scale-5pc/Izd2-29-041-w35-proSPC.jpg,lesions_/scale-5pc/Izd2-29-041-w35-He.csv,lesions_/scale-5pc/Izd2-29-041-w35-proSPC.csv
+Target image,Source image,Target landmarks,Source landmarks,Image size [pixels],Image diagonal [pixels]
+rat-kidney_/scale-5pc/Rat_Kidney_HE.jpg,rat-kidney_/scale-5pc/Rat_Kidney_PanCytokeratin.jpg,rat-kidney_/scale-5pc/Rat_Kidney_HE.csv,rat-kidney_/scale-5pc/Rat_Kidney_PanCytokeratin.csv,"(787, 1164)",1405.1
+lesions_/scale-5pc/Izd2-29-041-w35-He.jpg,lesions_/scale-5pc/Izd2-29-041-w35-proSPC.jpg,lesions_/scale-5pc/Izd2-29-041-w35-He.csv,lesions_/scale-5pc/Izd2-29-041-w35-proSPC.csv,"(733, 890)",1153.0

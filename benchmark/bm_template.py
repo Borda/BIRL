@@ -48,10 +48,9 @@ class BmTemplate(bm.ImRegBenchmark):
     (reference landmarks in moving image).
 
     Running in single thread:
-    >>> import benchmark.utilities.data_io as tl_io
-    >>> path_out = tl_io.create_folder('temp_results')
-    >>> path_csv = os.path.join(tl_io.update_path('data_images'),
-    ...                         'pairs-imgs-lnds_mix.csv')
+    >>> from benchmark.utilities.data_io import create_folder, update_path
+    >>> path_out = create_folder('temp_results')
+    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
     >>> main({'nb_jobs': 1, 'unique': False, 'visual': True,
     ...       'path_out': path_out, 'path_cover': path_csv,
     ...       'an_executable': ''})  # doctest: +ELLIPSIS
@@ -60,10 +59,9 @@ class BmTemplate(bm.ImRegBenchmark):
     >>> shutil.rmtree(path_out, ignore_errors=True)
 
     Running in multiple parallel threads:
-    >>> import benchmark.utilities.data_io as tl_io
-    >>> path_out = tl_io.create_folder('temp_results')
-    >>> path_csv = os.path.join(tl_io.update_path('data_images'),
-    ...                         'pairs-imgs-lnds_mix.csv')
+    >>> from benchmark.utilities.data_io import create_folder, update_path
+    >>> path_out = create_folder('temp_results')
+    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'nb_jobs': 2, 'unique': False, 'visual': True,
     ...           'path_out': path_out, 'path_cover':
     ...            path_csv, 'an_executable': ''}

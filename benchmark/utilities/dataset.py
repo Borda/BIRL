@@ -9,7 +9,7 @@ import re
 import glob
 import logging
 
-from scipy import spatial
+from scipy import spatial, optimize
 from PIL import Image
 import numpy as np
 import cv2 as cv
@@ -328,3 +328,33 @@ def list_sub_folders(path_folder, name='*'):
     sub_dirs = sorted([p for p in glob.glob(os.path.join(path_folder, name))
                        if os.path.isdir(p)])
     return sub_dirs
+
+
+def common_landmarks(points1, points2, threshold=0.5):
+    """ find common landmarks in two sets
+
+    :param ndarray|[[float]] points1: first point set
+    :param ndarray|[[float]] points2: second point set
+    :param float threshold: threshold for assignment
+    :return [bool]:
+
+    >>> np.random.seed(0)
+    >>> common = np.random.random((5, 2))
+    >>> pts1 = np.vstack([common, np.random.random((10, 2))])
+    >>> pts2 = np.vstack([common, np.random.random((15, 2))])
+    >>> common_landmarks(pts1, pts2, threshold=0.1)
+    array([[ 0,  0],
+           [ 1,  1],
+           [ 2,  2],
+           [ 3,  3],
+           [ 4,  4],
+           [14, 15]])
+    """
+    points1 = np.asarray(points1)
+    points2 = np.asarray(points2)
+    dist = spatial.distance.cdist(points1, points2, 'euclidean')
+    ind_row, ind_col = optimize.linear_sum_assignment(dist)
+    dist_sel = dist[ind_row, ind_col]
+    pairs = [(i, j) for (i, j, d) in zip(ind_row, ind_col, dist_sel)
+             if d < threshold]
+    return np.array(pairs, dtype=int)

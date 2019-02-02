@@ -261,7 +261,7 @@ def compute_points_dist_statistic(points1, points2):
     >>> dist, stat = compute_points_dist_statistic(points1, points1)
     >>> dist
     array([ 0.,  0.,  0.])
-    >>> all(stat[k] == 0 for k in stat if k not in ['Overlap'])
+    >>> all(stat[k] == 0 for k in stat if k not in ['Overlap points'])
     True
     >>> dist, stat = compute_points_dist_statistic(points1, points2)
     >>> dist  #doctest: +ELLIPSIS
@@ -271,7 +271,7 @@ def compute_points_dist_statistic(points1, points2):
     """
     lnd_sizes = [len(points1), len(points2)]
     nb_common = min(lnd_sizes)
-    assert nb_common > 0, 'no common landamrks for metric'
+    assert nb_common > 0, 'no common landmarks for metric'
     points1 = np.asarray(points1)[:nb_common]
     points2 = np.asarray(points2)[:nb_common]
     diffs = np.sqrt(np.sum(np.power(points1 - points2, 2), axis=1))
@@ -281,7 +281,7 @@ def compute_points_dist_statistic(points1, points2):
         'Median': np.median(diffs),
         'Min': np.min(diffs),
         'Max': np.max(diffs),
-        'Overlap': nb_common / float(max(lnd_sizes))
+        'Overlap points': nb_common / float(max(lnd_sizes))
     }
     return diffs, dict_stat
 
