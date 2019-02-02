@@ -18,8 +18,6 @@ from matplotlib.path import Path
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
 
-import benchmark.utilities.data_io as tl_io
-
 TISSUE_CONTENT = 0.01
 # supported image extensions
 IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg')
@@ -321,7 +319,8 @@ def list_sub_folders(path_folder, name='*'):
     :param str name: name pattern
     :return [str]:
 
-    >>> paths = list_sub_folders(tl_io.update_path('data_images'))
+    >>> from benchmark.utilities.data_io import update_path
+    >>> paths = list_sub_folders(update_path('data_images'))
     >>> list(map(os.path.basename, paths))
     ['images', 'landmarks', 'lesions_', 'rat-kidney_']
     """
@@ -358,3 +357,45 @@ def common_landmarks(points1, points2, threshold=0.5):
     pairs = [(i, j) for (i, j, d) in zip(ind_row, ind_col, dist_sel)
              if d < threshold]
     return np.array(pairs, dtype=int)
+
+
+def args_expand_images(parser, nb_jobs=1, overwrite=True):
+    """ expand the parser by standard parameters related to images:
+        * image paths
+        * allow overwrite (optional)
+        * number of jobs
+
+    :param obj parser: existing parser
+    :param int nb_jobs: number threads by default
+    :param bool overwrite: allow overwrite images
+    :return obj:
+
+    >>> import argparse
+    >>> args_expand_images(argparse.ArgumentParser())  # doctest: +ELLIPSIS
+    ArgumentParser(...)
+    """
+    parser.add_argument('-i', '--path_images', type=str, required=True,
+                        help='path (pattern) to the input image')
+    parser.add_argument('--nb_jobs', type=int, required=False, default=nb_jobs,
+                        help='number of processes running in parallel')
+    if overwrite:
+        parser.add_argument('--overwrite', action='store_true', required=False,
+                            default=False, help='allow overwrite existing images')
+    return parser
+
+
+def args_expand_parse_images(parser, nb_jobs=1, overwrite=True):
+    """ expand the parser by standard parameters related to images:
+        * image paths
+        * allow overwrite (optional)
+        * number of jobs
+
+    :param obj parser: existing parser
+    :param int nb_jobs: number threads by default
+    :param bool overwrite: allow overwrite images
+    :return {}:
+    """
+    parser = args_expand_images(parser, nb_jobs, overwrite)
+    args = vars(parser.parse_args())
+    args['path_images'] = os.path.expanduser(args['path_images'])
+    return args

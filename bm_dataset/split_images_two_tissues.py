@@ -25,8 +25,9 @@ from functools import partial
 import cv2 as cv
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.dataset import find_split_objects, project_object_edge
-from benchmark.utilities.dataset import load_large_image, save_large_image
+from benchmark.utilities.dataset import (
+    find_split_objects, project_object_edge, load_large_image, save_large_image,
+    args_expand_parse_images)
 from benchmark.utilities.experiments import wrap_execute_sequence
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .5))
@@ -40,21 +41,22 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--path_images', type=str, required=True,
-                        help='path (pattern) to the input image')
     parser.add_argument('--dimension', type=int, required=False, choices=[0, 1],
                         help='cutting dimension', default=CUT_DIMENSION)
-    parser.add_argument('--overwrite', action='store_true', required=False,
-                        default=False, help='overwrite existing images')
-    parser.add_argument('--nb_jobs', type=int, required=False, default=NB_THREADS,
-                        help='number of processes running in parallel')
-    args = vars(parser.parse_args())
-    args['path_images'] = os.path.expanduser(args['path_images'])
+    args = args_expand_parse_images(parser, NB_THREADS)
     logging.info('ARGUMENTS: \n%r' % args)
     return args
 
 
 def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
+    """ split two images in single dimension
+
+    the input images assume to contain two names in the image name separated by "_"
+
+    :param str img_path: path to the input / output image
+    :param bool overwrite: allow overwrite exiting output images
+    :param int cut_dim: define splitting dimension
+    """
     name = os.path.splitext(os.path.basename(img_path))[0]
     ext = os.path.splitext(os.path.basename(img_path))[-1]
     folder = os.path.dirname(img_path)

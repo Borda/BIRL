@@ -386,13 +386,12 @@ class ImRegBenchmark(Experiment):
         """
         logging.debug('.. simulate registration: '
                       'copy the target image and landmarks, simulate ideal case')
+        path_im_ref, _, _, path_lnds_move = self._get_paths(record)
         path_reg_dir = self._get_path_reg_dir(record)
         name_img = os.path.basename(record[COL_IMAGE_REF])
         name_lnds = os.path.basename(record[COL_POINTS_MOVE])
-        cmd_img = 'cp %s %s' % (self._update_path(record[COL_IMAGE_REF]),
-                                os.path.join(path_reg_dir, name_img))
-        cmd_lnds = 'cp %s %s' % (self._update_path(record[COL_POINTS_MOVE]),
-                                 os.path.join(path_reg_dir, name_lnds))
+        cmd_img = 'cp %s %s' % (path_im_ref, os.path.join(path_reg_dir, name_img))
+        cmd_lnds = 'cp %s %s' % (path_lnds_move, os.path.join(path_reg_dir, name_lnds))
         command = [cmd_img, cmd_lnds]
         return command
 
@@ -464,8 +463,16 @@ def _image_diag(record, path_img_ref=None):
     """
     img_diag = record[COL_IMAGE_DIAGONAL] if COL_IMAGE_DIAGONAL in record else None
     if not img_diag and path_img_ref and os.path.isfile(path_img_ref):
-        img_size, img_diag = tl_io.image_size(path_img_ref)
+        _, img_diag = tl_io.image_size(path_img_ref)
     return img_diag
+
+
+def _load_landmarks(record, path_dataset):
+    path_img_ref, _, path_lnds_ref, path_lnds_move = \
+        [update_path_(record[col], path_dataset) for col in COVER_COLUMNS]
+    points_ref = tl_io.load_landmarks(path_lnds_ref)
+    points_move = tl_io.load_landmarks(path_lnds_move)
+    return points_ref, points_move, path_img_ref
 
 
 def compute_landmarks_statistic(idx_row, df_experiments,
@@ -479,11 +486,7 @@ def compute_landmarks_statistic(idx_row, df_experiments,
     :param str|None path_experiment: path to the experiment folder
     """
     idx, row = idx_row
-    path_img_ref, _, path_lnds_ref, path_lnds_move = \
-        [update_path_(row[col], path_dataset) for col in COVER_COLUMNS]
-    # load initial landmarks
-    points_ref = tl_io.load_landmarks(path_lnds_ref)
-    points_move = tl_io.load_landmarks(path_lnds_move)
+    points_ref, points_move, path_img_ref = _load_landmarks(row, path_dataset)
     points_warped = []
     img_diag = _image_diag(row, path_img_ref)
     df_experiments.loc[idx, COL_IMAGE_DIAGONAL] = img_diag
@@ -553,11 +556,8 @@ def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
         logging.warning('missing warped landmarks for: %r', dict(record))
         return
 
-    path_img_ref, _, path_lnds_ref, path_lnds_move = \
-        [update_path_(record[col], path_dataset) for col in COVER_COLUMNS]
+    points_ref, points_move, path_img_ref = _load_landmarks(record, path_dataset)
     image_ref = tl_io.load_image(path_img_ref)
-    points_ref = tl_io.load_landmarks(path_lnds_ref)
-    points_move = tl_io.load_landmarks(path_lnds_move)
 
     if COL_IMAGE_MOVE_WARP not in record or not isinstance(record[COL_IMAGE_MOVE_WARP], str):
         logging.warning('Missing registered image "%s"', COL_IMAGE_MOVE_WARP)
@@ -596,11 +596,8 @@ def _visual_image_ref_warp_lnds_move_warp(record, path_dataset=None,
         logging.warning('missing warped landmarks for: %r', dict(record))
         return
 
-    path_img_ref, _, path_lnds_ref, path_lnds_move = \
-        [update_path_(record[col], path_dataset) for col in COVER_COLUMNS]
+    points_ref, points_move, path_img_ref = _load_landmarks(record, path_dataset)
     image_ref = tl_io.load_image(path_img_ref)
-    points_ref = tl_io.load_landmarks(path_lnds_ref)
-    points_move = tl_io.load_landmarks(path_lnds_move)
 
     points_warp = tl_io.load_landmarks(path_points_warp)
     if not list(points_warp):

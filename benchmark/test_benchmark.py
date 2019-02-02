@@ -23,6 +23,7 @@ from numpy.testing import assert_raises, assert_array_almost_equal
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.data_io import update_path
+from benchmark.utilities.dataset import args_expand_parse_images
 from benchmark.utilities.experiments import (parse_arg_params, try_decorator)
 from benchmark.cls_benchmark import ImRegBenchmark
 from benchmark.cls_benchmark import (NAME_CSV_RESULTS, NAME_TXT_RESULTS,
@@ -155,10 +156,21 @@ class TestBmRegistration(unittest.TestCase):
         assert_array_almost_equal(sorted(df_regist['TRE STD (final)'].values),
                                   np.array(final_stds), decimal=0)
 
-    @try_decorator
     def test_try_wrap(self):
-        print('%i' % '42')
+        self.assertIsNone(try_wrap())
 
     def test_argparse(self):
         with patch('argparse._sys.argv', ['script.py']):
-            parse_arg_params(argparse.ArgumentParser())
+            args = parse_arg_params(argparse.ArgumentParser())
+            self.assertIsInstance(args, dict)
+
+    def test_argparse_images(self):
+        with patch('argparse._sys.argv', ['script.py', '-i', 'an_image.png']):
+            args = args_expand_parse_images(argparse.ArgumentParser())
+            self.assertIsInstance(args, dict)
+
+
+@try_decorator
+def try_wrap():
+    print('%i' % '42')
+    return True

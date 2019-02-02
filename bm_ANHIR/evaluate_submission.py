@@ -207,7 +207,7 @@ def export_summary_json(df_experiments, path_experiments, path_output):
 
     # export partial results
     cases = []
-    for idx, row in df_experiments.iterrows():
+    for _, row in df_experiments.iterrows():
         record = parse_landmarks(row, path_experiments)
         cases.append(record)
 

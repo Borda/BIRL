@@ -26,8 +26,9 @@ import cv2 as cv
 import numpy as np
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.dataset import find_largest_object, project_object_edge
-from benchmark.utilities.dataset import load_large_image, save_large_image
+from benchmark.utilities.dataset import (
+    find_largest_object, project_object_edge, load_large_image, save_large_image,
+    args_expand_parse_images)
 from benchmark.utilities.experiments import wrap_execute_sequence, try_decorator
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .5))
@@ -42,20 +43,21 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--path_images', type=str, required=True,
-                        help='path (pattern) to the input image')
     parser.add_argument('--padding', type=float, required=False, default=0.1,
                         help='padding around the object in image percents')
-    parser.add_argument('--nb_jobs', type=int, required=False, default=NB_THREADS,
-                        help='number of processes running in parallel')
-    args = vars(parser.parse_args())
-    args['path_images'] = os.path.expanduser(args['path_images'])
+    args = args_expand_parse_images(parser, NB_THREADS, overwrite=False)
     logging.info('ARGUMENTS: \n%r' % args)
     return args
 
 
 @try_decorator
 def crop_image(img_path, crop_dims=(0, 1), padding=0.15):
+    """ crop umages to by tight around tissue
+
+    :param str img_path: path to image
+    :param (int) crop_dims: crop in selected dimensions
+    :param float padding: padding around tissue
+    """
     img = load_large_image(img_path)
     scale_factor = max(1, np.mean(img.shape[:2]) / float(SCALE_SIZE))
     # work with just a scaled version

@@ -95,13 +95,12 @@ class BmTemplate(bm.ImRegBenchmark):
         """
         logging.debug('.. simulate registration: '
                       'copy the source image and landmarks, like regist. failed')
+        _, path_im_move, _, path_lnds_move = self._get_paths(record)
         path_reg_dir = self._get_path_reg_dir(record)
         name_img = os.path.basename(record[bm.COL_IMAGE_MOVE])
-        cmd_img = 'cp %s %s' % (self._update_path(record[bm.COL_IMAGE_MOVE]),
-                                os.path.join(path_reg_dir, name_img))
+        cmd_img = 'cp %s %s' % (path_im_move, os.path.join(path_reg_dir, name_img))
         name_lnds = os.path.basename(record[bm.COL_POINTS_MOVE])
-        cmd_lnds = 'cp %s %s' % (self._update_path(record[bm.COL_POINTS_MOVE]),
-                                 os.path.join(path_reg_dir, name_lnds))
+        cmd_lnds = 'cp %s %s' % (path_lnds_move, os.path.join(path_reg_dir, name_lnds))
         command = [cmd_img, cmd_lnds]
         return command
 

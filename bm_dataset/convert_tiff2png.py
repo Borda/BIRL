@@ -22,10 +22,10 @@ Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 import os
 import sys
 import glob
-import time
-import gc
 import logging
 import argparse
+import time
+import gc
 import multiprocessing as mproc
 from functools import partial
 
@@ -36,6 +36,7 @@ from openslide import OpenSlide
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.experiments import wrap_execute_sequence
+from benchmark.utilities.dataset import args_expand_parse_images
 
 DEFAULT_LEVEL = 1
 MAX_LOAD_IMAGE_SIZE = 16000
@@ -49,16 +50,9 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--path_images', type=str, required=True,
-                        help='path (pattern) to the input image')
     parser.add_argument('-l', '--level', type=int, required=False,
                         help='list of output scales', default=DEFAULT_LEVEL)
-    parser.add_argument('--overwrite', action='store_true', required=False,
-                        default=False, help='overwrite existing images')
-    parser.add_argument('--nb_jobs', type=int, required=False, default=NB_THREADS,
-                        help='number of processes running in parallel')
-    args = vars(parser.parse_args())
-    args['path_images'] = os.path.expanduser(args['path_images'])
+    args = args_expand_parse_images(parser, NB_THREADS)
     logging.info('ARGUMENTS: \n%r' % args)
     return args
 
