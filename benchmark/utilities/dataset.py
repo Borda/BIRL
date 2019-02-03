@@ -12,19 +12,20 @@ import logging
 from scipy import spatial, optimize
 from PIL import Image
 import numpy as np
-import cv2 as cv
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
+from cv2 import (IMWRITE_JPEG_QUALITY, IMWRITE_PNG_COMPRESSION, GaussianBlur,
+                 cvtColor, COLOR_RGBA2RGB, COLOR_RGB2BGR, imwrite)
 
 TISSUE_CONTENT = 0.01
 # supported image extensions
 IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 # https://github.com/opencv/opencv/issues/6729
 # https://www.life2coding.com/save-opencv-images-jpeg-quality-png-compression
-IMAGE_COMPRESSION_OPTIONS = (cv.IMWRITE_JPEG_QUALITY, 98) + \
-                            (cv.IMWRITE_PNG_COMPRESSION, 9)
+IMAGE_COMPRESSION_OPTIONS = (IMWRITE_JPEG_QUALITY, 98) + \
+                            (IMWRITE_PNG_COMPRESSION, 9)
 REEXP_FOLDER_SCALE = r'\S*scale-(\d+)pc'
 # ERROR:root:error: Image size (... pixels) exceeds limit of ... pixels,
 # could be decompression bomb DOS attack.
@@ -139,7 +140,7 @@ def project_object_edge(img, dimension):
     assert dimension in (0, 1), 'not supported dimension %i' % dimension
     assert img.ndim == 3, 'unsupported image shape %r' % img.shape
     img_gray = np.mean(img, axis=-1)
-    img_gray = cv.GaussianBlur(img_gray, (5, 5), 0)
+    img_gray = GaussianBlur(img_gray, (5, 5), 0)
     p_low, p_high = np.percentile(img_gray, (1, 95))
     img_gray = rescale_intensity(img_gray, in_range=(p_low, p_high))
     img_bin = img_gray > threshold_otsu(img_gray)
@@ -159,7 +160,7 @@ def load_large_image(img_path):
     assert os.path.isfile(img_path), 'missing image: %s' % img_path
     img = plt.imread(img_path)
     if img.ndim == 3 and img.shape[2] == 4:
-        img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
+        img = cvtColor(img, COLOR_RGBA2RGB)
     if np.max(img) <= 1.5:
         np.clip(img, a_min=0, a_max=1, out=img)
         # this command split should reduce mount of required memory
@@ -218,8 +219,8 @@ def save_large_image(img_path, img):
         logging.debug('WARNING: this image will be overwritten: %s', img_path)
     # why cv2 imwrite changes the color of pics
     # https://stackoverflow.com/questions/42406338
-    img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
-    cv.imwrite(img_path, img, IMAGE_COMPRESSION_OPTIONS)
+    img = cvtColor(img, COLOR_RGB2BGR)
+    imwrite(img_path, img, IMAGE_COMPRESSION_OPTIONS)
 
 
 def generate_pairing(count, step_hide=None):

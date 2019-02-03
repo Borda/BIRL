@@ -18,7 +18,7 @@ recursive-include bm_experiments *.py
 
 # exclude challenge scripts
 exclude bm_ANHIR
-recursive-exclude bm_ANHIR *.py *.csv *.txt
+recursive-exclude bm_ANHIR *
 
 # Exclude the data files
 recursive-exclude data_images *

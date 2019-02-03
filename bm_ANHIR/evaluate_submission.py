@@ -8,10 +8,10 @@ The expected submission structure and required files:
     in `registration-results.csv` in column 'Warped source landmarks'
 
 The required files in the reference (ground truth):
- * `dataset_cover.csv` - cover file with planed registrations
+ * `dataset.csv` - cover file with planed registrations
  * `computer-performances.json` - reference performance evaluation
  * `provided/` provided landmarks in CSV files with relative path described
-    in `dataset_cover.csv` in column 'Source landmarks'
+    in `dataset.csv` in column 'Source landmarks'
  * `reference/` reference (ground truth) landmarks in CSV files with relative
     path described in `dataset_cover.csv` in both columns 'Target landmarks'
     and 'Source landmarks'
@@ -19,12 +19,34 @@ The required files in the reference (ground truth):
 
 EXAMPLE
 -------
->> python evaluate_experiment.py \
+>> python evaluate_submission.py \
     -e ./results/BmUnwarpJ \
     -c ./data_images/pairs-imgs-lnds_anhir.csv \
     -d ./data_images \
+    -r ./data_images \
     -p ./bm_experiments/computer-performances_cmpgrid-71.json \
     -o ./output
+
+DOCKER
+------
+>> python evaluate_submission.py \
+    -e /input \
+    -c /opt/evaluation/dataset.csv \
+    -d /opt/evaluation/lnds_provided \
+    -r /opt/evaluation/lnds_reference \
+    -p /opt/evaluation/computer-performances.json \
+    -o /output
+or run locally:
+>> python evaluate_submission.py \
+    -e bm_ANHIR/submission \
+    -c bm_ANHIR/dataset_ANHIR/dataset_medium.csv \
+    -d bm_ANHIR/dataset_ANHIR/landmarks_extend \
+    -r bm_ANHIR/dataset_ANHIR/landmarks_all \
+    -p bm_ANHIR/dataset_ANHIR/computer-performances_cmpgrid-71.json \
+    -o output
+
+References:
+* https://grand-challengeorg.readthedocs.io/en/latest/evaluation.html
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -49,11 +71,11 @@ from benchmark.cls_benchmark import (
     NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP,
     COL_POINTS_REF, COL_POINTS_MOVE, COL_POINTS_MOVE_WARP, COL_TIME, COL_ROBUSTNESS,
     COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE, compute_landmarks_statistic, update_path_)
-from bm_experiments.bm_comp_perform import NAME_REPORT
+# from bm_experiments.bm_comp_perform import NAME_REPORT
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .9))
 NAME_CSV_RESULTS = 'registration-results.csv'
-NAME_JSON_COMPUTER = NAME_REPORT
+NAME_JSON_COMPUTER = 'computer-performances.json'
 NAME_JSON_RESULTS = 'metrics.json'
 COL_NORM_TIME = 'Norm. execution time [minutes]'
 COL_FOUND_LNDS = 'Ration matched landmarks'
@@ -66,17 +88,19 @@ def create_parser():
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--path_experiment', type=str, required=True,
-                        help='path to the experiments')
+                        help='path to the experiments', default='/input/')
     parser.add_argument('-c', '--path_cover', type=str, required=True,
-                        help='path to cover table (csv file)')
+                        help='path to cover table (csv file)',
+                        default='/opt/evaluation/dataset.csv')
     parser.add_argument('-d', '--path_dataset', type=str, required=True,
-                        help='path to dataset with provided landmarks')
+                        help='path to dataset with provided landmarks',
+                        default='/opt/evaluation/provided')
     parser.add_argument('-r', '--path_reference', type=str, required=False,
                         help='path to complete ground truth landmarks')
     parser.add_argument('-p', '--path_comp_bm', type=str, required=False,
                         help='path to reference computer performance JSON')
-    parser.add_argument('-o', '--path_output', type=str, required=False,
-                        help='path to output results')
+    parser.add_argument('-o', '--path_output', type=str, required=True,
+                        help='path to output results', default='/output/')
     return parser
 
 
@@ -111,7 +135,8 @@ def filter_landmarks(idx_row, df_experiments, path_experiments, path_dataset, pa
     lnds_warp = load_landmarks(path_lnds)
     save_landmarks(path_lnds, lnds_warp[ind_load])
     # save ratio of found landmarks
-    df_experiments.loc[idx, COL_FOUND_LNDS] = len(pairs) / float(len(lnds_warp))
+    len_lnds_ref = len(load_landmarks(update_path_(row[COL_POINTS_REF], path_reference)))
+    df_experiments.loc[idx, COL_FOUND_LNDS] = len(pairs) / float(len_lnds_ref)
 
 
 def normalize_exec_time(df_experiments, path_experiments, path_comp_bm=None):
@@ -122,6 +147,9 @@ def normalize_exec_time(df_experiments, path_experiments, path_comp_bm=None):
     :param str path_comp_bm: path to reference comp. benchmark
     """
     path_comp_bm_expt = os.path.join(path_experiments, NAME_JSON_COMPUTER)
+    if COL_TIME not in df_experiments.columns:
+        logging.warning('Missing %s among result columns.', COL_TIME)
+        return
     if not path_comp_bm:
         logging.warning('Reference comp. perform. not specified.')
         return
@@ -131,6 +159,7 @@ def normalize_exec_time(df_experiments, path_experiments, path_comp_bm=None):
                         path_comp_bm_expt, os.path.isfile(path_comp_bm_expt))
         return
 
+    logging.info('Normalizing the Execution time.')
     with open(path_comp_bm, 'r') as fp:
         comp_ref = json.load(fp)
     with open(path_comp_bm_expt, 'r') as fp:
@@ -178,6 +207,7 @@ def compute_scores(df_experiments):
         'Avg. max rTRE': df_summary['rTRE Max (final)']['mean'],
         'Avg. max rTRE robust.': df_summary_robust['rTRE Max (final)']['mean'],
         'Avg. rank max rTRE': None,
+        'Avg. used landmarks': df_summary_robust[COL_FOUND_LNDS]['mean'],
     }
     if COL_NORM_TIME in df_experiments.columns:
         scores.update({
@@ -233,27 +263,27 @@ def main(path_experiment, path_cover, path_dataset, path_output,
     """
 
     path_results = os.path.join(path_experiment, NAME_CSV_REGISTRATION_PAIRS)
-    assert os.path.isfile(path_results)
+    if not os.path.isfile(path_results):
+        raise AttributeError('Missing experiments results: %s' % path_results)
     path_reference = path_dataset if not path_reference else path_reference
 
-    df_cover = pd.read_csv(path_cover)
-    df_experiments = pd.read_csv(path_results)
-    df_experiments.drop([COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE],
-                        axis=1, errors='ignore', inplace=True)
-    df_experiments = pd.merge(df_cover, df_experiments, how='left', on=COVER_COLUMNS)
+    df_cover = pd.read_csv(path_cover).drop([COL_TIME], axis=1, errors='ignore')
+    df_results = pd.read_csv(path_results).drop([COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE],
+                                                axis=1, errors='ignore')
+    df_experiments = pd.merge(df_cover, df_results, how='left', on=COVER_COLUMNS)
     df_experiments.drop([COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP],
                         axis=1, errors='ignore', inplace=True)
 
     normalize_exec_time(df_experiments, path_experiment, path_comp_bm)
 
-    # filter used landmarks
+    logging.info('Filter used landmarks.')
     _filter_lnds = partial(filter_landmarks, df_experiments=df_experiments,
                            path_experiments=path_experiment, path_dataset=path_dataset,
                            path_reference=path_reference)
     list(wrap_execute_sequence(_filter_lnds, df_experiments.iterrows(),
                                desc='Filtering', nb_jobs=nb_jobs))
 
-    # compute landmarks statistic
+    logging.info('Compute landmarks statistic.')
     _compute_lnds_stat = partial(compute_landmarks_statistic, df_experiments=df_experiments,
                                  path_dataset=path_experiment, path_experiment=path_experiment)
     list(wrap_execute_sequence(_compute_lnds_stat, df_experiments.iterrows(),
