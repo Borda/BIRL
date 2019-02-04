@@ -10,7 +10,8 @@ import json
 import copy
 import logging
 
-import benchmark.utilities.experiments as tl_expt
+from benchmark.utilities.experiments import (set_experiment_logger, string_dict,
+                                             create_experiment_folder, release_logger_files)
 
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 CONFIG_JSON = 'config.json'
@@ -49,14 +50,14 @@ class Experiment(object):
         self._check_required_params()
         self.__check_exist_path()
         self.__create_folder(stamp_unique)
-        tl_expt.set_experiment_logger(self.params['path_exp'], FILE_LOGS)
+        set_experiment_logger(self.params['path_exp'], FILE_LOGS)
         # set stream logging to info level
         for lh in logging.getLogger().handlers:
             if isinstance(lh, logging.StreamHandler) and \
                     not isinstance(lh, logging.FileHandler):
                 lh.setLevel(logging.INFO)
         logging.info('initialise experiment...')
-        logging.info(tl_expt.string_dict(self.params, 'PARAMETERS:'))
+        logging.info(string_dict(self.params, 'PARAMETERS:'))
 
     @classmethod
     def _check_required_params(self):
@@ -107,7 +108,7 @@ class Experiment(object):
         assert 'path_out' in self.params, 'missing "path_out" among %r' \
                                           % self.params.keys()
         # create results folder for experiments
-        path_exp = tl_expt.create_experiment_folder(
+        path_exp = create_experiment_folder(
             self.params.get('path_out'), self.__class__.__name__,
             self.params.get('name'), stamp_unique)
         self.params['path_exp'] = path_exp
@@ -118,4 +119,4 @@ class Experiment(object):
     def __del__(self):
         """ terminating experiment """
         logging.info('terminating experiment...')
-        tl_expt.release_logger_files()
+        release_logger_files()

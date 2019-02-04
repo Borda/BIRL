@@ -10,9 +10,9 @@ The expected submission structure and required files:
 The required files in the reference (ground truth):
  * `dataset.csv` - cover file with planed registrations
  * `computer-performances.json` - reference performance evaluation
- * `provided/` provided landmarks in CSV files with relative path described
+ * `lnds_provided/` provided landmarks in CSV files with relative path described
     in `dataset.csv` in column 'Source landmarks'
- * `reference/` reference (ground truth) landmarks in CSV files with relative
+ * `lnds_reference/` reference (ground truth) landmarks in CSV files with relative
     path described in `dataset_cover.csv` in both columns 'Target landmarks'
     and 'Source landmarks'
 
@@ -48,7 +48,7 @@ or run locally:
 References:
 * https://grand-challengeorg.readthedocs.io/en/latest/evaluation.html
 
-Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
+Copyright (C) 2018-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
@@ -173,6 +173,12 @@ def normalize_exec_time(df_experiments, path_experiments, path_comp_bm=None):
 
 
 def parse_landmarks(idx_row, path_experiments):
+    """ parse the warped landmarks and reference and save them as cases
+
+    :param (int, series) idx_row: individual row
+    :param str path_experiments: path to the experiment folder
+    :return {str: float|[]}: parsed registration pair
+    """
     _, row = idx_row
     lnds_ref = load_landmarks(
         update_path_(row[COL_POINTS_REF], path_experiments))
@@ -195,6 +201,13 @@ def parse_landmarks(idx_row, path_experiments):
 
 
 def compute_scores(df_experiments):
+    """ compute all main metrics
+
+    SEE: https://anhir.grand-challenge.org/Evaluation/
+
+    :param DF df_experiments: complete experiments
+    :return {}: results
+    """
     # compute summary
     df_summary = df_experiments.describe()
     df_robust = df_experiments[df_experiments[COL_ROBUSTNESS] > 0.5]
@@ -231,6 +244,7 @@ def export_summary_json(df_experiments, path_experiments, path_output):
     :param DF df_experiments: experiment DataFrame
     :param str path_experiments: path to experiment folder
     :param str path_output: path to generated results
+    :return str: path to exported results
     """
     # copy the initial to final for missing
     cols = [col for col in df_experiments.columns
@@ -253,6 +267,7 @@ def export_summary_json(df_experiments, path_experiments, path_output):
     logging.info('exporting JSON results: %s', path_json)
     with open(path_json, 'w') as fp:
         json.dump(results, fp)
+    return path_json
 
 
 def main(path_experiment, path_cover, path_dataset, path_output,

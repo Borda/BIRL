@@ -9,10 +9,10 @@ import re
 import glob
 import logging
 
-from scipy import spatial, optimize
-from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL import Image
+from scipy import spatial, optimize
 from matplotlib.path import Path
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity

@@ -25,9 +25,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # for Ubuntu instalation
 #    wget https://bootstrap.pypa.io/get-pip.py --progress=bar:force:noscroll && \
 #    python get-pip.py && \
-# TODO: swap back to master after this PR is being merged
-#    pip install git+https://github.com/Borda/BIRL.git
-    pip install git+https://github.com/Borda/BIRL.git@anhir
+    pip install git+https://github.com/Borda/BIRL.git
+#    pip install git+https://github.com/Borda/BIRL.git@anhir
 
 RUN apt-get -y remove \
         gcc \

@@ -43,9 +43,13 @@ class TestBmRegistration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         path_base = os.path.dirname(update_path('requirements.txt'))
-        cls.path_out = os.path.join(path_base, 'output')
+        cls.path_out = os.path.join(path_base, 'output-test')
         shutil.rmtree(cls.path_out, ignore_errors=True)
         os.mkdir(cls.path_out)
+
+    def _remove_default_experiment(self, bm_name):
+        path_expt = os.path.join(self.path_out, bm_name)
+        shutil.rmtree(path_expt, ignore_errors=True)
 
     @classmethod
     def test_benchmark_invalid_inputs(self):
@@ -62,22 +66,26 @@ class TestBmRegistration(unittest.TestCase):
 
     def test_benchmark_parallel(self):
         """ test run in parallel (2 threads) """
+        self._remove_default_experiment(ImRegBenchmark.__name__)
         params = {
-            'path_cover': PATH_CSV_COVER_ANHIR,
-            'path_dataset': PATH_DATA,
+            'path_cover': PATH_CSV_COVER_MIX,
             'path_out': self.path_out,
             'nb_jobs': 2,
             'visual': True,
             'unique': False,
         }
-        self.benchmark = ImRegBenchmark(params)
-        self.benchmark.run()
-        self.check_benchmark_results(final_means=[0., 0.],
-                                     final_stds=[0., 0.])
-        del self.benchmark
+        benchmark = ImRegBenchmark(params)
+        # run it for the first time, complete experiment
+        benchmark.run()
+        # rerun experiment simulated repeating unfinished benchmarks
+        benchmark.run()
+        self.check_benchmark_results(benchmark, final_means=[28., 68., 73., 76.],
+                                     final_stds=[13., 28., 28., 34.])
+        del benchmark
 
     def test_benchmark_simple(self):
-        """ test run in parallel (2 threads) """
+        """ test run in sequence (1 thread) """
+        self._remove_default_experiment(ImRegBenchmark.__name__)
         params = {
             'path_cover': PATH_CSV_COVER_ANHIR,
             'path_dataset': PATH_DATA,
@@ -86,11 +94,10 @@ class TestBmRegistration(unittest.TestCase):
             'visual': True,
             'unique': False,
         }
-        self.benchmark = ImRegBenchmark(params)
-        self.benchmark.run()
-        self.check_benchmark_results(final_means=[0., 0.],
-                                     final_stds=[0., 0.])
-        del self.benchmark
+        benchmark = ImRegBenchmark(params)
+        benchmark.run()
+        self.check_benchmark_results(benchmark, final_means=[28., 76.], final_stds=[13., 34.])
+        del benchmark
 
     def test_benchmark_template(self):
         """ test run in single thread """
@@ -102,16 +109,16 @@ class TestBmRegistration(unittest.TestCase):
             'visual': True,
             'an_executable': None,
         }
-        self.benchmark = BmTemplate(params)
-        self.benchmark.run()
-        self.check_benchmark_results(final_means=[28., 68., 73., 76.],
-                                     final_stds=[13., 28., 28., 34.])
-        del self.benchmark
+        benchmark = BmTemplate(params)
+        benchmark.run()
+        self.check_benchmark_results(benchmark, final_means=[0., 0., 0., 0.],
+                                     final_stds=[0., 0., 0., 0.])
+        del benchmark
 
-    def check_benchmark_results(self, final_means, final_stds):
+    def check_benchmark_results(self, benchmark, final_means, final_stds):
         """ check whether the benchmark folder contains all required files
         and compute statistic correctly """
-        bm_name = self.benchmark.__class__.__name__
+        bm_name = benchmark.__class__.__name__
         path_bm = os.path.join(self.path_out, bm_name)
         self.assertTrue(os.path.exists(path_bm), msg='missing benchmark: %s' % bm_name)
         # required output files
@@ -126,9 +133,9 @@ class TestBmRegistration(unittest.TestCase):
         df_regist = pd.read_csv(path_csv, index_col=0)
 
         # only two records in the benchmark
-        self.assertEqual(len(df_regist), len(self.benchmark._df_cover),
+        self.assertEqual(len(df_regist), len(benchmark._df_cover),
                          msg='Found only %i records instead of %i'
-                             % (len(df_regist), len(self.benchmark._df_cover)))
+                             % (len(df_regist), len(benchmark._df_cover)))
 
         # test presence of particular columns
         for col in list(COVER_COLUMNS) + [COL_IMAGE_MOVE_WARP]:

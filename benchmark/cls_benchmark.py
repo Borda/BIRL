@@ -4,9 +4,10 @@ It also serves for evaluating the input registration pairs
 (while no registration is performed, there is only the initial deformation)
 
 EXAMPLE (usage):
->> mkdir results
+>> mkdir ./results
 >> python benchmarks/bm_registration.py \
-    -c data_images/pairs-imgs-lnds_mix.csv -o results --unique
+    -c data_images/pairs-imgs-lnds_anhir.csv -d ./data_images \
+    -o ./results --unique
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -24,9 +25,12 @@ import numpy as np
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-import benchmark.utilities.data_io as tl_io
-import benchmark.utilities.experiments as tl_expt
-import benchmark.utilities.visualisation as tl_visu
+from benchmark.utilities.data_io import (update_path, create_folder, image_size,
+                                         load_landmarks, load_image, save_image)
+from benchmark.utilities.experiments import (run_command_line, string_dict,
+                                             compute_points_dist_statistic)
+from benchmark.utilities.visualisation import (export_figure, draw_image_points,
+                                               draw_images_warped_landmarks)
 from benchmark.utilities.cls_experiment import Experiment
 
 NB_THREADS = int(mproc.cpu_count())
@@ -83,9 +87,12 @@ if sys.version_info.major == 2:
 
 
 class ImRegBenchmark(Experiment):
-    """
-    General benchmark class for all registration methods.
+    """ General benchmark class for all registration methods.
     It also serves for evaluating the input registration pairs.
+
+    :param {str: str|float} params: dictionary with experiment configuration,
+        the required options are names in `REQUIRED_PARAMS`,
+        note that the basic parameters are inherited
 
     The benchmark has following steps:
     1. check all necessary pathers and required parameters
@@ -99,6 +106,11 @@ class ImRegBenchmark(Experiment):
         d) evaluate experiment, set the expected outputs and visualisation
         e) clean all extra files if any
     4. visualise results abd evaluate registration results
+
+    NOTE: The actual implementation simulates the "WORSE" registration while
+    it blindly copies the moving landmarks as results of the registration.
+    It also copies the moving images so there is correct "warping" between
+    image and landmarks. It means that there was no registration performed.
 
     Running in single thread:
     >>> from benchmark.utilities.data_io import create_folder, update_path
@@ -160,7 +172,7 @@ class ImRegBenchmark(Experiment):
             path = os.path.join(self.params['path_dataset'], path)
         elif destination == 'expt' and 'path_exp' in self.params:
             path = os.path.join(self.params['path_exp'], path)
-        path = tl_io.update_path(path, absolute=True)
+        path = update_path(path, absolute=True)
         return path
 
     def _get_paths(self, row):
@@ -318,7 +330,7 @@ class ImRegBenchmark(Experiment):
         # check whether the particular experiment already exists and have result
         if self.__check_exist_regist(idx, path_dir_reg):
             return None
-        tl_io.create_folder(path_dir_reg)
+        create_folder(path_dir_reg)
 
         row = self._prepare_registration(row)
         str_cmd = self._generate_regist_command(row)
@@ -328,7 +340,7 @@ class ImRegBenchmark(Experiment):
 
         # measure execution time
         time_start = time.time()
-        cmd_result = tl_expt.run_command_line(str_cmd, path_log)
+        cmd_result = run_command_line(str_cmd, path_log)
         # compute the registration time in minutes
         row[COL_TIME] = (time.time() - time_start) / 60.
         # if the experiment failed, return back None
@@ -372,26 +384,26 @@ class ImRegBenchmark(Experiment):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
 
-        :param dict record: {str: value}, dictionary with regist. params
-        :return dict: {str: value}
+        :param {str: str|float} dict record: dictionary with regist. params
+        :return {str: str|float}: the same or updated registration info
         """
         logging.debug('.. no preparing before registration experiment')
         return record
 
     def _generate_regist_command(self, record):
-        """ generate the registration command
+        """ generate the registration command(s)
 
-        :param record: {str: value}, dictionary with regist. params
-        :return: str, the execution string
+        :param {str: str|float} record: dictionary with registration params
+        :return str|[str]: the execution commands
         """
         logging.debug('.. simulate registration: '
-                      'copy the target image and landmarks, simulate ideal case')
-        path_im_ref, _, _, path_lnds_move = self._get_paths(record)
+                      'copy the source image and landmarks, like regist. failed')
+        _, path_im_move, path_lnds_ref, _ = self._get_paths(record)
         path_reg_dir = self._get_path_reg_dir(record)
-        name_img = os.path.basename(record[COL_IMAGE_REF])
+        name_img = os.path.basename(record[COL_IMAGE_MOVE])
+        cmd_img = 'cp %s %s' % (path_im_move, os.path.join(path_reg_dir, name_img))
         name_lnds = os.path.basename(record[COL_POINTS_MOVE])
-        cmd_img = 'cp %s %s' % (path_im_ref, os.path.join(path_reg_dir, name_img))
-        cmd_lnds = 'cp %s %s' % (path_lnds_move, os.path.join(path_reg_dir, name_lnds))
+        cmd_lnds = 'cp %s %s' % (path_lnds_ref, os.path.join(path_reg_dir, name_lnds))
         command = [cmd_img, cmd_lnds]
         return command
 
@@ -405,7 +417,7 @@ class ImRegBenchmark(Experiment):
         """
         # detect image
         path_img = os.path.join(record[COL_REG_DIR],
-                                os.path.basename(record[COL_IMAGE_REF]))
+                                os.path.basename(record[COL_IMAGE_MOVE]))
         # detect landmarks
         path_lnd = os.path.join(record[COL_REG_DIR],
                                 os.path.basename(record[COL_POINTS_MOVE]))
@@ -433,8 +445,8 @@ class ImRegBenchmark(Experiment):
     def _clear_after_registration(self, record):
         """ clean unnecessarily files after the registration
 
-        :param record: {str: value}, dictionary with registration params
-        :return: {str: value}
+        :param {str: value} record: dictionary with regist. information
+        :return {str: value}: the same or updated regist. info
         """
         logging.debug('.. no cleaning after registration experiment')
         return record
@@ -448,7 +460,7 @@ def update_path_(path, path_base=None):
     :return str: update path
     """
     path = os.path.join(path_base, str(path)) if path_base else path
-    return tl_io.update_path(path, absolute=True)
+    return update_path(path, absolute=True)
 
 
 def _image_diag(record, path_img_ref=None):
@@ -463,22 +475,22 @@ def _image_diag(record, path_img_ref=None):
     """
     img_diag = record[COL_IMAGE_DIAGONAL] if COL_IMAGE_DIAGONAL in record else None
     if not img_diag and path_img_ref and os.path.isfile(path_img_ref):
-        _, img_diag = tl_io.image_size(path_img_ref)
+        _, img_diag = image_size(path_img_ref)
     return img_diag
 
 
 def _load_landmarks(record, path_dataset):
     path_img_ref, _, path_lnds_ref, path_lnds_move = \
         [update_path_(record[col], path_dataset) for col in COVER_COLUMNS]
-    points_ref = tl_io.load_landmarks(path_lnds_ref)
-    points_move = tl_io.load_landmarks(path_lnds_move)
+    points_ref = load_landmarks(path_lnds_ref)
+    points_move = load_landmarks(path_lnds_move)
     return points_ref, points_move, path_img_ref
 
 
 def compute_landmarks_statistic(idx_row, df_experiments,
                                 path_dataset=None, path_experiment=None):
     """ after successful registration load initial nad estimated landmarks
-    afterwords compute various statistic for init, and final alignment
+    afterwords compute various statistic for init, and finalNoBmTemplatene alignment
 
     :param (int, dict) idx_row: tow from iterated table
     :param DF df_experiments: DataFrame with experiments
@@ -505,7 +517,7 @@ def compute_landmarks_statistic(idx_row, df_experiments,
         points_target, path_landmarks = [], None
     # load landmarks
     if path_landmarks and os.path.isfile(path_landmarks):
-        points_warped = tl_io.load_landmarks(path_landmarks)
+        points_warped = load_landmarks(path_landmarks)
 
     # compute statistic
     if list(points_target) and list(points_warped):
@@ -527,7 +539,7 @@ def compute_landmarks_inaccuracy(df_experiments, idx, points1, points2,
     :param str state: whether it was before of after registration
     :param float img_diag: target image diagonal
     """
-    _, stat = tl_expt.compute_points_dist_statistic(points1, points2)
+    _, stat = compute_points_dist_statistic(points1, points2)
     if img_diag is not None:
         df_experiments.at[idx, COL_IMAGE_DIAGONAL] = img_diag
     # update particular idx
@@ -557,26 +569,25 @@ def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
         return
 
     points_ref, points_move, path_img_ref = _load_landmarks(record, path_dataset)
-    image_ref = tl_io.load_image(path_img_ref)
+    image_ref = load_image(path_img_ref)
 
     if COL_IMAGE_MOVE_WARP not in record or not isinstance(record[COL_IMAGE_MOVE_WARP], str):
         logging.warning('Missing registered image "%s"', COL_IMAGE_MOVE_WARP)
         image_warp = None
     else:
         path_image_warp = update_path_(record[COL_IMAGE_MOVE_WARP], path_experiment)
-        image_warp = tl_io.load_image(path_image_warp)
+        image_warp = load_image(path_image_warp)
 
-    points_warp = tl_io.load_landmarks(path_points_warp)
+    points_warp = load_landmarks(path_points_warp)
     if not list(points_warp):
         return
     # draw image with landmarks
-    image = tl_visu.draw_image_points(image_warp, points_warp)
-    tl_io.save_image(os.path.join(update_path_(record[COL_REG_DIR], path_experiment),
-                                  NAME_IMAGE_MOVE_WARP_POINTS), image)
+    image = draw_image_points(image_warp, points_warp)
+    save_image(os.path.join(update_path_(record[COL_REG_DIR], path_experiment),
+                            NAME_IMAGE_MOVE_WARP_POINTS), image)
     # visualise the landmarks move during registration
-    fig = tl_visu.draw_images_warped_landmarks(image_ref, image_warp,
-                                               points_move, points_ref,
-                                               points_warp)
+    fig = draw_images_warped_landmarks(image_ref, image_warp, points_move,
+                                       points_ref, points_warp)
     return fig
 
 
@@ -589,7 +600,7 @@ def _visual_image_ref_warp_lnds_move_warp(record, path_dataset=None,
     :param str|None path_experiment: path to the experiment folder
     :return obj|None:
     """
-    assert COL_IMAGE_MOVE_WARP in record and isinstance(record[COL_POINTS_REF_WARP], str), \
+    assert COL_POINTS_REF_WARP in record and isinstance(record[COL_POINTS_REF_WARP], str), \
         'Missing registered image "%s"' % COL_POINTS_REF_WARP
     path_points_warp = update_path_(record[COL_POINTS_REF_WARP], path_experiment)
     if not os.path.isfile(path_points_warp):
@@ -597,21 +608,20 @@ def _visual_image_ref_warp_lnds_move_warp(record, path_dataset=None,
         return
 
     points_ref, points_move, path_img_ref = _load_landmarks(record, path_dataset)
-    image_ref = tl_io.load_image(path_img_ref)
+    image_ref = load_image(path_img_ref)
 
-    points_warp = tl_io.load_landmarks(path_points_warp)
+    points_warp = load_landmarks(path_points_warp)
     if not list(points_warp):
         return
     # draw image with landmarks
-    image_move = tl_io.load_image(update_path_(record[COL_IMAGE_MOVE], path_dataset))
+    image_move = load_image(update_path_(record[COL_IMAGE_MOVE], path_dataset))
     # image_warp = tl_io.load_image(row['Moving image, Transf.'])
-    image = tl_visu.draw_image_points(image_move, points_warp)
-    tl_io.save_image(os.path.join(update_path_(record[COL_REG_DIR], path_experiment),
-                                  NAME_IMAGE_REF_POINTS_WARP), image)
+    image = draw_image_points(image_move, points_warp)
+    save_image(os.path.join(update_path_(record[COL_REG_DIR], path_experiment),
+                            NAME_IMAGE_REF_POINTS_WARP), image)
     # visualise the landmarks move during registration
-    fig = tl_visu.draw_images_warped_landmarks(image_ref, image_move,
-                                               points_ref, points_move,
-                                               points_warp)
+    fig = draw_images_warped_landmarks(image_ref, image_move, points_ref,
+                                       points_move, points_warp)
     return fig
 
 
@@ -636,7 +646,7 @@ def visualise_registration(df_row, path_dataset=None, path_experiment=None):
     if fig is not None:
         path_fig = os.path.join(update_path_(row[COL_REG_DIR], path_experiment),
                                 NAME_IMAGE_WARPED_VISUAL)
-        tl_visu.export_figure(path_fig, fig)
+        export_figure(path_fig, fig)
 
     return path_fig
 
@@ -672,7 +682,7 @@ def export_summary_results(df_experiments, path_out, params=None,
     pd.set_option('expand_frame_repr', False)
     with open(path_txt, 'w') as fp:
         if params:
-            fp.write(tl_expt.string_dict(params, 'CONFIGURATION:'))
+            fp.write(string_dict(params, 'CONFIGURATION:'))
         fp.write('\n' * 3 + 'RESULTS:\n')
         fp.write('completed registration experiments: %i' % len(df_experiments))
         fp.write('\n' * 2)

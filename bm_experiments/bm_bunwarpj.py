@@ -14,7 +14,8 @@ INSTALLATION:
 
 Run the basic bUnwarpJ registration with original parameters:
 >> python bm_experiments/bm_bunwarpj.py \
-    -c ./data_images/pairs-imgs-lnds_mix.csv \
+    -c ./data_images/pairs-imgs-lnds_anhir.csv \
+    -d ./data_images \
     -o ./results \
     -fiji ./applications/Fiji.app/ImageJ-linux64 \
     -config ./configs/ImageJ_bUnwarpJ.txt
@@ -22,14 +23,15 @@ Run the basic bUnwarpJ registration with original parameters:
 The bUnwarpJ is supporting SIFT and MOPS feature extraction as landmarks
 see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support
 >> python bm_experiments/bm_bunwarpj.py \
-    -c ./data_images/pairs-imgs-lnds_mix.csv \
+    -c ./data_images/pairs-imgs-lnds_anhir.csv \
+    -d ./data_images \
     -o ./results \
     -fiji ./applications/Fiji.app/ImageJ-linux64 \
     -config ./configs/ImageJ_bUnwarpJ.txt \
     -sift ./configs/ImageJ_SIFT.txt
 
-NOTE:
-* tested for version ImageJ 2.35
+Disclaimer:
+* tested for version ImageJ 1.52i & 2.35
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -45,6 +47,7 @@ from benchmark.utilities.data_io import update_path, load_landmarks, save_landma
 from benchmark.utilities.experiments import (create_basic_parse, parse_arg_params,
                                              run_command_line)
 from benchmark.cls_benchmark import ImRegBenchmark, NAME_LOG_REGISTRATION
+from benchmark.bm_template import main
 from bm_experiments import bm_comp_perform
 
 NAME_MACRO_REGISTRATION = 'macro_registration.ijm'
@@ -60,7 +63,6 @@ COMMAND_WARP_LANDMARKS = '%(path_fiji)s --headless %(path_bsh)s' \
                          ' %(output)s/inverse_transform.txt' \
                          ' %(output)s/direct_transform.txt' \
                          ' %(warp)s'
-
 # macro for feature extraction - SIFT
 MACRO_SIFT = '''
 run("Extract SIFT Correspondences",
@@ -71,7 +73,6 @@ MACRO_MOPS = '''
 run("Extract MOPS Correspondences",
     "source_image=%(name_source)s target_image=%(name_target)s %(config_MOPS)s");
 '''
-
 # macro performing the registration
 MACRO_REGISTRATION = '''// Registration
 //run("Memory & Threads...", "maximum=6951 parallel=1");
@@ -125,6 +126,8 @@ class BmUnwarpJ(ImRegBenchmark):
     """ Benchmark for ImageJ plugin - bUnwarpJ
     no run test while this method requires manual installation of ImageJ
 
+    EXAMPLE
+    -------
     >>> from benchmark.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> fn_path_conf = lambda n: os.path.join(update_path('configs'), n)
@@ -162,10 +165,11 @@ class BmUnwarpJ(ImRegBenchmark):
 
     def _prepare_registration(self, record):
         """ prepare the experiment folder if it is required,
-        eq. copy some extra files
 
-        :param dict record: {str: value}, dictionary with regist. params
-        :return dict: {str: value}
+        * create registration macros
+
+        :param {str: str|float} dict record: dictionary with regist. params
+        :return {str: str|float}: the same or updated registration info
         """
         logging.debug('.. generate macros before registration experiment')
         # set the paths for this experiment
@@ -212,10 +216,10 @@ class BmUnwarpJ(ImRegBenchmark):
         return record
 
     def _generate_regist_command(self, record):
-        """ generate the registration command
+        """ generate the registration command(s)
 
-        :param record: {str: value}, dictionary with regist. params
-        :return: str, the execution string
+        :param {str: str|float} record: dictionary with registration params
+        :return str|[str]: the execution commands
         """
         path_macro = os.path.join(self._get_path_reg_dir(record),
                                   NAME_MACRO_REGISTRATION)
@@ -256,28 +260,13 @@ class BmUnwarpJ(ImRegBenchmark):
         return None, path_regist, None, path_lnds
 
 
-def main(params):
-    """ run the Main of bUnwarpJ experiment
-
-    :param params: {str: value} set of input parameters
-    """
-    logging.info('running...')
-    logging.info(__doc__)
-    benchmark = BmUnwarpJ(params)
-    benchmark.run()
-    path_expt = benchmark.params['path_exp']
-    del benchmark
-    logging.info('Done.')
-    return path_expt
-
-
 # RUN by given parameters
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     arg_parser = create_basic_parse()
     arg_parser = extend_parse(arg_parser)
     arg_params = parse_arg_params(arg_parser)
-    path_expt = main(arg_params)
+    path_expt = main(arg_params, BmUnwarpJ)
 
     if arg_params.get('run_comp_benchmark', False):
         logging.info('Running the computer benchmark.')

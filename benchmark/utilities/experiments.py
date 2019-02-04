@@ -18,7 +18,7 @@ from functools import wraps
 import tqdm
 import numpy as np
 
-import benchmark.utilities.data_io as tl_io
+from benchmark.utilities.data_io import create_folder, update_path
 
 NB_THREADS = int(mproc.cpu_count())
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
@@ -52,9 +52,9 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
             logging.warning('particular out folder already exists')
             if path_created is not None:
                 path_exp += '-' + str(np.random.randint(0, 100))
-            path_created = tl_io.create_folder(path_exp, ok_existing=False)
+            path_created = create_folder(path_exp, ok_existing=False)
     else:
-        path_created = tl_io.create_folder(path_exp, ok_existing=False)
+        path_created = create_folder(path_exp, ok_existing=False)
     logging.info('created experiment folder "%r"', path_created)
     return path_exp
 
@@ -171,10 +171,10 @@ def update_paths(args, upper_dirs=None, pattern='path'):
     missing = []
     for k in (k for k in args if pattern in k):
         if '*' in os.path.basename(args[k]) or k in upper_dirs:
-            p = tl_io.update_path(os.path.dirname(args[k]))
+            p = update_path(os.path.dirname(args[k]))
             args[k] = os.path.join(p, os.path.basename(args[k]))
         else:
-            args[k] = tl_io.update_path(args[k])
+            args[k] = update_path(args[k])
             p = args[k]
         if not os.path.exists(p):
             logging.warning('missing "%s": %s', k, p)

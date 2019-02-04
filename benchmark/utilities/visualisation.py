@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pylab as plt
 from PIL import ImageDraw
 
-import benchmark.utilities.data_io as tl_io
+from benchmark.utilities.data_io import convert_ndarray2image
 
 MAX_FIGURE_SIZE = 18
 
@@ -54,7 +54,7 @@ def draw_image_points(image, points, color='green', marker_size=5, shape='o'):
         # landmark range plus minimal offset to avoid zero image
         lnds_range = np.max(points, axis=0) - np.min(points, axis=0) + 1
         image = np.zeros(lnds_range.astype(int).tolist() + [3])
-    image = tl_io.convert_ndarray2image(image)
+    image = convert_ndarray2image(image)
     draw = ImageDraw.Draw(image)
     for i, (x, y) in enumerate(points):
         pos_marker = (x - marker_size, y - marker_size,

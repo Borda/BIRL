@@ -12,7 +12,7 @@ libs/
 
 # temporary structure
 build/
-output/
+output*/
 results/
 temp/
 temporary/
