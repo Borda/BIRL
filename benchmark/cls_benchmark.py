@@ -504,7 +504,7 @@ def compute_landmarks_statistic(idx_row, df_experiments,
         logging.error('Statistic: no output landmarks')
         points_target, path_landmarks = [], None
     # load landmarks
-    if os.path.isfile(path_landmarks):
+    if path_landmarks and os.path.isfile(path_landmarks):
         points_warped = tl_io.load_landmarks(path_landmarks)
 
     # compute statistic

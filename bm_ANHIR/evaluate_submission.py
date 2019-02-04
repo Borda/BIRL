@@ -65,12 +65,13 @@ import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.data_io import create_folder, load_landmarks, save_landmarks
-from benchmark.utilities.dataset import common_landmarks
+from benchmark.utilities.dataset import common_landmarks, parse_path_scale
 from benchmark.utilities.experiments import wrap_execute_sequence, parse_arg_params
 from benchmark.cls_benchmark import (
     NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP,
-    COL_POINTS_REF, COL_POINTS_MOVE, COL_POINTS_MOVE_WARP, COL_TIME, COL_ROBUSTNESS,
-    COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE, compute_landmarks_statistic, update_path_)
+    COL_POINTS_REF, COL_POINTS_MOVE, COL_POINTS_MOVE_WARP, COL_IMAGE_MOVE_WARP, COL_TIME,
+    COL_ROBUSTNESS, COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE, compute_landmarks_statistic,
+    update_path_)
 # from bm_experiments.bm_comp_perform import NAME_REPORT
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .9))
@@ -171,7 +172,8 @@ def normalize_exec_time(df_experiments, path_experiments, path_comp_bm=None):
     df_experiments[COL_NORM_TIME] = df_experiments[COL_TIME] * coef
 
 
-def parse_landmarks(row, path_experiments):
+def parse_landmarks(idx_row, path_experiments):
+    _, row = idx_row
     lnds_ref = load_landmarks(
         update_path_(row[COL_POINTS_REF], path_experiments))
     if isinstance(row[COL_POINTS_MOVE_WARP], str):
@@ -179,14 +181,15 @@ def parse_landmarks(row, path_experiments):
     else:
         lnds_warp = np.array([[]])
     path_dir = os.path.dirname(row[COL_POINTS_MOVE])
+    match_lnds = np.nan_to_num(row[COL_FOUND_LNDS]) if COL_FOUND_LNDS in row else 0.
     record = {
         'tissue': os.path.basename(os.path.dirname(path_dir)),
-        'scale': os.path.basename(path_dir),
+        'scale': parse_path_scale(os.path.basename(path_dir)),
         'reference name': os.path.splitext(os.path.basename(row[COL_POINTS_REF]))[0],
         'source name': os.path.splitext(os.path.basename(row[COL_POINTS_MOVE]))[0],
         'reference landmarks': np.round(lnds_ref, 1).tolist(),
         'warped landmarks': np.round(lnds_warp, 1).tolist(),
-        'matched landmarks': np.nan_to_num(row[COL_FOUND_LNDS])
+        'matched landmarks': match_lnds,
     }
     return record
 
@@ -198,6 +201,14 @@ def compute_scores(df_experiments):
     df_summary_robust = df_robust.describe()
     pd.set_option('expand_frame_repr', False)
 
+    # pre-compute some optional metrics
+    score_used_lnds = df_summary_robust[COL_FOUND_LNDS]['mean'] \
+        if COL_FOUND_LNDS in df_experiments.columns else 0
+    if COL_NORM_TIME in df_experiments.columns:
+        time_all = df_summary[COL_NORM_TIME]['mean']
+        time_robust = df_summary_robust[COL_NORM_TIME]['mean']
+    else:
+        time_all, time_robust = np.nan, np.nan
     # parse final metrics
     scores = {
         'Avg. Robustness': df_summary[COL_ROBUSTNESS]['mean'],
@@ -207,13 +218,10 @@ def compute_scores(df_experiments):
         'Avg. max rTRE': df_summary['rTRE Max (final)']['mean'],
         'Avg. max rTRE robust.': df_summary_robust['rTRE Max (final)']['mean'],
         'Avg. rank max rTRE': None,
-        'Avg. used landmarks': df_summary_robust[COL_FOUND_LNDS]['mean'],
+        'Avg. used landmarks': score_used_lnds,
+        'Avg. time': time_all,
+        'Avg. time robust.': time_robust,
     }
-    if COL_NORM_TIME in df_experiments.columns:
-        scores.update({
-            'Avg. time': df_summary[COL_NORM_TIME]['mean'],
-            'Avg. time robust.': df_summary_robust[COL_NORM_TIME]['mean'],
-        })
     return scores
 
 
@@ -236,10 +244,9 @@ def export_summary_json(df_experiments, path_experiments, path_output):
     scores = compute_scores(df_experiments)
 
     # export partial results
-    cases = []
-    for _, row in df_experiments.iterrows():
-        record = parse_landmarks(row, path_experiments)
-        cases.append(record)
+    _parse_lnds = partial(parse_landmarks, path_experiments=path_experiments)
+    cases = list(wrap_execute_sequence(_parse_lnds, df_experiments.iterrows(),
+                                       desc='Parsing landmarks', nb_jobs=1))
 
     results = {'aggregates': scores, 'cases': cases}
     path_json = os.path.join(path_output, NAME_JSON_RESULTS)
@@ -267,7 +274,8 @@ def main(path_experiment, path_cover, path_dataset, path_output,
         raise AttributeError('Missing experiments results: %s' % path_results)
     path_reference = path_dataset if not path_reference else path_reference
 
-    df_cover = pd.read_csv(path_cover).drop([COL_TIME], axis=1, errors='ignore')
+    df_cover = pd.read_csv(path_cover).drop([COL_TIME, COL_POINTS_MOVE_WARP, COL_IMAGE_MOVE_WARP],
+                                            axis=1, errors='ignore')
     df_results = pd.read_csv(path_results).drop([COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE],
                                                 axis=1, errors='ignore')
     df_experiments = pd.merge(df_cover, df_results, how='left', on=COVER_COLUMNS)
