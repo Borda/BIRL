@@ -80,6 +80,7 @@ NAME_JSON_COMPUTER = 'computer-performances.json'
 NAME_JSON_RESULTS = 'metrics.json'
 COL_NORM_TIME = 'Norm. execution time [minutes]'
 COL_FOUND_LNDS = 'Ration matched landmarks'
+CMP_THREADS = ('1', 'n')
 
 
 def create_parser():
@@ -108,11 +109,12 @@ def create_parser():
 def filter_landmarks(idx_row, df_experiments, path_experiments, path_dataset, path_reference):
     """ filter all relevant landmarks which were used and copy them to experiment
 
-    :param DF idx_row: experiment DataFrame
+    :param (idx, {}|Series) idx_row: experiment DataFrame
     :param DF df_experiments: experiment DataFrame
     :param str path_experiments: path to experiment folder
     :param str path_dataset: path to provided landmarks
     :param str path_reference: path to the complete landmark collection
+    :return (idx, float): record index and match ratio
     """
     idx, row = idx_row
     path_ref = update_path_(row[COL_POINTS_MOVE], path_reference)
@@ -137,7 +139,8 @@ def filter_landmarks(idx_row, df_experiments, path_experiments, path_dataset, pa
     save_landmarks(path_lnds, lnds_warp[ind_load])
     # save ratio of found landmarks
     len_lnds_ref = len(load_landmarks(update_path_(row[COL_POINTS_REF], path_reference)))
-    df_experiments.loc[idx, COL_FOUND_LNDS] = len(pairs) / float(len_lnds_ref)
+    ratio_matches = len(pairs) / float(len_lnds_ref)
+    return idx, ratio_matches
 
 
 def normalize_exec_time(df_experiments, path_experiments, path_comp_bm=None):
@@ -166,8 +169,8 @@ def normalize_exec_time(df_experiments, path_experiments, path_comp_bm=None):
     with open(path_comp_bm_expt, 'r') as fp:
         comp_exp = json.load(fp)
 
-    time_ref = np.mean([comp_ref['registration @%s-thread' % i] for i in ['1', 'n']])
-    time_exp = np.mean([comp_exp['registration @%s-thread' % i] for i in ['1', 'n']])
+    time_ref = np.mean([comp_ref['registration @%s-thread' % i] for i in CMP_THREADS])
+    time_exp = np.mean([comp_exp['registration @%s-thread' % i] for i in CMP_THREADS])
     coef = time_ref / time_exp
     df_experiments[COL_NORM_TIME] = df_experiments[COL_TIME] * coef
 
@@ -303,14 +306,16 @@ def main(path_experiment, path_cover, path_dataset, path_output,
     _filter_lnds = partial(filter_landmarks, df_experiments=df_experiments,
                            path_experiments=path_experiment, path_dataset=path_dataset,
                            path_reference=path_reference)
-    list(wrap_execute_sequence(_filter_lnds, df_experiments.iterrows(),
-                               desc='Filtering', nb_jobs=nb_jobs))
+    for idx, ratio in wrap_execute_sequence(_filter_lnds, df_experiments.iterrows(),
+                                            desc='Filtering', nb_jobs=nb_jobs):
+        df_experiments.loc[idx, COL_FOUND_LNDS] = ratio
 
     logging.info('Compute landmarks statistic.')
     _compute_lnds_stat = partial(compute_landmarks_statistic, df_experiments=df_experiments,
                                  path_dataset=path_experiment, path_experiment=path_experiment)
+    # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
     list(wrap_execute_sequence(_compute_lnds_stat, df_experiments.iterrows(),
-                               desc='Statistic', nb_jobs=nb_jobs))
+                               desc='Statistic', nb_jobs=1))
 
     path_results = os.path.join(path_output, os.path.basename(path_results))
     logging.debug('exporting CSV results: %s', path_results)

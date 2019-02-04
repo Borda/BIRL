@@ -452,6 +452,7 @@ def compute_landmarks_statistic(idx_row, df_experiments,
     :param str|None path_experiment: path to the experiment folder
     """
     idx, row = idx_row
+    row = dict(row)  # convert even series to dictionary
     points_ref, points_move, path_img_ref = _load_landmarks(row, path_dataset)
     points_warped = []
     img_diag = _image_diag(row, path_img_ref)
@@ -579,15 +580,16 @@ def _visual_image_ref_warp_lnds_move_warp(record, path_dataset=None,
     return fig
 
 
-def visualise_registration(df_row, path_dataset=None, path_experiment=None):
+def visualise_registration(idx_row, path_dataset=None, path_experiment=None):
     """ visualise the registration results according what landmarks were
     estimated - in registration or moving frame
 
-    :param (int, dict) df_row: tow from iterated table
+    :param (int, dict) idx_row: tow from iterated table
     :param str path_dataset: path to the dataset folder
     :param str path_experiment: path to the experiment folder
     """
-    _, row = df_row
+    _, row = idx_row
+    row = dict(row)  # convert even series to dictionary
     fig, path_fig = None, None
     # visualise particular experiment by idx
     if COL_POINTS_MOVE_WARP in row and isinstance(row[COL_IMAGE_MOVE_WARP], str):

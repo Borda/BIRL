@@ -68,9 +68,9 @@ def main(path_experiment, path_dataset, visual=False, nb_jobs=NB_THREADS):
     df_results = df_experiments.copy()
     _compute_lnds_stat = partial(compute_landmarks_statistic, df_experiments=df_results,
                                  path_dataset=path_dataset, path_experiment=path_experiment)
-
+    # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
     list(wrap_execute_sequence(_compute_lnds_stat, df_experiments.iterrows(),
-                               desc='Statistic', nb_jobs=nb_jobs))
+                               desc='Statistic', nb_jobs=1))
 
     path_csv = os.path.join(path_experiment, NAME_CSV_RESULTS)
     logging.debug('exporting CSV results: %s', path_csv)
