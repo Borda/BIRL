@@ -45,6 +45,7 @@ class Experiment(object):
         :param bool stamp_unique: add at the end of experiment folder unique
             time stamp (actual date and time)
         """
+        self._main_thread = True
         self.params = copy.deepcopy(exp_params)
         self.params['class'] = self.__class__.__name__
         self._check_required_params()
@@ -115,8 +116,10 @@ class Experiment(object):
         with open(os.path.join(path_exp, CONFIG_JSON), 'w') as f:
             json.dump(self.params, f)
 
-    @classmethod
     def __del__(self):
         """ terminating experiment """
+        if not self._main_thread:
+            logging.debug('terminating child experiment...')
+            return
         logging.info('terminating experiment...')
         release_logger_files()

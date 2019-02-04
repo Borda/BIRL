@@ -20,17 +20,16 @@ import logging
 import multiprocessing as mproc
 from functools import partial
 
-import tqdm
 import numpy as np
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.data_io import (update_path, create_folder, image_size,
-                                         load_landmarks, load_image, save_image)
-from benchmark.utilities.experiments import (run_command_line, string_dict,
-                                             compute_points_dist_statistic)
-from benchmark.utilities.visualisation import (export_figure, draw_image_points,
-                                               draw_images_warped_landmarks)
+from benchmark.utilities.data_io import (
+    update_path, create_folder, image_size, load_landmarks, load_image, save_image)
+from benchmark.utilities.experiments import (
+    run_command_line, string_dict, compute_points_dist_statistic, wrap_execute_sequence)
+from benchmark.utilities.visualisation import (
+    export_figure, draw_image_points, draw_images_warped_landmarks)
 from benchmark.utilities.cls_experiment import Experiment
 
 NB_THREADS = int(mproc.cpu_count())
@@ -214,27 +213,33 @@ class ImRegBenchmark(Experiment):
 
         # run the experiment in parallel of single thread
         self.__execute_method(self._perform_registration, self._df_cover,
-                              self._path_csv_regist, 'registration experiments')
+                              self._path_csv_regist, 'registration experiments',
+                              aggr_experiments=True)
 
-    def __execute_method(self, method, in_table, path_csv=None, name='',
-                         use_output=True):
+    def __execute_method(self, method, input_table, path_csv=None, desc='',
+                         aggr_experiments=False, nb_jobs=None):
         """ execute a method in sequence or parallel
 
         :param func method: used method
-        :param iter in_table: iterate over table
+        :param DF input_table: iterate over table
         :param str path_csv: path to the output temporal csv
-        :param str name: name of the running process
-        :param bool use_output: append output to experiment DF
+        :param str desc: name of the running process
+        :param bool aggr_experiments: append output to experiment DF
+        :param int|None nb_jobs: number of jobs, by default using class setting
         :return:
         """
+        # setting the temporal split
+        self._main_thread = False
         # run the experiment in parallel of single thread
-        if self.params.get('nb_jobs', 0) > 1:
-            self.nb_jobs = self.params['nb_jobs']
-            self.__execute_parallel(method, in_table, path_csv,
-                                    name, use_output=use_output)
-        else:
-            self.__execute_serial(method, in_table, path_csv, name,
-                                  use_output=use_output)
+        nb_jobs = self.nb_jobs if nb_jobs is None else nb_jobs
+        iter_table = ((idx, dict(row)) for idx, row, in input_table.iterrows())
+        for res in wrap_execute_sequence(method, iter_table, ordered=True,
+                                         nb_jobs=nb_jobs, desc=desc):
+            if res is None or not aggr_experiments:
+                continue
+            self._df_experiments = self._df_experiments.append(res, ignore_index=True)
+            self.__export_df_experiments(path_csv)
+        self._main_thread = True
 
     def __export_df_experiments(self, path_csv=None):
         """ export the DataFrame with registration results
@@ -246,56 +251,6 @@ class ImRegBenchmark(Experiment):
                 self._df_experiments.set_index('ID').to_csv(path_csv)
             else:
                 self._df_experiments.to_csv(path_csv, index=None)
-
-    def __execute_parallel(self, method, in_table, path_csv=None, name='',
-                           use_output=True):
-        """ running several registration experiments in parallel
-
-        :param method: executed self method which have as input row
-        :param DataFrame in_table: table to be iterated by rows
-        :param str path_csv: path to temporary saves
-        :param str name: name of the process
-        :param int nb_jobs: number of experiment running in parallel
-        :param bool use_output: append output to experiment DF
-        """
-        logging.info('-> running %s in parallel, (%i threads)',
-                     name, self.nb_jobs)
-        tqdm_bar = tqdm.tqdm(total=len(in_table),
-                             desc='%s (@ %i threads)' % (name, self.nb_jobs))
-        iter_table = ((idx, dict(row)) for idx, row, in in_table.iterrows())
-        mproc_pool = mproc.Pool(self.nb_jobs)
-        for res in mproc_pool.imap(method, iter_table):
-            tqdm_bar.update()
-            if res is None or not use_output:
-                continue
-            self._df_experiments = self._df_experiments.append(res, ignore_index=True)
-            # if len(self._df_experiments) == 0:
-            #     logging.warning('no particular expt. results')
-            #     continue
-            self.__export_df_experiments(path_csv)
-        mproc_pool.close()
-        mproc_pool.join()
-
-    def __execute_serial(self, method, in_table, path_csv=None, name='',
-                         use_output=True):
-        """ running only one registration experiment in the time
-
-        :param method: executed self method which have as input row
-        :param DataFrame in_table: table to be iterated by rows
-        :param str path_csv: path to temporary saves
-        :param str name: name of the process
-        :param bool use_output: append output to experiment DF
-        """
-        logging.info('-> running %s in single thread', name)
-        tqdm_bar = tqdm.tqdm(total=len(in_table))
-        iter_table = ((idx, dict(row)) for idx, row, in in_table.iterrows())
-        for res in map(method, iter_table):
-            tqdm_bar.update()
-            if res is None or not use_output:
-                continue
-            self._df_experiments = self._df_experiments.append(res,
-                                                               ignore_index=True)
-            self.__export_df_experiments(path_csv)
 
     def __check_exist_regist(self, idx, path_dir_reg):
         """ check whether the particular experiment already exists and have results
@@ -360,17 +315,16 @@ class ImRegBenchmark(Experiment):
             df_experiments=self._df_experiments,
             path_dataset=self.params.get('path_dataset', None),
             path_experiment=self.params.get('path_exp', None))
-        self.__execute_serial(_compute_landmarks_statistic,
-                              self._df_experiments, name='compute inaccuracy')
+        self.__execute_method(_compute_landmarks_statistic, self._df_experiments,
+                              desc='compute inaccuracy', nb_jobs=1)
         # add visualisations
         _visualise_registration = partial(
             visualise_registration,
             path_dataset=self.params.get('path_dataset', None),
             path_experiment=self.params.get('path_exp', None))
         if self.params.get('visual', False):
-            self.__execute_method(_visualise_registration,
-                                  self._df_experiments, use_output=False,
-                                  name='visualise results')
+            self.__execute_method(_visualise_registration, self._df_experiments,
+                                  desc='visualise results')
         # export stat to csv
         if self._df_experiments.empty:
             logging.warning('no experimental results were collected')

@@ -35,13 +35,14 @@ from benchmark.bm_template import BmTemplate
 PATH_DATA = update_path('data_images')
 PATH_CSV_COVER_MIX = os.path.join(PATH_DATA, 'pairs-imgs-lnds_mix.csv')
 PATH_CSV_COVER_ANHIR = os.path.join(PATH_DATA, 'pairs-imgs-lnds_anhir.csv')
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 
 
 class TestBmRegistration(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        logging.basicConfig(level=logging.INFO)
         path_base = os.path.dirname(update_path('requirements.txt'))
         cls.path_out = os.path.join(path_base, 'output-test')
         shutil.rmtree(cls.path_out, ignore_errors=True)
@@ -120,7 +121,7 @@ class TestBmRegistration(unittest.TestCase):
         and compute statistic correctly """
         bm_name = benchmark.__class__.__name__
         path_bm = os.path.join(self.path_out, bm_name)
-        self.assertTrue(os.path.exists(path_bm), msg='missing benchmark: %s' % bm_name)
+        self.assertTrue(os.path.exists(path_bm), msg='Missing benchmark: %s' % bm_name)
         # required output files
         for file_name in [NAME_CSV_REGISTRATION_PAIRS,
                           NAME_CSV_RESULTS,
