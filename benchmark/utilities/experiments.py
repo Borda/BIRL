@@ -142,7 +142,7 @@ def create_basic_parse():
                         help='whether lock to run experiment in single thread')
     parser.add_argument('--run_comp_benchmark', action='store_true',
                         help='run computation benchmark on the end')
-    parser.add_argument('--nb_jobs', type=int, required=False, default=1,
+    parser.add_argument('--nb_workers', type=int, required=False, default=1,
                         help='number of registration running in parallel')
     return parser
 
@@ -313,38 +313,38 @@ def compute_points_dist_statistic(points1, points2):
 #         return proc
 
 
-def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
+def wrap_execute_sequence(wrap_func, iterate_vals, nb_workers=NB_THREADS,
                           desc='', ordered=False):
     """ wrapper for execution parallel of single thread as for...
 
     :param wrap_func: function which will be excited in the iterations
     :param [] iterate_vals: list or iterator which will ide in iterations
-    :param int nb_jobs: number og jobs running in parallel
+    :param int nb_workers: number og jobs running in parallel
     :param str|None desc: description for the bar,
         if it is set None, bar is suppressed
     :param bool ordered: whether enforce ordering in the parallelism
 
-    >>> list(wrap_execute_sequence(np.sqrt, range(5), nb_jobs=1, ordered=True))  # doctest: +ELLIPSIS
+    >>> list(wrap_execute_sequence(np.sqrt, range(5), nb_workers=1, ordered=True))  # doctest: +ELLIPSIS
     [0.0, 1.0, 1.41..., 1.73..., 2.0]
-    >>> list(wrap_execute_sequence(sum, [[0, 1]] * 5, nb_jobs=2, desc=None))
+    >>> list(wrap_execute_sequence(sum, [[0, 1]] * 5, nb_workers=2, desc=None))
     [1, 1, 1, 1, 1]
-    >>> list(wrap_execute_sequence(max, [[2, 1]] * 5, nb_jobs=2, desc=''))
+    >>> list(wrap_execute_sequence(max, [[2, 1]] * 5, nb_workers=2, desc=''))
     [2, 2, 2, 2, 2]
     """
     iterate_vals = list(iterate_vals)
 
     if desc is not None:
-        desc = '%s @%i-threads' % (desc, nb_jobs)
+        desc = '%s @%i-threads' % (desc, nb_workers)
         tqdm_bar = tqdm.tqdm(total=len(iterate_vals), desc=desc)
     else:
         tqdm_bar = None
 
-    if nb_jobs > 1:
-        logging.debug('perform parallel in %i threads', nb_jobs)
+    if nb_workers > 1:
+        logging.debug('perform parallel in %i threads', nb_workers)
         # Standard mproc.Pool created a demon processes which can be called
         # inside its children, cascade or multiprocessing
         # https://stackoverflow.com/questions/6974695/python-process-pool-non-daemonic
-        pool = mproc.Pool(nb_jobs)
+        pool = mproc.Pool(nb_workers)
         pooling = pool.imap if ordered else pool.imap_unordered
 
         for out in pooling(wrap_func, iterate_vals):

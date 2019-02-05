@@ -61,7 +61,7 @@ class BmTemplate(ImRegBenchmark):
     >>> from benchmark.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
-    >>> main({'nb_jobs': 1, 'unique': False, 'visual': True,
+    >>> main({'nb_workers': 1, 'unique': False, 'visual': True,
     ...       'path_out': path_out, 'path_cover': path_csv,
     ...       'an_executable': ''}, BmTemplate)  # doctest: +ELLIPSIS
     '...'
@@ -72,7 +72,7 @@ class BmTemplate(ImRegBenchmark):
     >>> from benchmark.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
-    >>> params = {'nb_jobs': 2, 'unique': False, 'visual': True,
+    >>> params = {'nb_workers': 2, 'unique': False, 'visual': True,
     ...           'path_out': path_out, 'path_cover':
     ...            path_csv, 'an_executable': ''}
     >>> benchmark = BmTemplate(params)

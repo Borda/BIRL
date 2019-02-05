@@ -9,7 +9,7 @@ EXAMPLE
 -------
 >> python rescale_tissue_images.py \
     -i "/datagrid/Medical/dataset_ANHIR/images_private/COAD_*/scale-100pc/*.png" \
-    --scales 5 10 25 50 -ext .jpg --nb_jobs 4
+    --scales 5 10 25 50 -ext .jpg --nb_workers 4
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -93,7 +93,7 @@ def wrap_scale_image(img_path_scale, image_ext=IMAGE_EXTENSION, overwrite=False)
         logging.exception('scaling %i of image: %s', scale, img_path)
 
 
-def main(path_images, scales, image_extension, overwrite, nb_jobs):
+def main(path_images, scales, image_extension, overwrite, nb_workers):
     image_paths = sorted(glob.glob(path_images))
     image_path_scales = [(im_path, sc) for im_path in image_paths
                          for sc in scales]
@@ -105,7 +105,7 @@ def main(path_images, scales, image_extension, overwrite, nb_jobs):
     _wrap_scale = partial(wrap_scale_image, image_ext=image_extension,
                           overwrite=overwrite)
     list(wrap_execute_sequence(_wrap_scale, image_path_scales,
-                               desc='Scaling images', nb_jobs=nb_jobs))
+                               desc='Scaling images', nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

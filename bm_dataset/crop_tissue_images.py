@@ -7,7 +7,7 @@ EXAMPLE
 -------
 >> python crop_tissue_images.py \
     -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*.png" \
-    --padding 0.1 --nb_jobs 2
+    --padding 0.1 --nb_workers 2
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -89,7 +89,7 @@ def crop_image(img_path, crop_dims=(0, 1), padding=0.15):
     time.sleep(1)
 
 
-def main(path_images, padding, nb_jobs):
+def main(path_images, padding, nb_workers):
     image_paths = sorted(glob.glob(path_images))
 
     if not image_paths:
@@ -98,7 +98,7 @@ def main(path_images, padding, nb_jobs):
 
     _wrap_crop = partial(crop_image, padding=padding)
     list(wrap_execute_sequence(_wrap_crop, image_paths,
-                               desc='Crop image tissue', nb_jobs=nb_jobs))
+                               desc='Crop image tissue', nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

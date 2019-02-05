@@ -155,12 +155,12 @@ def measure_registration_single(path_out, nb_iter=5):
     return res
 
 
-def measure_registration_parallel(path_out, nb_iter=3, nb_jobs=NB_THREADS):
+def measure_registration_parallel(path_out, nb_iter=3, nb_workers=NB_THREADS):
     """ measure mean execration time for image registration running in N thread
 
     :param str path_out: path to the temporary output space
     :param int nb_iter: number of experiments to be averaged
-    :param int nb_jobs: number of thread available on the computer
+    :param int nb_workers: number of thread available on the computer
     :return {str: float}: results
     """
     path_img_target, path_img_source = prepare_images(path_out, IMAGE_SIZE)
@@ -169,11 +169,11 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_jobs=NB_THREADS):
 
     _regist = partial(register_image_pair, path_img_target=path_img_target,
                       path_img_source=path_img_source, path_out=path_out)
-    nb_tasks = int(nb_jobs * nb_iter)
-    logging.info('>> running %i tasks in %i threads', nb_tasks, nb_jobs)
-    tqdm_bar = tqdm.tqdm(total=nb_tasks, desc='parallel @ %i threads' % nb_jobs)
+    nb_tasks = int(nb_workers * nb_iter)
+    logging.info('>> running %i tasks in %i threads', nb_tasks, nb_workers)
+    tqdm_bar = tqdm.tqdm(total=nb_tasks, desc='parallel @ %i threads' % nb_workers)
 
-    pool = mproc.Pool(nb_jobs)
+    pool = mproc.Pool(nb_workers)
     for path_img_warped, t in pool.map(_regist, (range(nb_tasks))):
         paths.append(path_img_warped)
         execution_times.append(t)
@@ -182,7 +182,7 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_jobs=NB_THREADS):
     pool.join()
 
     clean_images(set(paths))
-    logging.info('registration @%i-thread: %f +/- %f', nb_jobs,
+    logging.info('registration @%i-thread: %f +/- %f', nb_workers,
                  np.mean(execution_times), np.std(execution_times))
     res = {'registration @n-thread': np.mean(execution_times)}
     return res

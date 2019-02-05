@@ -360,14 +360,14 @@ def common_landmarks(points1, points2, threshold=0.5):
     return np.array(pairs, dtype=int)
 
 
-def args_expand_images(parser, nb_jobs=1, overwrite=True):
+def args_expand_images(parser, nb_workers=1, overwrite=True):
     """ expand the parser by standard parameters related to images:
         * image paths
         * allow overwrite (optional)
         * number of jobs
 
     :param obj parser: existing parser
-    :param int nb_jobs: number threads by default
+    :param int nb_workers: number threads by default
     :param bool overwrite: allow overwrite images
     :return obj:
 
@@ -377,7 +377,7 @@ def args_expand_images(parser, nb_jobs=1, overwrite=True):
     """
     parser.add_argument('-i', '--path_images', type=str, required=True,
                         help='path (pattern) to the input image')
-    parser.add_argument('--nb_jobs', type=int, required=False, default=nb_jobs,
+    parser.add_argument('--nb_workers', type=int, required=False, default=nb_workers,
                         help='number of processes running in parallel')
     if overwrite:
         parser.add_argument('--overwrite', action='store_true', required=False,
@@ -385,18 +385,18 @@ def args_expand_images(parser, nb_jobs=1, overwrite=True):
     return parser
 
 
-def args_expand_parse_images(parser, nb_jobs=1, overwrite=True):
+def args_expand_parse_images(parser, nb_workers=1, overwrite=True):
     """ expand the parser by standard parameters related to images:
         * image paths
         * allow overwrite (optional)
         * number of jobs
 
     :param obj parser: existing parser
-    :param int nb_jobs: number threads by default
+    :param int nb_workers: number threads by default
     :param bool overwrite: allow overwrite images
     :return {}:
     """
-    parser = args_expand_images(parser, nb_jobs, overwrite)
+    parser = args_expand_images(parser, nb_workers, overwrite)
     args = vars(parser.parse_args())
     args['path_images'] = os.path.expanduser(args['path_images'])
     return args

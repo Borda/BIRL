@@ -7,7 +7,7 @@ EXAMPLE
 -------
 >> python split_images_two_tissues.py \
     -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*_*.png" \
-    --nb_jobs 3
+    --nb_workers 3
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -101,7 +101,7 @@ def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
         time.sleep(1)
 
 
-def main(path_images, dimension, overwrite, nb_jobs):
+def main(path_images, dimension, overwrite, nb_workers):
     image_paths = sorted(glob.glob(path_images))
 
     if not image_paths:
@@ -110,7 +110,7 @@ def main(path_images, dimension, overwrite, nb_jobs):
 
     _wrap_split = partial(split_image, cut_dim=dimension, overwrite=overwrite)
     list(wrap_execute_sequence(_wrap_split, image_paths,
-                               desc='Cut image tissues', nb_jobs=nb_jobs))
+                               desc='Cut image tissues', nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

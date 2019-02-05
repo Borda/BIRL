@@ -97,7 +97,7 @@ class ImRegBenchmark(Experiment):
     1. check all necessary pathers and required parameters
     2. load cover file and set all paths as absolute
     3. run individual registration experiment in sequence or in parallel
-       (nb_jobs > 1); if the particular experiment folder exist (assume
+       (nb_workers > 1); if the particular experiment folder exist (assume
        completed experiment) and skip it
         a) create experiment folder and init experiment
         b) generate execution command
@@ -115,7 +115,7 @@ class ImRegBenchmark(Experiment):
     >>> from benchmark.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
-    >>> params = {'nb_jobs': 1, 'unique': False, 'visual': True,
+    >>> params = {'nb_workers': 1, 'unique': False, 'visual': True,
     ...           'path_out': path_out, 'path_cover': path_csv}
     >>> benchmark = ImRegBenchmark(params)
     >>> benchmark.run()
@@ -128,7 +128,7 @@ class ImRegBenchmark(Experiment):
     >>> from benchmark.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
-    >>> params = {'nb_jobs': 2, 'unique': False, 'visual': True,
+    >>> params = {'nb_workers': 2, 'unique': False, 'visual': True,
     ...           'path_out': path_out, 'path_cover': path_csv}
     >>> benchmark = ImRegBenchmark(params)
     >>> benchmark.run()
@@ -137,7 +137,7 @@ class ImRegBenchmark(Experiment):
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
-    REQUIRED_PARAMS = ['path_cover', 'path_out', 'nb_jobs']
+    REQUIRED_PARAMS = ['path_cover', 'path_out', 'nb_workers']
 
     def __init__(self, params):
         """ initialise benchmark
@@ -149,7 +149,7 @@ class ImRegBenchmark(Experiment):
         logging.info(self.__doc__)
         self._df_cover = None
         self._df_experiments = None
-        self.nb_jobs = params.get('nb_jobs', NB_THREADS)
+        self.nb_workers = params.get('nb_workers', NB_THREADS)
         self._path_csv_regist = os.path.join(self.params['path_exp'],
                                              NAME_CSV_REGISTRATION_PAIRS)
 
@@ -217,7 +217,7 @@ class ImRegBenchmark(Experiment):
                               aggr_experiments=True)
 
     def __execute_method(self, method, input_table, path_csv=None, desc='',
-                         aggr_experiments=False, nb_jobs=None):
+                         aggr_experiments=False, nb_workers=None):
         """ execute a method in sequence or parallel
 
         :param func method: used method
@@ -225,16 +225,16 @@ class ImRegBenchmark(Experiment):
         :param str path_csv: path to the output temporal csv
         :param str desc: name of the running process
         :param bool aggr_experiments: append output to experiment DF
-        :param int|None nb_jobs: number of jobs, by default using class setting
+        :param int|None nb_workers: number of jobs, by default using class setting
         :return:
         """
         # setting the temporal split
         self._main_thread = False
         # run the experiment in parallel of single thread
-        nb_jobs = self.nb_jobs if nb_jobs is None else nb_jobs
+        nb_workers = self.nb_workers if nb_workers is None else nb_workers
         iter_table = ((idx, dict(row)) for idx, row, in input_table.iterrows())
         for res in wrap_execute_sequence(method, iter_table, ordered=True,
-                                         nb_jobs=nb_jobs, desc=desc):
+                                         nb_workers=nb_workers, desc=desc):
             if res is None or not aggr_experiments:
                 continue
             self._df_experiments = self._df_experiments.append(res, ignore_index=True)
@@ -316,7 +316,7 @@ class ImRegBenchmark(Experiment):
             path_dataset=self.params.get('path_dataset', None),
             path_experiment=self.params.get('path_exp', None))
         self.__execute_method(_compute_landmarks_statistic, self._df_experiments,
-                              desc='compute inaccuracy', nb_jobs=1)
+                              desc='compute inaccuracy', nb_workers=1)
         # add visualisations
         _visualise_registration = partial(
             visualise_registration,

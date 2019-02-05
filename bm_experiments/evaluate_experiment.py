@@ -48,18 +48,18 @@ def create_parser():
                         help='path to dataset with provided landmarks')
     parser.add_argument('--visual', action='store_true', required=False,
                         default=False, help='visualise the landmarks in images')
-    parser.add_argument('--nb_jobs', type=int, required=False, default=NB_THREADS,
+    parser.add_argument('--nb_workers', type=int, required=False, default=NB_THREADS,
                         help='number of processes running in parallel')
     return parser
 
 
-def main(path_experiment, path_dataset, visual=False, nb_jobs=NB_THREADS):
+def main(path_experiment, path_dataset, visual=False, nb_workers=NB_THREADS):
     """ main entry points
 
     :param str path_experiment: path to the experiment folder
     :param str path_dataset: path to the dataset with all landmarks
     :param bool visual: whether visualise the registration results
-    :param int nb_jobs: number of parallel jobs
+    :param int nb_workers: number of parallel jobs
     """
     path_results = os.path.join(path_experiment, NAME_CSV_REGISTRATION_PAIRS)
     assert os.path.isfile(path_results)
@@ -70,7 +70,7 @@ def main(path_experiment, path_dataset, visual=False, nb_jobs=NB_THREADS):
                                  path_dataset=path_dataset, path_experiment=path_experiment)
     # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
     list(wrap_execute_sequence(_compute_lnds_stat, df_experiments.iterrows(),
-                               desc='Statistic', nb_jobs=1))
+                               desc='Statistic', nb_workers=1))
 
     path_csv = os.path.join(path_experiment, NAME_CSV_RESULTS)
     logging.debug('exporting CSV results: %s', path_csv)
@@ -82,7 +82,7 @@ def main(path_experiment, path_dataset, visual=False, nb_jobs=NB_THREADS):
         _visualise_regist = partial(visualise_registration, path_dataset=path_dataset,
                                     path_experiment=path_experiment)
         list(wrap_execute_sequence(_visualise_regist, df_experiments.iterrows(),
-                                   desc='Visualisation', nb_jobs=nb_jobs))
+                                   desc='Visualisation', nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

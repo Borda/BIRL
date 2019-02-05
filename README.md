@@ -70,7 +70,7 @@ python bm_dataset/create_real_synth_dataset.py \
     -i ./data_images/images/Rat_Kidney_HE.jpg \
     -l ./data_images/landmarks/Rat_Kidney_HE.csv \
     -o ./output/synth_dataset \
-    -nb 5 --nb_jobs 3 --visual
+    -nb 5 --nb_workers 3 --visual
 ```
 
 ### Creating image-pairs table
@@ -94,7 +94,7 @@ We offer a script for scaling images in to particular scales for example
 ```bash
 python bm_dataset/rescale_tissue_images.py \
     -i "./data_images/rat-kidney_/scale-5pc/*.jpg" \
-    -scales 10 -ext .png --nb_jobs 2
+    -scales 10 -ext .png --nb_workers 2
 ```
 
 We introduce an option how to randomly take only a subset (use `nb_selected`) of annotated landmarks and also add some synthetic point (filling points up to `nb_total`) which are across set aligned using estimate affine transformation

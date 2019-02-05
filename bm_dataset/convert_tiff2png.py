@@ -9,9 +9,9 @@ image of size 50k x 60k takes about 10GB in RAM
 
 EXAMPLE
 -------
->> python convert_tiff2png.py -l 0 --nb_jobs 2 \
+>> python convert_tiff2png.py -l 0 --nb_workers 2 \
     -i "/datagrid/Medical/dataset_ANHIR/images_raw/*/*.tiff"
->> python convert_tiff2png.py -l 1 --nb_jobs 5 --overwrite \
+>> python convert_tiff2png.py -l 1 --nb_workers 5 --overwrite \
     -i "/datagrid/Medical/dataset_ANHIR/images_raw/*/*.svs"
 
 
@@ -99,7 +99,7 @@ def convert_image(path_img, level=DEFAULT_LEVEL, overwrite=False):
     time.sleep(1)
 
 
-def main(path_images, level=DEFAULT_LEVEL, overwrite=False, nb_jobs=1):
+def main(path_images, level=DEFAULT_LEVEL, overwrite=False, nb_workers=1):
     paths_img = sorted(glob.glob(path_images))
 
     _wrap_convert = partial(convert_image,
@@ -107,7 +107,7 @@ def main(path_images, level=DEFAULT_LEVEL, overwrite=False, nb_jobs=1):
                             overwrite=overwrite)
 
     list(wrap_execute_sequence(_wrap_convert, paths_img,
-                               desc='Converting images', nb_jobs=nb_jobs))
+                               desc='Converting images', nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

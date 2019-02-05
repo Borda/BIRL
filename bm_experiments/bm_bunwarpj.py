@@ -131,7 +131,7 @@ class BmUnwarpJ(ImRegBenchmark):
     >>> from benchmark.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> fn_path_conf = lambda n: os.path.join(update_path('configs'), n)
-    >>> params = {'nb_jobs': 1, 'unique': False,
+    >>> params = {'nb_workers': 1, 'unique': False,
     ...           'path_out': path_out,
     ...           'path_cover': os.path.join(update_path('data_images'),
     ...                                      'pairs-imgs-lnds_mix.csv'),

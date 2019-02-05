@@ -257,7 +257,7 @@ def export_summary_json(df_experiments, path_experiments, path_output):
     # export partial results
     _parse_lnds = partial(parse_landmarks, path_experiments=path_experiments)
     cases = list(wrap_execute_sequence(_parse_lnds, df_experiments.iterrows(),
-                                       desc='Parsing landmarks', nb_jobs=1))
+                                       desc='Parsing landmarks', nb_workers=1))
 
     path_comp_bm_expt = os.path.join(path_experiments, NAME_JSON_COMPUTER)
     if os.path.isfile(path_comp_bm_expt):
@@ -275,7 +275,7 @@ def export_summary_json(df_experiments, path_experiments, path_output):
 
 
 def main(path_experiment, path_cover, path_dataset, path_output,
-         path_reference=None, path_comp_bm=None, nb_jobs=NB_THREADS):
+         path_reference=None, path_comp_bm=None, nb_workers=NB_THREADS):
     """ main entry point
 
     :param str path_experiment: path to experiment folder
@@ -285,7 +285,7 @@ def main(path_experiment, path_cover, path_dataset, path_output,
     :param str|None path_reference: path to the complete landmark collection,
         if None use dataset folder
     :param str|None path_comp_bm: path to reference comp. benchmark
-    :param int nb_jobs: number of parallel processes
+    :param int nb_workers: number of parallel processes
     """
 
     path_results = os.path.join(path_experiment, NAME_CSV_REGISTRATION_PAIRS)
@@ -308,7 +308,7 @@ def main(path_experiment, path_cover, path_dataset, path_output,
                            path_experiments=path_experiment, path_dataset=path_dataset,
                            path_reference=path_reference)
     for idx, ratio in wrap_execute_sequence(_filter_lnds, df_experiments.iterrows(),
-                                            desc='Filtering', nb_jobs=nb_jobs):
+                                            desc='Filtering', nb_workers=nb_workers):
         df_experiments.loc[idx, COL_FOUND_LNDS] = ratio
 
     logging.info('Compute landmarks statistic.')
@@ -316,7 +316,7 @@ def main(path_experiment, path_cover, path_dataset, path_output,
                                  path_dataset=path_experiment, path_experiment=path_experiment)
     # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
     list(wrap_execute_sequence(_compute_lnds_stat, df_experiments.iterrows(),
-                               desc='Statistic', nb_jobs=1))
+                               desc='Statistic', nb_workers=1))
 
     path_results = os.path.join(path_output, os.path.basename(path_results))
     logging.debug('exporting CSV results: %s', path_results)

@@ -63,7 +63,7 @@ def arg_parse_params():
                         help='number of deformed images', default=NB_DEFORMATIONS)
     parser.add_argument('--visual', action='store_true', required=False,
                         default=False, help='visualise the landmarks in images')
-    parser.add_argument('--nb_jobs', type=int, required=False, default=NB_THREADS,
+    parser.add_argument('--nb_workers', type=int, required=False, default=NB_THREADS,
                         help='number of processes in parallel')
     args = parse_arg_params(parser, upper_dirs=['path_out'])
     args['visual'] = bool(args['visual'])
@@ -317,8 +317,8 @@ def main(params):
                                     visual=params.get('visual', False))
 
     tqdm_bar = tqdm.tqdm(total=params['nb_samples'])
-    if params['nb_jobs'] > 1:
-        mproc_pool = mproc.Pool(params['nb_jobs'])
+    if params['nb_workers'] > 1:
+        mproc_pool = mproc.Pool(params['nb_workers'])
         for _ in mproc_pool.imap_unordered(wrapper_deform_export,
                                            range(params['nb_samples'])):
             tqdm_bar.update()

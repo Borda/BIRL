@@ -56,9 +56,9 @@ class TestBmRegistration(unittest.TestCase):
     def test_benchmark_invalid_inputs(self):
         # test missing some parameters
         params = {'path_cover': 'x', 'path_out': 'x',
-                  'nb_jobs': 0, 'unique': False}
+                  'nb_workers': 0, 'unique': False}
         # try a missing params
-        for miss in ['path_cover', 'path_out', 'nb_jobs', 'unique']:
+        for miss in ['path_cover', 'path_out', 'nb_workers', 'unique']:
             params_miss = params.copy()
             del params_miss[miss]
             assert_raises(AssertionError, ImRegBenchmark, params_miss)
@@ -71,7 +71,7 @@ class TestBmRegistration(unittest.TestCase):
         params = {
             'path_cover': PATH_CSV_COVER_MIX,
             'path_out': self.path_out,
-            'nb_jobs': 2,
+            'nb_workers': 2,
             'visual': True,
             'unique': False,
         }
@@ -91,7 +91,7 @@ class TestBmRegistration(unittest.TestCase):
             'path_cover': PATH_CSV_COVER_ANHIR,
             'path_dataset': PATH_DATA,
             'path_out': self.path_out,
-            'nb_jobs': 1,
+            'nb_workers': 1,
             'visual': True,
             'unique': False,
         }
@@ -105,7 +105,7 @@ class TestBmRegistration(unittest.TestCase):
         params = {
             'path_cover': PATH_CSV_COVER_MIX,
             'path_out': self.path_out,
-            'nb_jobs': 2,
+            'nb_workers': 2,
             'unique': False,
             'visual': True,
             'an_executable': None,
