@@ -259,7 +259,14 @@ def export_summary_json(df_experiments, path_experiments, path_output):
     cases = list(wrap_execute_sequence(_parse_lnds, df_experiments.iterrows(),
                                        desc='Parsing landmarks', nb_jobs=1))
 
-    results = {'aggregates': scores, 'cases': cases}
+    path_comp_bm_expt = os.path.join(path_experiments, NAME_JSON_COMPUTER)
+    if os.path.isfile(path_comp_bm_expt):
+        with open(path_comp_bm_expt, 'r') as fp:
+            comp_exp = json.load(fp)
+    else:
+        comp_exp = None
+
+    results = {'aggregates': scores, 'cases': cases, 'computer': comp_exp}
     path_json = os.path.join(path_output, NAME_JSON_RESULTS)
     logging.info('exporting JSON results: %s', path_json)
     with open(path_json, 'w') as fp:
