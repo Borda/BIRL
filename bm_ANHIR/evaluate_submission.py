@@ -121,7 +121,8 @@ def filter_landmarks(idx_row, df_experiments, path_experiments, path_dataset, pa
     path_load = update_path_(row[COL_POINTS_MOVE], path_dataset)
     pairs = common_landmarks(load_landmarks(path_ref), load_landmarks(path_load),
                              threshold=1)
-    ind_ref, ind_load = pairs[:, 0], pairs[:, 1]
+    pairs = sorted(pairs.tolist(), key=lambda p: p[1])
+    ind_ref = np.asarray(pairs)[:, 0]
 
     # moving and reference landmarks
     for col in [COL_POINTS_REF, COL_POINTS_MOVE]:
@@ -130,13 +131,6 @@ def filter_landmarks(idx_row, df_experiments, path_experiments, path_dataset, pa
         create_folder(os.path.dirname(path_out), ok_existing=True)
         save_landmarks(path_out, load_landmarks(path_in)[ind_ref])
 
-    if COL_POINTS_MOVE_WARP not in row or not isinstance(row[COL_POINTS_MOVE_WARP], str):
-        logging.debug('missing warped landmarks for: %r', dict(row))
-        return
-    # warped landmarks
-    path_lnds = update_path_(row[COL_POINTS_MOVE_WARP], path_experiments)
-    lnds_warp = load_landmarks(path_lnds)
-    save_landmarks(path_lnds, lnds_warp[ind_load])
     # save ratio of found landmarks
     len_lnds_ref = len(load_landmarks(update_path_(row[COL_POINTS_REF], path_reference)))
     ratio_matches = len(pairs) / float(len_lnds_ref)
