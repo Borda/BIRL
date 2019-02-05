@@ -65,6 +65,24 @@ class TestBmRegistration(unittest.TestCase):
         # not defined output folder
         assert_raises(Exception, ImRegBenchmark, params)
 
+    def test_benchmark_invalid(self):
+        """ test run in sequence (1 thread) """
+        params = {
+            'path_cover': PATH_CSV_COVER_MIX,
+            'path_dataset': PATH_DATA,
+            'path_out': self.path_out,
+            'nb_workers': 4,
+            'visual': True,
+            'unique': True,
+        }
+        benchmark = ImRegBenchmark(params)
+        benchmark.run()
+        # no landmarks was copy and also no experiment results was produced
+        list_csv = [len([csv for csv in files if os.path.splitext(csv)[1] == '.csv'])
+                    for _, _, files in os.walk(benchmark.params['path_exp'])]
+        self.assertEqual(sum(list_csv), 0)
+        del benchmark
+
     def test_benchmark_parallel(self):
         """ test run in parallel (2 threads) """
         self._remove_default_experiment(ImRegBenchmark.__name__)
@@ -180,5 +198,4 @@ class TestBmRegistration(unittest.TestCase):
 
 @try_decorator
 def try_wrap():
-    print('%i' % '42')
-    return True
+    return '%i' % '42'
