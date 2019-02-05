@@ -26,10 +26,11 @@ from benchmark.utilities.data_io import update_path
 from benchmark.utilities.dataset import args_expand_parse_images
 from benchmark.utilities.experiments import (parse_arg_params, try_decorator)
 from benchmark.cls_benchmark import ImRegBenchmark
-from benchmark.cls_benchmark import (NAME_CSV_RESULTS, NAME_TXT_RESULTS,
-                                     NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS,
-                                     COL_IMAGE_MOVE_WARP,
-                                     COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP)
+from benchmark.cls_benchmark import (
+    NAME_CSV_RESULTS, NAME_TXT_RESULTS, NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS,
+    COL_IMAGE_MOVE_WARP, COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP,
+    _visual_image_move_warp_lnds_move_warp, _visual_image_ref_warp_lnds_move_warp,
+    visualise_registration)
 from benchmark.bm_template import BmTemplate
 
 PATH_DATA = update_path('data_images')
@@ -194,6 +195,14 @@ class TestBmRegistration(unittest.TestCase):
         with patch('argparse._sys.argv', ['script.py', '-i', 'an_image.png']):
             args = args_expand_parse_images(argparse.ArgumentParser())
             self.assertIsInstance(args, dict)
+
+    def test_fail_visual(self):
+        fig = _visual_image_move_warp_lnds_move_warp({COL_POINTS_MOVE_WARP: 'abc'})
+        self.assertIsNone(fig)
+        fig = _visual_image_ref_warp_lnds_move_warp({COL_POINTS_REF_WARP: 'abc'})
+        self.assertIsNone(fig)
+        fig = visualise_registration((0, {}))
+        self.assertIsNone(fig)
 
 
 @try_decorator
