@@ -1,5 +1,5 @@
 #FROM ubuntu:16.04
-FROM python:3.6-slim
+FROM python:3.6-slim-stretch
 #FROM borda/docker_python-opencv-ffmpeg:py3
 
 
@@ -25,15 +25,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # for Ubuntu instalation
 #    wget https://bootstrap.pypa.io/get-pip.py --progress=bar:force:noscroll && \
 #    python get-pip.py && \
-    pip install git+https://github.com/Borda/BIRL.git
+    pip install git+https://github.com/Borda/BIRL.git && \
 #    pip install git+https://github.com/Borda/BIRL.git@anhir
 
-RUN apt-get -y remove \
+    apt-get -y remove \
         gcc \
         git \
     && \
     apt-get autoremove -y && \
     apt-get clean
+
 
 #USER evaluator
 WORKDIR /opt/evaluation
