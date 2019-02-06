@@ -31,7 +31,8 @@ import numpy as np
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.experiments import wrap_execute_sequence, parse_arg_params
+from benchmark.utilities.experiments import (wrap_execute_sequence,
+                                             parse_arg_params, is_iterable)
 from benchmark.utilities.data_io import create_folder, load_landmarks_csv, save_landmarks_csv
 from benchmark.utilities.dataset import (list_sub_folders, parse_path_scale,
                                          compute_convex_hull, inside_polygon)
@@ -56,10 +57,11 @@ def arg_parse_params():
                         help='number ot ration of selected landmarks')
     parser.add_argument('--nb_total', type=int, required=False, default=None,
                         help='total number of generated landmarks')
-    parser.add_argument('--nb_jobs', type=int, required=False,
-                        help='number of processes in parallel',
-                        default=NB_THREADS)
+    parser.add_argument('--nb_workers', type=int, required=False, default=NB_THREADS,
+                        help='number of processes in parallel')
     args = parse_arg_params(parser)
+    if not is_iterable(args['scales']):
+        args['scales'] = [args['scales']]
     return args
 
 
@@ -200,14 +202,14 @@ def extend_landmarks(path_set, path_dataset, nb_selected=None, nb_total=None):
 
 
 def dataset_expand_landmarks(path_annots, path_dataset, nb_selected=None,
-                             nb_total=None, nb_jobs=NB_THREADS):
+                             nb_total=None, nb_workers=NB_THREADS):
     """ select and expand over whole dataset
 
     :param str path_annots: root path to original dataset
     :param str path_dataset: root path to generated dataset
     :param float|int|None nb_selected: portion of selected points
     :param int|None nb_total: add extra points up to total number
-    :param int nb_jobs: number of jobs running in parallel
+    :param int nb_workers: number of jobs running in parallel
     :return [int]:
     """
     list_sets = list_sub_folders(path_annots)
@@ -216,7 +218,7 @@ def dataset_expand_landmarks(path_annots, path_dataset, nb_selected=None,
     _wrap_extend = partial(extend_landmarks, path_dataset=path_dataset,
                            nb_selected=nb_selected, nb_total=nb_total)
     counts = list(wrap_execute_sequence(_wrap_extend, sorted(list_sets),
-                                        nb_jobs=nb_jobs, desc='extend landmarks'))
+                                        nb_workers=nb_workers, desc='extend landmarks'))
     return counts
 
 
@@ -250,12 +252,12 @@ def scale_set_landmarks(path_set, scales=DEFAULT_SCALES):
     return dict_lens
 
 
-def dataset_scale_landmarks(path_dataset, scales=DEFAULT_SCALES, nb_jobs=NB_THREADS):
+def dataset_scale_landmarks(path_dataset, scales=DEFAULT_SCALES, nb_workers=NB_THREADS):
     """ generate several scales within the same dataset
 
     :param str path_dataset: path to the souorce/generated dataset
     :param [inr] scales: created scales
-    :param int nb_jobs: number of jobs running in parallel
+    :param int nb_workers: number of jobs running in parallel
     :return:
     """
     list_sets = list_sub_folders(path_dataset)
@@ -263,12 +265,12 @@ def dataset_scale_landmarks(path_dataset, scales=DEFAULT_SCALES, nb_jobs=NB_THRE
 
     _wrap_scale = partial(scale_set_landmarks, scales=scales)
     counts = list(wrap_execute_sequence(_wrap_scale, sorted(list_sets),
-                                        nb_jobs=nb_jobs, desc='scaling sets'))
+                                        nb_workers=nb_workers, desc='scaling sets'))
     return counts
 
 
 def main(path_annots, path_dataset, scales, nb_selected=None, nb_total=None,
-         nb_jobs=NB_THREADS):
+         nb_workers=NB_THREADS):
     """ main entry point
 
     :param str path_annots: root path to original dataset
@@ -276,13 +278,13 @@ def main(path_annots, path_dataset, scales, nb_selected=None, nb_total=None,
     :param [int] scales: generated scales
     :param float|int|None nb_selected: portion of selected points
     :param int|None nb_total: add extra points up to total number
-    :param int nb_jobs: number of jobs running in parallel
+    :param int nb_workers: number of jobs running in parallel
     :return:
     """
     count_gene = dataset_expand_landmarks(path_annots, path_dataset,
-                                          nb_selected, nb_total, nb_jobs=nb_jobs)
+                                          nb_selected, nb_total, nb_workers=nb_workers)
     count_scale = dataset_scale_landmarks(path_dataset, scales=scales,
-                                          nb_jobs=nb_jobs)
+                                          nb_workers=nb_workers)
     return count_gene, count_scale
 
 

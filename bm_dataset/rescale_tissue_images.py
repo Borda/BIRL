@@ -9,7 +9,7 @@ EXAMPLE
 -------
 >> python rescale_tissue_images.py \
     -i "/datagrid/Medical/dataset_ANHIR/images_private/COAD_*/scale-100pc/*.png" \
-    --scales 5 10 25 50 -ext .jpg --nb_jobs 4
+    --scales 5 10 25 50 -ext .jpg --nb_workers 4
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -27,12 +27,12 @@ from functools import partial
 import cv2 as cv
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.experiments import wrap_execute_sequence
+from benchmark.utilities.experiments import wrap_execute_sequence, is_iterable
 from benchmark.utilities.dataset import (load_large_image, save_large_image,
-                                         parse_path_scale)
+                                         parse_path_scale, args_expand_parse_images)
 from benchmark.utilities.data_io import create_folder
 
-NB_THREADS = int(mproc.cpu_count() * .5)
+NB_THREADS = max(1, int(mproc.cpu_count() * .5))
 DEFAULT_SCALES = (5, 10, 15, 20, 25, 50)
 IMAGE_EXTENSION = '.jpg'
 # IMWRITE_PARAMS = (cv.IMWRITE_JPEG_QUALITY, 100)
@@ -45,20 +45,12 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--path_images', type=str, required=True,
-                        help='path (pattern) to the input image')
     parser.add_argument('--scales', type=int, required=False, nargs='+',
                         help='list of output scales', default=DEFAULT_SCALES)
     parser.add_argument('-ext', '--image_extension', type=str, required=False,
                         help='output image extension', default=IMAGE_EXTENSION)
-    parser.add_argument('--overwrite', action='store_true', required=False,
-                        default=False, help='visualise the landmarks in images')
-    parser.add_argument('--nb_jobs', type=int, required=False,
-                        help='number of processes running in parallel',
-                        default=NB_THREADS)
-    args = vars(parser.parse_args())
-    args['path_images'] = os.path.expanduser(args['path_images'])
-    if not isinstance(args['scales'], list):
+    args = args_expand_parse_images(parser, NB_THREADS)
+    if not is_iterable(args['scales']):
         args['scales'] = [args['scales']]
     logging.info('ARGUMENTS: \n%r' % args)
     return args
@@ -101,7 +93,7 @@ def wrap_scale_image(img_path_scale, image_ext=IMAGE_EXTENSION, overwrite=False)
         logging.exception('scaling %i of image: %s', scale, img_path)
 
 
-def main(path_images, scales, image_extension, overwrite, nb_jobs):
+def main(path_images, scales, image_extension, overwrite, nb_workers):
     image_paths = sorted(glob.glob(path_images))
     image_path_scales = [(im_path, sc) for im_path in image_paths
                          for sc in scales]
@@ -113,7 +105,7 @@ def main(path_images, scales, image_extension, overwrite, nb_jobs):
     _wrap_scale = partial(wrap_scale_image, image_ext=image_extension,
                           overwrite=overwrite)
     list(wrap_execute_sequence(_wrap_scale, image_path_scales,
-                               desc='Scaling images', nb_jobs=nb_jobs))
+                               desc='Scaling images', nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

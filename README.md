@@ -42,12 +42,13 @@ The project contains the following folders:
 * `bm_ANHIR` - scripts related directly to ANHIR challenge
 * `bm_dataset` - package handling dataset creation and servicing
 * `bm_experiments` - package with particular benchmark experiments
+* `configs` - configs for registration methods
 * `data_images` - folder with input sample data
     * `images` - sample image pairs (reference and sensed one)
     * `landmarks` - related landmarks to images in previous folder
     * `lesions_` - samples of histology tissue with annotation
     * `rat-kidney_` - samples of histology tissue with annotation
-* `configs` - configs for registration methods 
+* `docs` - extra documentation and references
 * `scripts_IJ` - macros for ImageJ 
 
 
@@ -69,7 +70,7 @@ python bm_dataset/create_real_synth_dataset.py \
     -i ./data_images/images/Rat_Kidney_HE.jpg \
     -l ./data_images/landmarks/Rat_Kidney_HE.csv \
     -o ./output/synth_dataset \
-    -nb 5 --nb_jobs 3 --visual
+    -nb 5 --nb_workers 3 --visual
 ```
 
 ### Creating image-pairs table
@@ -93,7 +94,7 @@ We offer a script for scaling images in to particular scales for example
 ```bash
 python bm_dataset/rescale_tissue_images.py \
     -i "./data_images/rat-kidney_/scale-5pc/*.jpg" \
-    -scales 10 -ext .png --nb_jobs 2
+    -scales 10 -ext .png --nb_workers 2
 ```
 
 We introduce an option how to randomly take only a subset (use `nb_selected`) of annotated landmarks and also add some synthetic point (filling points up to `nb_total`) which are across set aligned using estimate affine transformation
@@ -132,6 +133,14 @@ python benchmark/bm_template.py \
     --an_executable none \
     --unique --visual
 ```
+or with relative paths:
+```bash
+python benchmark/bm_template.py \
+    -c ./data_images/pairs-imgs-lnds_anhir.csv \
+    -d ./data_images \
+    -o ./results \
+    --an_executable none
+```
 
 Measure your computer performance using average execution time on several simple image registrations.
 The registration consists of loading images, denoising, feature detection, transform estimation and image warping. 
@@ -145,6 +154,17 @@ This script generate simple report exported in JSON file on given output path.
 
 [TODO]
 
+### Re-evaluate experiment
+
+In case you need to re-compute evaluation or add visualisation to existing experiment you can use following script. 
+The script require complete experiment folder with standard `registration-results.scv` (similar to registration pairs extended by experiment results). 
+
+```bash
+python bm_experiments/evaluate_experiment.py \
+    -e ./results/BmUnwarpJ \
+    --visual
+``` 
+
 
 ## License
 
@@ -154,7 +174,7 @@ The project is using the standard [BSD license](http://opensource.org/licenses/B
 ## References
 
 For complete references see [bibtex](docs/references.bib).
-1. Borovec, J., Munoz-Barrutia, A. & Kybic, J., 2018. **[Benchmarking of image registration methods for differently stained histological slides](https://www.researchgate.net/publication/325019076_Benchmarking_of_image_registration_methods_for_differently_stained_histological_slides)**. In IEEE International Conference on Image Processing (ICIP). Athens. 
+1. Borovec, J., Munoz-Barrutia, A., & Kybic, J. (2018). **[Benchmarking of image registration methods for differently stained histological slides](https://www.researchgate.net/publication/325019076_Benchmarking_of_image_registration_methods_for_differently_stained_histological_slides)**. In IEEE International Conference on Image Processing (ICIP) (pp. 3368–3372). Athens. [DOI: 10.1109/ICIP.2018.8451040](https://doi.org/10.1109/ICIP.2018.8451040)
 
 ## Appendix - Useful information
 

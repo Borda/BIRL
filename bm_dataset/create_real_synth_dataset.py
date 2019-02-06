@@ -33,11 +33,11 @@ from scipy import ndimage, stats, interpolate
 import matplotlib.pyplot as plt
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-import benchmark.utilities.experiments as tl_expt
-import benchmark.utilities.data_io as tl_io
+from benchmark.utilities.experiments import parse_arg_params
+from benchmark.utilities.data_io import LANDMARK_COORDS
 
-COLUMNS_COORD = tl_io.LANDMARK_COORDS
-NB_THREADS = int(mproc.cpu_count() * .8)
+COLUMNS_COORD = LANDMARK_COORDS
+NB_THREADS = max(1, int(mproc.cpu_count() * .8))
 NB_DEFORMATIONS = 5
 HUE_SHIFT_MIN = 20
 HUE_SHIFT_MAX = 120
@@ -60,14 +60,12 @@ def arg_parse_params():
     parser.add_argument('-o', '--path_out', type=str, required=True,
                         help='path to the output folder')
     parser.add_argument('-n', '--nb_samples', type=int, required=False,
-                        help='number of deformed images',
-                        default=NB_DEFORMATIONS)
+                        help='number of deformed images', default=NB_DEFORMATIONS)
     parser.add_argument('--visual', action='store_true', required=False,
                         default=False, help='visualise the landmarks in images')
-    parser.add_argument('--nb_jobs', type=int, required=False,
-                        help='number of processes in parallel',
-                        default=NB_THREADS)
-    args = tl_expt.parse_arg_params(parser, upper_dirs=['path_out'])
+    parser.add_argument('--nb_workers', type=int, required=False, default=NB_THREADS,
+                        help='number of processes in parallel')
+    args = parse_arg_params(parser, upper_dirs=['path_out'])
     args['visual'] = bool(args['visual'])
     return args
 
@@ -319,8 +317,8 @@ def main(params):
                                     visual=params.get('visual', False))
 
     tqdm_bar = tqdm.tqdm(total=params['nb_samples'])
-    if params['nb_jobs'] > 1:
-        mproc_pool = mproc.Pool(params['nb_jobs'])
+    if params['nb_workers'] > 1:
+        mproc_pool = mproc.Pool(params['nb_workers'])
         for _ in mproc_pool.imap_unordered(wrapper_deform_export,
                                            range(params['nb_samples'])):
             tqdm_bar.update()

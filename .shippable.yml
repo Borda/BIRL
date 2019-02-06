@@ -40,9 +40,6 @@ script:
   # - nosetests --with-xunit --xunit-file=shippable/testresults/nosetests.xml
   - nosetests -v --exe --with-doctest --with-coverage --with-xunit --cover-package=benchmark --xunit-file=shippable/testresults/nosetests.xml
 
-  - python bm_experiments/bm_comp_perform.py -o ./results -n 1
-  - python benchmark/bm_template.py -c data_images/pairs-imgs-lnds_mix.csv -o results --unique  --an_executable none
-
 after_success:
   - codecov
   - coverage xml -o $COVERAGE_REPORTS/coverage.xml

@@ -14,22 +14,24 @@ INSTALLATION:
 
 Run the basic bUnwarpJ registration with original parameters:
 >> python bm_experiments/bm_bunwarpj.py \
-    -c ../data_images/pairs-imgs-lnds_mix.csv \
-    -o ../results \
-    -fiji ../applications/Fiji.app/ImageJ-linux64 \
-    -config ../configs/ImageJ_bUnwarpJ.txt
+    -c ./data_images/pairs-imgs-lnds_anhir.csv \
+    -d ./data_images \
+    -o ./results \
+    -fiji ./applications/Fiji.app/ImageJ-linux64 \
+    -config ./configs/ImageJ_bUnwarpJ.txt
 
 The bUnwarpJ is supporting SIFT and MOPS feature extraction as landmarks
 see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support
 >> python bm_experiments/bm_bunwarpj.py \
-    -c ../data_images/pairs-imgs-lnds_mix.csv \
-    -o ../results \
-    -fiji ../applications/Fiji.app/ImageJ-linux64 \
-    -config ../configs/ImageJ_bUnwarpJ.txt \
-    -sift ../configs/ImageJ_SIFT.txt
+    -c ./data_images/pairs-imgs-lnds_anhir.csv \
+    -d ./data_images \
+    -o ./results \
+    -fiji ./applications/Fiji.app/ImageJ-linux64 \
+    -config ./configs/ImageJ_bUnwarpJ.txt \
+    -sift ./configs/ImageJ_SIFT.txt
 
-NOTE:
-* tested for version ImageJ 2.35
+Disclaimer:
+* tested for version ImageJ 1.52i & 2.35
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -41,13 +43,16 @@ import logging
 import shutil
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-import benchmark.utilities.data_io as tl_io
-import benchmark.utilities.experiments as tl_expt
-import benchmark.cls_benchmark as bm
+from benchmark.utilities.data_io import update_path, load_landmarks, save_landmarks
+from benchmark.utilities.experiments import (create_basic_parse, parse_arg_params,
+                                             run_command_line)
+from benchmark.cls_benchmark import ImRegBenchmark, NAME_LOG_REGISTRATION
+from benchmark.bm_template import main
+from bm_experiments import bm_comp_perform
 
 NAME_MACRO_REGISTRATION = 'macro_registration.ijm'
 NAME_MACRO_WARP_IMAGE = 'macro_warp_image.ijm'
-PATH_SCRIPT_WARP_LANDMARKS = os.path.join(tl_io.update_path('scripts_IJ'),
+PATH_SCRIPT_WARP_LANDMARKS = os.path.join(update_path('scripts_IJ'),
                                           'apply-bunwarpj-transform.bsh')
 NAME_LANDMARKS = 'source_landmarks.txt'
 NAME_LANDMARKS_WARPED = 'warped_source_landmarks.txt'
@@ -58,7 +63,6 @@ COMMAND_WARP_LANDMARKS = '%(path_fiji)s --headless %(path_bsh)s' \
                          ' %(output)s/inverse_transform.txt' \
                          ' %(output)s/direct_transform.txt' \
                          ' %(warp)s'
-
 # macro for feature extraction - SIFT
 MACRO_SIFT = '''
 run("Extract SIFT Correspondences",
@@ -69,7 +73,6 @@ MACRO_MOPS = '''
 run("Extract MOPS Correspondences",
     "source_image=%(name_source)s target_image=%(name_target)s %(config_MOPS)s");
 '''
-
 # macro performing the registration
 MACRO_REGISTRATION = '''// Registration
 //run("Memory & Threads...", "maximum=6951 parallel=1");
@@ -119,15 +122,18 @@ def extend_parse(a_parser):
     return a_parser
 
 
-class BmUnwarpJ(bm.ImRegBenchmark):
+class BmUnwarpJ(ImRegBenchmark):
     """ Benchmark for ImageJ plugin - bUnwarpJ
     no run test while this method requires manual installation of ImageJ
 
-    >>> path_out = tl_io.create_folder('temp_results')
-    >>> fn_path_conf = lambda n: os.path.join(tl_io.update_path('configs'), n)
-    >>> params = {'nb_jobs': 1, 'unique': False,
+    EXAMPLE
+    -------
+    >>> from benchmark.utilities.data_io import create_folder, update_path
+    >>> path_out = create_folder('temp_results')
+    >>> fn_path_conf = lambda n: os.path.join(update_path('configs'), n)
+    >>> params = {'nb_workers': 1, 'unique': False,
     ...           'path_out': path_out,
-    ...           'path_cover': os.path.join(tl_io.update_path('data_images'),
+    ...           'path_cover': os.path.join(update_path('data_images'),
     ...                                      'pairs-imgs-lnds_mix.csv'),
     ...           'path_fiji': '.',
     ...           'path_config_bUnwarpJ': fn_path_conf('ImageJ_bUnwarpJ_histo-1k.txt')}
@@ -139,8 +145,8 @@ class BmUnwarpJ(bm.ImRegBenchmark):
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
-    REQUIRED_PARAMS = bm.ImRegBenchmark.REQUIRED_PARAMS + ['path_fiji',
-                                                           'path_config_bUnwarpJ']
+    REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['path_fiji',
+                                                        'path_config_bUnwarpJ']
 
     def _prepare(self):
         """ prepare BM - copy configurations """
@@ -159,10 +165,11 @@ class BmUnwarpJ(bm.ImRegBenchmark):
 
     def _prepare_registration(self, record):
         """ prepare the experiment folder if it is required,
-        eq. copy some extra files
 
-        :param dict record: {str: value}, dictionary with regist. params
-        :return dict: {str: value}
+        * create registration macros
+
+        :param {str: str|float} dict record: dictionary with regist. params
+        :return {str: str|float}: the same or updated registration info
         """
         logging.debug('.. generate macros before registration experiment')
         # set the paths for this experiment
@@ -209,10 +216,10 @@ class BmUnwarpJ(bm.ImRegBenchmark):
         return record
 
     def _generate_regist_command(self, record):
-        """ generate the registration command
+        """ generate the registration command(s)
 
-        :param record: {str: value}, dictionary with regist. params
-        :return: str, the execution string
+        :param {str: str|float} record: dictionary with registration params
+        :return str|[str]: the execution commands
         """
         path_macro = os.path.join(self._get_path_reg_dir(record),
                                   NAME_MACRO_REGISTRATION)
@@ -228,7 +235,7 @@ class BmUnwarpJ(bm.ImRegBenchmark):
         logging.debug('.. warp the registered image and get landmarks')
         path_dir = self._get_path_reg_dir(record)
         path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(record)
-        path_log = os.path.join(path_dir, bm.NAME_LOG_REGISTRATION)
+        path_log = os.path.join(path_dir, NAME_LOG_REGISTRATION)
 
         # warp moving landmarks to reference frame
         path_regist = os.path.join(path_dir, os.path.basename(path_im_move))
@@ -238,39 +245,29 @@ class BmUnwarpJ(bm.ImRegBenchmark):
             'source': path_im_move, 'target': path_im_ref,
             'output': path_dir, 'warp': path_regist}
         # export source points to TXT
-        pts_source = tl_io.load_landmarks(path_lnds_move)
-        tl_io.save_landmarks(os.path.join(path_dir, NAME_LANDMARKS), pts_source)
+        pts_source = load_landmarks(path_lnds_move)
+        save_landmarks(os.path.join(path_dir, NAME_LANDMARKS), pts_source)
         # execute transformation
-        tl_expt.run_command_line(COMMAND_WARP_LANDMARKS % dict_params,
-                                 path_logger=path_log)
+        run_command_line(COMMAND_WARP_LANDMARKS % dict_params, path_logger=path_log)
         # load warped landmarks from TXT
         path_lnds = os.path.join(path_dir, NAME_LANDMARKS_WARPED)
         if os.path.isfile(path_lnds):
-            points_warp = tl_io.load_landmarks(path_lnds)
+            points_warp = load_landmarks(path_lnds)
             path_lnds = os.path.join(path_dir, os.path.basename(path_lnds_move))
-            tl_io.save_landmarks_csv(path_lnds, points_warp)
+            save_landmarks(path_lnds, points_warp)
         else:
             path_lnds = None
         return None, path_regist, None, path_lnds
 
 
-def main(params):
-    """ run the Main of blank experiment
-
-    :param params: {str: value} set of input parameters
-    """
-    logging.info('running...')
-    logging.info(__doc__)
-    benchmark = BmUnwarpJ(params)
-    benchmark.run()
-    del benchmark
-    logging.info('Done.')
-
-
 # RUN by given parameters
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    arg_parser = tl_expt.create_basic_parse()
+    arg_parser = create_basic_parse()
     arg_parser = extend_parse(arg_parser)
-    arg_params = tl_expt.parse_arg_params(arg_parser)
-    main(arg_params)
+    arg_params = parse_arg_params(arg_parser)
+    path_expt = main(arg_params, BmUnwarpJ)
+
+    if arg_params.get('run_comp_benchmark', False):
+        logging.info('Running the computer benchmark.')
+        bm_comp_perform.main(path_expt)

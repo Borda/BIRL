@@ -7,6 +7,7 @@ Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 import os
 import sys
 import time
+import types
 import logging
 import argparse
 import subprocess
@@ -17,9 +18,9 @@ from functools import wraps
 import tqdm
 import numpy as np
 
-import benchmark.utilities.data_io as tl_io
+from benchmark.utilities.data_io import create_folder, update_path
 
-NB_THREADS = mproc.cpu_count()
+NB_THREADS = int(mproc.cpu_count())
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 FILE_LOGS = 'logging.txt'
 STR_LOG_FORMAT = '%(asctime)s:%(levelname)s@%(filename)s:%(processName)s - %(message)s'
@@ -51,9 +52,9 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
             logging.warning('particular out folder already exists')
             if path_created is not None:
                 path_exp += '-' + str(np.random.randint(0, 100))
-            path_created = tl_io.create_folder(path_exp, ok_existing=False)
+            path_created = create_folder(path_exp, ok_existing=False)
     else:
-        path_created = tl_io.create_folder(path_exp, ok_existing=False)
+        path_created = create_folder(path_exp, ok_existing=False)
     logging.info('created experiment folder "%r"', path_created)
     return path_exp
 
@@ -122,6 +123,7 @@ def create_basic_parse():
     >>> parser = create_basic_parse()
     >>> type(parser)
     <class 'argparse.ArgumentParser'>
+    >>> parse_arg_params(parser)  # doctest: +SKIP
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
@@ -137,8 +139,10 @@ def create_basic_parse():
     parser.add_argument('--visual', dest='visual', action='store_true',
                         help='whether visualise partial results')
     parser.add_argument('--lock_expt', dest='lock_thread', action='store_true',
-                        help='whether lock to run experiment in single therad')
-    parser.add_argument('--nb_jobs', type=int, required=False, default=1,
+                        help='whether lock to run experiment in single thread')
+    parser.add_argument('--run_comp_benchmark', action='store_true',
+                        help='run computation benchmark on the end')
+    parser.add_argument('--nb_workers', type=int, required=False, default=1,
                         help='number of registration running in parallel')
     return parser
 
@@ -167,10 +171,10 @@ def update_paths(args, upper_dirs=None, pattern='path'):
     missing = []
     for k in (k for k in args if pattern in k):
         if '*' in os.path.basename(args[k]) or k in upper_dirs:
-            p = tl_io.update_path(os.path.dirname(args[k]))
+            p = update_path(os.path.dirname(args[k]))
             args[k] = os.path.join(p, os.path.basename(args[k]))
         else:
-            args[k] = tl_io.update_path(args[k])
+            args[k] = update_path(args[k])
             p = args[k]
         if not os.path.exists(p):
             logging.warning('missing "%s": %s', k, p)
@@ -185,9 +189,6 @@ def parse_arg_params(parser, upper_dirs=None):
     :param [str] upper_dirs: list of keys in parameters
         with item for which only the parent folder must exist
     :return {str: any}:
-
-    >>> args = create_basic_parse()
-    >>> parse_arg_params(args)  # doctest: +SKIP
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     args = vars(parser.parse_args())
@@ -260,7 +261,7 @@ def compute_points_dist_statistic(points1, points2):
     >>> dist, stat = compute_points_dist_statistic(points1, points1)
     >>> dist
     array([ 0.,  0.,  0.])
-    >>> all(stat[k] == 0 for k in stat if k not in ['Overlap'])
+    >>> all(stat[k] == 0 for k in stat if k not in ['Overlap points'])
     True
     >>> dist, stat = compute_points_dist_statistic(points1, points2)
     >>> dist  #doctest: +ELLIPSIS
@@ -270,7 +271,7 @@ def compute_points_dist_statistic(points1, points2):
     """
     lnd_sizes = [len(points1), len(points2)]
     nb_common = min(lnd_sizes)
-    assert nb_common > 0, 'no common landamrks for metric'
+    assert nb_common > 0, 'no common landmarks for metric'
     points1 = np.asarray(points1)[:nb_common]
     points2 = np.asarray(points2)[:nb_common]
     diffs = np.sqrt(np.sum(np.power(points1 - points2, 2), axis=1))
@@ -280,7 +281,7 @@ def compute_points_dist_statistic(points1, points2):
         'Median': np.median(diffs),
         'Min': np.min(diffs),
         'Max': np.max(diffs),
-        'Overlap': nb_common / float(max(lnd_sizes))
+        'Overlap points': nb_common / float(max(lnd_sizes))
     }
     return diffs, dict_stat
 
@@ -312,38 +313,38 @@ def compute_points_dist_statistic(points1, points2):
 #         return proc
 
 
-def wrap_execute_sequence(wrap_func, iterate_vals, nb_jobs=NB_THREADS,
+def wrap_execute_sequence(wrap_func, iterate_vals, nb_workers=NB_THREADS,
                           desc='', ordered=False):
     """ wrapper for execution parallel of single thread as for...
 
     :param wrap_func: function which will be excited in the iterations
     :param [] iterate_vals: list or iterator which will ide in iterations
-    :param int nb_jobs: number og jobs running in parallel
+    :param int nb_workers: number og jobs running in parallel
     :param str|None desc: description for the bar,
         if it is set None, bar is suppressed
     :param bool ordered: whether enforce ordering in the parallelism
 
-    >>> list(wrap_execute_sequence(np.sqrt, range(5), nb_jobs=1, ordered=True))  # doctest: +ELLIPSIS
+    >>> list(wrap_execute_sequence(np.sqrt, range(5), nb_workers=1, ordered=True))  # doctest: +ELLIPSIS
     [0.0, 1.0, 1.41..., 1.73..., 2.0]
-    >>> list(wrap_execute_sequence(sum, [[0, 1]] * 5, nb_jobs=2, desc=None))
+    >>> list(wrap_execute_sequence(sum, [[0, 1]] * 5, nb_workers=2, desc=None))
     [1, 1, 1, 1, 1]
-    >>> list(wrap_execute_sequence(max, [[2, 1]] * 5, nb_jobs=2, desc=''))
+    >>> list(wrap_execute_sequence(max, [[2, 1]] * 5, nb_workers=2, desc=''))
     [2, 2, 2, 2, 2]
     """
     iterate_vals = list(iterate_vals)
 
     if desc is not None:
-        desc = '%s @%i-threads' % (desc, nb_jobs)
+        desc = '%s @%i-threads' % (desc, nb_workers)
         tqdm_bar = tqdm.tqdm(total=len(iterate_vals), desc=desc)
     else:
         tqdm_bar = None
 
-    if nb_jobs > 1:
-        logging.debug('perform parallel in %i threads', nb_jobs)
+    if nb_workers > 1:
+        logging.debug('perform parallel in %i threads', nb_workers)
         # Standard mproc.Pool created a demon processes which can be called
         # inside its children, cascade or multiprocessing
         # https://stackoverflow.com/questions/6974695/python-process-pool-non-daemonic
-        pool = mproc.Pool(nb_jobs)
+        pool = mproc.Pool(nb_workers)
         pooling = pool.imap if ordered else pool.imap_unordered
 
         for out in pooling(wrap_func, iterate_vals):
@@ -373,3 +374,19 @@ def try_decorator(func):
         except Exception:
             logging.exception('%r with %r and %r', func.__name__, args, kwargs)
     return wrap
+
+
+def is_iterable(var):
+    """ check if the variable is iterable
+
+    :param var:
+    :return bool:
+
+    >>> is_iterable('abc')
+    False
+    >>> is_iterable([0])
+    True
+    >>> is_iterable((1, ))
+    True
+    """
+    return any(isinstance(var, cls) for cls in [list, tuple, types.GeneratorType])

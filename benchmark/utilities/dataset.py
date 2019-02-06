@@ -9,24 +9,23 @@ import re
 import glob
 import logging
 
-from scipy import spatial
-from PIL import Image
 import numpy as np
-import cv2 as cv
 import matplotlib.pyplot as plt
+from PIL import Image
+from scipy import spatial, optimize
 from matplotlib.path import Path
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
-
-import benchmark.utilities.data_io as tl_io
+from cv2 import (IMWRITE_JPEG_QUALITY, IMWRITE_PNG_COMPRESSION, GaussianBlur,
+                 cvtColor, COLOR_RGBA2RGB, COLOR_RGB2BGR, imwrite)
 
 TISSUE_CONTENT = 0.01
 # supported image extensions
 IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 # https://github.com/opencv/opencv/issues/6729
 # https://www.life2coding.com/save-opencv-images-jpeg-quality-png-compression
-IMAGE_COMPRESSION_OPTIONS = (cv.IMWRITE_JPEG_QUALITY, 98) + \
-                            (cv.IMWRITE_PNG_COMPRESSION, 9)
+IMAGE_COMPRESSION_OPTIONS = (IMWRITE_JPEG_QUALITY, 98) + \
+                            (IMWRITE_PNG_COMPRESSION, 9)
 REEXP_FOLDER_SCALE = r'\S*scale-(\d+)pc'
 # ERROR:root:error: Image size (... pixels) exceeds limit of ... pixels,
 # could be decompression bomb DOS attack.
@@ -141,7 +140,7 @@ def project_object_edge(img, dimension):
     assert dimension in (0, 1), 'not supported dimension %i' % dimension
     assert img.ndim == 3, 'unsupported image shape %r' % img.shape
     img_gray = np.mean(img, axis=-1)
-    img_gray = cv.GaussianBlur(img_gray, (5, 5), 0)
+    img_gray = GaussianBlur(img_gray, (5, 5), 0)
     p_low, p_high = np.percentile(img_gray, (1, 95))
     img_gray = rescale_intensity(img_gray, in_range=(p_low, p_high))
     img_bin = img_gray > threshold_otsu(img_gray)
@@ -161,7 +160,7 @@ def load_large_image(img_path):
     assert os.path.isfile(img_path), 'missing image: %s' % img_path
     img = plt.imread(img_path)
     if img.ndim == 3 and img.shape[2] == 4:
-        img = cv.cvtColor(img, cv.COLOR_RGBA2RGB)
+        img = cvtColor(img, COLOR_RGBA2RGB)
     if np.max(img) <= 1.5:
         np.clip(img, a_min=0, a_max=1, out=img)
         # this command split should reduce mount of required memory
@@ -220,8 +219,8 @@ def save_large_image(img_path, img):
         logging.debug('WARNING: this image will be overwritten: %s', img_path)
     # why cv2 imwrite changes the color of pics
     # https://stackoverflow.com/questions/42406338
-    img = cv.cvtColor(img, cv.COLOR_RGB2BGR)
-    cv.imwrite(img_path, img, IMAGE_COMPRESSION_OPTIONS)
+    img = cvtColor(img, COLOR_RGB2BGR)
+    imwrite(img_path, img, IMAGE_COMPRESSION_OPTIONS)
 
 
 def generate_pairing(count, step_hide=None):
@@ -321,10 +320,83 @@ def list_sub_folders(path_folder, name='*'):
     :param str name: name pattern
     :return [str]:
 
-    >>> paths = list_sub_folders(tl_io.update_path('data_images'))
+    >>> from benchmark.utilities.data_io import update_path
+    >>> paths = list_sub_folders(update_path('data_images'))
     >>> list(map(os.path.basename, paths))
     ['images', 'landmarks', 'lesions_', 'rat-kidney_']
     """
     sub_dirs = sorted([p for p in glob.glob(os.path.join(path_folder, name))
                        if os.path.isdir(p)])
     return sub_dirs
+
+
+def common_landmarks(points1, points2, threshold=0.5):
+    """ find common landmarks in two sets
+
+    :param ndarray|[[float]] points1: first point set
+    :param ndarray|[[float]] points2: second point set
+    :param float threshold: threshold for assignment
+    :return [bool]:
+
+    >>> np.random.seed(0)
+    >>> common = np.random.random((5, 2))
+    >>> pts1 = np.vstack([common, np.random.random((10, 2))])
+    >>> pts2 = np.vstack([common, np.random.random((15, 2))])
+    >>> common_landmarks(pts1, pts2, threshold=0.1)
+    array([[ 0,  0],
+           [ 1,  1],
+           [ 2,  2],
+           [ 3,  3],
+           [ 4,  4],
+           [14, 15]])
+    """
+    points1 = np.asarray(points1)
+    points2 = np.asarray(points2)
+    dist = spatial.distance.cdist(points1, points2, 'euclidean')
+    ind_row, ind_col = optimize.linear_sum_assignment(dist)
+    dist_sel = dist[ind_row, ind_col]
+    pairs = [(i, j) for (i, j, d) in zip(ind_row, ind_col, dist_sel)
+             if d < threshold]
+    return np.array(pairs, dtype=int)
+
+
+def args_expand_images(parser, nb_workers=1, overwrite=True):
+    """ expand the parser by standard parameters related to images:
+        * image paths
+        * allow overwrite (optional)
+        * number of jobs
+
+    :param obj parser: existing parser
+    :param int nb_workers: number threads by default
+    :param bool overwrite: allow overwrite images
+    :return obj:
+
+    >>> import argparse
+    >>> args_expand_images(argparse.ArgumentParser())  # doctest: +ELLIPSIS
+    ArgumentParser(...)
+    """
+    parser.add_argument('-i', '--path_images', type=str, required=True,
+                        help='path (pattern) to the input image')
+    parser.add_argument('--nb_workers', type=int, required=False, default=nb_workers,
+                        help='number of processes running in parallel')
+    if overwrite:
+        parser.add_argument('--overwrite', action='store_true', required=False,
+                            default=False, help='allow overwrite existing images')
+    return parser
+
+
+def args_expand_parse_images(parser, nb_workers=1, overwrite=True):
+    """ expand the parser by standard parameters related to images:
+        * image paths
+        * allow overwrite (optional)
+        * number of jobs
+
+    :param obj parser: existing parser
+    :param int nb_workers: number threads by default
+    :param bool overwrite: allow overwrite images
+    :return {}:
+    """
+    parser = args_expand_images(parser, nb_workers, overwrite)
+    args = vars(parser.parse_args())
+    args['path_images'] = os.path.expanduser(args['path_images'])
+    return args

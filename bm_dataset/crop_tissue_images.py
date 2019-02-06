@@ -7,7 +7,7 @@ EXAMPLE
 -------
 >> python crop_tissue_images.py \
     -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*.png" \
-    --padding 0.1 --nb_jobs 2
+    --padding 0.1 --nb_workers 2
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -26,11 +26,12 @@ import cv2 as cv
 import numpy as np
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.dataset import find_largest_object, project_object_edge
-from benchmark.utilities.dataset import load_large_image, save_large_image
+from benchmark.utilities.dataset import (
+    find_largest_object, project_object_edge, load_large_image, save_large_image,
+    args_expand_parse_images)
 from benchmark.utilities.experiments import wrap_execute_sequence, try_decorator
 
-NB_THREADS = int(mproc.cpu_count() * .5)
+NB_THREADS = max(1, int(mproc.cpu_count() * .5))
 SCALE_SIZE = 512
 CUT_DIMENSION = 0
 TISSUE_CONTENT = 0.01
@@ -42,21 +43,21 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--path_images', type=str, required=True,
-                        help='path (pattern) to the input image')
     parser.add_argument('--padding', type=float, required=False, default=0.1,
                         help='padding around the object in image percents')
-    parser.add_argument('--nb_jobs', type=int, required=False,
-                        help='number of processes running in parallel',
-                        default=NB_THREADS)
-    args = vars(parser.parse_args())
-    args['path_images'] = os.path.expanduser(args['path_images'])
+    args = args_expand_parse_images(parser, NB_THREADS, overwrite=False)
     logging.info('ARGUMENTS: \n%r' % args)
     return args
 
 
 @try_decorator
 def crop_image(img_path, crop_dims=(0, 1), padding=0.15):
+    """ crop umages to by tight around tissue
+
+    :param str img_path: path to image
+    :param (int) crop_dims: crop in selected dimensions
+    :param float padding: padding around tissue
+    """
     img = load_large_image(img_path)
     scale_factor = max(1, np.mean(img.shape[:2]) / float(SCALE_SIZE))
     # work with just a scaled version
@@ -88,7 +89,7 @@ def crop_image(img_path, crop_dims=(0, 1), padding=0.15):
     time.sleep(1)
 
 
-def main(path_images, padding, nb_jobs):
+def main(path_images, padding, nb_workers):
     image_paths = sorted(glob.glob(path_images))
 
     if not image_paths:
@@ -97,7 +98,7 @@ def main(path_images, padding, nb_jobs):
 
     _wrap_crop = partial(crop_image, padding=padding)
     list(wrap_execute_sequence(_wrap_crop, image_paths,
-                               desc='Crop image tissue', nb_jobs=nb_jobs))
+                               desc='Crop image tissue', nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

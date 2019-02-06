@@ -5,6 +5,7 @@ Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
+import logging
 
 # import matplotlib
 # if os.environ.get('DISPLAY', '') == '':
@@ -15,7 +16,7 @@ import numpy as np
 import matplotlib.pylab as plt
 from PIL import ImageDraw
 
-import benchmark.utilities.data_io as tl_io
+from benchmark.utilities.data_io import convert_ndarray2image
 
 MAX_FIGURE_SIZE = 18
 
@@ -46,8 +47,14 @@ def draw_image_points(image, points, color='green', marker_size=5, shape='o'):
            [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
            [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
            [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0.5,  0. ]])
+    >>> img = draw_image_points(None, points, marker_size=1)
     """
-    image = tl_io.convert_ndarray_2_image(image)
+    assert list(points), 'missing points'
+    if image is None:
+        # landmark range plus minimal offset to avoid zero image
+        lnds_range = np.max(points, axis=0) - np.min(points, axis=0) + 1
+        image = np.zeros(lnds_range.astype(int).tolist() + [3])
+    image = convert_ndarray2image(image)
     draw = ImageDraw.Draw(image)
     for i, (x, y) in enumerate(points):
         pos_marker = (x - marker_size, y - marker_size,
@@ -171,7 +178,8 @@ def draw_images_warped_landmarks(image_target, image_source,
     >>> isinstance(fig, plt.Figure)
     True
     """
-    image = overlap_two_images(image_target, image_source, transparent=0.3)
+    image = overlap_two_images(image_target, image_source, transparent=0.5) \
+        if image_source is not None else image_target
     fig, ax = create_figure(image.shape, figsize_max)
     ax.imshow(image)
     draw_landmarks_origin_target_warped(ax, points_init, points_target, points_warped)
@@ -214,5 +222,6 @@ def export_figure(path_fig, fig):
     assert os.path.isdir(os.path.dirname(path_fig)), \
         'missing folder "%s"' % os.path.dirname(path_fig)
     fig.subplots_adjust(left=0., right=1., top=1., bottom=0.)
+    logging.debug('exporting Figure: %s', path_fig)
     fig.savefig(path_fig)
     plt.close(fig)

@@ -6,6 +6,8 @@ Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 
 import os
 import logging
+import warnings
+from functools import wraps
 
 import numpy as np
 import pandas as pd
@@ -205,6 +207,46 @@ def update_path(path_file, lim_depth=5, absolute=True):
     return path_file
 
 
+def io_image_decorate(func):
+    """ costume decorator to suppers debug messages from the PIL function
+    to suppress PIl debug logging
+    - DEBUG:PIL.PngImagePlugin:STREAM b'IHDR' 16 13
+
+    :param func:
+    :return:
+    """
+    @wraps(func)
+    def wrap(*args, **kwargs):
+        log_level = logging.getLogger().getEffectiveLevel()
+        logging.getLogger().setLevel(logging.INFO)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            response = func(*args, **kwargs)
+        logging.getLogger().setLevel(log_level)
+        return response
+    return wrap
+
+
+@io_image_decorate
+def image_size(path_image, decimal=1):
+    """ get image size (without loading image raster)
+
+    :param str path_image: path to the image
+    :return (int, int), float: image size and diagonal
+
+    >>> img = np.random.random((50, 75, 3))
+    >>> save_image('./test_image.jpg', img)
+    >>> image_size('./test_image.jpg', decimal=0)
+    ((50, 75), 90.0)
+    >>> os.remove('./test_image.jpg')
+    """
+    assert os.path.isfile(path_image), 'missing image: %s' % path_image
+    img_size = Image.open(path_image).size[::-1]
+    img_diag = np.sqrt(np.sum(np.array(img_size) ** 2))
+    return img_size, np.round(img_diag, decimal)
+
+
+@io_image_decorate
 def load_image(path_image):
     """ load the image in value range (0, 1)
 
@@ -225,24 +267,25 @@ def load_image(path_image):
     return image
 
 
-def convert_ndarray_2_image(image):
+def convert_ndarray2image(image):
     """ convert ndarray to PIL image if it not already
 
     :param image: np.ndarray
     :return: Image
 
     >>> img = np.random.random((50, 50, 3))
-    >>> image = convert_ndarray_2_image(img)
+    >>> image = convert_ndarray2image(img)
     >>> isinstance(image, Image.Image)
     True
     """
     if isinstance(image, np.ndarray):
-        if np.max(image) <= 1.:
+        if np.max(image) <= 1.5:
             image = (image * 255)
         image = Image.fromarray(np.round(image).astype(np.uint8))
     return image
 
 
+@io_image_decorate
 def save_image(path_image, image):
     """ save the image into given path
 
@@ -252,7 +295,7 @@ def save_image(path_image, image):
     Wrong path
     >>> save_image('./missing-path/any-image.png', np.zeros((10, 20)))
     """
-    image = convert_ndarray_2_image(image)
+    image = convert_ndarray2image(image)
     path_dir = os.path.dirname(path_image)
     if os.path.isdir(path_dir):
         image.save(path_image)

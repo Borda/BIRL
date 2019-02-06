@@ -29,7 +29,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as fp:
 # Fields marked as "Optional" may be commented out.
 
 setup(
-    name='birl',
+    name='BIRL',
     version='0.2.0',
     description='Benchmark on Image Registration methods'
                 ' with Landmark validation',

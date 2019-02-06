@@ -32,11 +32,6 @@ environment:
       PYTHON_ARCH: "64"
       TOXENV: "py35"
 
-    - PYTHON: "C:\\Python36"
-      PYTHON_VERSION: "3.6.x"
-      PYTHON_ARCH: "32"
-      TOXENV: "py36"
-
     - PYTHON: "C:\\Python36-x64"
       PYTHON_VERSION: "3.6.x"
       PYTHON_ARCH: "64"
@@ -64,8 +59,8 @@ install:
 test_script:
   - tox
   - mkdir results
-  - python bm_experiments/bm_comp_perform.py -o results -n 1
-  - python benchmark/bm_template.py -c data_images/pairs-imgs-lnds_mix.csv -o results --unique  --an_executable none
+  - python bm_experiments/bm_comp_perform.py -o ./results -n 1
+  - python benchmark/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --unique --visual --an_executable none
 
 on_success:
   - coverage report

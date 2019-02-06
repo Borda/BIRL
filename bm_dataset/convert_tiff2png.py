@@ -9,9 +9,9 @@ image of size 50k x 60k takes about 10GB in RAM
 
 EXAMPLE
 -------
->> python convert_tiff2png.py -l 0 --nb_jobs 2 \
+>> python convert_tiff2png.py -l 0 --nb_workers 2 \
     -i "/datagrid/Medical/dataset_ANHIR/images_raw/*/*.tiff"
->> python convert_tiff2png.py -l 1 --nb_jobs 5 --overwrite \
+>> python convert_tiff2png.py -l 1 --nb_workers 5 --overwrite \
     -i "/datagrid/Medical/dataset_ANHIR/images_raw/*/*.svs"
 
 
@@ -22,10 +22,10 @@ Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 import os
 import sys
 import glob
-import time
-import gc
 import logging
 import argparse
+import time
+import gc
 import multiprocessing as mproc
 from functools import partial
 
@@ -36,11 +36,12 @@ from openslide import OpenSlide
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.experiments import wrap_execute_sequence
+from benchmark.utilities.dataset import args_expand_parse_images
 
 DEFAULT_LEVEL = 1
 MAX_LOAD_IMAGE_SIZE = 16000
 IMAGE_EXTENSION = '.png'
-NB_THREADS = int(mproc.cpu_count() * .5)
+NB_THREADS = max(1, int(mproc.cpu_count() * .5))
 
 
 def arg_parse_params():
@@ -49,17 +50,9 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--path_images', type=str, required=True,
-                        help='path (pattern) to the input image')
     parser.add_argument('-l', '--level', type=int, required=False,
                         help='list of output scales', default=DEFAULT_LEVEL)
-    parser.add_argument('--overwrite', action='store_true', required=False,
-                        default=False, help='visualise the landmarks in images')
-    parser.add_argument('--nb_jobs', type=int, required=False,
-                        help='number of processes running in parallel',
-                        default=NB_THREADS)
-    args = vars(parser.parse_args())
-    args['path_images'] = os.path.expanduser(args['path_images'])
+    args = args_expand_parse_images(parser, NB_THREADS)
     logging.info('ARGUMENTS: \n%r' % args)
     return args
 
@@ -106,7 +99,7 @@ def convert_image(path_img, level=DEFAULT_LEVEL, overwrite=False):
     time.sleep(1)
 
 
-def main(path_images, level=DEFAULT_LEVEL, overwrite=False, nb_jobs=1):
+def main(path_images, level=DEFAULT_LEVEL, overwrite=False, nb_workers=1):
     paths_img = sorted(glob.glob(path_images))
 
     _wrap_convert = partial(convert_image,
@@ -114,7 +107,7 @@ def main(path_images, level=DEFAULT_LEVEL, overwrite=False, nb_jobs=1):
                             overwrite=overwrite)
 
     list(wrap_execute_sequence(_wrap_convert, paths_img,
-                               desc='Converting images', nb_jobs=nb_jobs))
+                               desc='Converting images', nb_workers=nb_workers))
 
 
 if __name__ == '__main__':
