@@ -60,7 +60,7 @@ docker run --rm -it \
 
 Export the created image to be uploaded to the evaluation system.
 ```bash
-docker save anhir > anhir.tar } | gzip
+docker save anhir > anhir.tar
 ```
 
 ## Browsing images

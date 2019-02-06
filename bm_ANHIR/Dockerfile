@@ -4,9 +4,9 @@ FROM python:3.6-slim-stretch
 
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        git \
-        gcc \
-        tk-dev \
+        git>=2.0 \
+        gcc>=5.1 \
+        tk-dev>=8.5 \
 #        python-dev \
 #        python-tk \
 #        pkg-config \
@@ -25,8 +25,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # for Ubuntu instalation
 #    wget https://bootstrap.pypa.io/get-pip.py --progress=bar:force:noscroll && \
 #    python get-pip.py && \
-    pip install git+https://github.com/Borda/BIRL.git && \
-#    pip install git+https://github.com/Borda/BIRL.git@anhir
+    pip install git+https://github.com/Borda/BIRL.gitr>=0.2 && \
+#    pip install git+https://github.com/Borda/BIRL.git@anhi
 
     apt-get -y remove \
         gcc \
