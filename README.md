@@ -23,14 +23,24 @@ The project contains a set of sample images with related landmark annotations an
 The initial [dataset of stained histological tissues](http://cmp.felk.cvut.cz/~borovji3/?page=dataset) is composed by image pairs of related sections (mainly, consecutive cuts).
 Each image in the pair is coloured with a different stain. 
 The registration of those images is a challenging task due to both artefacts and deformations acquired during sample preparation and appearance differences due to staining. 
-For evaluation we have manually placed landmarks in each image pair. There are at least 40 uniformly spread over the tissue. 
+For evaluation, we have manually placed landmarks in each image pair. There are at least 40 uniformly spread over the tissue. 
 We do not put any landmarks in the background.
-For more information about annotation creation and landmarks handling we refer to the special repository - [Dataset: histology landmarks](http://borda.github.com/dataset-histology-landmarks).
+For more information about annotation creation and landmarks handling, we refer to the special repository - [Dataset: histology landmarks](http://borda.github.com/dataset-histology-landmarks).
 
 ![images-landmarks](figures/images-landmarks.jpg)
 
 The dataset is defined by a CSV file containing paths to target and sensed image and their related landmarks _(see `./data_images/pairs-imgs-lnds_mix.csv`)_. With the change of the cover table, the benchmarks can be used for any other image dataset.
 
+
+## Features
+
+* **automatic** execution of image registration of a sequence of image pairs
+* integrated **evaluation** of registration performances using Target Registration Error (TRE)
+* integrated **visualization** of performed registration
+* running several image registration experiment in **parallel**
+* **resuming** unfinished sequence of registration benchmark
+* handling around dataset and **creating own experiments**
+* rerun evaluation and visualisation for finished experiments
 
 
 ## Structure
@@ -73,7 +83,7 @@ python bm_dataset/create_real_synth_dataset.py \
     -nb 5 --nb_workers 3 --visual
 ```
 
-### Creating image-pairs table
+### Creating an image-pairs table
 
 When the synthetic datasets have been created, the cover csv file which contains the registration pairs (Reference and Moving image (landmarks)) is generated. 
 Two modes are created: _"first2all"_ for registering the first image to all others and _"each2all"_ for registering each image to all other. 
@@ -90,14 +100,13 @@ python bm_dataset/generate_regist_pairs.py \
 ### Customize the images and landmarks
 
 We offer a script for scaling images in to particular scales for example
-
 ```bash
 python bm_dataset/rescale_tissue_images.py \
     -i "./data_images/rat-kidney_/scale-5pc/*.jpg" \
     -scales 10 -ext .png --nb_workers 2
 ```
 
-We introduce an option how to randomly take only a subset (use `nb_selected`) of annotated landmarks and also add some synthetic point (filling points up to `nb_total`) which are across set aligned using estimate affine transformation
+We introduce an option how to randomly take only a subset (use `nb_selected`) of annotated landmarks and also add some synthetic point (filling points up to `nb_total`) which are across set aligned using estimate affine transformation.
 
 ```bash
 python bm_dataset/rescale_tissue_landmarks.py \
@@ -152,11 +161,27 @@ This script generate simple report exported in JSON file on given output path.
 
 ### Add custom registration method
 
-[TODO]
+The only limitation of adding costume image registration methods that it has to be launched from python script or command line. The new registration benchmark should be inherited from [ImRegBenchmark](benchmark/cls_benchmark.py) as for example [BmTemplate](benchmark/bm_template.py).
+
+The benchmark workflow is the following:
+1. `self._prepare()` prepare the experiment, e.g. create experiment folder, copy configurations, etc.
+2. `self._load_data()` the load required data - the experiment cover file
+3. `self._run()` perform the sequence of experiments (optionally in parallel) and save experimental results (registration outputs and partial statistic) to common table
+4. `self._summarise()` summarize the statistic over all experiments and run optional visualisation of performed experiments.
+
+General methods that should be overwritten:
+ * `_check_required_params(...)` verify that all required input parameters are given _[on the beginning of benchmark]_
+ * `_prepare_registration(...)` if some extra preparation before running own image registrations are needed _[before each image registration experiment]_
+ * `_generate_regist_command(...)` prepare the registration command to be executed, also you can add generating complete registration script/macro if needed; execution using this command is measured as Execution time _[before each image registration experiment]_
+ * `_extract_warped_images_landmarks(...)` extract the required warped landmarks or perform landmark warping in this stage if it eas not already part of the image registration _[after each image registration experiment]_
+ * `_clear_after_registration(...)` removing some temporary files generated during image registration _[after each image registration experiment]_
+
+The new image registration methods should be added to `bm_experiments` folder.
+
 
 ### Re-evaluate experiment
 
-In case you need to re-compute evaluation or add visualisation to existing experiment you can use following script. 
+In case you need to re-compute evaluation or add visualisation to existing experiment you can use the following script. 
 The script require complete experiment folder with standard `registration-results.scv` (similar to registration pairs extended by experiment results). 
 
 ```bash
@@ -180,7 +205,7 @@ For complete references see [bibtex](docs/references.bib).
 
 **Configure local environment**
 
-Create your own local environment, for more information see the [User Guide](https://pip.pypa.io/en/latest/user_guide.html), and install dependencies requirements.txt contains list of packages and can be installed as
+Create your own local environment, for more information see the [User Guide](https://pip.pypa.io/en/latest/user_guide.html), and install dependencies requirements.txt contains a list of packages and can be installed as
 ```bash
 @duda:~$ cd BIRL 
 @duda:~/BIRL$ virtualenv env
@@ -188,7 +213,7 @@ Create your own local environment, for more information see the [User Guide](htt
 (env)@duda:~/BIRL$ pip install -r requirements.txt  
 (env)@duda:~/BIRL$ python ...
 ```
-and in the end terminating...
+and in the end, terminating...
 ```bash
 (env)@duda:~$ deactivate
 ```

@@ -46,7 +46,7 @@ install:
   # directly to master instead of just PR builds (or the converse).
   # credits: JuliaLang developers.
   - choco upgrade chocolatey
-  - choco install opencv -y
+  - choco install -y opencv
   - SET PATH=%PYTHON%;%PYTHON%\\Scripts;%path%
   - python --version
   - pip install -U --user pip

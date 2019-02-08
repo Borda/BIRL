@@ -66,7 +66,7 @@ def arg_parse_params():
     return args
 
 
-def prepare_images(path_out, im_size=IMAGE_SIZE):
+def _prepare_images(path_out, im_size=IMAGE_SIZE):
     image = resize(data.astronaut(), output_shape=im_size, mode='constant')
     img_target = random_noise(image, var=IMAGE_NOISE)
     path_img_target = os.path.join(path_out, NAME_IMAGE_TARGET)
@@ -82,7 +82,7 @@ def prepare_images(path_out, im_size=IMAGE_SIZE):
     return path_img_target, path_img_source
 
 
-def clean_images(image_paths):
+def _clean_images(image_paths):
     for p_img in image_paths:
         os.remove(p_img)
 
@@ -137,7 +137,7 @@ def measure_registration_single(path_out, nb_iter=5):
     :param int nb_iter: number of experiments to be averaged
     :return {str: float}: results
     """
-    path_img_target, path_img_source = prepare_images(path_out, IMAGE_SIZE)
+    path_img_target, path_img_source = _prepare_images(path_out, IMAGE_SIZE)
     paths = [path_img_target, path_img_source]
 
     execution_times = []
@@ -148,7 +148,7 @@ def measure_registration_single(path_out, nb_iter=5):
         paths.append(path_img_warped)
         execution_times.append(t)
 
-    clean_images(set(paths))
+    _clean_images(set(paths))
     logging.info('registration @1-thread: %f +/- %f',
                  np.mean(execution_times), np.std(execution_times))
     res = {'registration @1-thread': np.mean(execution_times)}
@@ -163,7 +163,7 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_workers=NB_THREADS):
     :param int nb_workers: number of thread available on the computer
     :return {str: float}: results
     """
-    path_img_target, path_img_source = prepare_images(path_out, IMAGE_SIZE)
+    path_img_target, path_img_source = _prepare_images(path_out, IMAGE_SIZE)
     paths = [path_img_target, path_img_source]
     execution_times = []
 
@@ -181,11 +181,21 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_workers=NB_THREADS):
     pool.close()
     pool.join()
 
-    clean_images(set(paths))
+    _clean_images(set(paths))
     logging.info('registration @%i-thread: %f +/- %f', nb_workers,
                  np.mean(execution_times), np.std(execution_times))
     res = {'registration @n-thread': np.mean(execution_times)}
     return res
+
+
+def _get_ram():
+    try:
+        from psutil import virtual_memory
+        ram = virtual_memory().total / 1024. ** 3
+    except Exception:
+        logging.exception('Retrieving info about RAM memory failed.')
+        ram = np.nan
+    return ram
 
 
 def main(path_out='', nb_runs=5):
@@ -193,7 +203,6 @@ def main(path_out='', nb_runs=5):
 
     :param str path_out: path to export the report and save temporal images
     """
-
     skimage_version = skimage.__version__.split('.')
     skimage_version = tuple(map(int, skimage_version))
     if skimage_version < SKIMAGE_VERSION:
@@ -212,13 +221,14 @@ def main(path_out='', nb_runs=5):
             'version': platform.version(),
             'machine': platform.machine(),
             'processor': platform.processor(),
-            'virtual CPUs': mproc.cpu_count()
+            'virtual CPUs': mproc.cpu_count(),
+            'total RAM': _get_ram(),
         },
         'created': str(datetime.datetime.now()),
         'file': hasher.hexdigest(),
-        'nb. runs': nb_runs,
-        'python version': platform.python_version(),
-        'skimage version': skimage.__version__,
+        'number runs': nb_runs,
+        'python-version': platform.python_version(),
+        'skimage-version': skimage.__version__,
     }
     report.update(measure_registration_single(path_out, nb_iter=nb_runs))
     nb_runs_ = max(1, int(nb_runs / 2.))

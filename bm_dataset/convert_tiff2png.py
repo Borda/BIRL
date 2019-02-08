@@ -32,7 +32,11 @@ from functools import partial
 import tqdm
 import cv2 as cv
 import numpy as np
-from openslide import OpenSlide
+try:
+    from openslide import OpenSlide
+except Exception:
+    print('It seems that you do not have installed OpenSlides on your computer.'
+          ' To do so, please follow instructions - https://openslides.org')
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.utilities.experiments import wrap_execute_sequence

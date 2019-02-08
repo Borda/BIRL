@@ -69,9 +69,8 @@ from benchmark.utilities.dataset import common_landmarks, parse_path_scale
 from benchmark.utilities.experiments import wrap_execute_sequence, parse_arg_params
 from benchmark.cls_benchmark import (
     NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP,
-    COL_POINTS_REF, COL_POINTS_MOVE, COL_POINTS_MOVE_WARP, COL_IMAGE_MOVE_WARP, COL_TIME,
-    COL_ROBUSTNESS, COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE, compute_landmarks_statistic,
-    update_path_)
+    COL_POINTS_REF, COL_POINTS_MOVE, COL_TIME, COL_ROBUSTNESS, COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE,
+    compute_landmarks_statistic, update_path_)
 # from bm_experiments.bm_comp_perform import NAME_REPORT
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .9))
@@ -103,6 +102,9 @@ def create_parser():
                         help='path to reference computer performance JSON')
     parser.add_argument('-o', '--path_output', type=str, required=True,
                         help='path to output results', default='/output/')
+    # required number of submitted landmarks, match values in COL_FOUND_LNDS
+    parser.add_argument('--min_landmarks', type=float, required=False, default=0.5,
+                        help='ration of required landmarks in submission')
     return parser
 
 
@@ -169,42 +171,57 @@ def normalize_exec_time(df_experiments, path_experiments, path_comp_bm=None):
     df_experiments[COL_NORM_TIME] = df_experiments[COL_TIME] * coef
 
 
-def parse_landmarks(idx_row, path_experiments):
+def parse_landmarks(idx_row):
     """ parse the warped landmarks and reference and save them as cases
 
     :param (int, series) idx_row: individual row
-    :param str path_experiments: path to the experiment folder
     :return {str: float|[]}: parsed registration pair
     """
-    _, row = idx_row
-    lnds_ref = load_landmarks(
-        update_path_(row[COL_POINTS_REF], path_experiments))
-    if isinstance(row[COL_POINTS_MOVE_WARP], str):
-        lnds_warp = load_landmarks(update_path_(row[COL_POINTS_MOVE_WARP], path_experiments))
-    else:
-        lnds_warp = np.array([[]])
+    idx, row = idx_row
+    row = dict(row)
+    # lnds_ref = load_landmarks(update_path_(row[COL_POINTS_REF], path_experiments))
+    # lnds_warp = load_landmarks(update_path_(row[COL_POINTS_MOVE_WARP], path_experiments))
+    #     if isinstance(row[COL_POINTS_MOVE_WARP], str)else np.array([[]])
     path_dir = os.path.dirname(row[COL_POINTS_MOVE])
     match_lnds = np.nan_to_num(row[COL_FOUND_LNDS]) if COL_FOUND_LNDS in row else 0.
     record = {
         'tissue': os.path.basename(os.path.dirname(path_dir)),
         'scale': parse_path_scale(os.path.basename(path_dir)),
-        'reference name': os.path.splitext(os.path.basename(row[COL_POINTS_REF]))[0],
-        'source name': os.path.splitext(os.path.basename(row[COL_POINTS_MOVE]))[0],
-        'reference landmarks': np.round(lnds_ref, 1).tolist(),
-        'warped landmarks': np.round(lnds_warp, 1).tolist(),
-        'matched landmarks': match_lnds,
+        'reference-name': os.path.splitext(os.path.basename(row[COL_POINTS_REF]))[0],
+        'source-name': os.path.splitext(os.path.basename(row[COL_POINTS_MOVE]))[0],
+        # 'reference landmarks': np.round(lnds_ref, 1).tolist(),
+        # 'warped landmarks': np.round(lnds_warp, 1).tolist(),
+        'matched-landmarks': match_lnds,
+        'robustness': int(row['rTRE Mean (final)'] < row['rTRE Mean (init)']),
+        'time': row[COL_NORM_TIME]
     }
-    return record
+    # copy all columns with rTRE, TRE and Overlap
+    record.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
+                   for col in row if '(final)' in col})
+    return idx, record
 
 
-def compute_scores(df_experiments):
+def compute_scores(df_experiments, min_landmarks=1.):
     """ compute all main metrics
 
     SEE: https://anhir.grand-challenge.org/Evaluation/
 
     :param DF df_experiments: complete experiments
+    :param float min_landmarks: required number of submitted landmarks in range (0, 1),
+        match values in COL_FOUND_LNDS
     :return {}: results
     """
+    # if the initial overlap and submitted overlap do not mach, drop results
+    hold_overlap = df_experiments['Overlap points (init)'] == df_experiments['Overlap points (final)']
+    mask_incomplete = ~hold_overlap | df_experiments[COL_FOUND_LNDS] < min_landmarks
+    # rewrite incomplete cases by initila stat
+    if sum(mask_incomplete) > 0:
+        for col_f, col_i in zip(*_filter_measure_columns(df_experiments)):
+            df_experiments.loc[mask_incomplete, col_f] = df_experiments.loc[mask_incomplete, col_i]
+        df_experiments.loc[mask_incomplete, COL_ROBUSTNESS] = 0
+        logging.warning('There are %i cases which incomplete landmarks.',
+                        sum(mask_incomplete))
+
     # compute summary
     df_summary = df_experiments.describe()
     df_robust = df_experiments[df_experiments[COL_ROBUSTNESS] > 0.5]
@@ -221,43 +238,49 @@ def compute_scores(df_experiments):
         time_all, time_robust = np.nan, np.nan
     # parse final metrics
     scores = {
-        'Avg. Robustness': df_summary[COL_ROBUSTNESS]['mean'],
-        'Avg. median rTRE': df_summary['rTRE Median (final)']['mean'],
-        'Avg. median rTRE robust.': df_summary_robust['rTRE Median (final)']['mean'],
-        'Avg. rank median rTRE': None,
-        'Avg. max rTRE': df_summary['rTRE Max (final)']['mean'],
-        'Avg. max rTRE robust.': df_summary_robust['rTRE Max (final)']['mean'],
-        'Avg. rank max rTRE': None,
-        'Avg. used landmarks': score_used_lnds,
-        'Avg. time': time_all,
-        'Avg. time robust.': time_robust,
+        'Average-Robustness': df_summary[COL_ROBUSTNESS]['mean'],
+        'Average-Median-rTRE': df_summary['rTRE Median (final)']['mean'],
+        'Average-Median-rTRE-Robust': df_summary_robust['rTRE Median (final)']['mean'],
+        'Average-Rank-Median-rTRE': None,
+        'Average-Max-rTRE': df_summary['rTRE Max (final)']['mean'],
+        'Average-Max-rTRE-Robust': df_summary_robust['rTRE Max (final)']['mean'],
+        'Average-Rank-Max-rTRE': None,
+        'Average-used-landmarks': score_used_lnds,
+        'Average-Time': time_all,
+        'Average-Time-Robust': time_robust,
     }
     return scores
 
 
-def export_summary_json(df_experiments, path_experiments, path_output):
+def _filter_measure_columns(df_experiments):
+    # copy the initial to final for missing
+    cols_final = [col for col in df_experiments.columns
+                  if re.match(r'(r)?TRE \w+ .final.', col)]
+    cols_init = [col.replace('final', 'init') for col in cols_final]
+    return cols_final, cols_init
+
+
+def export_summary_json(df_experiments, path_experiments, path_output, min_landmarks=1.):
     """ summarize results in particular JSON format
 
     :param DF df_experiments: experiment DataFrame
     :param str path_experiments: path to experiment folder
     :param str path_output: path to generated results
+    :param float min_landmarks: required number of submitted landmarks in range (0, 1),
+        match values in COL_FOUND_LNDS
     :return str: path to exported results
     """
     # copy the initial to final for missing
-    cols = [col for col in df_experiments.columns
-            if re.match(r'(r)?TRE \w+ .final.', col)]
-    for col in cols:
+    for col, col2 in zip(*_filter_measure_columns(df_experiments)):
         mask = df_experiments[col].isnull()
-        col2 = col.replace('final', 'init')
         df_experiments.loc[mask, col] = df_experiments.loc[mask, col2]
 
-    # parse final metrics
-    scores = compute_scores(df_experiments)
-
     # export partial results
-    _parse_lnds = partial(parse_landmarks, path_experiments=path_experiments)
-    cases = list(wrap_execute_sequence(_parse_lnds, df_experiments.iterrows(),
+    cases = list(wrap_execute_sequence(parse_landmarks, df_experiments.iterrows(),
                                        desc='Parsing landmarks', nb_workers=1))
+
+    # parse final metrics
+    scores = compute_scores(df_experiments, min_landmarks)
 
     path_comp_bm_expt = os.path.join(path_experiments, NAME_JSON_COMPUTER)
     if os.path.isfile(path_comp_bm_expt):
@@ -266,7 +289,7 @@ def export_summary_json(df_experiments, path_experiments, path_output):
     else:
         comp_exp = None
 
-    results = {'aggregates': scores, 'cases': cases, 'computer': comp_exp}
+    results = {'aggregates': scores, 'cases': dict(cases), 'computer': comp_exp}
     path_json = os.path.join(path_output, NAME_JSON_RESULTS)
     logging.info('exporting JSON results: %s', path_json)
     with open(path_json, 'w') as fp:
@@ -275,7 +298,7 @@ def export_summary_json(df_experiments, path_experiments, path_output):
 
 
 def main(path_experiment, path_cover, path_dataset, path_output,
-         path_reference=None, path_comp_bm=None, nb_workers=NB_THREADS):
+         path_reference=None, path_comp_bm=None, nb_workers=NB_THREADS, min_landmarks=1.):
     """ main entry point
 
     :param str path_experiment: path to experiment folder
@@ -286,6 +309,8 @@ def main(path_experiment, path_cover, path_dataset, path_output,
         if None use dataset folder
     :param str|None path_comp_bm: path to reference comp. benchmark
     :param int nb_workers: number of parallel processes
+    :param float min_landmarks: required number of submitted landmarks in range (0, 1),
+        match values in COL_FOUND_LNDS
     """
 
     path_results = os.path.join(path_experiment, NAME_CSV_REGISTRATION_PAIRS)
@@ -293,9 +318,12 @@ def main(path_experiment, path_cover, path_dataset, path_output,
         raise AttributeError('Missing experiments results: %s' % path_results)
     path_reference = path_dataset if not path_reference else path_reference
 
-    df_cover = pd.read_csv(path_cover).drop([COL_TIME, COL_POINTS_MOVE_WARP, COL_IMAGE_MOVE_WARP],
-                                            axis=1, errors='ignore')
-    df_results = pd.read_csv(path_results).drop([COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE],
+    # drop time column from Cover which should be empty
+    df_cover = pd.read_csv(path_cover).drop([COL_TIME], axis=1, errors='ignore')
+    # drop Warp* column from Cover which should be empty
+    df_cover = df_cover.drop([col for col in df_cover.columns if 'warped' in col.lower()],
+                             axis=1, errors='ignore')
+    df_results = pd.read_csv(path_results).drop([COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE, 'status'],
                                                 axis=1, errors='ignore')
     df_experiments = pd.merge(df_cover, df_results, how='left', on=COVER_COLUMNS)
     df_experiments.drop([COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP],
@@ -309,7 +337,7 @@ def main(path_experiment, path_cover, path_dataset, path_output,
                            path_reference=path_reference)
     for idx, ratio in wrap_execute_sequence(_filter_lnds, df_experiments.iterrows(),
                                             desc='Filtering', nb_workers=nb_workers):
-        df_experiments.loc[idx, COL_FOUND_LNDS] = ratio
+        df_experiments.loc[idx, COL_FOUND_LNDS] = np.round(ratio, 2)
 
     logging.info('Compute landmarks statistic.')
     _compute_lnds_stat = partial(compute_landmarks_statistic, df_experiments=df_experiments,
@@ -322,7 +350,7 @@ def main(path_experiment, path_cover, path_dataset, path_output,
     logging.debug('exporting CSV results: %s', path_results)
     df_experiments.to_csv(path_results)
 
-    export_summary_json(df_experiments, path_experiment, path_output)
+    export_summary_json(df_experiments, path_experiment, path_output, min_landmarks)
 
 
 if __name__ == '__main__':

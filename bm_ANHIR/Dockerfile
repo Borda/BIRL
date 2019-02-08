@@ -25,7 +25,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # for Ubuntu instalation
 #    wget https://bootstrap.pypa.io/get-pip.py --progress=bar:force:noscroll && \
 #    python get-pip.py && \
-    pip install git+https://github.com/Borda/BIRL.gitr>=0.2 && \
+    pip install --upgrade --force-reinstall --no-cache-dir git+https://github.com/Borda/BIRL.git>=0.2 && \
 #    pip install git+https://github.com/Borda/BIRL.git@anhi
 
     apt-get -y remove \
