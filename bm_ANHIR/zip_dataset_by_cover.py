@@ -16,14 +16,14 @@ import os
 import sys
 import logging
 import argparse
+import subprocess
 
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from benchmark.cls_benchmark import COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_MOVE
-from benchmark.utilities.experiments import run_command_line
 
-ZIP_COMMAND = 'cd %s  && zip --split-size 1g %s.zip -r %s'
+ZIP_COMMAND = 'cd %s && zip --split-size 1g %s.zip -r %s'
 
 
 def arg_parse_params():
@@ -44,6 +44,11 @@ def arg_parse_params():
     return args
 
 
+def _process_cmd(command):
+    logging.info(command)
+    subprocess.call(command, shell=True)
+
+
 def main(path_dataset, path_landmarks, path_landmarks_all, path_csv):
     name_csv = os.path.splitext(os.path.basename(path_csv))[0]
     df_cover = pd.read_csv(path_csv)
@@ -52,24 +57,22 @@ def main(path_dataset, path_landmarks, path_landmarks_all, path_csv):
     folders = set(os.path.dirname(p) for p in images
                   if os.path.isdir(os.path.join(path_dataset, os.path.dirname(p))))
     # Remove previous compressed images
-    cmd_remove = 'rm %s' % os.path.join(path_dataset, name_csv + '.z*')
-    logging.info(cmd_remove)
+    cmd_remove = 'rm -f %s' % os.path.join(path_dataset, name_csv + '.z*')
+    _process_cmd(cmd_remove)
     # compress the images
     cmd_zip_imgs = ZIP_COMMAND % (path_dataset, name_csv, ' '.join(folders))
-    logging.info(cmd_zip_imgs)
-    run_command_line([cmd_remove, cmd_zip_imgs])
+    _process_cmd(cmd_zip_imgs)
 
     landmarks = set(df_cover[COL_POINTS_MOVE].tolist())
     landmarks = [p for p in landmarks
                  if os.path.isfile(os.path.join(path_landmarks_all, p))]
     # compress the landmarks
     cmd_zip_lnds = ZIP_COMMAND % (path_landmarks_all, name_csv, ' '.join(landmarks))
-    logging.info(cmd_zip_lnds)
+    _process_cmd(cmd_zip_lnds)
     # Move the compressed landmarks
     cmd_move = 'mv %s %s' % (os.path.join(path_landmarks_all, name_csv + '.zip'),
                              os.path.join(path_landmarks, name_csv + '.zip'))
-    logging.info(cmd_move)
-    run_command_line([cmd_zip_lnds, cmd_move])
+    _process_cmd(cmd_move)
 
 
 if __name__ == '__main__':
