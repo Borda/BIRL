@@ -72,8 +72,7 @@ from benchmark.utilities.experiments import wrap_execute_sequence, parse_arg_par
 from benchmark.cls_benchmark import (
     NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COVER_COLUMNS_WRAP,
     COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP, COL_POINTS_REF, COL_POINTS_MOVE,
-    COL_TIME, COL_ROBUSTNESS, COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE,
-    compute_landmarks_statistic, update_path_)
+    COL_TIME, COL_ROBUSTNESS, compute_landmarks_statistic, update_path_)
 # from bm_experiments.bm_comp_perform import NAME_REPORT
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .9))
@@ -326,7 +325,9 @@ def main(path_experiment, path_cover, path_dataset, path_output,
     # drop Warp* column from Cover which should be empty
     df_cover = df_cover.drop([col for col in df_cover.columns if 'warped' in col.lower()],
                              axis=1, errors='ignore')
-    df_results = pd.read_csv(path_results)[COVER_COLUMNS_WRAP + [COL_TIME]]
+    df_results = pd.read_csv(path_results)
+    df_results = df_results[[col for col in list(COVER_COLUMNS_WRAP) + [COL_TIME]
+                             if col in df_results.columns]]
     df_experiments = pd.merge(df_cover, df_results, how='left', on=COVER_COLUMNS)
     df_experiments.drop([COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP],
                         axis=1, errors='ignore', inplace=True)
