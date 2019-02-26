@@ -44,7 +44,7 @@ ENV PATH="/home/evaluator/.local/bin:${PATH}"
 COPY --chown=evaluator:evaluator ./evaluate_submission.py /opt/evaluation/
 COPY --chown=evaluator:evaluator ./dataset_ANHIR/dataset_medium.csv /opt/evaluation/dataset.csv
 COPY --chown=evaluator:evaluator ./dataset_ANHIR/computer-performances_cmpgrid-71.json /opt/evaluation/computer-performances.json
-COPY --chown=evaluator:evaluator ./dataset_ANHIR/landmarks_extend /opt/evaluation/lnds_provided
+COPY --chown=evaluator:evaluator ./dataset_ANHIR/landmarks_user /opt/evaluation/lnds_provided
 COPY --chown=evaluator:evaluator ./dataset_ANHIR/landmarks_all /opt/evaluation/lnds_reference
 
 ENTRYPOINT "python" "evaluate_submission.py" \
@@ -53,4 +53,5 @@ ENTRYPOINT "python" "evaluate_submission.py" \
     "-d" "/opt/evaluation/lnds_provided" \
     "-r" "/opt/evaluation/lnds_reference" \
     "-p" "/opt/evaluation/computer-performances.json" \
-    "-o" "/output"
+    "-o" "/output" \
+    "--min_landmarks" 0.20

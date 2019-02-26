@@ -35,15 +35,17 @@ DOCKER
     -d /opt/evaluation/lnds_provided \
     -r /opt/evaluation/lnds_reference \
     -p /opt/evaluation/computer-performances.json \
-    -o /output
+    -o /output \
+    --min_landmarks 0.20
 or run locally:
 >> python evaluate_submission.py \
     -e bm_ANHIR/submission \
     -c bm_ANHIR/dataset_ANHIR/dataset_medium.csv \
-    -d bm_ANHIR/dataset_ANHIR/landmarks_extend \
+    -d bm_ANHIR/dataset_ANHIR/landmarks_user \
     -r bm_ANHIR/dataset_ANHIR/landmarks_all \
     -p bm_ANHIR/dataset_ANHIR/computer-performances_cmpgrid-71.json \
-    -o output
+    -o output \
+    --min_landmarks 0.20
 
 References:
 * https://grand-challengeorg.readthedocs.io/en/latest/evaluation.html
@@ -68,8 +70,9 @@ from benchmark.utilities.data_io import create_folder, load_landmarks, save_land
 from benchmark.utilities.dataset import common_landmarks, parse_path_scale
 from benchmark.utilities.experiments import wrap_execute_sequence, parse_arg_params
 from benchmark.cls_benchmark import (
-    NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP,
-    COL_POINTS_REF, COL_POINTS_MOVE, COL_TIME, COL_ROBUSTNESS, COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE,
+    NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COVER_COLUMNS_WRAP,
+    COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP, COL_POINTS_REF, COL_POINTS_MOVE,
+    COL_TIME, COL_ROBUSTNESS, COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE,
     compute_landmarks_statistic, update_path_)
 # from bm_experiments.bm_comp_perform import NAME_REPORT
 
@@ -323,8 +326,7 @@ def main(path_experiment, path_cover, path_dataset, path_output,
     # drop Warp* column from Cover which should be empty
     df_cover = df_cover.drop([col for col in df_cover.columns if 'warped' in col.lower()],
                              axis=1, errors='ignore')
-    df_results = pd.read_csv(path_results).drop([COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE, 'status'],
-                                                axis=1, errors='ignore')
+    df_results = pd.read_csv(path_results)[COVER_COLUMNS_WRAP + [COL_TIME]]
     df_experiments = pd.merge(df_cover, df_results, how='left', on=COVER_COLUMNS)
     df_experiments.drop([COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP],
                         axis=1, errors='ignore', inplace=True)

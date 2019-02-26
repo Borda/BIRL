@@ -4,23 +4,28 @@ This is short description with instruction notes how to create image to be uploa
 For newbies, please see [Get started with Docker](https://docs.docker.com/get-started).
 First you need to install Docker.io and run everything as super user `sudo -i`.
 
+## Build and export
 
-## Build
+For all operation with docker images you need to be super-user, simply run `sudo -i` and continue with following commands.
 
-Copy the required data to the local directory
+Before you start, you need to adjust the ration of provided landmarks in `Dockerfile` using `--min_landmarks` parameter in Entry point.
+
+### Build
+
+Copy the required data to the local directory and execute from actual location inside bm_ANHIR folder
 
 ```bash
 docker build -t anhir -f Dockerfile .
 ```
 
-## Run and Test
+### Run and Test
 
 Run one of following sample registration experiments:
  * simulate the ideal registration, assuming having all landmarks
     ```bash
     python benchmark/bm_template.py \
         -c ~/Medical-data/dataset_ANHIR/images/dataset_medium.csv \
-        -d ~/Medical-temp/dataset_ANHIR/images \
+        -d ~/Medical-data/dataset_ANHIR/images \
         -o ~/Medical-temp/experiments_anhir/ \
         --an_executable none
     python bm_experiments/bm_comp_perform.py -o ~/Medical-temp/experiments_anhir/BmTemplate
@@ -32,7 +37,7 @@ Run one of following sample registration experiments:
     ```bash
     python bm_experiments/bm_bunwarpj.py \
         -c ~/Medical-data/dataset_ANHIR/images/dataset_medium.csv \
-        -d ~/Medical-temp/dataset_ANHIR/images \
+        -d ~/Medical-data/dataset_ANHIR/images \
         -o ~/Medical-temp/experiments_anhir/ \
         --run_comp_benchmark \
         -fiji ~/Applications/Fiji.app/ImageJ-linux64 \
@@ -56,7 +61,7 @@ docker run --rm -it \
 ```
 
 
-## Export 
+### Export 
 
 Export the created image to be uploaded to the evaluation system.
 ```bash
@@ -66,7 +71,7 @@ docker save anhir > anhir.tar
 docker save anhir | gzip -c > anhir.tar.gz
 ```
 
-## Browsing images
+## Browsing and cleaning
 
 **Browsing**
 To see your local biulded images use:

@@ -65,6 +65,8 @@ COL_IMAGE_DIAGONAL = 'Image diagonal [pixels]'
 # list of columns in cover csv
 COVER_COLUMNS = (COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_REF, COL_POINTS_MOVE)
 COVER_COLUMNS_EXT = tuple(list(COVER_COLUMNS) + [COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL])
+COVER_COLUMNS_WRAP = tuple(list(COVER_COLUMNS) + [COL_IMAGE_REF_WARP, COL_IMAGE_MOVE_WARP,
+                                                  COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP])
 
 
 # fixing ImportError: No module named 'copy_reg' for Python3
