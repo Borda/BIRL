@@ -25,7 +25,8 @@ EXAMPLE
     -d ./data_images \
     -r ./data_images \
     -p ./bm_experiments/computer-performances_cmpgrid-71.json \
-    -o ./output
+    -o ./output \
+    --min_landmarks 0.20
 
 DOCKER
 ------
@@ -186,16 +187,18 @@ def parse_landmarks(idx_row):
     #     if isinstance(row[COL_POINTS_MOVE_WARP], str)else np.array([[]])
     path_dir = os.path.dirname(row[COL_POINTS_MOVE])
     match_lnds = np.nan_to_num(row[COL_FOUND_LNDS]) if COL_FOUND_LNDS in row else 0.
+    robust = int(row['TRE Mean (final)'] < row['TRE Mean (init)']) \
+        if 'TRE Mean (final)' in row else 0.
     record = {
-        'tissue': os.path.basename(os.path.dirname(path_dir)),
-        'scale': parse_path_scale(os.path.basename(path_dir)),
-        'reference-name': os.path.splitext(os.path.basename(row[COL_POINTS_REF]))[0],
-        'source-name': os.path.splitext(os.path.basename(row[COL_POINTS_MOVE]))[0],
+        'name-tissue': os.path.basename(os.path.dirname(path_dir)),
+        'scale-tissue': parse_path_scale(os.path.basename(path_dir)),
+        'name-reference': os.path.splitext(os.path.basename(row[COL_POINTS_REF]))[0],
+        'name-source': os.path.splitext(os.path.basename(row[COL_POINTS_MOVE]))[0],
         # 'reference landmarks': np.round(lnds_ref, 1).tolist(),
         # 'warped landmarks': np.round(lnds_warp, 1).tolist(),
         'matched-landmarks': match_lnds,
-        'robustness': int(row['rTRE Mean (final)'] < row['rTRE Mean (init)']),
-        'time': row[COL_NORM_TIME]
+        'Robustness': robust,
+        'Norm-Time_minutes': row[COL_NORM_TIME]
     }
     # copy all columns with rTRE, TRE and Overlap
     record.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
@@ -214,7 +217,10 @@ def compute_scores(df_experiments, min_landmarks=1.):
     :return {}: results
     """
     # if the initial overlap and submitted overlap do not mach, drop results
-    hold_overlap = df_experiments['Overlap points (init)'] == df_experiments['Overlap points (final)']
+    if 'overlap points (final)' not in df_experiments.columns:
+        raise ValueError('Missing `overlap points (final)` column,'
+                         ' because there are probably missing wrap landmarks.')
+    hold_overlap = df_experiments['overlap points (init)'] == df_experiments['overlap points (final)']
     mask_incomplete = ~hold_overlap | df_experiments[COL_FOUND_LNDS] < min_landmarks
     # rewrite incomplete cases by initila stat
     if sum(mask_incomplete) > 0:
@@ -248,8 +254,8 @@ def compute_scores(df_experiments, min_landmarks=1.):
         'Average-Max-rTRE-Robust': df_summary_robust['rTRE Max (final)']['mean'],
         'Average-Rank-Max-rTRE': None,
         'Average-used-landmarks': score_used_lnds,
-        'Average-Time': time_all,
-        'Average-Time-Robust': time_robust,
+        'Average-Norm-Time': time_all,
+        'Average-Norm-Time-Robust': time_robust,
     }
     return scores
 
@@ -272,14 +278,14 @@ def export_summary_json(df_experiments, path_experiments, path_output, min_landm
         match values in COL_FOUND_LNDS
     :return str: path to exported results
     """
+    # export partial results
+    cases = list(wrap_execute_sequence(parse_landmarks, df_experiments.iterrows(),
+                                       desc='Parsing landmarks', nb_workers=1))
+
     # copy the initial to final for missing
     for col, col2 in zip(*_filter_measure_columns(df_experiments)):
         mask = df_experiments[col].isnull()
         df_experiments.loc[mask, col] = df_experiments.loc[mask, col2]
-
-    # export partial results
-    cases = list(wrap_execute_sequence(parse_landmarks, df_experiments.iterrows(),
-                                       desc='Parsing landmarks', nb_workers=1))
 
     # parse final metrics
     scores = compute_scores(df_experiments, min_landmarks)

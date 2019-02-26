@@ -483,6 +483,9 @@ def compute_landmarks_statistic(idx_row, df_experiments,
         row2 = df_experiments.loc[idx]
         robust = row2['TRE Mean (final)'] < row2['TRE Mean (init)']
         df_experiments.loc[idx, COL_ROBUSTNESS] = int(robust)
+    else:
+        logging.debug('Number of target (%i) and warped (%i) landmarks does not match.',
+                      len(points_target), len(points_warped))
 
 
 def compute_landmarks_inaccuracy(df_experiments, idx, points1, points2,
@@ -500,11 +503,11 @@ def compute_landmarks_inaccuracy(df_experiments, idx, points1, points2,
     if img_diag is not None:
         df_experiments.at[idx, COL_IMAGE_DIAGONAL] = img_diag
     # update particular idx
-    for name in (n for n in stat if n not in ['Overlap points']):
+    for name in (n for n in stat if n not in ['overlap points']):
         if img_diag is not None:
             df_experiments.at[idx, 'rTRE %s (%s)' % (name, state)] = stat[name] / img_diag
         df_experiments.at[idx, 'TRE %s (%s)' % (name, state)] = stat[name]
-    for name in ['Overlap points']:
+    for name in ['overlap points']:
         df_experiments.at[idx, '%s (%s)' % (name, state)] = stat[name]
 
 
