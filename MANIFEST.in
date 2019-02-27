@@ -42,5 +42,7 @@ include requirements.txt
 exclude *.yml
 
 prune .git
+prune .github
 prune venv
+prune temp*
 prune test*
