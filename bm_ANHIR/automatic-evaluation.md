@@ -25,7 +25,7 @@ Run one of following sample registration experiments:
     ```bash
     python benchmark/bm_template.py \
         -c ~/Medical-data/dataset_ANHIR/images/dataset_medium.csv \
-        -d ~/Medical-data/dataset_ANHIR/images \
+        -d ~/Medical-temp/dataset_ANHIR/images \
         -o ~/Medical-temp/experiments_anhir/ \
         --an_executable none
     python bm_experiments/bm_comp_perform.py -o ~/Medical-temp/experiments_anhir/BmTemplate
@@ -37,7 +37,7 @@ Run one of following sample registration experiments:
     ```bash
     python bm_experiments/bm_bunwarpj.py \
         -c ~/Medical-data/dataset_ANHIR/images/dataset_medium.csv \
-        -d ~/Medical-data/dataset_ANHIR/images \
+        -d ~/Medical-temp/dataset_ANHIR/images \
         -o ~/Medical-temp/experiments_anhir/ \
         --run_comp_benchmark \
         -fiji ~/Applications/Fiji.app/ImageJ-linux64 \
