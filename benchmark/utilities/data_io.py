@@ -171,6 +171,7 @@ def save_landmarks_csv(path_file, landmarks):
     assert os.path.splitext(path_file)[-1] == '.csv', \
         'wrong file extension "%s"' % os.path.basename(path_file)
     df = pd.DataFrame(landmarks, columns=LANDMARK_COORDS)
+    df.index = np.arange(1, len(df) + 1)
     df.to_csv(path_file)
 
 
