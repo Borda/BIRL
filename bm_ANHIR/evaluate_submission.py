@@ -111,12 +111,11 @@ def create_parser():
     return parser
 
 
-def filter_landmarks(idx_row, df_experiments, path_experiments, path_dataset, path_reference):
+def filter_landmarks(idx_row, path_output, path_dataset, path_reference):
     """ filter all relevant landmarks which were used and copy them to experiment
 
     :param (idx, {}|Series) idx_row: experiment DataFrame
-    :param DF df_experiments: experiment DataFrame
-    :param str path_experiments: path to experiment folder
+    :param str path_output: path to output folder
     :param str path_dataset: path to provided landmarks
     :param str path_reference: path to the complete landmark collection
     :return (idx, float): record index and match ratio
@@ -132,7 +131,7 @@ def filter_landmarks(idx_row, df_experiments, path_experiments, path_dataset, pa
     # moving and reference landmarks
     for col in [COL_POINTS_REF, COL_POINTS_MOVE]:
         path_in = update_path_(row[col], path_reference)
-        path_out = update_path_(row[col], path_experiments)
+        path_out = update_path_(row[col], path_output)
         create_folder(os.path.dirname(path_out), ok_existing=True)
         save_landmarks(path_out, load_landmarks(path_in)[ind_ref])
 
@@ -222,7 +221,7 @@ def compute_scores(df_experiments, min_landmarks=1.):
                          ' because there are probably missing wrap landmarks.')
     hold_overlap = df_experiments['overlap points (init)'] == df_experiments['overlap points (final)']
     mask_incomplete = ~hold_overlap | df_experiments[COL_FOUND_LNDS] < min_landmarks
-    # rewrite incomplete cases by initila stat
+    # rewrite incomplete cases by initial stat
     if sum(mask_incomplete) > 0:
         for col_f, col_i in zip(*_filter_measure_columns(df_experiments)):
             df_experiments.loc[mask_incomplete, col_f] = df_experiments.loc[mask_incomplete, col_i]
@@ -341,16 +340,15 @@ def main(path_experiment, path_cover, path_dataset, path_output,
     normalize_exec_time(df_experiments, path_experiment, path_comp_bm)
 
     logging.info('Filter used landmarks.')
-    _filter_lnds = partial(filter_landmarks, df_experiments=df_experiments,
-                           path_experiments=path_experiment, path_dataset=path_dataset,
-                           path_reference=path_reference)
+    _filter_lnds = partial(filter_landmarks, path_output=path_output,
+                           path_dataset=path_dataset, path_reference=path_reference)
     for idx, ratio in wrap_execute_sequence(_filter_lnds, df_experiments.iterrows(),
                                             desc='Filtering', nb_workers=nb_workers):
         df_experiments.loc[idx, COL_FOUND_LNDS] = np.round(ratio, 2)
 
     logging.info('Compute landmarks statistic.')
     _compute_lnds_stat = partial(compute_landmarks_statistic, df_experiments=df_experiments,
-                                 path_dataset=path_experiment, path_experiment=path_experiment)
+                                 path_dataset=path_output, path_experiment=path_experiment)
     # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
     list(wrap_execute_sequence(_compute_lnds_stat, df_experiments.iterrows(),
                                desc='Statistic', nb_workers=1))
