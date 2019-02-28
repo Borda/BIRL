@@ -42,7 +42,7 @@ from benchmark.utilities.experiments import (wrap_execute_sequence,
                                              parse_arg_params, is_iterable)
 from benchmark.utilities.data_io import create_folder, load_landmarks_csv, save_landmarks_csv
 from benchmark.utilities.dataset import (list_sub_folders, parse_path_scale,
-                                         compute_convex_hull, inside_polygon)
+                                         compute_bounding_polygon, inside_polygon)
 from benchmark.utilities.registration import estimate_affine_transform, transform_points
 from bm_dataset.rescale_tissue_images import NB_THREADS, DEFAULT_SCALES, FOLDER_TEMPLATE
 
@@ -98,9 +98,8 @@ def generate_random_points_inside(ref_points, nb_extras):
     :param int nb_extras: number of point to be added
     :return [(int, int)]: extra points
     """
-    # estimate convex hull
-    # todo: find a tighter approximation, not all tissue is really convex
-    convex_polygon = compute_convex_hull(ref_points)
+    # tighter approximation, not all tissue is really convex
+    convex_polygon = compute_bounding_polygon(ref_points)
     poly_mins = np.min(convex_polygon, axis=0)
     poly_size = np.max(convex_polygon, axis=0) - poly_mins
     # generate sample points inside polygon
