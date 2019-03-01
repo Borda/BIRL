@@ -470,10 +470,11 @@ def get_close_diag_corners(points):
     return pt_begin, pt_end, (idx_begin, idx_end)
 
 
-def simplify_polygon(points):
+def simplify_polygon(points, tol_degree=5):
     """ simplify path, drop point on the same line
 
     :param ndarray points: point in polygon
+    :param float tol: tolerance on change in orientation
     :return [[float]]:
 
     >>> pts = [[1, 2], [2, 4], [1, 5], [2, 8], [3, 8], [5, 8], [7, 8], [8, 7],
@@ -484,12 +485,11 @@ def simplify_polygon(points):
     if len(points) < 3:
         return points
     path = [points[0]]
-    angle0 = line_angle_2d(points[0], points[1])
     for i in range(1, len(points)):
-        angle1 = line_angle_2d(points[i], points[(i + 1) % len(points)])
-        if not angle0 == angle1:
+        angle0 = line_angle_2d(path[-1], points[i], deg=True)
+        angle1 = line_angle_2d(points[i], points[(i + 1) % len(points)], deg=True)
+        if abs(norm_angle(angle0 - angle1, deg=True)) > tol_degree:
             path.append(points[i])
-        angle0 = angle1
     return np.array(path).tolist()
 
 
