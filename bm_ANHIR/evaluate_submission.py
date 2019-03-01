@@ -25,7 +25,8 @@ EXAMPLE
     -d ./data_images \
     -r ./data_images \
     -p ./bm_experiments/computer-performances_cmpgrid-71.json \
-    -o ./output
+    -o ./output \
+    --min_landmarks 0.20
 
 DOCKER
 ------
@@ -35,15 +36,17 @@ DOCKER
     -d /opt/evaluation/lnds_provided \
     -r /opt/evaluation/lnds_reference \
     -p /opt/evaluation/computer-performances.json \
-    -o /output
+    -o /output \
+    --min_landmarks 0.20
 or run locally:
 >> python evaluate_submission.py \
     -e bm_ANHIR/submission \
     -c bm_ANHIR/dataset_ANHIR/dataset_medium.csv \
-    -d bm_ANHIR/dataset_ANHIR/landmarks_extend \
+    -d bm_ANHIR/dataset_ANHIR/landmarks_user \
     -r bm_ANHIR/dataset_ANHIR/landmarks_all \
     -p bm_ANHIR/dataset_ANHIR/computer-performances_cmpgrid-71.json \
-    -o output
+    -o output \
+    --min_landmarks 0.20
 
 References:
 * https://grand-challengeorg.readthedocs.io/en/latest/evaluation.html
@@ -68,9 +71,9 @@ from benchmark.utilities.data_io import create_folder, load_landmarks, save_land
 from benchmark.utilities.dataset import common_landmarks, parse_path_scale
 from benchmark.utilities.experiments import wrap_execute_sequence, parse_arg_params
 from benchmark.cls_benchmark import (
-    NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP,
-    COL_POINTS_REF, COL_POINTS_MOVE, COL_TIME, COL_ROBUSTNESS, COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE,
-    compute_landmarks_statistic, update_path_)
+    NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COVER_COLUMNS_WRAP,
+    COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP, COL_POINTS_REF, COL_POINTS_MOVE,
+    COL_TIME, COL_ROBUSTNESS, compute_landmarks_statistic, update_path_)
 # from bm_experiments.bm_comp_perform import NAME_REPORT
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .9))
@@ -108,12 +111,11 @@ def create_parser():
     return parser
 
 
-def filter_landmarks(idx_row, df_experiments, path_experiments, path_dataset, path_reference):
+def filter_landmarks(idx_row, path_output, path_dataset, path_reference):
     """ filter all relevant landmarks which were used and copy them to experiment
 
     :param (idx, {}|Series) idx_row: experiment DataFrame
-    :param DF df_experiments: experiment DataFrame
-    :param str path_experiments: path to experiment folder
+    :param str path_output: path to output folder
     :param str path_dataset: path to provided landmarks
     :param str path_reference: path to the complete landmark collection
     :return (idx, float): record index and match ratio
@@ -129,7 +131,7 @@ def filter_landmarks(idx_row, df_experiments, path_experiments, path_dataset, pa
     # moving and reference landmarks
     for col in [COL_POINTS_REF, COL_POINTS_MOVE]:
         path_in = update_path_(row[col], path_reference)
-        path_out = update_path_(row[col], path_experiments)
+        path_out = update_path_(row[col], path_output)
         create_folder(os.path.dirname(path_out), ok_existing=True)
         save_landmarks(path_out, load_landmarks(path_in)[ind_ref])
 
@@ -184,16 +186,18 @@ def parse_landmarks(idx_row):
     #     if isinstance(row[COL_POINTS_MOVE_WARP], str)else np.array([[]])
     path_dir = os.path.dirname(row[COL_POINTS_MOVE])
     match_lnds = np.nan_to_num(row[COL_FOUND_LNDS]) if COL_FOUND_LNDS in row else 0.
+    robust = int(row['TRE Mean (final)'] < row['TRE Mean (init)']) \
+        if 'TRE Mean (final)' in row else 0.
     record = {
-        'tissue': os.path.basename(os.path.dirname(path_dir)),
-        'scale': parse_path_scale(os.path.basename(path_dir)),
-        'reference-name': os.path.splitext(os.path.basename(row[COL_POINTS_REF]))[0],
-        'source-name': os.path.splitext(os.path.basename(row[COL_POINTS_MOVE]))[0],
+        'name-tissue': os.path.basename(os.path.dirname(path_dir)),
+        'scale-tissue': parse_path_scale(os.path.basename(path_dir)),
+        'name-reference': os.path.splitext(os.path.basename(row[COL_POINTS_REF]))[0],
+        'name-source': os.path.splitext(os.path.basename(row[COL_POINTS_MOVE]))[0],
         # 'reference landmarks': np.round(lnds_ref, 1).tolist(),
         # 'warped landmarks': np.round(lnds_warp, 1).tolist(),
         'matched-landmarks': match_lnds,
-        'robustness': int(row['rTRE Mean (final)'] < row['rTRE Mean (init)']),
-        'time': row[COL_NORM_TIME]
+        'Robustness': robust,
+        'Norm-Time_minutes': row[COL_NORM_TIME]
     }
     # copy all columns with rTRE, TRE and Overlap
     record.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
@@ -212,9 +216,12 @@ def compute_scores(df_experiments, min_landmarks=1.):
     :return {}: results
     """
     # if the initial overlap and submitted overlap do not mach, drop results
-    hold_overlap = df_experiments['Overlap points (init)'] == df_experiments['Overlap points (final)']
+    if 'overlap points (final)' not in df_experiments.columns:
+        raise ValueError('Missing `overlap points (final)` column,'
+                         ' because there are probably missing wrap landmarks.')
+    hold_overlap = df_experiments['overlap points (init)'] == df_experiments['overlap points (final)']
     mask_incomplete = ~hold_overlap | df_experiments[COL_FOUND_LNDS] < min_landmarks
-    # rewrite incomplete cases by initila stat
+    # rewrite incomplete cases by initial stat
     if sum(mask_incomplete) > 0:
         for col_f, col_i in zip(*_filter_measure_columns(df_experiments)):
             df_experiments.loc[mask_incomplete, col_f] = df_experiments.loc[mask_incomplete, col_i]
@@ -246,8 +253,8 @@ def compute_scores(df_experiments, min_landmarks=1.):
         'Average-Max-rTRE-Robust': df_summary_robust['rTRE Max (final)']['mean'],
         'Average-Rank-Max-rTRE': None,
         'Average-used-landmarks': score_used_lnds,
-        'Average-Time': time_all,
-        'Average-Time-Robust': time_robust,
+        'Average-Norm-Time': time_all,
+        'Average-Norm-Time-Robust': time_robust,
     }
     return scores
 
@@ -270,14 +277,14 @@ def export_summary_json(df_experiments, path_experiments, path_output, min_landm
         match values in COL_FOUND_LNDS
     :return str: path to exported results
     """
+    # export partial results
+    cases = list(wrap_execute_sequence(parse_landmarks, df_experiments.iterrows(),
+                                       desc='Parsing landmarks', nb_workers=1))
+
     # copy the initial to final for missing
     for col, col2 in zip(*_filter_measure_columns(df_experiments)):
         mask = df_experiments[col].isnull()
         df_experiments.loc[mask, col] = df_experiments.loc[mask, col2]
-
-    # export partial results
-    cases = list(wrap_execute_sequence(parse_landmarks, df_experiments.iterrows(),
-                                       desc='Parsing landmarks', nb_workers=1))
 
     # parse final metrics
     scores = compute_scores(df_experiments, min_landmarks)
@@ -323,8 +330,9 @@ def main(path_experiment, path_cover, path_dataset, path_output,
     # drop Warp* column from Cover which should be empty
     df_cover = df_cover.drop([col for col in df_cover.columns if 'warped' in col.lower()],
                              axis=1, errors='ignore')
-    df_results = pd.read_csv(path_results).drop([COL_IMAGE_DIAGONAL, COL_IMAGE_SIZE, 'status'],
-                                                axis=1, errors='ignore')
+    df_results = pd.read_csv(path_results)
+    df_results = df_results[[col for col in list(COVER_COLUMNS_WRAP) + [COL_TIME]
+                             if col in df_results.columns]]
     df_experiments = pd.merge(df_cover, df_results, how='left', on=COVER_COLUMNS)
     df_experiments.drop([COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP],
                         axis=1, errors='ignore', inplace=True)
@@ -332,16 +340,15 @@ def main(path_experiment, path_cover, path_dataset, path_output,
     normalize_exec_time(df_experiments, path_experiment, path_comp_bm)
 
     logging.info('Filter used landmarks.')
-    _filter_lnds = partial(filter_landmarks, df_experiments=df_experiments,
-                           path_experiments=path_experiment, path_dataset=path_dataset,
-                           path_reference=path_reference)
+    _filter_lnds = partial(filter_landmarks, path_output=path_output,
+                           path_dataset=path_dataset, path_reference=path_reference)
     for idx, ratio in wrap_execute_sequence(_filter_lnds, df_experiments.iterrows(),
                                             desc='Filtering', nb_workers=nb_workers):
         df_experiments.loc[idx, COL_FOUND_LNDS] = np.round(ratio, 2)
 
     logging.info('Compute landmarks statistic.')
     _compute_lnds_stat = partial(compute_landmarks_statistic, df_experiments=df_experiments,
-                                 path_dataset=path_experiment, path_experiment=path_experiment)
+                                 path_dataset=path_output, path_experiment=path_experiment)
     # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
     list(wrap_execute_sequence(_compute_lnds_stat, df_experiments.iterrows(),
                                desc='Statistic', nb_workers=1))

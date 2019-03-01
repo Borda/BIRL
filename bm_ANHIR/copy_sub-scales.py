@@ -6,6 +6,7 @@ Copy files as all sub-scales
 import os
 import sys
 import shutil
+import logging
 
 import tqdm
 import pandas as pd
@@ -18,9 +19,10 @@ PATH_CSV = '/datagrid/Medical/dataset_ANHIR/images/dataset_medium.csv'
 PATH_IMAGES = '/datagrid/Medical/dataset_ANHIR/images'
 PATH_IMAGES_ALL = '/datagrid/Medical/dataset_ANHIR/images_private'
 PATH_LANDMARKS = '/datagrid/Medical/dataset_ANHIR/landmarks'
-PATH_LANDMARKS_ALL = '/datagrid/Medical/dataset_ANHIR/landmarks_all'
+PATH_LANDMARKS_ALL = '/datagrid/Medical/dataset_ANHIR/landmarks_user'
 SCALES = (2, 5, 10, 15, 20, 25, 50, 100)
 FOLDER_NAME = 'scale-%ipc'
+FORCE_COPY = False
 
 
 def main(path_csv, path_in, path_out, col_name):
@@ -39,13 +41,19 @@ def main(path_csv, path_in, path_out, col_name):
                 os.makedirs(path_dir)
             path_src = os.path.join(path_in, path_file)
             path_dst = os.path.join(path_out, path_file)
-            if os.path.isfile(path_dst) or not os.path.isfile(path_src):
+            if not os.path.isfile(path_src):
+                logging.debug('missing source file: %s', path_src)
                 continue
             # print(path_src, path_dst)
-            shutil.copy(path_src, path_dst)
+            if not os.path.isfile(path_dst) or FORCE_COPY:
+                shutil.copy(path_src, path_dst)
+            elif os.path.isfile(path_dst) and not FORCE_COPY:
+                logging.debug('existing target file: %s', path_dst)
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+
     main(PATH_CSV, PATH_LANDMARKS_ALL, PATH_LANDMARKS, COL_POINTS_MOVE)
     main(PATH_CSV, PATH_IMAGES_ALL, PATH_IMAGES, COL_IMAGE_REF)
     main(PATH_CSV, PATH_IMAGES_ALL, PATH_IMAGES, COL_IMAGE_MOVE)

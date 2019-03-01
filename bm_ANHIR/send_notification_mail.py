@@ -18,6 +18,10 @@ LOGIN = 'username'  # univ user name
 PASS = 'PASSWORD'  # my password
 SENDER = 'Jiri Borovec <jiri.borovec@fel.cvut.cz>'
 SUBJECT = 'ISBI 2019 - ANHIR - Image Registration Challenge'
+# UPDATE_MAIL_TXT = 'mail_dataset.txt'
+UPDATE_MAIL_TXT = 'mail_pre-release.txt'
+MAIL_LIST_CSV = 'mail-list-test.csv'
+# MAIL_LIST_CSV = 'mail-list.csv'
 
 
 def load_text(name_file):
@@ -42,13 +46,13 @@ def prepare_mail_invitation(name, pub, doi, link):
     return text
 
 
-def prepare_mail_update(name):
+def prepare_mail_update(name, mail_txt=UPDATE_MAIL_TXT):
     """ prepare general mail
 
     :param str name: Participant
     :return str:
     """
-    text = load_text('mail_dataset.txt')
+    text = load_text(mail_txt)
     text = text.replace('<NAME>', name)
     return text
 
@@ -109,4 +113,4 @@ def main(path_csv):
 
 
 if __name__ == '__main__':
-    main('mail-list-test.csv')
+    main(MAIL_LIST_CSV)

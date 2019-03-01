@@ -13,8 +13,15 @@ EXAMPLE
 
 >> python bm_dataset/rescale_tissue_landmarks.py \
     -a /datagrid/Medical/dataset_ANHIR/landmarks_all \
-    -d /datagrid/Medical/dataset_ANHIR/landmarks_extend \
-    --scales 2 5 10 15 20 25 50 100 --nb_selected 20
+    -d /datagrid/Medical/dataset_ANHIR/landmarks_user \
+    --scales 2 5 10 15 20 25 50 100 --nb_selected 0.2
+
+In case, you are working with the user annotation you need to generate consensus
+landmark annotation first, using https://borda.github.io/dataset-histology-landmarks/
+>> python handlers/run_generate_landmarks.py \
+    -a /datagrid/Medical/dataset_ANHIR/landmarks_annot \
+    -d /datagrid/Medical/dataset_ANHIR/landmarks_all \
+    --scales 2 5 10 15 20 25 50 100
 
 Copyright (C) 2014-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -35,7 +42,7 @@ from benchmark.utilities.experiments import (wrap_execute_sequence,
                                              parse_arg_params, is_iterable)
 from benchmark.utilities.data_io import create_folder, load_landmarks_csv, save_landmarks_csv
 from benchmark.utilities.dataset import (list_sub_folders, parse_path_scale,
-                                         compute_convex_hull, inside_polygon)
+                                         compute_bounding_polygon, inside_polygon)
 from benchmark.utilities.registration import estimate_affine_transform, transform_points
 from bm_dataset.rescale_tissue_images import NB_THREADS, DEFAULT_SCALES, FOLDER_TEMPLATE
 
@@ -91,9 +98,8 @@ def generate_random_points_inside(ref_points, nb_extras):
     :param int nb_extras: number of point to be added
     :return [(int, int)]: extra points
     """
-    # estimate convex hull
-    # todo: find a tighter approximation, not all tissue is really convex
-    convex_polygon = compute_convex_hull(ref_points)
+    # tighter approximation, not all tissue is really convex
+    convex_polygon = compute_bounding_polygon(ref_points)
     poly_mins = np.min(convex_polygon, axis=0)
     poly_size = np.max(convex_polygon, axis=0) - poly_mins
     # generate sample points inside polygon
@@ -218,7 +224,7 @@ def dataset_expand_landmarks(path_annots, path_dataset, nb_selected=None,
     _wrap_extend = partial(extend_landmarks, path_dataset=path_dataset,
                            nb_selected=nb_selected, nb_total=nb_total)
     counts = list(wrap_execute_sequence(_wrap_extend, sorted(list_sets),
-                                        nb_workers=nb_workers, desc='extend landmarks'))
+                                        nb_workers=nb_workers, desc='expand landmarks'))
     return counts
 
 

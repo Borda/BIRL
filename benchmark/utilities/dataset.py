@@ -270,6 +270,259 @@ def parse_path_scale(path_folder):
     return scale
 
 
+def line_angle_2d(point_begin, point_end, deg=True):
+    """ Compute direction of line with given two points
+
+    the zero is horizontal in direction [1, 0]
+
+    :param [float] point_begin: starting line point
+    :param [float] point_end: ending line point
+    :param bool deg: return angle in degrees
+    :return float:
+
+    >>> [line_angle_2d([0, 0], p) for p in ((1, 0), (0, 1), (-1, 0), (0, -1))]
+    [0.0, 90.0, 180.0, -90.0]
+    >>> line_angle_2d([1, 1], [2, 3])  # doctest: +ELLIPSIS
+    63.43...
+    >>> line_angle_2d([1, 2], [-2, -3])  # doctest: +ELLIPSIS
+    -120.96...
+    """
+    diff = np.asarray(point_end) - np.asarray(point_begin)
+    angle = -np.arctan2(diff[0], diff[1]) + np.pi / 2.
+    if deg:
+        angle = angle / np.pi * 180.
+    angle = norm_angle(angle, deg)
+    return angle
+
+
+def norm_angle(angle, deg=True):
+    """ Normalise to be in range (-180, 180) degrees
+
+    :param float angle: inut angle
+    :param bool deg: use degrees
+    :return float: norma angle
+    """
+    alpha = 180. if deg else np.pi
+    while angle > alpha:
+        angle = -2 * alpha + angle
+    while angle < -alpha:
+        angle = 2 * alpha + angle
+    return angle
+
+
+def is_point_inside_perpendicular(point_begin, point_end, point_test):
+    """ If point is left from line and perpendicularly in between line segment
+
+    Note that negative response does not mean that that the point is on tight side
+
+    :param [float] point_begin: starting line point
+    :param [float] point_end: ending line point
+    :param [float] point_test: testing point
+    :return int: gives +1 if it is above, -1 if bellow and 0 elsewhere
+
+    >>> is_point_inside_perpendicular([1, 1], [3, 1], [2, 2])
+    1
+    >>> is_point_inside_perpendicular([1, 1], [3, 1], [2, 0])
+    -1
+    >>> is_point_inside_perpendicular([1, 1], [3, 1], [4, 2])
+    0
+    """
+    angle_line = line_angle_2d(point_begin, point_end, deg=True)
+    # compute angle of end - test compare to begin - end
+    angle_a = norm_angle(line_angle_2d(point_end, point_test, deg=True) - angle_line, deg=True)
+    # compute angle of begin - test compare to begin - end
+    angle_b = norm_angle(line_angle_2d(point_begin, point_test, deg=True) - angle_line, deg=True)
+    if (angle_a >= 90) and (angle_b <= 90):
+        state = 1
+    elif (angle_a <= -90) and (angle_b >= -90):
+        state = -1
+    else:
+        state = 0
+    return state
+
+
+def is_point_in_quadrant_left(point_begin, point_end, point_test):
+    """ If point is left quadrant from line end point
+
+    Note that negative response does not mean that that the point is on tight side
+
+    :param [float] point_begin: starting line point
+    :param [float] point_end: ending line point
+    :param [float] point_test: testing point
+    :return int: gives +1 if it is above, -1 if bellow and 0 elsewhere
+
+    >>> is_point_in_quadrant_left([1, 1], [3, 1], [2, 2])
+    1
+    >>> is_point_in_quadrant_left([3, 1], [1, 1], [2, 0])
+    1
+    >>> is_point_in_quadrant_left([1, 1], [3, 1], [2, 0])
+    -1
+    >>> is_point_in_quadrant_left([1, 1], [3, 1], [4, 2])
+    0
+    """
+    angle_line = line_angle_2d(point_begin, point_end, deg=True)
+    # compute angle of end - test compare to begin - end
+    angle_pt = norm_angle(line_angle_2d(point_end, point_test, deg=True) - angle_line, deg=True)
+    if (180 >= angle_pt >= 90) or angle_pt == -180:
+        state = 1
+    elif (-180 <= angle_pt <= -90) or angle_pt == 180:
+        state = -1
+    else:
+        state = 0
+    return state
+
+
+def is_point_above_line(point_begin, point_end, point_test):
+    """ If point is left from line
+
+    :param [float] point_begin: starting line point
+    :param [float] point_end: ending line point
+    :param [float] point_test: testing point
+    :return bool: left from line
+
+    >>> is_point_above_line([1, 1], [2, 2], [3, 4])
+    True
+    """
+    # compute angle of end - test compare to begin - end
+    angle_line = line_angle_2d(point_begin, point_end, deg=True)
+    angle_test = line_angle_2d(point_end, point_test, deg=True)
+    state = 0 <= norm_angle(angle_test - angle_line, deg=True) <= 180
+    return state
+
+
+def compute_half_polygon(landmarks, idx_start=0, idx_end=-1):
+    """ compute half polygon path
+
+    :param int idx_start: index of starting point
+    :param int idx_end: index of ending point
+    :param ndarray landmarks: set of points
+    :return ndarray:
+
+    >>> pts = [(-1, 1), (0, 0), (0, 2), (1, 1), (1, -0.5), (2, 0)]
+    >>> compute_half_polygon(pts, idx_start=0, idx_end=-1)
+    [[-1.0, 1.0], [0.0, 2.0], [1.0, 1.0], [2.0, 0.0]]
+    >>> compute_half_polygon(pts[:2], idx_start=-1, idx_end=0)
+    [[-1, 1], [0, 0]]
+    >>> pts = [[0, 2], [1, 5], [2, 4], [2, 5], [4, 4], [4, 6], [4, 8], [5, 8], [5, 8]]
+    >>> compute_half_polygon(pts)
+    [[0, 2], [1, 5], [2, 5], [4, 6], [4, 8], [5, 8]]
+    """
+    # the three or less are always minimal polygon
+    if len(landmarks) < 3:
+        return np.array(landmarks).tolist()
+    # normalise indexes to be larger then 0
+    while idx_start < 0:
+        idx_start = len(landmarks) + idx_start
+    while idx_end < 0:
+        idx_end = len(landmarks) + idx_end
+    # select points
+    pt_begin, pt_end = landmarks[idx_start], landmarks[idx_end]
+    del idx_start, idx_end
+    # only unique points
+    points = np.vstack({tuple(lnd) for lnd in landmarks})
+    dists = spatial.distance.cdist(points, points, metric='euclidean')
+    poly = [pt_begin]
+
+    def _in(pt0, pts):
+        return any([np.array_equal(pt, pt0) for pt in pts])
+
+    def _disturbed(poly, pt_new, pt_test):
+        last = is_point_in_quadrant_left(poly[-1], pt_new, pt_test) == 1
+        path = sum(is_point_inside_perpendicular(pt0, pt1, pt_test)
+                   for pt0, pt1 in zip(poly, poly[1:] + [pt_new])) < 0
+        return last and not path
+
+    # iterated until you add the lst point to chain
+    while not np.array_equal(poly[-1], pt_end):
+        idx_last = np.argmax([np.array_equal(pt, poly[-1]) for pt in points])
+        # walk over ordered list by distance starting with the closest
+        pt_order = np.argsort(dists[idx_last])
+        # iterate over all possible candidates not in chain already
+        for pt0 in (pt for pt in points[pt_order] if not _in(pt, poly)):
+            # find a point which does not have any point on the left perpendic
+            if any(_disturbed(poly, pt0, pt) for pt in points if not _in(pt, poly + [pt0])):
+                continue
+            else:
+                poly.append(pt0)
+                break
+    poly = np.array(poly).tolist()
+    return poly
+
+
+def get_close_diag_corners(points):
+    """ finds points closes to the top left and bottom right corner
+
+    :param ndarray points: set of points
+    :return (ndarray, ndarray): begin and end of imaginary diagonal
+
+    >>> np.random.seed(0)
+    >>> points = np.random.randint(1, 9, (20, 2))
+    >>> get_close_diag_corners(points)
+    (array([1, 2]), array([7, 8]), (12, 10))
+    """
+    pt_min = np.min(points, axis=0)
+    pt_max = np.max(points, axis=0)
+    dists = spatial.distance.cdist([pt_min, pt_max], points)
+    idx_begin = np.argmin(dists[0])
+    idx_end = np.argmin(dists[1])
+    pt_begin = points[np.argmin(dists[0])]
+    pt_end = points[np.argmin(dists[1])]
+    return pt_begin, pt_end, (idx_begin, idx_end)
+
+
+def simplify_polygon(points, tol_degree=5):
+    """ simplify path, drop point on the same line
+
+    :param ndarray points: point in polygon
+    :param float tol: tolerance on change in orientation
+    :return [[float]]:
+
+    >>> pts = [[1, 2], [2, 4], [1, 5], [2, 8], [3, 8], [5, 8], [7, 8], [8, 7],
+    ...     [8, 5], [8, 3], [8, 1], [7, 1], [6, 1], [4, 1], [3, 1], [3, 2], [2, 2]]
+    >>> simplify_polygon(pts)
+    [[1, 2], [2, 4], [1, 5], [2, 8], [7, 8], [8, 7], [8, 1], [3, 1], [3, 2]]
+    """
+    if len(points) < 3:
+        return points
+    path = [points[0]]
+    for i in range(1, len(points)):
+        angle0 = line_angle_2d(path[-1], points[i], deg=True)
+        angle1 = line_angle_2d(points[i], points[(i + 1) % len(points)], deg=True)
+        if abs(norm_angle(angle0 - angle1, deg=True)) > tol_degree:
+            path.append(points[i])
+    return np.array(path).tolist()
+
+
+def compute_bounding_polygon(landmarks):
+    """ get the polygon where all point lies inside
+
+    :param ndarray landmarks: set of points
+    :return ndarray: pints of polygon
+
+    >>> np.random.seed(0)
+    >>> points = np.random.randint(1, 9, (45, 2))
+    >>> compute_bounding_polygon(points)  # doctest: +NORMALIZE_WHITESPACE
+    [[1, 2], [2, 4], [1, 5], [2, 8], [7, 8], [8, 7], [8, 1], [3, 1], [3, 2]]
+    """
+    # the three or less are always mimimal polygon
+    if len(landmarks) <= 3:
+        return np.array(landmarks)
+    points = np.array(landmarks)
+    # split to two half by diagonal from [min, min] to [max, max]
+    points = points[points[:, 0].argsort()]
+    pt_begin, pt_end, (idx_begin, idx_end) = get_close_diag_corners(points)
+    is_above = np.array([is_point_above_line(pt_begin, pt_end, pt) for pt in points])
+
+    poly = []
+    # compute one curve starting with [min, min] until [max, max] is added
+    pts_above = [pt_begin] + [pt for i, pt in enumerate(points) if is_above[i]] + [pt_end]
+    poly += compute_half_polygon(pts_above, idx_start=0, idx_end=-1)[:-1]
+    # analogy got second curve from [max, max] to [min, min]
+    pts_bellow = [pt_begin] + [pt for i, pt in enumerate(points) if not is_above[i]] + [pt_end]
+    poly += compute_half_polygon(pts_bellow, idx_start=-1, idx_end=0)[:-1]
+    return simplify_polygon(poly)
+
+
 def compute_convex_hull(landmarks):
     """ compute convex hull around landmarks
 

@@ -261,7 +261,7 @@ def compute_points_dist_statistic(points1, points2):
     >>> dist, stat = compute_points_dist_statistic(points1, points1)
     >>> dist
     array([ 0.,  0.,  0.])
-    >>> all(stat[k] == 0 for k in stat if k not in ['Overlap points'])
+    >>> all(stat[k] == 0 for k in stat if k not in ['overlap points'])
     True
     >>> dist, stat = compute_points_dist_statistic(points1, points2)
     >>> dist  #doctest: +ELLIPSIS
@@ -281,7 +281,7 @@ def compute_points_dist_statistic(points1, points2):
         'Median': np.median(diffs),
         'Min': np.min(diffs),
         'Max': np.max(diffs),
-        'Overlap points': nb_common / float(max(lnd_sizes))
+        'overlap points': nb_common / float(max(lnd_sizes))
     }
     return diffs, dict_stat
 

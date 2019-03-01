@@ -1,0 +1,20 @@
+Dear <NAME>,
+
+You are receiving this email because we believe you can be interested to participate in the Automatic Non-rigid Histological Image Registration (ANHIR, https://anhir.grand-challenge.org) challenge.
+
+A subset of the test landmarks is now available for download. **This is a preliminary test set which will differ in the number of landmarks and slightly in the position of the final test landmarks.**
+
+To download the set follow the instructions (https://anhir.grand-challenge.org/Download).
+Note that while this not the final version of the landmarks, it should enable you to verify that the submission is correctly generated and give you an indication about your registration method performance.
+
+You can create your submission after logging in the challenge page - https://anhir.grand-challenge.org/evaluation/submissions/create. The sample submission generated from the BIRL framework is listed on the download page.
+
+Let us remind you that we will have a challenge workshop at the ISBI conference (https://biomedicalimaging.org/2019) where the winners will be announced and the best methods presented. To complete your challenge submission all participant are asked to write a short paper/report, described in Winning criteria, see https://anhir.grand-challenge.org/Evaluation. We also aim to write a journal article with the challenge results.
+
+If you consider participating, please join the challenge at your earliest convenience. You need to create an account at grand-challenge.org if you have not done yet.
+
+Do not hesitate to ask if you have any questions or comments.
+
+Good luck!
+We are looking forward to meeting you in Venice.
+Jiří Borovec & Arrate Munoz-Barrutia & Jan Kybic & Ignacio Arganda-Carreras
