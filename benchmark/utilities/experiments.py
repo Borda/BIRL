@@ -17,6 +17,7 @@ from functools import wraps
 
 import tqdm
 import numpy as np
+from scipy.spatial import distance
 
 from benchmark.utilities.data_io import create_folder, update_path
 
@@ -248,35 +249,44 @@ def run_command_line(commands, path_logger=None, timeout=None):
     return success
 
 
-def compute_points_dist_statistic(points1, points2):
+def compute_points_dist_statistic(points_ref, points_est):
     """ compute distance as between related points in two sets
     and make a statistic on those distances - mean, std, median, min, max
 
-    :param points1: np.array<nb_points, dim>
-    :param points2: np.array<nb_points, dim>
+    :param points_ref: np.array<nb_points, dim>
+    :param points_new: np.array<nb_points, dim>
     :return: (np.array<nb_points, 1>, {str: float})
 
-    >>> points1 = np.array([[1, 2], [3, 4], [2, 1]])
-    >>> points2 = np.array([[3, 4], [2, 1], [1, 2]])
-    >>> dist, stat = compute_points_dist_statistic(points1, points1)
+    >>> points_ref = np.array([[1, 2], [3, 4], [2, 1]])
+    >>> points_est = np.array([[3, 4], [2, 1], [1, 2]])
+    >>> dist, stat = compute_points_dist_statistic(points_ref, points_ref)
     >>> dist
     array([ 0.,  0.,  0.])
     >>> all(stat[k] == 0 for k in stat if k not in ['overlap points'])
     True
-    >>> dist, stat = compute_points_dist_statistic(points1, points2)
+    >>> dist, stat = compute_points_dist_statistic(points_ref, points_est)
     >>> dist  #doctest: +ELLIPSIS
     array([ 2.828...,  3.162...,  1.414...])
     >>> stat['Mean']  #doctest: +ELLIPSIS
     2.468...
+    >>> stat['Mean_weighted']  #doctest: +ELLIPSIS
+    2.641...
     """
-    lnd_sizes = [len(points1), len(points2)]
+    lnd_sizes = [len(points_ref), len(points_est)]
     nb_common = min(lnd_sizes)
     assert nb_common > 0, 'no common landmarks for metric'
-    points1 = np.asarray(points1)[:nb_common]
-    points2 = np.asarray(points2)[:nb_common]
-    diffs = np.sqrt(np.sum(np.power(points1 - points2, 2), axis=1))
+    points_ref = np.asarray(points_ref)[:nb_common]
+    points_est = np.asarray(points_est)[:nb_common]
+    diffs = np.sqrt(np.sum(np.power(points_ref - points_est, 2), axis=1))
+
+    inter_dist = distance.cdist(points_ref, points_ref)
+    inter_dist[range(len(points_ref)), range(len(points_ref))] = np.inf
+    closest = np.min(inter_dist, axis=0)
+    weights = closest / np.sum(closest)
+
     dict_stat = {
         'Mean': np.mean(diffs),
+        'Mean_weighted': np.sum(diffs * weights),
         'STD': np.std(diffs),
         'Median': np.median(diffs),
         'Min': np.min(diffs),

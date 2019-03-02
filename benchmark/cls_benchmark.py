@@ -409,7 +409,7 @@ class ImRegBenchmark(Experiment):
 
 
 def update_path_(path, path_base=None):
-    """ update the iamge path with possible base path
+    """ update the image path with possible base path
 
     :param str path: the last path of the path
     :param str|None path_base: optional base path
