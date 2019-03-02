@@ -6,17 +6,21 @@
 [![Run Status](https://api.shippable.com/projects/585bfa66e18a291000c15f24/badge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
 [![codecov](https://codecov.io/gh/Borda/BIRL/branch/master/graph/badge.svg?token=JZwA1rlUGA)](https://codecov.io/gh/Borda/BIRL)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b12d7a4a99d549a9baba6c9a83ad6b59)](https://www.codacy.com/project/Borda/BIRL/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Borda/BIRL&amp;utm_campaign=Badge_Grade_Dashboard)
-[![Code Health](https://landscape.io/github/Borda/BIRL/master/landscape.svg?style=flat)](https://landscape.io/github/Borda/BIRL/master)
 [![CodeFactor](https://www.codefactor.io/repository/github/borda/birl/badge)](https://www.codefactor.io/repository/github/borda/birl)
+[![Gitter](https://badges.gitter.im/BmImRegLnd/community.svg)](https://gitter.im/BmImRegLnd/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 <!--
+[![Code Health](https://landscape.io/github/Borda/BIRL/master/landscape.svg?style=flat)](https://landscape.io/github/Borda/BIRL/master)
 [![codebeat badge](https://codebeat.co/badges/6dd13229-ca9e-4dae-9394-caf5f363082d)](https://codebeat.co/projects/github-com-borda-birl-master)
 [![Coverage Badge](https://api.shippable.com/projects/585bfa66e18a291000c15f24/coverageBadge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
 [![Image.sc 
 forum](https://img.shields.io/badge/dynamic/json.svg?label=forum&url=https%3A%2F%2Fforum.image.sc%2Ftags%2Fanhir.json&query=%24.topic_list.tags.0.topic_count&colorB=brightgreen&suffix=%20topics&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAABPklEQVR42m3SyyqFURTA8Y2BER0TDyExZ+aSPIKUlPIITFzKeQWXwhBlQrmFgUzMMFLKZeguBu5y+//17dP3nc5vuPdee6299gohUYYaDGOyyACq4JmQVoFujOMR77hNfOAGM+hBOQqB9TjHD36xhAa04RCuuXeKOvwHVWIKL9jCK2bRiV284QgL8MwEjAneeo9VNOEaBhzALGtoRy02cIcWhE34jj5YxgW+E5Z4iTPkMYpPLCNY3hdOYEfNbKYdmNngZ1jyEzw7h7AIb3fRTQ95OAZ6yQpGYHMMtOTgouktYwxuXsHgWLLl+4x++Kx1FJrjLTagA77bTPvYgw1rRqY56e+w7GNYsqX6JfPwi7aR+Y5SA+BXtKIRfkfJAYgj14tpOF6+I46c4/cAM3UhM3JxyKsxiOIhH0IO6SH/A1Kb1WBeUjbkAAAAAElFTkSuQmCC)](https://forum.image.sc/tags/anhir)
 -->
 
+---
 
-_This project becomes part of **[Automatic Non-rigid Histological Image Registration (ANHIR)](https://anhir.grand-challenge.org)** hosted at [ISBI 2019](https://biomedicalimaging.org/2019/challenges/) conference. The related discussion is hosted on [forum.image.sc](https://forum.image.sc/tags/anhir)._
+_This project is the key component of **[Automatic Non-rigid Histological Image Registration (ANHIR)](https://anhir.grand-challenge.org)** hosted at [ISBI 2019](https://biomedicalimaging.org/2019/challenges/) conference. The related challenge discussion is hosted on [forum.image.sc](https://forum.image.sc/tags/anhir)._
+
+---
 
 The project contains a set of sample images with related landmark annotations and experimental evaluation of state-of-the-art image registration methods.
 
