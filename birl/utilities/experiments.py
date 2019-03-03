@@ -19,7 +19,7 @@ import tqdm
 import numpy as np
 from scipy.spatial import distance
 
-from benchmark.utilities.data_io import create_folder, update_path
+from birl.utilities.data_io import create_folder, update_path
 
 #: number of available threads on this computer
 NB_THREADS = int(mproc.cpu_count())

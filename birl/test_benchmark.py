@@ -22,16 +22,16 @@ import pandas as pd
 from numpy.testing import assert_raises, assert_array_almost_equal
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.data_io import update_path
-from benchmark.utilities.dataset import args_expand_parse_images
-from benchmark.utilities.experiments import (parse_arg_params, try_decorator)
-from benchmark.cls_benchmark import ImRegBenchmark
-from benchmark.cls_benchmark import (
+from birl.utilities.data_io import update_path
+from birl.utilities.dataset import args_expand_parse_images
+from birl.utilities.experiments import (parse_arg_params, try_decorator)
+from birl.cls_benchmark import ImRegBenchmark
+from birl.cls_benchmark import (
     NAME_CSV_RESULTS, NAME_TXT_RESULTS, NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS,
     COL_IMAGE_MOVE_WARP, COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP,
     _visual_image_move_warp_lnds_move_warp, _visual_image_ref_warp_lnds_move_warp,
     visualise_registration)
-from benchmark.bm_template import BmTemplate
+from birl.bm_template import BmTemplate
 
 PATH_DATA = update_path('data_images')
 PATH_CSV_COVER_MIX = os.path.join(PATH_DATA, 'pairs-imgs-lnds_mix.csv')

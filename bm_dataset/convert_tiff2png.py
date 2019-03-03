@@ -39,8 +39,8 @@ except Exception:
           ' To do so, please follow instructions - https://openslides.org')
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.experiments import wrap_execute_sequence
-from benchmark.utilities.dataset import args_expand_parse_images
+from birl.utilities.experiments import wrap_execute_sequence
+from birl.utilities.dataset import args_expand_parse_images
 
 DEFAULT_LEVEL = 1
 MAX_LOAD_IMAGE_SIZE = 16000

@@ -7,7 +7,7 @@ INSTALLATION:
 
 EXAMPLE (usage):
 >> mkdir ./results
->> python benchmark/bm_template.py \
+>> python birl/bm_template.py \
     -c ./data_images/pairs-imgs-lnds_anhir.csv -d ./data_images \
     -o ./results --visual --unique \
     --an_executable none
@@ -21,9 +21,8 @@ import sys
 import logging
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.experiments import create_basic_parse, parse_arg_params
-from benchmark.cls_benchmark import (
-    ImRegBenchmark, COL_REG_DIR, COL_IMAGE_MOVE, COL_POINTS_MOVE)
+from birl.utilities.experiments import create_basic_parse, parse_arg_params
+from birl.cls_benchmark import ImRegBenchmark, COL_REG_DIR, COL_IMAGE_MOVE, COL_POINTS_MOVE
 
 
 def extend_parse(a_parser):
@@ -58,7 +57,7 @@ class BmTemplate(ImRegBenchmark):
     image and landmarks. It means that there was no registration performed.
 
     Running in single thread:
-    >>> from benchmark.utilities.data_io import create_folder, update_path
+    >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
     >>> main({'nb_workers': 1, 'unique': False, 'visual': True,
@@ -69,7 +68,7 @@ class BmTemplate(ImRegBenchmark):
     >>> shutil.rmtree(path_out, ignore_errors=True)
 
     Running in multiple parallel threads:
-    >>> from benchmark.utilities.data_io import create_folder, update_path
+    >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'nb_workers': 2, 'unique': False, 'visual': True,

@@ -38,7 +38,7 @@ install:
 script:
   - mkdir results
   # - nosetests --with-xunit --xunit-file=shippable/testresults/nosetests.xml
-  - nosetests -v --exe --with-doctest --with-coverage --with-xunit --cover-package=benchmark --xunit-file=shippable/testresults/nosetests.xml
+  - nosetests -v --exe --with-doctest --with-coverage --with-xunit --cover-package=birl --xunit-file=shippable/testresults/nosetests.xml
 
 after_success:
   - codecov

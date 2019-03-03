@@ -27,10 +27,10 @@ from functools import partial
 import cv2 as cv
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.experiments import wrap_execute_sequence, is_iterable
-from benchmark.utilities.dataset import (load_large_image, save_large_image,
-                                         parse_path_scale, args_expand_parse_images)
-from benchmark.utilities.data_io import create_folder
+from birl.utilities.experiments import wrap_execute_sequence, is_iterable
+from birl.utilities.dataset import (load_large_image, save_large_image,
+                                    parse_path_scale, args_expand_parse_images)
+from birl.utilities.data_io import create_folder
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .5))
 DEFAULT_SCALES = (5, 10, 15, 20, 25, 50)

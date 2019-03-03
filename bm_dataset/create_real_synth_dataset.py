@@ -33,8 +33,8 @@ from scipy import ndimage, stats, interpolate
 import matplotlib.pyplot as plt
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.experiments import parse_arg_params
-from benchmark.utilities.data_io import LANDMARK_COORDS
+from birl.utilities.experiments import parse_arg_params
+from birl.utilities.data_io import LANDMARK_COORDS
 
 COLUMNS_COORD = LANDMARK_COORDS
 NB_THREADS = max(1, int(mproc.cpu_count() * .8))

@@ -140,7 +140,7 @@ For each registration method, different experiments can be performed independent
 Sample execution of the "empty" benchmark template:
 ```bash
 mkdir results
-python benchmark/bm_template.py \
+python birl/bm_template.py \
     -c ./data_images/pairs-imgs-lnds_mix.csv \
     -o ./results \
     --an_executable none \
@@ -148,7 +148,7 @@ python benchmark/bm_template.py \
 ```
 or with relative paths:
 ```bash
-python benchmark/bm_template.py \
+python birl/bm_template.py \
     -c ./data_images/pairs-imgs-lnds_anhir.csv \
     -d ./data_images \
     -o ./results \
@@ -165,7 +165,7 @@ This script generate simple report exported in JSON file on given output path.
 
 ### Add custom registration method
 
-The only limitation of adding costume image registration methods that it has to be launched from python script or command line. The new registration benchmark should be inherited from [ImRegBenchmark](benchmark/cls_benchmark.py) as for example [BmTemplate](benchmark/bm_template.py).
+The only limitation of adding costume image registration methods that it has to be launched from python script or command line. The new registration benchmark should be inherited from [ImRegBenchmark](birl/cls_benchmark.py) as for example [BmTemplate](birl/bm_template.py).
 
 The benchmark workflow is the following:
 1. `self._prepare()` prepare the experiment, e.g. create experiment folder, copy configurations, etc.

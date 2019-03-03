@@ -37,8 +37,8 @@ script:
   - tox
   - mkdir results
   - python bm_experiments/bm_comp_perform.py -o ./results -n 1
-  - python benchmark/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique --an_executable none
-  - python benchmark/bm_template.py -c ./data_images/pairs-imgs-lnds_anhir.csv -d ./data_images -o ./results --an_executable none
+  - python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique --an_executable none
+  - python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_anhir.csv -d ./data_images -o ./results --an_executable none
   - python bm_experiments/evaluate_experiment.py -d ./data_images -e ./results/BmTemplate --visual
 
 after_success:

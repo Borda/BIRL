@@ -43,11 +43,10 @@ import logging
 import shutil
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.data_io import update_path, load_landmarks, save_landmarks
-from benchmark.utilities.experiments import (create_basic_parse, parse_arg_params,
-                                             run_command_line)
-from benchmark.cls_benchmark import ImRegBenchmark, NAME_LOG_REGISTRATION
-from benchmark.bm_template import main
+from birl.utilities.data_io import update_path, load_landmarks, save_landmarks
+from birl.utilities.experiments import create_basic_parse, parse_arg_params, run_command_line
+from birl.cls_benchmark import ImRegBenchmark, NAME_LOG_REGISTRATION
+from birl.bm_template import main
 from bm_experiments import bm_comp_perform
 
 NAME_MACRO_REGISTRATION = 'macro_registration.ijm'
@@ -128,7 +127,7 @@ class BmUnwarpJ(ImRegBenchmark):
 
     EXAMPLE
     -------
-    >>> from benchmark.utilities.data_io import create_folder, update_path
+    >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> fn_path_conf = lambda n: os.path.join(update_path('configs'), n)
     >>> params = {'nb_workers': 1, 'unique': False,

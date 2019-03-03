@@ -21,7 +21,7 @@ import subprocess
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.cls_benchmark import COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_MOVE
+from birl.cls_benchmark import COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_MOVE
 
 ZIP_COMMAND = 'cd %s && zip --split-size 2g %s.zip -r %s'
 

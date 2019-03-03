@@ -1,70 +1,87 @@
 version: 2.0
 
+references:
+
+  install_deps: &install_deps
+    run:
+      name: Install Packages
+      command: |
+        sudo apt-get update
+        sudo apt-get install tk-dev pkg-config python-dev python-tk tree
+        sudo apt-get install python-opencv openslide-tools
+
+  install_pips: &install_pips
+    run:
+      name: Install PyPI dependences
+      command: |
+        sudo pip install -U backports.functools_lru_cache  # required for matplotlib @py2
+        sudo pip install coverage pytest pytest-cov codecov flake8
+        pip install -r requirements.txt --user
+        python --version ; pwd ; ls -l
+        pip --version ; pip freeze
+
+  test_coverage: &test_coverage
+    run:
+      name: Testing and Formating
+      command: |
+        unset DISPLAY
+        mkdir test-reports && mkdir results
+        coverage run --source birl -m py.test birl bm_dataset bm_experiments bm_ANHIR -v --doctest-modules --junitxml=test-reports/pytest_junit.xml
+        coverage report && coverage xml -o test-reports/coverage.xml
+        flake8 . --max-line-length=100
+        codecov
+        rm -rf results
+
+  run_dataset: &run_dataset
+    run:
+      name: Dataset
+      command: |
+        mkdir output
+        python bm_dataset/rescale_tissue_images.py -i "./data_images/rat-kidney_/scale-5pc/*.jpg" --scales 5 -ext .png --nb_workers 2
+        python bm_dataset/rescale_tissue_landmarks.py -a ./data_images -d ./output --nb_selected 0.5 --nb_total 200
+        python bm_dataset/generate_regist_pairs.py -i "./data_images/images/artificial_*.jpg" -l "./data_images/landmarks/artificial_*.csv" -csv ./data_images/cover_artificial.csv --mode each2all
+        # python bm_experiments/create_real_synth_dataset.py -i ./data_images/images/Rat_Kidney_HE.jpg -l ./data_images/landmarks/Rat_Kidney_HE.csv -o ./data_images/synth_dataset -nb 3 --nb_workers 1
+        # python bm_experiments/generate_regist_pairs.py -i "./data_images/synth_dataset/*.jpg" -l "./data_images/synth_dataset/*.csv" -csv ./data_images/cover_synth-dataset.csv --mode each2all
+
+  run_experiment: &run_experiment
+    run:
+      name: General experiments
+      command: |
+        mkdir applications && mkdir results
+        # python bm_experiments/bm_comp_perform.py  -o ./results -n 1 # reach time-out while running in 36 threads
+        python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique --an_executable none
+        python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_anhir.csv -d ./data_images -o ./results --an_executable none
+        python bm_experiments/evaluate_experiment.py -d ./data_images -e ./results/BmTemplate --visual
+        tree ./results/BmTemplate
+
+  run_bunwarpj: &run_bunwarpj
+    run:
+      name: Experiment - bUnwarpJ
+      command: |
+        wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip -O applications/fiji-linux64.zip --progress=bar:force:noscroll
+        unzip -q applications/fiji-linux64.zip -d applications/
+        rm applications/fiji-linux64.zip
+        rm -rf results && mkdir results
+        python bm_experiments/bm_bunwarpj.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ_histo-1k.txt --visual
+        python bm_experiments/bm_bunwarpj.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_SIFT_histo-1k.txt -sift ./configs/ImageJ_SIFT_histo-1k.txt --unique
+        python bm_experiments/bm_bunwarpj.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_SIFT_histo-1k.txt -mops ./configs/ImageJ_MOPS_histo-1k.txt --unique
+        tree -L 3 ./results
+        rm -rf ./applications/Fiji.app
+
+
 jobs:
+
   Py2:
     docker:
       - image: circleci/python:2.7
     steps: &steps
       - checkout
-      - run:
-          name: Install Packages
-          command: |
-            sudo apt-get update
-            sudo apt-get install tk-dev pkg-config python-dev python-tk tree
-            sudo apt-get install python-opencv openslide-tools
-      - run:
-          name: Install PyPI dependences
-          command: |
-            sudo pip install -U backports.functools_lru_cache  # required for matplotlib @py2
-            sudo pip install coverage pytest pytest-cov codecov flake8
-            pip install -r requirements.txt --user
-            python --version ; pwd ; ls -l
-            pip --version ; pip freeze
-
-      - run:
-          name: Testing and Formating
-          command: |
-            unset DISPLAY
-            mkdir test-reports && mkdir results
-            coverage run --source benchmark -m py.test benchmark bm_experiments -v --doctest-modules --junitxml=test-reports/pytest_junit.xml
-            coverage report && coverage xml -o test-reports/coverage.xml
-            flake8 . --max-line-length=100
-            codecov
-            rm -rf results
-
-      - run:
-          name: Dataset
-          command: |
-            mkdir output
-            python bm_dataset/rescale_tissue_images.py -i "./data_images/rat-kidney_/scale-5pc/*.jpg" --scales 5 -ext .png --nb_workers 2
-            python bm_dataset/rescale_tissue_landmarks.py -a ./data_images -d ./output --nb_selected 0.5 --nb_total 200
-            python bm_dataset/generate_regist_pairs.py -i "./data_images/images/artificial_*.jpg" -l "./data_images/landmarks/artificial_*.csv" -csv ./data_images/cover_artificial.csv --mode each2all
-            # python bm_experiments/create_real_synth_dataset.py -i ./data_images/images/Rat_Kidney_HE.jpg -l ./data_images/landmarks/Rat_Kidney_HE.csv -o ./data_images/synth_dataset -nb 3 --nb_workers 1
-            # python bm_experiments/generate_regist_pairs.py -i "./data_images/synth_dataset/*.jpg" -l "./data_images/synth_dataset/*.csv" -csv ./data_images/cover_synth-dataset.csv --mode each2all
-
-      - run:
-          name: General experiments
-          command: |
-            mkdir applications && mkdir results
-            # python bm_experiments/bm_comp_perform.py  -o ./results -n 1 # reach time-out while running in 36 threads
-            python benchmark/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique --an_executable none
-            python benchmark/bm_template.py -c ./data_images/pairs-imgs-lnds_anhir.csv -d ./data_images -o ./results --an_executable none
-            python bm_experiments/evaluate_experiment.py -d ./data_images -e ./results/BmTemplate --visual
-            tree ./results/BmTemplate
-
-      - run:
-          name: Experiment - bUnwarpJ
-          command: |
-            wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip -O applications/fiji-linux64.zip --progress=bar:force:noscroll
-            unzip -q applications/fiji-linux64.zip -d applications/
-            rm applications/fiji-linux64.zip
-            rm -rf results && mkdir results
-            python bm_experiments/bm_bunwarpj.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ_histo-1k.txt --visual
-            python bm_experiments/bm_bunwarpj.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_SIFT_histo-1k.txt -sift ./configs/ImageJ_SIFT_histo-1k.txt --unique
-            python bm_experiments/bm_bunwarpj.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_SIFT_histo-1k.txt -mops ./configs/ImageJ_MOPS_histo-1k.txt --unique
-            tree -L 3 ./results
-            rm -rf ./applications/Fiji.app
-
+      - *install_deps
+      - *install_pips
+      - *test_coverage
+      - *run_dataset
+      - *run_experiment
+      - *run_bunwarpj
       - store_test_results:
           path: test-reports
       - store_artifacts:
@@ -74,6 +91,7 @@ jobs:
     docker:
       - image: circleci/python:3.6
     steps: *steps
+
 
 workflows:
   version: 2

@@ -1,3 +1,3 @@
-import benchmark
+import birl
 
-benchmark
+birl

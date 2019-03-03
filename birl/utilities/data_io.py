@@ -191,7 +191,7 @@ def update_path(path_file, lim_depth=5, absolute=True):
     :param bool absolute: return absolute path
     :return str:
 
-    >>> os.path.exists(update_path('benchmark', absolute=False))
+    >>> os.path.exists(update_path('birl', absolute=False))
     True
     >>> os.path.exists(update_path('/', absolute=False))
     True

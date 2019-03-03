@@ -31,13 +31,23 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as fp:
 setup(
     name='BIRL',
     version='0.2.0',
-    description='Benchmark on Image Registration methods'
-                ' with Landmark validation',
-    long_description=long_description,
-    long_description_content_type='text/markdown',
-    url='https://github.com/borda/BIRL',
+    url='https://borda.github.io/BIRL',
+
     author='Jiri Borovec',
     author_email='jiri.borovec@fel.cvut.cz',
+    license='BSD 3-clause',
+    description='Benchmark on Image Registration methods'
+                ' with Landmark validation',
+
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+
+    packages=find_packages(
+        exclude=['docs', 'notebooks', 'scripts*', 'bm_*']),
+
+    keywords='benchmark image registration landmarks',
+    install_requires=requirements,
+    include_package_data=True,
     classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha, 4 - Beta, 5 - Production/Stable
@@ -54,8 +64,6 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ],
-    keywords='benchmark image registration landmarks',
-    packages=find_packages(exclude=['bm_*', 'docs', 'tests']),
-    install_requires=requirements,
 )

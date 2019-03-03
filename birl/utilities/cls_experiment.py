@@ -10,8 +10,8 @@ import json
 import copy
 import logging
 
-from benchmark.utilities.experiments import (set_experiment_logger, string_dict,
-                                             create_experiment_folder, release_logger_files)
+from birl.utilities.experiments import (
+    set_experiment_logger, string_dict, create_experiment_folder, release_logger_files)
 
 #: default date-time format
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
@@ -30,7 +30,7 @@ class Experiment(object):
     Tha basic template for experiment running with specific initialisation
     None, all required parameters used in future have to come in init phase
 
-    >>> import benchmark.utilities.data_io as tl_io
+    >>> import birl.utilities.data_io as tl_io
     >>> path_out = tl_io.create_folder('output')
     >>> params = {'path_out': path_out, 'name': 'my_Experiment'}
     >>> expt = Experiment(params, False)

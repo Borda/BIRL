@@ -26,10 +26,10 @@ import cv2 as cv
 import numpy as np
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.dataset import (
+from birl.utilities.dataset import (
     find_largest_object, project_object_edge, load_large_image, save_large_image,
     args_expand_parse_images)
-from benchmark.utilities.experiments import wrap_execute_sequence, try_decorator
+from birl.utilities.experiments import wrap_execute_sequence, try_decorator
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .5))
 SCALE_SIZE = 512

@@ -25,10 +25,9 @@ from functools import partial
 import cv2 as cv
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.dataset import (
-    find_split_objects, project_object_edge, load_large_image, save_large_image,
-    args_expand_parse_images)
-from benchmark.utilities.experiments import wrap_execute_sequence
+from birl.utilities.dataset import (find_split_objects, project_object_edge, load_large_image,
+                                    save_large_image, args_expand_parse_images)
+from birl.utilities.experiments import wrap_execute_sequence
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .5))
 SCALE_SIZE = 512

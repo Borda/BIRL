@@ -12,8 +12,8 @@ import tqdm
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.cls_benchmark import COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_MOVE
-from benchmark.utilities.dataset import parse_path_scale
+from birl.cls_benchmark import COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_MOVE
+from birl.utilities.dataset import parse_path_scale
 
 PATH_CSV = '/datagrid/Medical/dataset_ANHIR/images/dataset_medium.csv'
 PATH_IMAGES = '/datagrid/Medical/dataset_ANHIR/images'

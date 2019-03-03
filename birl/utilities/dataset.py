@@ -578,7 +578,7 @@ def list_sub_folders(path_folder, name='*'):
     :param str name: name pattern
     :return [str]:
 
-    >>> from benchmark.utilities.data_io import update_path
+    >>> from birl.utilities.data_io import update_path
     >>> paths = list_sub_folders(update_path('data_images'))
     >>> list(map(os.path.basename, paths))
     ['images', 'landmarks', 'lesions_', 'rat-kidney_']

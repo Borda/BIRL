@@ -67,10 +67,10 @@ import numpy as np
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.data_io import create_folder, load_landmarks, save_landmarks
-from benchmark.utilities.dataset import common_landmarks, parse_path_scale
-from benchmark.utilities.experiments import wrap_execute_sequence, parse_arg_params
-from benchmark.cls_benchmark import (
+from birl.utilities.data_io import create_folder, load_landmarks, save_landmarks
+from birl.utilities.dataset import common_landmarks, parse_path_scale
+from birl.utilities.experiments import wrap_execute_sequence, parse_arg_params
+from birl.cls_benchmark import (
     NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COVER_COLUMNS_WRAP,
     COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP, COL_POINTS_REF, COL_POINTS_MOVE,
     COL_TIME, COL_ROBUSTNESS, compute_landmarks_statistic, update_path_)

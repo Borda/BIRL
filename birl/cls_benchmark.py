@@ -24,13 +24,13 @@ import numpy as np
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.data_io import (
+from birl.utilities.data_io import (
     update_path, create_folder, image_size, load_landmarks, load_image, save_image)
-from benchmark.utilities.experiments import (
+from birl.utilities.experiments import (
     run_command_line, string_dict, compute_points_dist_statistic, wrap_execute_sequence)
-from benchmark.utilities.visualisation import (
+from birl.utilities.visualisation import (
     export_figure, draw_image_points, draw_images_warped_landmarks)
-from benchmark.utilities.cls_experiment import Experiment
+from birl.utilities.cls_experiment import Experiment
 
 #: number of available threads on this computer
 NB_THREADS = int(mproc.cpu_count())
@@ -130,7 +130,7 @@ class ImRegBenchmark(Experiment):
     is alignment (consistent warping) between resulting landmarks and image.
 
     Running in single thread:
-    >>> from benchmark.utilities.data_io import create_folder, update_path
+    >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'nb_workers': 1, 'unique': False, 'visual': True,
@@ -143,7 +143,7 @@ class ImRegBenchmark(Experiment):
     >>> shutil.rmtree(path_out, ignore_errors=True)
 
     Running in multiple parallel threads:
-    >>> from benchmark.utilities.data_io import create_folder, update_path
+    >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'nb_workers': 2, 'unique': False, 'visual': True,

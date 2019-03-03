@@ -1,5 +1,5 @@
 """
-Evaluating passed experiments produced bu this benchmark,
+Evaluating passed experiments produced by this benchmark,
 for instance if metric was changed or some visualisations are missing
 
 The expected experiment structure is following:
@@ -26,9 +26,9 @@ from functools import partial
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.experiments import wrap_execute_sequence, parse_arg_params
-from benchmark.cls_benchmark import (NAME_CSV_REGISTRATION_PAIRS, export_summary_results,
-                                     compute_landmarks_statistic, visualise_registration)
+from birl.utilities.experiments import wrap_execute_sequence, parse_arg_params
+from birl.cls_benchmark import (NAME_CSV_REGISTRATION_PAIRS, export_summary_results,
+                                compute_landmarks_statistic, visualise_registration)
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .75))
 NAME_CSV_RESULTS = 'registration-results_NEW.csv'

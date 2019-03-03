@@ -15,13 +15,12 @@ import tqdm
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.data_io import image_size
-from benchmark.utilities.dataset import IMAGE_EXTENSIONS, generate_pairing
-from benchmark.cls_benchmark import (COL_IMAGE_REF, COL_IMAGE_MOVE, COL_TIME,
-                                     COL_POINTS_REF, COL_POINTS_MOVE,
-                                     COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP,
-                                     COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL,
-                                     update_path_)
+from birl.utilities.data_io import image_size
+from birl.utilities.dataset import IMAGE_EXTENSIONS, generate_pairing
+from birl.cls_benchmark import (
+    COL_IMAGE_REF, COL_IMAGE_MOVE, COL_TIME, COL_POINTS_REF, COL_POINTS_MOVE,
+    COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP, COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL,
+    update_path_)
 
 DATASET_IMAGES = '/datagrid/Medical/dataset_ANHIR/images_private'
 DATASET_LANDMARKS = '/datagrid/Medical/dataset_ANHIR/landmarks_all'

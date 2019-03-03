@@ -11,8 +11,8 @@ import numpy as np
 import matplotlib.pylab as plt
 from PIL import ImageDraw
 
-from benchmark.utilities.data_io import convert_ndarray2image
-from benchmark.utilities.dataset import scale_large_images_landmarks
+from birl.utilities.data_io import convert_ndarray2image
+from birl.utilities.dataset import scale_large_images_landmarks
 #: default figure size for visualisations
 MAX_FIGURE_SIZE = 18  # inches
 

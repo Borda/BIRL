@@ -38,12 +38,11 @@ import numpy as np
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.experiments import (wrap_execute_sequence,
-                                             parse_arg_params, is_iterable)
-from benchmark.utilities.data_io import create_folder, load_landmarks_csv, save_landmarks_csv
-from benchmark.utilities.dataset import (list_sub_folders, parse_path_scale,
-                                         compute_bounding_polygon, inside_polygon)
-from benchmark.utilities.registration import estimate_affine_transform, transform_points
+from birl.utilities.experiments import wrap_execute_sequence, parse_arg_params, is_iterable
+from birl.utilities.data_io import create_folder, load_landmarks_csv, save_landmarks_csv
+from birl.utilities.dataset import (list_sub_folders, parse_path_scale,
+                                    compute_bounding_polygon, inside_polygon)
+from birl.utilities.registration import estimate_affine_transform, transform_points
 from bm_dataset.rescale_tissue_images import NB_THREADS, DEFAULT_SCALES, FOLDER_TEMPLATE
 
 

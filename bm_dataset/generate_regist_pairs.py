@@ -19,10 +19,10 @@ import logging
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from benchmark.utilities.data_io import image_size
-from benchmark.utilities.experiments import parse_arg_params
-from benchmark.cls_benchmark import (COVER_COLUMNS, COVER_COLUMNS_EXT, COL_IMAGE_REF,
-                                     COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL)
+from birl.utilities.data_io import image_size
+from birl.utilities.experiments import parse_arg_params
+from birl.cls_benchmark import (
+    COVER_COLUMNS, COVER_COLUMNS_EXT, COL_IMAGE_REF, COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL)
 
 # list of combination options
 OPTIONS_COMBINE = ('first2all', 'each2all')
