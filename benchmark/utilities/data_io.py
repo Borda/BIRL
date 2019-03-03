@@ -13,7 +13,11 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
+#: landmarks coordinates, loading from CSV file
 LANDMARK_COORDS = ['X', 'Y']
+# PIL.Image.DecompressionBombError: could be decompression bomb DOS attack.
+# SEE: https://gitlab.mister-muffin.de/josch/img2pdf/issues/42
+Image.MAX_IMAGE_PIXELS = None
 
 
 def create_folder(path_folder, ok_existing=True):
@@ -52,19 +56,22 @@ def load_landmarks(path_file):
 
     >>> points = np.array([[1, 2], [3, 4], [5, 6]])
     >>> save_landmarks('./sample_landmarks.csv', points)
-    >>> points1 = load_landmarks('./sample_landmarks.csv')
-    >>> points2 = load_landmarks('./sample_landmarks.txt')
-    >>> np.array_equal(points1, points2)
+    >>> pts1 = load_landmarks('./sample_landmarks.csv')
+    >>> pts2 = load_landmarks('./sample_landmarks.txt')
+    >>> np.array_equal(pts1, pts2)
     True
     >>> os.remove('./sample_landmarks.csv')
     >>> os.remove('./sample_landmarks.txt')
 
     Wrong loading
+    >>> load_landmarks('./sample_landmarks.file')
     >>> open('./sample_landmarks.file', 'w').close()
     >>> load_landmarks('./sample_landmarks.file')
     >>> os.remove('./sample_landmarks.file')
     """
-    assert os.path.isfile(path_file), 'missing file "%s"' % path_file
+    if not os.path.isfile(path_file):
+        logging.warning('missing landmarks "%s"', path_file)
+        return None
     ext = os.path.splitext(path_file)[-1]
     if ext == '.csv':
         return load_landmarks_csv(path_file)
@@ -263,9 +270,9 @@ def load_image(path_image):
     """
     assert os.path.isfile(path_image), 'missing image "%s"' % path_image
     image = np.array(Image.open(path_image))
-    while image.max() > 1.:
-        image = (image / 255.)
-    return image
+    while image.max() > 1.5:
+        image = image / 255.
+    return image.astype(np.float32)
 
 
 def convert_ndarray2image(image):
@@ -281,8 +288,9 @@ def convert_ndarray2image(image):
     """
     if isinstance(image, np.ndarray):
         if np.max(image) <= 1.5:
-            image = (image * 255)
-        image = Image.fromarray(np.round(image).astype(np.uint8))
+            image = image * 255
+        np.clip(image, a_min=0, a_max=255, out=image)
+        image = Image.fromarray(image.astype(np.uint8))
     return image
 
 
@@ -295,10 +303,11 @@ def save_image(path_image, image):
 
     Wrong path
     >>> save_image('./missing-path/any-image.png', np.zeros((10, 20)))
+    False
     """
-    image = convert_ndarray2image(image)
     path_dir = os.path.dirname(path_image)
-    if os.path.isdir(path_dir):
-        image.save(path_image)
-    else:
+    if not os.path.isdir(path_dir):
         logging.error('upper folder does not exists: "%s"', path_dir)
+        return False
+    image = convert_ndarray2image(image)
+    image.save(path_image)

@@ -52,10 +52,10 @@ class BmTemplate(ImRegBenchmark):
      * _extract_warped_images_landmarks
      * _clear_after_registration
 
-    NOTE: The actual implementation simulates the "ideal" registration while
-    it blindly copies the reference landmarks as results of the registration.
-    In contrast to the right registration, it copies the moving images so there
-    is alignment (consistent warping) between resulting landmarks and image.
+    NOTE: The actual implementation simulates the "WORSE" registration while
+    it blindly copies the moving landmarks as results of the registration.
+    It also copies the moving images so there is correct "warping" between
+    image and landmarks. It means that there was no registration performed.
 
     Running in single thread:
     >>> from benchmark.utilities.data_io import create_folder, update_path
@@ -104,13 +104,13 @@ class BmTemplate(ImRegBenchmark):
         :return str|[str]: the execution commands
         """
         logging.debug('.. simulate registration: '
-                      'copy the target image and landmarks, simulate ideal case')
-        _, path_im_move, path_lnds_ref, _ = self._get_paths(record)
+                      'copy the source image and landmarks, like regist. failed')
+        _, path_im_move, _, path_lnds_move = self._get_paths(record)
         path_reg_dir = self._get_path_reg_dir(record)
         name_img = os.path.basename(record[COL_IMAGE_MOVE])
         cmd_img = 'cp %s %s' % (path_im_move, os.path.join(path_reg_dir, name_img))
         name_lnds = os.path.basename(record[COL_POINTS_MOVE])
-        cmd_lnds = 'cp %s %s' % (path_lnds_ref, os.path.join(path_reg_dir, name_lnds))
+        cmd_lnds = 'cp %s %s' % (path_lnds_move, os.path.join(path_reg_dir, name_lnds))
         command = [cmd_img, cmd_lnds]
         return command
 

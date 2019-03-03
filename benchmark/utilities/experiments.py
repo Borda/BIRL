@@ -21,10 +21,15 @@ from scipy.spatial import distance
 
 from benchmark.utilities.data_io import create_folder, update_path
 
+#: number of available threads on this computer
 NB_THREADS = int(mproc.cpu_count())
+#: default date-time format
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
+#: default logging tile
 FILE_LOGS = 'logging.txt'
+#: default logging template - log location/source for logging to file
 STR_LOG_FORMAT = '%(asctime)s:%(levelname)s@%(filename)s:%(processName)s - %(message)s'
+#: default logging template - date-time for logging to file
 LOG_FILE_FORMAT = logging.Formatter(STR_LOG_FORMAT, datefmt="%H:%M:%S")
 
 
@@ -232,6 +237,7 @@ def run_command_line(commands, path_logger=None, timeout=None):
     success = True
     # try to execute all commands in stack
     for cmd in commands:
+        outputs += [cmd.encode('utf-8')]
         try:
             outputs += [subprocess.check_output(cmd.split(), **options)]
         except subprocess.CalledProcessError as e:
@@ -271,7 +277,14 @@ def compute_points_dist_statistic(points_ref, points_est):
     2.468...
     >>> stat['Mean_weighted']  #doctest: +ELLIPSIS
     2.641...
+
+    Wrong input:
+    >>> compute_points_dist_statistic(None, np.array([[1, 2], [3, 4], [2, 1]]))
+    ([], {'overlap points': 0})
     """
+    if not all(pts is not None and list(pts) for pts in [points_ref, points_est]):
+        return [], {'overlap points': 0}
+
     lnd_sizes = [len(points_ref), len(points_est)]
     nb_common = min(lnd_sizes)
     assert nb_common > 0, 'no common landmarks for metric'

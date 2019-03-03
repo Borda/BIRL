@@ -10,6 +10,7 @@ import glob
 import logging
 
 import numpy as np
+import cv2 as cv
 import matplotlib.pyplot as plt
 from PIL import Image
 from scipy import spatial, optimize
@@ -19,18 +20,22 @@ from skimage.exposure import rescale_intensity
 from cv2 import (IMWRITE_JPEG_QUALITY, IMWRITE_PNG_COMPRESSION, GaussianBlur,
                  cvtColor, COLOR_RGBA2RGB, COLOR_RGB2BGR, imwrite)
 
+#: threshold of tissue/background presence on potential cutting line
 TISSUE_CONTENT = 0.01
-# supported image extensions
+#: supported image extensions
 IMAGE_EXTENSIONS = ('.png', '.jpg', '.jpeg')
 # https://github.com/opencv/opencv/issues/6729
 # https://www.life2coding.com/save-opencv-images-jpeg-quality-png-compression
 IMAGE_COMPRESSION_OPTIONS = (IMWRITE_JPEG_QUALITY, 98) + \
                             (IMWRITE_PNG_COMPRESSION, 9)
+#: template for detecting/parsing scale from folder name
 REEXP_FOLDER_SCALE = r'\S*scale-(\d+)pc'
 # ERROR:root:error: Image size (... pixels) exceeds limit of ... pixels,
 # could be decompression bomb DOS attack.
 # SEE: https://gitlab.mister-muffin.de/josch/img2pdf/issues/42
 Image.MAX_IMAGE_PIXELS = None
+#: maximal image size for visualisations, larger images will be downscaled
+MAX_IMAGE_SIZE = 5000
 
 
 def detect_binary_blocks(vec_bin):
@@ -653,3 +658,46 @@ def args_expand_parse_images(parser, nb_workers=1, overwrite=True):
     args = vars(parser.parse_args())
     args['path_images'] = os.path.expanduser(args['path_images'])
     return args
+
+
+def estimate_scaling(images, max_size=MAX_IMAGE_SIZE):
+    """ find scaling for given set of images and maximal image size
+
+    :param [ndarray] images: input images
+    :param float max_size: max image size in any dimension
+    :return float: scaling in range (0, 1)
+
+    >>> estimate_scaling([np.zeros((12000, 300, 3))])  # doctest: +ELLIPSIS
+    0.4...
+    >>> estimate_scaling([np.zeros((1200, 800, 3))])
+    1.0
+    """
+    sizes = [img.shape[:2] for img in images if img is not None]
+    if not sizes:
+        return 1.
+    max_dim = np.max(sizes)
+    scale = np.round(float(max_size) / max_dim, 1) if max_dim > max_size else 1.
+    return scale
+
+
+def scale_large_images_landmarks(images, landmarks):
+    """ scale images and landmarks up to maximal image size
+
+    :param [ndarray] images: list of images
+    :param [ndarray] landmarks: list of landmarks
+    :return ([ndarray], [ndarray]): lists of images and landmarks
+
+    >>> scale_large_images_landmarks([np.zeros((8000, 500, 3), dtype=np.uint8)], [None, None])  # doctest: +ELLIPSIS
+    ([array(...)], [None, None])
+    """
+    if not images:
+        return images, landmarks
+    scale = estimate_scaling(images)
+    if scale < 1.:
+        logging.debug('One or more images ra larger then recommended size for visualisation,'
+                      ' an resize with factor %f will be applied', scale)
+    # using float16 as image raise TypeError: src data type = 23 is not supported
+    images = [cv.resize(img, None, fx=scale, fy=scale, interpolation=cv.INTER_LINEAR)
+              if img is not None else None for img in images]
+    landmarks = [lnds * scale if lnds is not None else None for lnds in landmarks]
+    return images, landmarks

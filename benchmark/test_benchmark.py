@@ -99,8 +99,8 @@ class TestBmRegistration(unittest.TestCase):
         benchmark.run()
         # rerun experiment simulated repeating unfinished benchmarks
         benchmark.run()
-        self.check_benchmark_results(benchmark, final_means=[28., 68., 73., 76.],
-                                     final_stds=[13., 28., 28., 34.])
+        self.check_benchmark_results(benchmark, final_means=[0., 0., 0., 0.],
+                                     final_stds=[0., 0., 0., 0.])
         del benchmark
 
     def test_benchmark_simple(self):
@@ -116,7 +116,7 @@ class TestBmRegistration(unittest.TestCase):
         }
         benchmark = ImRegBenchmark(params)
         benchmark.run()
-        self.check_benchmark_results(benchmark, final_means=[28., 76.], final_stds=[13., 34.])
+        self.check_benchmark_results(benchmark, final_means=[0., 0.], final_stds=[0., 0.])
         del benchmark
 
     def test_benchmark_template(self):
@@ -131,8 +131,8 @@ class TestBmRegistration(unittest.TestCase):
         }
         benchmark = BmTemplate(params)
         benchmark.run()
-        self.check_benchmark_results(benchmark, final_means=[0., 0., 0., 0.],
-                                     final_stds=[0., 0., 0., 0.])
+        self.check_benchmark_results(benchmark, final_means=[28., 68., 73., 76.],
+                                     final_stds=[13., 28., 28., 34.])
         del benchmark
 
     def check_benchmark_results(self, benchmark, final_means, final_stds):

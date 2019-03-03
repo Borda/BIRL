@@ -7,18 +7,14 @@ Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 import os
 import logging
 
-# import matplotlib
-# if os.environ.get('DISPLAY', '') == '':
-#     print('No display found. Using non-interactive Agg backend')
-#     matplotlib.use('Agg')
-
 import numpy as np
 import matplotlib.pylab as plt
 from PIL import ImageDraw
 
 from benchmark.utilities.data_io import convert_ndarray2image
-
-MAX_FIGURE_SIZE = 18
+from benchmark.utilities.dataset import scale_large_images_landmarks
+#: default figure size for visualisations
+MAX_FIGURE_SIZE = 18  # inches
 
 
 def draw_image_points(image, points, color='green', marker_size=5, shape='o'):
@@ -101,21 +97,25 @@ def draw_landmarks_origin_target_warped(ax, points_origin, points_target,
     assert pts_sizes, 'no landmarks points given'
     min_pts = min(pts_sizes)
     assert min(pts_sizes) > 0, 'no points given for sizes: %r' % pts_sizes
-    points_origin = points_origin[:min_pts]
-    points_target = points_target[:min_pts]
+    points_origin = points_origin[:min_pts] if points_origin is not None else None
+    points_target = points_target[:min_pts] if points_target is not None else None
 
     def _draw_lines(points1, points2, style, color, label):
+        if points1 is None or points2 is None:
+            return
         for start, stop in zip(points1, points2):
             x, y = zip(start, stop)
             ax.plot(x, y, style, color=color, linewidth=2)
         ax.plot([0, 0], [0, 0], style, color=color, linewidth=2, label=label)
 
-    ax.plot(points_origin[:, 0], points_origin[:, 1], marker, color='g',
-            label='Original positions')
+    if points_origin is not None:
+        ax.plot(points_origin[:, 0], points_origin[:, 1], marker, color='g',
+                label='Original positions')
     # draw a dotted line between origin and target
     _draw_lines(points_target, points_origin, '-.', 'g', 'true shift')
-    ax.plot(points_target[:, 0], points_target[:, 1], marker, color='m',
-            label='Target positions')
+    if points_target is not None:
+        ax.plot(points_target[:, 0], points_target[:, 1], marker, color='m',
+                label='Target positions')
 
     if points_warped is not None:
         points_warped = points_warped[:min_pts]
@@ -155,6 +155,7 @@ def overlap_two_images(image1, image2, transparent=0.5):
     image = np.zeros(max_size)
     image[0:size1[0], 0:size1[1], 0:size1[2]] += image1 * transparent
     image[0:size2[0], 0:size2[1], 0:size2[2]] += image2 * (1. - transparent)
+    # np.clip(image, a_min=0., a_max=1., out=image)
     return image
 
 
@@ -168,24 +169,48 @@ def draw_images_warped_landmarks(image_target, image_source,
     :param ndarray points_target: np.array<nb_points, dim>
     :param ndarray points_init: np.array<nb_points, dim>
     :param ndarray points_warped: np.array<nb_points, dim>
-    :param int figsize_max: maximal figure size for major image dimension
+    :param float figsize_max: maximal figure size for major image dimension
     :return: object
 
     >>> image = np.random.random((50, 50, 3))
-    >>> points = np.array([[20, 30], [40, 10], [15, 25]])
-    >>> fig = draw_images_warped_landmarks(image, 1 - image,
-    ...                                    points, points + 1, points - 1)  # doctest: +ELLIPSIS
+    >>> points = np.array([[20, 30], [40, 10], [15, 25], [5, 50], [10, 60]])
+    >>> fig = draw_images_warped_landmarks(image, 1 - image, points, points + 1, points - 1)
     >>> isinstance(fig, plt.Figure)
     True
+    >>> fig = draw_images_warped_landmarks(None, None, points, points + 1, points - 1)
+    >>> isinstance(fig, plt.Figure)
+    True
+    >>> _ = draw_images_warped_landmarks(image, None, points, points + 1, points - 1)
+    >>> _ = draw_images_warped_landmarks(None, image, points, points + 1, points - 1)
     """
-    image = overlap_two_images(image_target, image_source, transparent=0.5) \
-        if image_source is not None else image_target
-    fig, ax = create_figure(image.shape, figsize_max)
-    ax.imshow(image)
+    # downascale images and landmarks if they are too large
+    (image_target, image_source), (points_init, points_target, points_warped) = \
+        scale_large_images_landmarks([image_target, image_source],
+                                     [points_init, points_target, points_warped])
+
+    if image_target is not None and image_source is not None:
+        image = overlap_two_images(image_target, image_source, transparent=0.5)
+    elif image_target is not None:
+        image = image_target
+    elif image_source is not None:
+        image = image_source
+    else:
+        image = None
+
+    if image is not None:
+        im_size = image.shape
+        fig, ax = create_figure(im_size, figsize_max)
+        ax.imshow(image)
+    else:
+        lnds_size = [np.max(pts, axis=0) + np.min(pts, axis=0)
+                     for pts in [points_init, points_target, points_warped] if pts is not None]
+        im_size = np.max(lnds_size, axis=0).tolist() if lnds_size else (1, 1)
+        fig, ax = create_figure(im_size, figsize_max)
+
     draw_landmarks_origin_target_warped(ax, points_init, points_target, points_warped)
     ax.legend(loc='lower right', title='Legend')
-    ax.set_xlim([0, image.shape[1]])
-    ax.set_ylim([image.shape[0], 0])
+    ax.set_xlim([0, im_size[1]])
+    ax.set_ylim([im_size[0], 0])
     ax.axes.get_xaxis().set_ticklabels([])
     ax.axes.get_yaxis().set_ticklabels([])
     return fig

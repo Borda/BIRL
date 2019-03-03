@@ -5,9 +5,13 @@ import numpy as np
 import pandas as pd
 
 # in case you are running on machine without display, e.g. server
-if os.environ.get('DISPLAY', '') == '' \
-        and matplotlib.rcParams['backend'] != 'agg':
+if not os.environ.get('DISPLAY', '') and matplotlib.rcParams['backend'] != 'agg':
     print('No display found. Using non-interactive Agg backend')
+    matplotlib.use('Agg')
+
+# _tkinter.TclError: couldn't connect to display "localhost:10.0"
+if os.system('python -c "from matplotlib import pyplot; pyplot.close(pyplot.figure())"'):
+    print('Problem with display. Using non-interactive Agg backend')
     matplotlib.use('Agg')
 
 # parse the numpy versions

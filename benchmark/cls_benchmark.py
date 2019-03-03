@@ -32,34 +32,50 @@ from benchmark.utilities.visualisation import (
     export_figure, draw_image_points, draw_images_warped_landmarks)
 from benchmark.utilities.cls_experiment import Experiment
 
+#: number of available threads on this computer
 NB_THREADS = int(mproc.cpu_count())
+#: default number of threads used by benchmarks
 NB_THREADS_USED = max(1, int(NB_THREADS * .8))
 # some needed files
 NAME_CSV_REGISTRATION_PAIRS = 'registration-results.csv'
+#: default file for exporting results in table format
 NAME_CSV_RESULTS = 'results-summary.csv'
+#: default file for exporting results in formatted text format
 NAME_TXT_RESULTS = 'results-summary.txt'
+#: logging file for registration experiments
 NAME_LOG_REGISTRATION = 'registration.log'
+#: output image name in experiment folder for reg. results - image and landmarks are warped
 NAME_IMAGE_MOVE_WARP_POINTS = 'image_warped_landmarks_warped.jpg'
+#: output image name in experiment folder for reg. results - warped landmarks in reference image
 NAME_IMAGE_REF_POINTS_WARP = 'image_ref_landmarks_warped.jpg'
+#: output image name in experiment folder for showing improved alignment by used reguistration
 NAME_IMAGE_WARPED_VISUAL = 'registration_visual_landmarks.jpg'
 # columns names in cover and also registration table
+#: reference (registration target) image
 COL_IMAGE_REF = 'Target image'
+#: moving (registration source) image
 COL_IMAGE_MOVE = 'Source image'
-# reference image warped to the moving frame
+#: reference image warped to the moving frame
 COL_IMAGE_REF_WARP = 'Warped target image'
-# moving image warped to the reference frame
+#: moving image warped to the reference frame
 COL_IMAGE_MOVE_WARP = 'Warped source image'
+#: reference (registration target) landmarks
 COL_POINTS_REF = 'Target landmarks'
+#: moving (registration source) landmarks
 COL_POINTS_MOVE = 'Source landmarks'
-# reference landmarks warped to the moving frame
+#: reference landmarks warped to the moving frame
 COL_POINTS_REF_WARP = 'Warped target landmarks'
-# moving landmarks warped to the reference frame
+#: moving landmarks warped to the reference frame
 COL_POINTS_MOVE_WARP = 'Warped source landmarks'
-# registration folder for each particular experiment
+#: registration folder for each particular experiment
 COL_REG_DIR = 'Registration folder'
+#: define robustness as improved image alignment from initial state
 COL_ROBUSTNESS = 'Robustness'
+#: measured time of image registration in minutes
 COL_TIME = 'Execution time [minutes]'
+#: tuple of image size
 COL_IMAGE_SIZE = 'Image size [pixels]'
+#: image diagonal in pixels
 COL_IMAGE_DIAGONAL = 'Image diagonal [pixels]'
 
 # list of columns in cover csv
@@ -108,10 +124,10 @@ class ImRegBenchmark(Experiment):
         e) clean all extra files if any
     4. visualise results abd evaluate registration results
 
-    NOTE: The actual implementation simulates the "WORSE" registration while
-    it blindly copies the moving landmarks as results of the registration.
-    It also copies the moving images so there is correct "warping" between
-    image and landmarks. It means that there was no registration performed.
+    NOTE: The actual implementation simulates the "IDEAL" registration while
+    it blindly copies the reference landmarks as results of the registration.
+    In contrast to the right registration, it copies the moving images so there
+    is alignment (consistent warping) between resulting landmarks and image.
 
     Running in single thread:
     >>> from benchmark.utilities.data_io import create_folder, update_path
@@ -290,14 +306,14 @@ class ImRegBenchmark(Experiment):
         create_folder(path_dir_reg)
 
         row = self._prepare_registration(row)
-        str_cmd = self._generate_regist_command(row)
+        commands = self._generate_regist_command(row)
         path_log = os.path.join(path_dir_reg, NAME_LOG_REGISTRATION)
         # TODO, add lock to single thread, create pool with possible thread ids
         # (USE taskset [native], numactl [need install])
 
         # measure execution time
         time_start = time.time()
-        cmd_result = run_command_line(str_cmd, path_log)
+        cmd_result = run_command_line(commands, path_log)
         # compute the registration time in minutes
         row[COL_TIME] = (time.time() - time_start) / 60.
         # if the experiment failed, return back None
@@ -318,7 +334,7 @@ class ImRegBenchmark(Experiment):
             path_dataset=self.params.get('path_dataset', None),
             path_experiment=self.params.get('path_exp', None))
         self.__execute_method(_compute_landmarks_statistic, self._df_experiments,
-                              desc='compute inaccuracy', nb_workers=1)
+                              desc='compute TRE', nb_workers=1)
         # add visualisations
         _visualise_registration = partial(
             visualise_registration,
@@ -353,15 +369,15 @@ class ImRegBenchmark(Experiment):
         :return str|[str]: the execution commands
         """
         logging.debug('.. simulate registration: '
-                      'copy the source image and landmarks, like regist. failed')
-        _, path_im_move, path_lnds_ref, _ = self._get_paths(record)
+                      'copy the target image and landmarks, simulate ideal case')
+        path_im_ref, _, _, path_lnds_move = self._get_paths(record)
         path_reg_dir = self._get_path_reg_dir(record)
         name_img = os.path.basename(record[COL_IMAGE_MOVE])
-        cmd_img = 'cp %s %s' % (path_im_move, os.path.join(path_reg_dir, name_img))
+        cmd_img = 'cp %s %s' % (path_im_ref, os.path.join(path_reg_dir, name_img))
         name_lnds = os.path.basename(record[COL_POINTS_MOVE])
-        cmd_lnds = 'cp %s %s' % (path_lnds_ref, os.path.join(path_reg_dir, name_lnds))
-        command = [cmd_img, cmd_lnds]
-        return command
+        cmd_lnds = 'cp %s %s' % (path_lnds_move, os.path.join(path_reg_dir, name_lnds))
+        commands = [cmd_img, cmd_lnds]
+        return commands
 
     @classmethod
     def _extract_warped_images_landmarks(self, record):
@@ -456,7 +472,7 @@ def compute_landmarks_statistic(idx_row, df_experiments,
     idx, row = idx_row
     row = dict(row)  # convert even series to dictionary
     points_ref, points_move, path_img_ref = _load_landmarks(row, path_dataset)
-    points_warped = []
+    points_warp = []
     img_diag = _image_diag(row, path_img_ref)
     df_experiments.loc[idx, COL_IMAGE_DIAGONAL] = img_diag
     # compute statistic
@@ -474,18 +490,15 @@ def compute_landmarks_statistic(idx_row, df_experiments,
         points_target, path_landmarks = [], None
     # load landmarks
     if path_landmarks and os.path.isfile(path_landmarks):
-        points_warped = load_landmarks(path_landmarks)
+        points_warp = load_landmarks(path_landmarks)
 
     # compute statistic
-    if list(points_target) and list(points_warped):
-        compute_landmarks_inaccuracy(df_experiments, idx, points_target, points_warped,
-                                     'final', img_diag)
-        row2 = df_experiments.loc[idx]
-        robust = row2['TRE Mean (final)'] < row2['TRE Mean (init)']
+    compute_landmarks_inaccuracy(df_experiments, idx, points_target, points_warp,
+                                 'final', img_diag)
+    row_ = dict(df_experiments.loc[idx])
+    if 'TRE Mean (final)' in row_:
+        robust = row_['TRE Mean (final)'] < row_['TRE Mean (init)']
         df_experiments.loc[idx, COL_ROBUSTNESS] = int(robust)
-    else:
-        logging.debug('Number of target (%i) and warped (%i) landmarks does not match.',
-                      len(points_target), len(points_warped))
 
 
 def compute_landmarks_inaccuracy(df_experiments, idx, points1, points2,
@@ -529,7 +542,6 @@ def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
         return
 
     points_ref, points_move, path_img_ref = _load_landmarks(record, path_dataset)
-    image_ref = load_image(path_img_ref)
 
     if COL_IMAGE_MOVE_WARP not in record or not isinstance(record[COL_IMAGE_MOVE_WARP], str):
         logging.warning('Missing registered image "%s"', COL_IMAGE_MOVE_WARP)
@@ -545,9 +557,13 @@ def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
     image = draw_image_points(image_warp, points_warp)
     save_image(os.path.join(update_path_(record[COL_REG_DIR], path_experiment),
                             NAME_IMAGE_MOVE_WARP_POINTS), image)
+    del image
+
     # visualise the landmarks move during registration
+    image_ref = load_image(path_img_ref)
     fig = draw_images_warped_landmarks(image_ref, image_warp, points_move,
                                        points_ref, points_warp)
+    del image_ref, image_warp
     return fig
 
 
@@ -568,7 +584,6 @@ def _visual_image_ref_warp_lnds_move_warp(record, path_dataset=None,
         return
 
     points_ref, points_move, path_img_ref = _load_landmarks(record, path_dataset)
-    image_ref = load_image(path_img_ref)
 
     points_warp = load_landmarks(path_points_warp)
     if not list(points_warp):
@@ -579,9 +594,13 @@ def _visual_image_ref_warp_lnds_move_warp(record, path_dataset=None,
     image = draw_image_points(image_move, points_warp)
     save_image(os.path.join(update_path_(record[COL_REG_DIR], path_experiment),
                             NAME_IMAGE_REF_POINTS_WARP), image)
+    del image
+
     # visualise the landmarks move during registration
+    image_ref = load_image(path_img_ref)
     fig = draw_images_warped_landmarks(image_ref, image_move, points_ref,
                                        points_move, points_warp)
+    del image_ref, image_move
     return fig
 
 
@@ -632,6 +651,8 @@ def export_summary_results(df_experiments, path_out, params=None,
         df_experiments.set_index('ID', inplace=True)
     df_summary = df_experiments.describe(percentiles=costume_percentiles).T
     df_summary['median'] = df_experiments.median()
+    nb_missing = np.sum(df_experiments['TRE Mean (init)'].isnull())
+    df_summary['missing'] = nb_missing / float(len(df_experiments))
     df_summary.sort_index(inplace=True)
     path_csv = os.path.join(path_out, name_csv)
     logging.debug('exporting CSV summary: %s', path_csv)
@@ -647,5 +668,5 @@ def export_summary_results(df_experiments, path_out, params=None,
         fp.write('\n' * 3 + 'RESULTS:\n')
         fp.write('completed registration experiments: %i' % len(df_experiments))
         fp.write('\n' * 2)
-        fp.write(repr(df_summary[['mean', 'std', 'median', 'min', 'max',
+        fp.write(repr(df_summary[['mean', 'std', 'median', 'min', 'max', 'missing',
                                   '5%', '25%', '50%', '75%', '95%']]))

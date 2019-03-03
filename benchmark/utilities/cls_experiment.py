@@ -13,10 +13,15 @@ import logging
 from benchmark.utilities.experiments import (set_experiment_logger, string_dict,
                                              create_experiment_folder, release_logger_files)
 
+#: default date-time format
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
+# default output file for exporting experiment configuration
 CONFIG_JSON = 'config.json'
+#: default file for exporting results in formatted text format
 RESULTS_TXT = 'results.txt'
+#: default file for exporting results in table format
 RESULTS_CSV = 'results.csv'
+# default output file for logging
 FILE_LOGS = 'logging.txt'
 
 
