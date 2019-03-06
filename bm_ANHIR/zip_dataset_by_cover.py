@@ -21,7 +21,8 @@ import subprocess
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.cls_benchmark import COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_MOVE
+from birl.cls_benchmark import COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_MOVE, COL_POINTS_REF
+from bm_ANHIR.generate_regist_pairs import COL_STATUS, VAL_STATUS_TRAIN
 
 ZIP_COMMAND = 'cd %s && zip --split-size 2g %s.zip -r %s'
 
@@ -53,6 +54,7 @@ def main(path_dataset, path_landmarks_out, path_landmarks_in, path_csv):
     name_csv = os.path.splitext(os.path.basename(path_csv))[0]
     df_cover = pd.read_csv(path_csv)
 
+    # Section - IMAGES
     images = df_cover[COL_IMAGE_REF].tolist() + df_cover[COL_IMAGE_MOVE].tolist()
     folders = set(os.path.dirname(p) for p in images
                   if os.path.isdir(os.path.join(path_dataset, os.path.dirname(p))))
@@ -63,7 +65,9 @@ def main(path_dataset, path_landmarks_out, path_landmarks_in, path_csv):
     cmd_zip_imgs = ZIP_COMMAND % (path_dataset, name_csv, ' '.join(folders))
     _process_cmd(cmd_zip_imgs)
 
-    landmarks = set(df_cover[COL_POINTS_MOVE].tolist())
+    # Section - LANDMARKS
+    lnds_ref_train = df_cover[df_cover[COL_STATUS] == VAL_STATUS_TRAIN][COL_POINTS_REF].tolist()
+    landmarks = set(df_cover[COL_POINTS_MOVE].tolist() + lnds_ref_train)
     landmarks = [p for p in landmarks
                  if os.path.isfile(os.path.join(path_landmarks_in, p))]
     # compress the landmarks

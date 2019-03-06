@@ -191,7 +191,7 @@ def update_path(path_file, lim_depth=5, absolute=True):
     :param bool absolute: return absolute path
     :return str:
 
-    >>> os.path.exists(update_path('birl', absolute=False))
+    >>> os.path.exists(update_path('./birl', absolute=False))
     True
     >>> os.path.exists(update_path('/', absolute=False))
     True
@@ -203,7 +203,7 @@ def update_path(path_file, lim_depth=5, absolute=True):
     elif path_file.startswith('~'):
         path_file = os.path.expanduser(path_file)
 
-    tmp_path = path_file
+    tmp_path = path_file[2:] if path_file.startswith('./') else path_file
     for _ in range(lim_depth):
         if os.path.exists(tmp_path):
             path_file = tmp_path

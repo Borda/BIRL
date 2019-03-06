@@ -55,6 +55,10 @@ DATASET_TISSUE_SCALE.update(DATASET_TISSUE_SCALE_PARTIAL)
 HIDE_TEST_TISSUE_STEP = 3
 # requires empty columns in the dataset cover
 COLUMNS_EMPTY = (COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP, COL_TIME)
+# define train / test status
+COL_STATUS = 'status'
+VAL_STATUS_TRAIN = 'training'
+VAL_STATUS_TEST = 'evaluation'
 
 
 def get_relative_paths(paths, path_base):
@@ -108,7 +112,7 @@ def generate_reg_pairs(rp_imgs, rp_lnds, pairs, public, path_images=DATASET_IMAG
             COL_IMAGE_MOVE: rp_imgs[j],
             COL_POINTS_REF: rp_lnds[i],
             COL_POINTS_MOVE: rp_lnds[j],
-            'status': 'training' if public[k] else 'evaluation',
+            COL_STATUS: VAL_STATUS_TRAIN if public[k] else VAL_STATUS_TEST,
             COL_IMAGE_SIZE: img_size,
             COL_IMAGE_DIAGONAL: img_diag,
         })
