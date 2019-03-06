@@ -17,7 +17,6 @@ from functools import wraps
 
 import tqdm
 import numpy as np
-from scipy.spatial import distance
 
 from birl.utilities.data_io import create_folder, update_path
 
@@ -207,7 +206,7 @@ def parse_arg_params(parser, upper_dirs=None):
     return args
 
 
-def run_command_line(commands, path_logger=None, timeout=None):
+def exec_commands(commands, path_logger=None, timeout=None):
     """ run the given commands in system Command Line
 
     SEE: https://stackoverflow.com/questions/1996518
@@ -218,12 +217,12 @@ def run_command_line(commands, path_logger=None, timeout=None):
     :param int timeout: timeout for max commands length
     :return bool: whether the commands passed
 
-    >>> run_command_line(('ls', 'ls -l'), path_logger='./sample-output.log')
+    >>> exec_commands(('ls', 'ls -l'), path_logger='./sample-output.log')
     True
-    >>> run_command_line('mv sample-output.log moved-output.log', timeout=10)
+    >>> exec_commands('mv sample-output.log moved-output.log', timeout=10)
     True
     >>> os.remove('./moved-output.log')
-    >>> run_command_line('cp sample-output.log moved-output.log')
+    >>> exec_commands('cp sample-output.log moved-output.log')
     False
     """
     logging.debug('CMD ->> \n%s', commands)
@@ -253,60 +252,6 @@ def run_command_line(commands, path_logger=None, timeout=None):
         with open(path_logger, 'a') as fp:
             fp.write('\n'.join(outputs))
     return success
-
-
-def compute_points_dist_statistic(points_ref, points_est):
-    """ compute distance as between related points in two sets
-    and make a statistic on those distances - mean, std, median, min, max
-
-    :param points_ref: np.array<nb_points, dim>
-    :param points_new: np.array<nb_points, dim>
-    :return: (np.array<nb_points, 1>, {str: float})
-
-    >>> points_ref = np.array([[1, 2], [3, 4], [2, 1]])
-    >>> points_est = np.array([[3, 4], [2, 1], [1, 2]])
-    >>> dist, stat = compute_points_dist_statistic(points_ref, points_ref)
-    >>> dist
-    array([ 0.,  0.,  0.])
-    >>> all(stat[k] == 0 for k in stat if k not in ['overlap points'])
-    True
-    >>> dist, stat = compute_points_dist_statistic(points_ref, points_est)
-    >>> dist  #doctest: +ELLIPSIS
-    array([ 2.828...,  3.162...,  1.414...])
-    >>> stat['Mean']  #doctest: +ELLIPSIS
-    2.468...
-    >>> stat['Mean_weighted']  #doctest: +ELLIPSIS
-    2.641...
-
-    Wrong input:
-    >>> compute_points_dist_statistic(None, np.array([[1, 2], [3, 4], [2, 1]]))
-    ([], {'overlap points': 0})
-    """
-    if not all(pts is not None and list(pts) for pts in [points_ref, points_est]):
-        return [], {'overlap points': 0}
-
-    lnd_sizes = [len(points_ref), len(points_est)]
-    nb_common = min(lnd_sizes)
-    assert nb_common > 0, 'no common landmarks for metric'
-    points_ref = np.asarray(points_ref)[:nb_common]
-    points_est = np.asarray(points_est)[:nb_common]
-    diffs = np.sqrt(np.sum(np.power(points_ref - points_est, 2), axis=1))
-
-    inter_dist = distance.cdist(points_ref, points_ref)
-    inter_dist[range(len(points_ref)), range(len(points_ref))] = np.inf
-    closest = np.min(inter_dist, axis=0)
-    weights = closest / np.sum(closest)
-
-    dict_stat = {
-        'Mean': np.mean(diffs),
-        'Mean_weighted': np.sum(diffs * weights),
-        'STD': np.std(diffs),
-        'Median': np.median(diffs),
-        'Min': np.min(diffs),
-        'Max': np.max(diffs),
-        'overlap points': nb_common / float(max(lnd_sizes))
-    }
-    return diffs, dict_stat
 
 
 # class NonDaemonPool(multiprocessing.pool.Pool):

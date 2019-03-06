@@ -161,7 +161,7 @@ def overlap_two_images(image1, image2, transparent=0.5):
 
 def draw_images_warped_landmarks(image_target, image_source,
                                  points_init, points_target, points_warped,
-                                 figsize_max=MAX_FIGURE_SIZE):
+                                 fig_size_max=MAX_FIGURE_SIZE):
     """ composed form several functions - images overlap + landmarks + legend
 
     :param ndarray image_target: np.array<height, with, dim>
@@ -183,7 +183,7 @@ def draw_images_warped_landmarks(image_target, image_source,
     >>> _ = draw_images_warped_landmarks(image, None, points, points + 1, points - 1)
     >>> _ = draw_images_warped_landmarks(None, image, points, points + 1, points - 1)
     """
-    # downascale images and landmarks if they are too large
+    # down-scale images and landmarks if they are too large
     (image_target, image_source), (points_init, points_target, points_warped) = \
         scale_large_images_landmarks([image_target, image_source],
                                      [points_init, points_target, points_warped])
@@ -199,13 +199,13 @@ def draw_images_warped_landmarks(image_target, image_source,
 
     if image is not None:
         im_size = image.shape
-        fig, ax = create_figure(im_size, figsize_max)
+        fig, ax = create_figure(im_size, fig_size_max)
         ax.imshow(image)
     else:
         lnds_size = [np.max(pts, axis=0) + np.min(pts, axis=0)
                      for pts in [points_init, points_target, points_warped] if pts is not None]
         im_size = np.max(lnds_size, axis=0).tolist() if lnds_size else (1, 1)
-        fig, ax = create_figure(im_size, figsize_max)
+        fig, ax = create_figure(im_size, fig_size_max)
 
     draw_landmarks_origin_target_warped(ax, points_init, points_target, points_warped)
     ax.legend(loc='lower right', title='Legend')

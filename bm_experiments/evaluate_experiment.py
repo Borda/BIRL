@@ -28,7 +28,7 @@ import pandas as pd
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.experiments import wrap_execute_sequence, parse_arg_params
 from birl.cls_benchmark import (NAME_CSV_REGISTRATION_PAIRS, export_summary_results,
-                                compute_landmarks_statistic, visualise_registration)
+                                compute_registration_statistic, visualise_registration)
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .75))
 NAME_CSV_RESULTS = 'registration-results_NEW.csv'
@@ -66,7 +66,7 @@ def main(path_experiment, path_dataset, visual=False, nb_workers=NB_THREADS):
 
     df_experiments = pd.read_csv(path_results)
     df_results = df_experiments.copy()
-    _compute_lnds_stat = partial(compute_landmarks_statistic, df_experiments=df_results,
+    _compute_lnds_stat = partial(compute_registration_statistic, df_experiments=df_results,
                                  path_dataset=path_dataset, path_experiment=path_experiment)
     # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
     list(wrap_execute_sequence(_compute_lnds_stat, df_experiments.iterrows(),

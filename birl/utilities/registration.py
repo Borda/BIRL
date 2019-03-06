@@ -5,6 +5,7 @@ Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import numpy as np
+from skimage.transform import AffineTransform
 
 
 def transform_points(points, matrix):
@@ -65,3 +66,51 @@ def estimate_affine_transform(points_0, points_1):
     points_1_warp = transform_points(points_1, matrix_inv)
 
     return matrix, matrix_inv, points_0_warp, points_1_warp
+
+
+def get_affine_components(matrix):
+    """ get the main components of Affine transform
+
+    :param ndarray matrix: affine transformation matrix for 2d
+    :return {str: float}:
+
+    >>> mtx = np.array([[ -0.95,   0.1,  65.], [  0.1,   0.95, -60.], [  0.,   0.,   1.]])
+    >>> import  pandas as pd
+    >>> pd.Series(get_affine_components(mtx)).sort_index()  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    rotation                           173.9...
+    scale                    (0.95..., 0.95...)
+    shear                              -3.14...
+    translation                   (65.0, -60.0)
+    dtype: object
+    """
+    aff = AffineTransform(matrix)
+    norm_rotation = norm_angle(np.rad2deg(aff.rotation), deg=True)
+    comp = {
+        'rotation': float(norm_rotation),
+        'translation': tuple(aff.translation.tolist()),
+        'scale': aff.scale,
+        'shear': aff.shear,
+    }
+    return comp
+
+
+def norm_angle(angle, deg=True):
+    """ normalize angles to be in range -half -> +half
+
+    :param float angle: input angle
+    :param bool deg: using degree or radian
+    :return float:
+
+    >>> norm_angle(60)
+    60
+    >>> norm_angle(200)
+    -160
+    >>> norm_angle(-540)
+    180
+    """
+    unit = 180 if deg else np.pi
+    while angle <= -unit:
+        angle += 2 * unit
+    while angle > unit:
+        angle -= 2 * unit
+    return angle

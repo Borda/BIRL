@@ -73,7 +73,7 @@ from birl.utilities.experiments import wrap_execute_sequence, parse_arg_params
 from birl.cls_benchmark import (
     NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COVER_COLUMNS_WRAP,
     COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP, COL_POINTS_REF, COL_POINTS_MOVE,
-    COL_TIME, COL_ROBUSTNESS, compute_landmarks_statistic, update_path_)
+    COL_TIME, COL_ROBUSTNESS, compute_registration_statistic, update_path_)
 # from bm_experiments.bm_comp_perform import NAME_REPORT
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .9))
@@ -347,7 +347,7 @@ def main(path_experiment, path_cover, path_dataset, path_output,
         df_experiments.loc[idx, COL_FOUND_LNDS] = np.round(ratio, 2)
 
     logging.info('Compute landmarks statistic.')
-    _compute_lnds_stat = partial(compute_landmarks_statistic, df_experiments=df_experiments,
+    _compute_lnds_stat = partial(compute_registration_statistic, df_experiments=df_experiments,
                                  path_dataset=path_output, path_experiment=path_experiment)
     # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
     list(wrap_execute_sequence(_compute_lnds_stat, df_experiments.iterrows(),

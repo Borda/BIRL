@@ -67,7 +67,7 @@ class TestBmRegistration(unittest.TestCase):
         assert_raises(Exception, ImRegBenchmark, params)
 
     def test_benchmark_invalid(self):
-        """ test run in sequence (1 thread) """
+        """ test run in parallel with failing experiment """
         params = {
             'path_cover': PATH_CSV_COVER_MIX,
             'path_dataset': PATH_DATA,

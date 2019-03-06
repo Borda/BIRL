@@ -44,7 +44,7 @@ import shutil
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import update_path, load_landmarks, save_landmarks
-from birl.utilities.experiments import create_basic_parse, parse_arg_params, run_command_line
+from birl.utilities.experiments import create_basic_parse, parse_arg_params, exec_commands
 from birl.cls_benchmark import ImRegBenchmark, NAME_LOG_REGISTRATION
 from birl.bm_template import main
 from bm_experiments import bm_comp_perform
@@ -247,7 +247,7 @@ class BmUnwarpJ(ImRegBenchmark):
         pts_source = load_landmarks(path_lnds_move)
         save_landmarks(os.path.join(path_dir, NAME_LANDMARKS), pts_source)
         # execute transformation
-        run_command_line(COMMAND_WARP_LANDMARKS % dict_params, path_logger=path_log)
+        exec_commands(COMMAND_WARP_LANDMARKS % dict_params, path_logger=path_log)
         # load warped landmarks from TXT
         path_lnds = os.path.join(path_dir, NAME_LANDMARKS_WARPED)
         if os.path.isfile(path_lnds):

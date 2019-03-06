@@ -123,8 +123,7 @@ class Experiment(object):
 
     def __del__(self):
         """ terminating experiment """
-        if not self._main_thread:
-            logging.debug('terminating child experiment...')
-            return
-        logging.info('terminating experiment...')
-        release_logger_files()
+        if hasattr(self, '_main_thread') and self._main_thread:
+            logging.info('terminating experiment...')
+            release_logger_files()
+        logging.debug('terminating child experiment...')

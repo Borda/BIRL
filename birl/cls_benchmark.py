@@ -26,10 +26,11 @@ import pandas as pd
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (
     update_path, create_folder, image_size, load_landmarks, load_image, save_image)
-from birl.utilities.experiments import (
-    run_command_line, string_dict, compute_points_dist_statistic, wrap_execute_sequence)
+from birl.utilities.evaluate import compute_points_dist_statistic, compute_affine_transf_diff
+from birl.utilities.experiments import exec_commands, string_dict, wrap_execute_sequence
 from birl.utilities.visualisation import (
     export_figure, draw_image_points, draw_images_warped_landmarks)
+from birl.utilities.registration import estimate_affine_transform
 from birl.utilities.cls_experiment import Experiment
 
 #: number of available threads on this computer
@@ -313,7 +314,7 @@ class ImRegBenchmark(Experiment):
 
         # measure execution time
         time_start = time.time()
-        cmd_result = run_command_line(commands, path_log)
+        cmd_result = exec_commands(commands, path_log)
         # compute the registration time in minutes
         row[COL_TIME] = (time.time() - time_start) / 60.
         # if the experiment failed, return back None
@@ -329,7 +330,7 @@ class ImRegBenchmark(Experiment):
         logging.info('-> summarise experiment...')
         # load _df_experiments and compute stat
         _compute_landmarks_statistic = partial(
-            compute_landmarks_statistic,
+            compute_registration_statistic,
             df_experiments=self._df_experiments,
             path_dataset=self.params.get('path_dataset', None),
             path_experiment=self.params.get('path_exp', None))
@@ -459,8 +460,8 @@ def _load_landmarks(record, path_dataset):
     return points_ref, points_move, path_img_ref
 
 
-def compute_landmarks_statistic(idx_row, df_experiments,
-                                path_dataset=None, path_experiment=None):
+def compute_registration_statistic(idx_row, df_experiments,
+                                   path_dataset=None, path_experiment=None):
     """ after successful registration load initial nad estimated landmarks
     afterwords compute various statistic for init, and finalNoBmTemplatene alignment
 
@@ -472,37 +473,52 @@ def compute_landmarks_statistic(idx_row, df_experiments,
     idx, row = idx_row
     row = dict(row)  # convert even series to dictionary
     points_ref, points_move, path_img_ref = _load_landmarks(row, path_dataset)
-    points_warp = []
     img_diag = _image_diag(row, path_img_ref)
     df_experiments.loc[idx, COL_IMAGE_DIAGONAL] = img_diag
-    # compute statistic
-    compute_landmarks_inaccuracy(df_experiments, idx, points_ref, points_move,
-                                 'init', img_diag)
+
+    # compute landmarks statistic
+    compute_registration_accuracy(df_experiments, idx, points_ref, points_move,
+                                  'init', img_diag, wo_affine=False)
+
     # load transformed landmarks
-    if COL_POINTS_MOVE_WARP in row:
-        points_target = points_ref
-        path_landmarks = update_path_(row[COL_POINTS_MOVE_WARP], path_experiment)
-    elif COL_POINTS_REF_WARP in row:
-        points_target = points_move
-        path_landmarks = update_path_(row[COL_POINTS_REF_WARP], path_experiment)
-    else:
+    if (COL_POINTS_MOVE_WARP not in row) and (COL_POINTS_REF_WARP not in row):
         logging.error('Statistic: no output landmarks')
-        points_target, path_landmarks = [], None
+        return
+
+    # define what is the target and init state according to the experiment results
+    is_move_warp = COL_POINTS_MOVE_WARP in row and row[COL_POINTS_MOVE_WARP]
+    points_init = points_move if is_move_warp else points_ref
+    points_target = points_ref if is_move_warp else points_move
+    col_lnds_warp = COL_POINTS_MOVE_WARP if is_move_warp else COL_POINTS_REF_WARP
+
     # load landmarks
+    path_landmarks = update_path_(row[col_lnds_warp], path_experiment)
     if path_landmarks and os.path.isfile(path_landmarks):
         points_warp = load_landmarks(path_landmarks)
+    else:
+        logging.warning('Invalid path to the landmarks: "%s" <- "%s"',
+                        path_landmarks, row[col_lnds_warp])
+        return
 
-    # compute statistic
-    compute_landmarks_inaccuracy(df_experiments, idx, points_target, points_warp,
-                                 'final', img_diag)
+    # compute Affine statistic
+    affine_diff = compute_affine_transf_diff(points_init, points_target, points_warp)
+    for name in affine_diff:
+        df_experiments.loc[idx, name] = affine_diff[name]
+
+    # compute landmarks statistic
+    compute_registration_accuracy(df_experiments, idx, points_target, points_warp,
+                                  'elastic', img_diag, wo_affine=True)
+    # compute landmarks statistic
+    compute_registration_accuracy(df_experiments, idx, points_target, points_warp,
+                                  'final', img_diag, wo_affine=False)
     row_ = dict(df_experiments.loc[idx])
     if 'TRE Mean (final)' in row_:
         robust = row_['TRE Mean (final)'] < row_['TRE Mean (init)']
         df_experiments.loc[idx, COL_ROBUSTNESS] = int(robust)
 
 
-def compute_landmarks_inaccuracy(df_experiments, idx, points1, points2,
-                                 state='', img_diag=None):
+def compute_registration_accuracy(df_experiments, idx, points1, points2,
+                                  state='', img_diag=None, wo_affine=False):
     """ compute statistic on two points sets
 
     :param DF df_experiments: DataFrame with experiments
@@ -511,7 +527,12 @@ def compute_landmarks_inaccuracy(df_experiments, idx, points1, points2,
     :param points2: np.array<nb_points, dim>
     :param str state: whether it was before of after registration
     :param float img_diag: target image diagonal
+    :param bool wo_affine: without affine transform, assume only local/elastic deformation
     """
+    if wo_affine:
+        # removing the affine transform and assume only local/elastic deformation
+        _, _, points1, _ = estimate_affine_transform(points1, points2)
+
     _, stat = compute_points_dist_statistic(points1, points2)
     if img_diag is not None:
         df_experiments.at[idx, COL_IMAGE_DIAGONAL] = img_diag
