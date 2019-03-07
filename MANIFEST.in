@@ -33,7 +33,7 @@ recursive-exclude docs *
 exclude docs
 
 # Exclude the ImageJ macro files
-recursive-include scripts_IJ *.ijm *.bsh
+recursive-include scripts *.ijm *.bsh
 
 # Include the Requirements
 include requirements.txt

@@ -6,7 +6,7 @@ It also serves for evaluating the input registration pairs
 EXAMPLE (usage):
 >> mkdir ./results
 >> python benchmarks/bm_registration.py \
-    -c data_images/pairs-imgs-lnds_anhir.csv -d ./data_images \
+    -c data_images/pairs-imgs-lnds_histol.csv -d ./data_images \
     -o ./results --unique
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
@@ -353,6 +353,8 @@ class ImRegBenchmark(Experiment):
         # measure execution time
         time_start = time.time()
         cmd_result = exec_commands(commands, path_log)
+        # compute the registration time in minutes
+        row[COL_TIME] = (time.time() - time_start) / 60.
         # if the experiment failed, return back None
         if not cmd_result:
             return None

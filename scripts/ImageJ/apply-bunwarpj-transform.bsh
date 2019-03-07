@@ -1,10 +1,12 @@
 /*
  * Transform landmarks using estimated transformation
  *
- * Usage:
+ * EXAMPLE:
  * >> ~/Applications/Fiji.app/ImageJ-linux64 --java-home /usr/lib/jvm/java-8-openjdk-amd64 \
-        --headless apply-bunwarpj-transform-to-landmarks.bsh deformed-bridge.png bridge.png \
-        moving-landmarks.txt warped-landmarks.txt bridge_inverse_transf.txt deformed-bridge_direct_transf.txt warped-image.tif
+        --headless apply-bunwarpj-transform-to-landmarks.bsh \
+        deformed-bridge.png bridge.png \
+        moving-landmarks.txt warped-landmarks.txt bridge_inverse_transf.txt \
+        deformed-bridge_direct_transf.txt warped-image.tif
  *
  * Copyright (C) 2019 Ignacio Arganda-Carreras <ignacio.arganda@ehu.eus>
  */

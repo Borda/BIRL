@@ -1,0 +1,45 @@
+/*
+ * Transform histogram of an image to match another image
+ *   version to be used inside a IJ macro:
+ *  > bshText = File.openAsString( "%s" );  // open script as text
+ *  > eval("bsh", bshText );  // evaluate script
+ *
+ * Copyright (C) 2019 Ignacio Arganda-Carreras <ignacio.arganda@ehu.eus>
+ */
+
+import ij.IJ;
+import histogram2.HistogramMatcher;
+import ij.process.StackStatistics;
+import ij.ImageStack;
+import ij.ImagePlus;
+import ij.WindowManager;
+
+targetImage = WindowManager.getImage( "targetImage" );
+sourceImage = WindowManager.getImage( "sourceImage" );
+
+
+stats1 = new StackStatistics( sourceImage );
+stats2 = new StackStatistics( targetImage );
+
+hist1 = stats1.histogram; // ip1.getHistogram();
+hist2 = stats2.histogram; // ip2.getHistogram();
+
+matcher = new HistogramMatcher();
+newHist = matcher.matchHistograms(hist1, hist2);
+
+//ip1.applyTable(newHist);
+//sourceImage.setProcessor(ip1);
+
+is = new ImageStack( sourceImage.getWidth(), sourceImage.getHeight() );
+
+boolean isStack = sourceImage.getImageStackSize() > 1;
+
+for( n=1; n<=sourceImage.getImageStackSize(); n++)
+{
+	ip = sourceImage.getImageStack().getProcessor( n );
+	ip.applyTable(newHist);
+	label = isStack ? sourceImage.getImageStack().getSliceLabel( n ) : "";
+	is.addSlice( label, ip );
+}
+
+sourceImage.setStack( is );

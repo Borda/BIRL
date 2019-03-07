@@ -65,7 +65,7 @@ The project contains the following folders:
 * `docs` - extra documentation and references
 * `scripts_IJ` - macros for ImageJ 
 
-
+---
 
 ## Before benchmarks (pre-processing) 
 
@@ -123,13 +123,25 @@ Moreover we developed two additional script for converting large images, handlin
  * `bm_dataset/split_images_two_tissues.py` splits two tissue samples with clear wide bound in vertical or horizontal direction
  * `bm_dataset/crop_tissue_images.py` crops the tissue sample removing wide homogeneous background
 
+---
 
 ## Experiments with included methods
 
 ### Included registration methods
 
-* **[bUnwarpJ](http://imagej.net/BUnwarpJ)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for elastic registration (optional integration with [Feature Extraction](http://imagej.net/Feature_Extraction)). See: [bm_bUnwarpJ](bm_experiments/bm_bUnwarpJ.py)
+* **[bUnwarpJ](http://imagej.net/BUnwarpJ)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for elastic registration (optional integration with [Feature Extraction](http://imagej.net/Feature_Extraction)).
+    ```bash
+    python bm_experiments/bm_bUnwarpJ.py \
+        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -d ./data_images \
+        -o ./results \
+        -fiji ./applications/Fiji.app/ImageJ-linux64 \
+        -config ./configs/ImageJ_bUnwarpJ-pure-image_histol-1k.txt \
+        --hist_matching
+    ```
 * ...
+
+Some more image registration methods integrated in ImageJ are listed in [Registration](https://imagej.net/Registration).
 
 ### Install methods and run benchmarks
 
@@ -149,7 +161,7 @@ python birl/bm_template.py \
 or with relative paths:
 ```bash
 python birl/bm_template.py \
-    -c ./data_images/pairs-imgs-lnds_anhir.csv \
+    -c ./data_images/pairs-imgs-lnds_histol.csv \
     -d ./data_images \
     -o ./results \
     --path_sample_config sample_config.txt
@@ -195,6 +207,7 @@ python bm_experiments/evaluate_experiment.py \
     --visual
 ``` 
 
+---
 
 ## License
 

@@ -21,7 +21,7 @@ EXAMPLE
 -------
 >> python evaluate_submission.py \
     -e ./results/BmUnwarpJ \
-    -c ./data_images/pairs-imgs-lnds_anhir.csv \
+    -c ./data_images/pairs-imgs-lnds_histol.csv \
     -d ./data_images \
     -r ./data_images \
     -p ./bm_experiments/computer-performances_cmpgrid-71.json \

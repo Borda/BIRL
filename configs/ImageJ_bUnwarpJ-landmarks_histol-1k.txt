@@ -1,0 +1,11 @@
+Fast
+image_subsample_factor=1
+initial_deformation=[Very Coarse]
+final_deformation=Fine
+divergence_weight=0.0
+curl_weight=0.0
+landmark_weight=0.5
+image_weight=0.5
+consistency_weight=10
+stop_threshold=0.001
+verbose
