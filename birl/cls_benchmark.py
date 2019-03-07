@@ -409,6 +409,8 @@ class ImRegBenchmark(Experiment):
         path_log = os.path.join(path_dir_reg, NAME_LOG_REGISTRATION)
         # TODO, add lock to single thread, create pool with possible thread ids
         # (USE taskset [native], numactl [need install])
+        if not (isinstance(commands, list) or isinstance(commands, tuple)):
+            commands = [commands]
         # measure execution time
         cmd_result = exec_commands(commands, path_log)
         # if the experiment failed, return back None

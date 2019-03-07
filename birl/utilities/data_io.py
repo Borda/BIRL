@@ -12,6 +12,7 @@ from functools import wraps
 import numpy as np
 import pandas as pd
 from PIL import Image
+from skimage.color import gray2rgb
 
 #: landmarks coordinates, loading from CSV file
 LANDMARK_COORDS = ['X', 'Y']
@@ -255,13 +256,11 @@ def image_size(path_image, decimal=1):
 
 
 @io_image_decorate
-def load_image(path_image):
+def load_image(path_image, force_rgb=True):
     """ load the image in value range (0, 1)
-
     :param str path_image:
     :return: np.array<height, width, ch>
-
-    >>> img = np.random.random((50, 50, 3))
+    >>> img = np.random.random((50, 50))
     >>> save_image('./test_image.jpg', img)
     >>> img2 = load_image('./test_image.jpg')
     >>> img2.max() <= 1.
@@ -272,6 +271,9 @@ def load_image(path_image):
     image = np.array(Image.open(path_image))
     while image.max() > 1.5:
         image = image / 255.
+    if force_rgb and (image.ndim == 2 or image.shape[2] == 1):
+        image = image[:, :, 0] if image.ndim == 3 else image
+        image = gray2rgb(image)
     return image.astype(np.float32)
 
 

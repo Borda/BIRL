@@ -139,6 +139,15 @@ Moreover we developed two additional script for converting large images, handlin
         -config ./configs/ImageJ_bUnwarpJ-pure-image_histol-1k.txt \
         --hist_matching
     ```
+* **[RNiftyReg](https://github.com/jonclayden/RNiftyReg)** is an R-native interface to the [NiftyReg image registration library](http://sourceforge.net/projects/niftyreg/) which contains programs to perform rigid, affine and non-linear registration of Nifti or analyse images.
+    ```bash
+    python bm_experiments/bm_RNiftyReg.py \
+        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -d ./data_images \
+        -o ./results \
+        -rexec Rscript \
+        -rscript ./scripts/Rscript/RNiftyReg_linear.r
+    ```
 * ...
 
 Some more image registration methods integrated in ImageJ are listed in [Registration](https://imagej.net/Registration).

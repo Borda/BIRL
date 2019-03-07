@@ -32,6 +32,9 @@ exclude configs
 recursive-exclude docs *
 exclude docs
 
+# Exclude the Rscript files
+recursive-include scripts *.r
+
 # Exclude the ImageJ macro files
 recursive-include scripts *.ijm *.bsh
 
