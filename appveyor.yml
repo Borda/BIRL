@@ -63,9 +63,9 @@ install:
 
 test_script:
   - tox
-  - mkdir results
+  - mkdir results && touch sample_config.txt
   - python bm_experiments/bm_comp_perform.py -o ./results -n 1
-  - python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --unique --visual --an_executable none
+  - python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --unique --visual --path_sample_config sample_config.txt
 
 on_success:
   - coverage report

@@ -101,7 +101,8 @@ print(file, time);
 
 run("Close All");
 run("Quit");
-exit();'''
+exit();
+'''
 
 
 def extend_parse(a_parser):
@@ -148,19 +149,14 @@ class BmUnwarpJ(ImRegBenchmark):
                                                         'path_config_bUnwarpJ']
 
     def _prepare(self):
-        """ prepare BM - copy configurations """
+        """ prepare Benchmark - copy configurations """
         logging.info('-> copy configuration...')
-        path_cofig = self.params['path_config_bUnwarpJ']
-        shutil.copy(path_cofig, os.path.join(self.params['path_exp'],
-                                             os.path.basename(path_cofig)))
+
+        self._copy_config_to_expt('path_config_bUnwarpJ')
         if 'path_config_IJ_SIFT' in self.params:
-            path_cofig = self.params['path_config_IJ_SIFT']
-            shutil.copy(path_cofig, os.path.join(self.params['path_exp'],
-                                                 os.path.basename(path_cofig)))
+            self._copy_config_to_expt('path_config_IJ_SIFT')
         if 'path_config_IJ_MOPS' in self.params:
-            path_cofig = self.params['path_config_IJ_MOPS']
-            shutil.copy(path_cofig, os.path.join(self.params['path_exp'],
-                                                 os.path.basename(path_cofig)))
+            self._copy_config_to_expt('path_config_IJ_MOPS')
 
     def _prepare_registration(self, record):
         """ prepare the experiment folder if it is required,
@@ -225,7 +221,7 @@ class BmUnwarpJ(ImRegBenchmark):
         cmd = '%s -batch %s' % (self.params['path_fiji'], path_macro)
         return cmd
 
-    def _extract_warped_images_landmarks(self, record):
+    def _extract_warped_image_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
         :param record: {str: value}, dictionary with registration params
@@ -257,6 +253,19 @@ class BmUnwarpJ(ImRegBenchmark):
         else:
             path_lnds = None
         return None, path_regist, None, path_lnds
+
+    def _extract_execution_time(self, record):
+        """ if needed update the execution time
+
+        :param record: {str: value}, dictionary with registration params
+        :return float|None: time in minutes
+        """
+        path_dir = self._get_path_reg_dir(record)
+        path_time = os.path.join(path_dir, 'TIME.txt')
+
+        with open(path_time, 'r') as fp:
+            exec_time = float(fp.read()) / 60.
+        return exec_time
 
 
 # RUN by given parameters

@@ -10,7 +10,7 @@ EXAMPLE (usage):
 >> python birl/bm_template.py \
     -c ./data_images/pairs-imgs-lnds_anhir.csv -d ./data_images \
     -o ./results --visual --unique \
-    --an_executable none
+    --path_sample_config none
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -31,7 +31,7 @@ def extend_parse(a_parser):
     :return object:
     """
     # SEE: https://docs.python.org/3/library/argparse.html
-    a_parser.add_argument('--an_executable', type=str, required=True,
+    a_parser.add_argument('--path_sample_config', type=str, required=True,
                           help='some extra parameters')
     return a_parser
 
@@ -48,7 +48,8 @@ class BmTemplate(ImRegBenchmark):
      * _check_required_params
      * _prepare_registration
      * _generate_regist_command
-     * _extract_warped_images_landmarks
+     * _extract_warped_image_landmarks
+     * _extract_execution_time
      * _clear_after_registration
 
     NOTE: The actual implementation simulates the "WORSE" registration while
@@ -60,12 +61,14 @@ class BmTemplate(ImRegBenchmark):
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
+    >>> open('sample_config.txt', 'w').close()
     >>> main({'nb_workers': 1, 'unique': False, 'visual': True,
     ...       'path_out': path_out, 'path_cover': path_csv,
-    ...       'an_executable': ''}, BmTemplate)  # doctest: +ELLIPSIS
+    ...       'path_sample_config': 'sample_config.txt'}, BmTemplate)  # doctest: +ELLIPSIS
     '...'
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
+    >>> os.remove('sample_config.txt')
 
     Running in multiple parallel threads:
     >>> from birl.utilities.data_io import create_folder, update_path
@@ -73,7 +76,7 @@ class BmTemplate(ImRegBenchmark):
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'nb_workers': 2, 'unique': False, 'visual': True,
     ...           'path_out': path_out, 'path_cover':
-    ...            path_csv, 'an_executable': ''}
+    ...            path_csv, 'path_sample_config': ''}
     >>> benchmark = BmTemplate(params)
     >>> benchmark.run()
     True
@@ -81,10 +84,12 @@ class BmTemplate(ImRegBenchmark):
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
-    REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['an_executable']
+    REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['path_sample_config']
 
     def _prepare(self):
         logging.info('-> copy configuration...')
+
+        self._copy_config_to_expt('path_sample_config')
 
     def _prepare_registration(self, record):
         """ prepare the experiment folder if it is required,
@@ -113,7 +118,7 @@ class BmTemplate(ImRegBenchmark):
         command = [cmd_img, cmd_lnds]
         return command
 
-    def _extract_warped_images_landmarks(self, record):
+    def _extract_warped_image_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
         :param record: {str: value}, dictionary with registration params
@@ -126,6 +131,14 @@ class BmTemplate(ImRegBenchmark):
         path_lnd = os.path.join(record[COL_REG_DIR],
                                 os.path.basename(record[COL_POINTS_MOVE]))
         return None, path_img, None, path_lnd
+
+    def _extract_execution_time(self, record):
+        """ if needed update the execution time
+
+        :param record: {str: value}, dictionary with registration params
+        :return float|None: time in minutes
+        """
+        return 1. / 60  # running constant time 1 sec.
 
     def _clear_after_registration(self, record):
         """ clean unnecessarily files after the registration

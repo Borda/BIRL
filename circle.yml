@@ -47,10 +47,10 @@ references:
     run:
       name: General experiments
       command: |
-        mkdir applications && mkdir results
+        mkdir applications && mkdir results && touch sample_config.txt
         # python bm_experiments/bm_comp_perform.py  -o ./results -n 1 # reach time-out while running in 36 threads
-        python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique --an_executable none
-        python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_anhir.csv -d ./data_images -o ./results --an_executable none
+        python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique --path_sample_config sample_config.txt
+        python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_anhir.csv -d ./data_images -o ./results --path_sample_config sample_config.txt
         python bm_experiments/evaluate_experiment.py -d ./data_images -e ./results/BmTemplate --visual
         tree ./results/BmTemplate
 

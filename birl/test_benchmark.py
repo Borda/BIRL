@@ -121,18 +121,20 @@ class TestBmRegistration(unittest.TestCase):
 
     def test_benchmark_template(self):
         """ test run in single thread """
+        open('sample_config.txt', 'w').close()
         params = {
             'path_cover': PATH_CSV_COVER_MIX,
             'path_out': self.path_out,
             'nb_workers': 2,
             'unique': False,
             'visual': True,
-            'an_executable': None,
+            'path_sample_config': 'sample_config.txt',
         }
         benchmark = BmTemplate(params)
         benchmark.run()
         self.check_benchmark_results(benchmark, final_means=[28., 68., 73., 76.],
                                      final_stds=[13., 28., 28., 34.])
+        os.remove('sample_config.txt')
         del benchmark
 
     def check_benchmark_results(self, benchmark, final_means, final_stds):

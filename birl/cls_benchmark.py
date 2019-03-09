@@ -17,6 +17,7 @@ import os
 import sys
 import time
 import logging
+import shutil
 import multiprocessing as mproc
 from functools import partial
 
@@ -140,7 +141,6 @@ class ImRegBenchmark(Experiment):
     >>> benchmark.run()
     True
     >>> del benchmark
-    >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
 
     Running in multiple parallel threads:
@@ -153,7 +153,6 @@ class ImRegBenchmark(Experiment):
     >>> benchmark.run()
     True
     >>> del benchmark
-    >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
     REQUIRED_PARAMS = ['path_cover', 'path_out', 'nb_workers']
@@ -192,6 +191,19 @@ class ImRegBenchmark(Experiment):
             path = os.path.join(self.params['path_exp'], path)
         path = update_path(path, absolute=True)
         return path
+
+    def _copy_config_to_expt(self, field_path):
+        """ copy particular configuration to the experiment folder
+
+        :param str field_path: field from parameters containing a path to file
+        """
+        path_source = self.params.get(field_path, '')
+        path_config = os.path.join(self.params['path_exp'], os.path.basename(path_source))
+        if os.path.isfile(path_source):
+            shutil.copy(path_source, path_config)
+            self.params[field_path] = path_config
+        else:
+            logging.warning('Missing config: %s', path_source)
 
     def _get_paths(self, row):
         """ expand the relative paths to absolute
@@ -315,11 +327,11 @@ class ImRegBenchmark(Experiment):
         # measure execution time
         time_start = time.time()
         cmd_result = exec_commands(commands, path_log)
-        # compute the registration time in minutes
-        row[COL_TIME] = (time.time() - time_start) / 60.
         # if the experiment failed, return back None
         if not cmd_result:
             return None
+        # compute the registration time in minutes
+        row[COL_TIME] = (time.time() - time_start) / 60.
 
         row = self._parse_regist_results(row)
         row = self._clear_after_registration(row)
@@ -381,7 +393,7 @@ class ImRegBenchmark(Experiment):
         return commands
 
     @classmethod
-    def _extract_warped_images_landmarks(self, record):
+    def _extract_warped_image_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
         :param record: {str: value}, dictionary with registration params
@@ -396,6 +408,15 @@ class ImRegBenchmark(Experiment):
                                 os.path.basename(record[COL_POINTS_MOVE]))
         return None, path_img, path_lnd, None
 
+    def _extract_execution_time(self, record):
+        """ if needed update the execution time
+
+        :param record: {str: value}, dictionary with registration params
+        :return float|None: time in minutes
+        """
+        _ = self._get_path_reg_dir(record)
+        return None
+
     def _parse_regist_results(self, record):
         """ evaluate rests of the experiment and identity the registered image
         and landmarks when the process finished
@@ -403,7 +424,8 @@ class ImRegBenchmark(Experiment):
         :param record: {str: value}, dictionary with registration params
         :return: {str: value}
         """
-        paths = self._extract_warped_images_landmarks(record)
+        # Update the registration outputs / paths
+        paths = self._extract_warped_image_landmarks(record)
         columns = (COL_IMAGE_REF_WARP, COL_IMAGE_MOVE_WARP,
                    COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP)
 
@@ -411,6 +433,12 @@ class ImRegBenchmark(Experiment):
             # detect image and landmarks
             if path is not None and os.path.isfile(self._update_path(path, 'expt')):
                 record[col] = path
+
+        # Update the registration time
+        exec_time = self._extract_execution_time(record)
+        if exec_time:
+            # compute the registration time in minutes
+            record[COL_TIME] = exec_time
 
         return record
 
