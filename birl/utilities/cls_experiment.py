@@ -13,8 +13,6 @@ import logging
 from birl.utilities.experiments import (
     set_experiment_logger, string_dict, create_experiment_folder, release_logger_files)
 
-#: default date-time format
-FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 # default output file for exporting experiment configuration
 CONFIG_JSON = 'config.json'
 #: default file for exporting results in formatted text format

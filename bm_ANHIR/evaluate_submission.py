@@ -58,6 +58,7 @@ import os
 import sys
 import re
 import json
+import time
 import logging
 import argparse
 import multiprocessing as mproc
@@ -69,7 +70,7 @@ import pandas as pd
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import create_folder, load_landmarks, save_landmarks
 from birl.utilities.dataset import common_landmarks, parse_path_scale
-from birl.utilities.experiments import wrap_execute_sequence, parse_arg_params
+from birl.utilities.experiments import wrap_execute_sequence, parse_arg_params, FORMAT_DATE_TIME
 from birl.cls_benchmark import (
     NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COVER_COLUMNS_WRAP,
     COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP, COL_POINTS_REF, COL_POINTS_MOVE,
@@ -296,7 +297,13 @@ def export_summary_json(df_experiments, path_experiments, path_output, min_landm
     else:
         comp_exp = None
 
-    results = {'aggregates': scores, 'cases': dict(cases), 'computer': comp_exp}
+    results = {
+        'aggregates': scores,
+        'cases': dict(cases),
+        'computer': comp_exp,
+        'submission-time': time.strftime(FORMAT_DATE_TIME, time.gmtime()),
+        'required-landmarks': min_landmarks,
+    }
     path_json = os.path.join(path_output, NAME_JSON_RESULTS)
     logging.info('exporting JSON results: %s', path_json)
     with open(path_json, 'w') as fp:
