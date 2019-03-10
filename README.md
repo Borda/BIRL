@@ -225,7 +225,16 @@ For each benchmark experiment, the explanation about how to install and use a pa
         -script ./scripts/Rscript/RNiftyReg_linear.r \
         --visual --unique
     ```
-* **[Advanced Normalization Tools](http://stnava.github.io/ANTs/) (ANTs)** is a medical imaging framework containing state-of-the-art medical image registration and segmentation methods. For illustration see ANTsPy [registration tutorial](https://github.com/ANTsX/ANTsPy/blob/master/tutorials/10minTutorial.ipynb).
+* **[Advanced Normalization Tools](http://stnava.github.io/ANTs/) (ANTs)** is a medical imaging framework containing state-of-the-art medical image registration and segmentation methods.
+    ```bash
+    python bm_experiments/bm_ANTs.py \
+        -t ./data_images/pairs-imgs-lnds_anhir.csv \
+        -d ./data_images \
+        -o ./results \
+        -ANTs ~/Applications/antsbin/bin \
+        -cfg ./configs/ANTs.txt
+    ```
+    For illustration see ANTsPy [registration tutorial](https://github.com/ANTsX/ANTsPy/blob/master/tutorials/10minTutorial.ipynb).
     ```bash
     python bm_experiments/bm_ANTsPy.py \
         -t ./data_images/pairs-imgs-lnds_histol.csv \

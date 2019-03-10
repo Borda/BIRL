@@ -9,6 +9,7 @@ pyyaml
 scikit-image
 opencv-python
 openslide-python
+nibabel
 SimpleITK
 mock
 psutil

@@ -125,13 +125,16 @@ class BmElastix(ImRegBenchmark):
         logging.info('-> copy configuration...')
         self._copy_config_to_expt('path_config')
 
-        self.exec_elastix = self.EXEC_ELASTIX
-        self.exec_transformix = self.EXEC_TRANSFX
         p_elatix = self.params.get('path_elastix', '')
         if p_elatix and os.path.isdir(p_elatix):
             logging.info('using local executions from: %s', p_elatix)
-            self.exec_elastix = os.path.join(p_elatix, self.EXEC_ELASTIX)
-            self.exec_transformix = os.path.join(p_elatix, self.EXEC_TRANSFX)
+
+        def _exec_update(executable):
+            is_path = p_elatix and os.path.isdir(p_elatix)
+            return os.path.join(p_elatix, executable) if is_path else executable
+
+        self.exec_elastix = _exec_update(self.EXEC_ELASTIX)
+        self.exec_transformix = _exec_update(self.EXEC_TRANSFX)
 
     def _generate_regist_command(self, item):
         """ generate the registration command(s)
@@ -215,7 +218,8 @@ class BmElastix(ImRegBenchmark):
         """
         # SEE: https://docs.python.org/3/library/argparse.html
         arg_parser.add_argument('-elastix', '--path_elastix', type=str, required=False,
-                                help='path to folder with elastix executables')
+                                help='path to folder with elastix executables'
+                                     ' (if they are not directly callable)')
         arg_parser.add_argument('-cfg', '--path_config', required=True,
                                 type=str, help='path to the elastic configuration')
         return arg_parser
