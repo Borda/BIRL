@@ -22,7 +22,7 @@ import logging
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.experiments import create_basic_parse, parse_arg_params
-from birl.cls_benchmark import ImRegBenchmark, COL_REG_DIR, COL_IMAGE_MOVE, COL_POINTS_MOVE
+from birl.cls_benchmark import ImRegBenchmark, COL_IMAGE_MOVE, COL_POINTS_MOVE
 
 
 def extend_parse(a_parser):
@@ -124,12 +124,11 @@ class BmTemplate(ImRegBenchmark):
         :param record: {str: value}, dictionary with registration params
         :return (str, str, str, str): paths to ...
         """
+        path_reg_dir = self._get_path_reg_dir(record)
         # detect image
-        path_img = os.path.join(record[COL_REG_DIR],
-                                os.path.basename(record[COL_IMAGE_MOVE]))
+        path_img = os.path.join(path_reg_dir, os.path.basename(record[COL_IMAGE_MOVE]))
         # detect landmarks
-        path_lnd = os.path.join(record[COL_REG_DIR],
-                                os.path.basename(record[COL_POINTS_MOVE]))
+        path_lnd = os.path.join(path_reg_dir, os.path.basename(record[COL_POINTS_MOVE]))
         return None, path_img, None, path_lnd
 
     def _extract_execution_time(self, record):
