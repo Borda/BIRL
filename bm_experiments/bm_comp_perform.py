@@ -180,6 +180,7 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_workers=NB_THREADS):
         tqdm_bar.update()
     pool.close()
     pool.join()
+    tqdm_bar.close()
 
     _clean_images(set(paths))
     logging.info('registration @%i-thread: %f +/- %f', nb_workers,

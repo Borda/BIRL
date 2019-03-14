@@ -302,11 +302,10 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_workers=NB_THREADS,
     iterate_vals = list(iterate_vals)
     nb_workers = 1 if not nb_workers else int(nb_workers)
 
+    tqdm_bar = None
     if desc is not None:
         desc = '%r @%i-threads' % (desc, nb_workers)
         tqdm_bar = tqdm.tqdm(total=len(iterate_vals), desc=desc)
-    else:
-        tqdm_bar = None
 
     if nb_workers > 1:
         logging.debug('perform parallel in %i threads', nb_workers)
@@ -317,17 +316,17 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_workers=NB_THREADS,
         pooling = pool.imap if ordered else pool.imap_unordered
 
         for out in pooling(wrap_func, iterate_vals):
+            tqdm_bar.update() if tqdm_bar is not None else None
             yield out
-            if tqdm_bar is not None:
-                tqdm_bar.update()
         pool.close()
         pool.join()
     else:
         logging.debug('perform sequential')
         for out in map(wrap_func, iterate_vals):
+            tqdm_bar.update() if tqdm_bar is not None else None
             yield out
-            if tqdm_bar is not None:
-                tqdm_bar.update()
+
+    tqdm_bar.close() if tqdm_bar is not None else None
 
 
 def try_decorator(func):

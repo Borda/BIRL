@@ -179,7 +179,7 @@ class ImRegBenchmark(Experiment):
             assert n in self.params, 'missing "%s" among %r' % (n, self.params.keys())
 
     def _update_path(self, path, destination='data'):
-        """ update te path to the datset or output
+        """ update te path to the dataset or output
 
         :param str path: original path
         :param str destination: type of update - data | output | general
@@ -191,6 +191,32 @@ class ImRegBenchmark(Experiment):
             path = os.path.join(self.params['path_exp'], path)
         path = update_path(path, absolute=True)
         return path
+
+    def _relativize_path(self, path, destination='path_exp'):
+        """ extract relative path according given parameter
+
+        :param str path: the original path to file/folder
+        :param str destination: use path from parameters
+        :return str: relative or the original path
+        """
+        if path is None or not os.path.exists(path):
+            logging.debug('Source path does not exists: %s', path)
+            return path
+        assert destination in self.params, 'Missing path in params: %s' % destination
+        base_path = self.params['path_exp']
+        base_dir = os.path.basename(base_path)
+        path_split = path.split(os.sep)
+        if base_dir not in path_split:
+            logging.debug('Missing requested folder "%s" in source path: %s',
+                          base_dir, path_split)
+            return path
+        path_split = path_split[path_split.index(base_dir) + 1:]
+        path_rltv = os.sep.join(path_split)
+        if os.path.exists(os.path.join(self.params[destination], path_rltv)):
+            return path_rltv
+        else:
+            logging.debug('Not existing relative path: %s', path)
+            return path
 
     def _copy_config_to_expt(self, field_path):
         """ copy particular configuration to the experiment folder
@@ -431,6 +457,7 @@ class ImRegBenchmark(Experiment):
 
         for path, col in zip(paths, columns):
             # detect image and landmarks
+            path = self._relativize_path(path, 'path_exp')
             if path is not None and os.path.isfile(self._update_path(path, 'expt')):
                 record[col] = path
 

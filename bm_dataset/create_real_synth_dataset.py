@@ -328,7 +328,7 @@ def main(params):
         for i in range(params['nb_samples']):
             wrapper_deform_export(i)
             tqdm_bar.update()
-
+    tqdm_bar.close()
     logging.info('DONE')
 
 
