@@ -35,7 +35,7 @@ from birl.bm_template import BmTemplate
 
 PATH_DATA = update_path('data_images')
 PATH_CSV_COVER_MIX = os.path.join(PATH_DATA, 'pairs-imgs-lnds_mix.csv')
-PATH_CSV_COVER_ANHIR = os.path.join(PATH_DATA, 'pairs-imgs-lnds_anhir.csv')
+PATH_CSV_COVER_ANHIR = os.path.join(PATH_DATA, 'pairs-imgs-lnds_histol.csv')
 # logging.basicConfig(level=logging.INFO)
 
 

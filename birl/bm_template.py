@@ -8,7 +8,7 @@ INSTALLATION:
 EXAMPLE (usage):
 >> mkdir ./results
 >> python birl/bm_template.py \
-    -c ./data_images/pairs-imgs-lnds_anhir.csv -d ./data_images \
+    -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images \
     -o ./results --visual --unique \
     --path_sample_config none
 

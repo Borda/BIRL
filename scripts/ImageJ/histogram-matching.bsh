@@ -1,0 +1,58 @@
+/*
+ * Transform histogram of an image to match another image
+ *
+ * EXAMPLE:
+ * >> ~/Applications/Fiji.app/ImageJ-linux64 --java-home /usr/lib/jvm/java-8-openjdk-amd64 \
+        --headless histogram-matching.bsh \
+        deformed-bridge.png bridge.png histogram-matched-deformed-bridge.png
+ *
+ * Copyright (C) 2019 Ignacio Arganda-Carreras <ignacio.arganda@ehu.eus>
+ */
+
+import ij.IJ;
+import histogram2.HistogramMatcher;
+import ij.process.StackStatistics;
+import ij.ImageStack;
+import ij.ImagePlus;
+
+if( bsh.args.length < 3 )
+{
+	IJ.log( "histogram-matching.bsh" );
+	IJ.log( "USAGE: histogram-matching.bsh referenceImage imageToTransform outputImage" );
+	IJ.log( "       'referenceImage' path to reference image" );
+	IJ.log( "       'imageToTransform' path to the image to transform" );
+	IJ.log( "       'outputImage' path to output image file to be created (with the histogram transformed)" );
+	return;
+}
+
+referenceImage = new ImagePlus( bsh.args[ 0 ] );
+imageToTransform = new ImagePlus( bsh.args[ 1 ] );
+outputImage = new File( bsh.args[ 2 ] );
+
+stats1 = new StackStatistics( imageToTransform );
+stats2 = new StackStatistics( referenceImage );
+
+hist1 = stats1.histogram; // ip1.getHistogram();
+hist2 = stats2.histogram; // ip2.getHistogram();
+
+matcher = new HistogramMatcher();
+newHist = matcher.matchHistograms(hist1, hist2);
+
+//ip1.applyTable(newHist);
+//imageToTransform.setProcessor(ip1);
+
+is = new ImageStack( imageToTransform.getWidth(), imageToTransform.getHeight() );
+
+boolean isStack = imageToTransform.getImageStackSize() > 1;
+
+for( n=1; n<=imageToTransform.getImageStackSize(); n++)
+{
+	ip = imageToTransform.getImageStack().getProcessor( n );
+	ip.applyTable(newHist);
+	label = isStack ? imageToTransform.getImageStack().getSliceLabel( n ) : "";
+	is.addSlice( label, ip );
+}
+
+imageToTransform.setStack( is );
+
+IJ.save( imageToTransform, outputImage.getAbsolutePath() );

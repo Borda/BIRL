@@ -6,7 +6,7 @@ It also serves for evaluating the input registration pairs
 EXAMPLE (usage):
 >> mkdir ./results
 >> python benchmarks/bm_registration.py \
-    -c data_images/pairs-imgs-lnds_anhir.csv -d ./data_images \
+    -c data_images/pairs-imgs-lnds_histol.csv -d ./data_images \
     -o ./results --unique
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
@@ -353,6 +353,8 @@ class ImRegBenchmark(Experiment):
         # measure execution time
         time_start = time.time()
         cmd_result = exec_commands(commands, path_log)
+        # compute the registration time in minutes
+        row[COL_TIME] = (time.time() - time_start) / 60.
         # if the experiment failed, return back None
         if not cmd_result:
             return None
@@ -584,7 +586,7 @@ def compute_registration_accuracy(df_experiments, idx, points1, points2,
     :param float img_diag: target image diagonal
     :param bool wo_affine: without affine transform, assume only local/elastic deformation
     """
-    if wo_affine:
+    if wo_affine and points1 is not None and points2 is not None:
         # removing the affine transform and assume only local/elastic deformation
         _, _, points1, _ = estimate_affine_transform(points1, points2)
 
