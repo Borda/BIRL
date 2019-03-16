@@ -174,7 +174,7 @@ class BmUnwarpJ(ImRegBenchmark):
         if 'path_config_IJ_MOPS' in self.params:
             self._copy_config_to_expt('path_config_IJ_MOPS')
 
-    def _prepare_registration(self, record):
+    def _prepare_img_registration(self, record):
         """ prepare the experiment folder if it is required,
 
         * create registration macros

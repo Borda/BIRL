@@ -46,8 +46,8 @@ class BmTemplate(ImRegBenchmark):
 
     General methods that should be overwritten:
      * _check_required_params
-     * _prepare_registration
-     * _generate_regist_command
+     * _prepare_img_registration
+     * _execute_img_registration/_generate_regist_command
      * _extract_warped_image_landmarks
      * _extract_execution_time
      * _clear_after_registration
@@ -91,7 +91,7 @@ class BmTemplate(ImRegBenchmark):
 
         self._copy_config_to_expt('path_sample_config')
 
-    def _prepare_registration(self, record):
+    def _prepare_img_registration(self, record):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
 

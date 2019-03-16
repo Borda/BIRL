@@ -344,19 +344,13 @@ class ImRegBenchmark(Experiment):
             return None
         create_folder(path_dir_reg)
 
-        row = self._prepare_registration(row)
-        commands = self._generate_regist_command(row)
-        path_log = os.path.join(path_dir_reg, NAME_LOG_REGISTRATION)
-        # TODO, add lock to single thread, create pool with possible thread ids
-        # (USE taskset [native], numactl [need install])
+        row = self._prepare_img_registration(row)
 
         # measure execution time
         time_start = time.time()
-        cmd_result = exec_commands(commands, path_log)
-        # compute the registration time in minutes
-        row[COL_TIME] = (time.time() - time_start) / 60.
+        row = self._execute_img_registration(row)
         # if the experiment failed, return back None
-        if not cmd_result:
+        if not row:
             return None
         # compute the registration time in minutes
         row[COL_TIME] = (time.time() - time_start) / 60.
@@ -393,7 +387,7 @@ class ImRegBenchmark(Experiment):
         export_summary_results(self._df_experiments, self.params['path_exp'], self.params)
 
     @classmethod
-    def _prepare_registration(self, record):
+    def _prepare_img_registration(self, record):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
 
@@ -401,6 +395,25 @@ class ImRegBenchmark(Experiment):
         :return {str: str|float}: the same or updated registration info
         """
         logging.debug('.. no preparing before registration experiment')
+        return record
+
+    def _execute_img_registration(self, record):
+        """ execute the image registration itself
+
+        :param {} record:
+        :return {}:
+        """
+        logging.debug('.. execute image registration as coomandline')
+        path_dir_reg = self._get_path_reg_dir(record)
+        commands = self._generate_regist_command(record)
+        path_log = os.path.join(path_dir_reg, NAME_LOG_REGISTRATION)
+        # TODO, add lock to single thread, create pool with possible thread ids
+        # (USE taskset [native], numactl [need install])
+        # measure execution time
+        cmd_result = exec_commands(commands, path_log)
+        # if the experiment failed, return back None
+        if not cmd_result:
+            return None
         return record
 
     def _generate_regist_command(self, record):
