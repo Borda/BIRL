@@ -148,6 +148,15 @@ Moreover we developed two additional script for converting large images, handlin
         -rexec Rscript \
         -rscript ./scripts/Rscript/RNiftyReg_linear.r
     ```
+* **[Advanced Normalization Tools](http://stnava.github.io/ANTs/) (ANTs)** is a medical imaging framework containing state-of-the-art medical image registration and segmentation methods. For illustration see ANTsPy [registration tutorial](https://github.com/ANTsX/ANTsPy/blob/master/tutorials/10minTutorial.ipynb).
+    ```bash
+    python bm_experiments/bm_ANTsPy.py \
+        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -d ./data_images \
+        -o ./results \
+        --exec_Python python3 \
+        --path_script ./scripts/Python/run_ANTsPy.py
+    ```
 * ...
 
 Some more image registration methods integrated in ImageJ are listed in [Registration](https://imagej.net/Registration).

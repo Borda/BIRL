@@ -403,9 +403,14 @@ class ImRegBenchmark(Experiment):
         :param {} record:
         :return {}:
         """
-        logging.debug('.. execute image registration as coomandline')
+        logging.debug('.. execute image registration as command line')
         path_dir_reg = self._get_path_reg_dir(record)
+
         commands = self._generate_regist_command(record)
+        # in case it is just one command
+        if not (isinstance(commands, list) or isinstance(commands, tuple)):
+            commands = [commands]
+
         path_log = os.path.join(path_dir_reg, NAME_LOG_REGISTRATION)
         # TODO, add lock to single thread, create pool with possible thread ids
         # (USE taskset [native], numactl [need install])

@@ -258,8 +258,11 @@ def image_size(path_image, decimal=1):
 @io_image_decorate
 def load_image(path_image, force_rgb=True):
     """ load the image in value range (0, 1)
-    :param str path_image:
+
+    :param str path_image: path to the image
+    :param bool force_rgb: convert RGB image
     :return: np.array<height, width, ch>
+
     >>> img = np.random.random((50, 50))
     >>> save_image('./test_image.jpg', img)
     >>> img2 = load_image('./test_image.jpg')
