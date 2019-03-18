@@ -109,6 +109,10 @@ def create_parser():
     # required number of submitted landmarks, match values in COL_FOUND_LNDS
     parser.add_argument('--min_landmarks', type=float, required=False, default=0.5,
                         help='ration of required landmarks in submission')
+    parser.add_argument('--nb_workers', type=int, required=False, default=NB_THREADS,
+                        help='number of processes in parallel')
+    parser.add_argument('--details', action='store_true', required=False,
+                        default=False, help='export details for each case')
     return parser
 
 
@@ -128,6 +132,9 @@ def filter_landmarks(idx_row, path_output, path_dataset, path_reference):
                              threshold=1)
     pairs = sorted(pairs.tolist(), key=lambda p: p[1])
     ind_ref = np.asarray(pairs)[:, 0]
+    nb_common = min([len(load_landmarks(update_path_(row[col], path_reference)))
+                     for col in [COL_POINTS_REF, COL_POINTS_MOVE]])
+    ind_ref = ind_ref[ind_ref < nb_common]
 
     # moving and reference landmarks
     for col in [COL_POINTS_REF, COL_POINTS_MOVE]:
@@ -203,6 +210,10 @@ def parse_landmarks(idx_row):
     # copy all columns with rTRE, TRE and Overlap
     record.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
                    for col in row if '(final)' in col})
+    # copy all columns with Affine statistic
+    record.update({col.replace(' ', '-'): row[col] for col in row if 'diff' in col.lower()})
+    record.update({col.replace(' (elastic)', '_elastic').replace(' ', '-'): row[col]
+                   for col in row if '(elastic)' in col})
     return idx, record
 
 
@@ -268,7 +279,8 @@ def _filter_measure_columns(df_experiments):
     return cols_final, cols_init
 
 
-def export_summary_json(df_experiments, path_experiments, path_output, min_landmarks=1.):
+def export_summary_json(df_experiments, path_experiments, path_output,
+                        min_landmarks=1., details=True):
     """ summarize results in particular JSON format
 
     :param DF df_experiments: experiment DataFrame
@@ -276,6 +288,7 @@ def export_summary_json(df_experiments, path_experiments, path_output, min_landm
     :param str path_output: path to generated results
     :param float min_landmarks: required number of submitted landmarks in range (0, 1),
         match values in COL_FOUND_LNDS
+    :param bool details: exporting case details
     :return str: path to exported results
     """
     # export partial results
@@ -299,7 +312,7 @@ def export_summary_json(df_experiments, path_experiments, path_output, min_landm
 
     results = {
         'aggregates': scores,
-        'cases': dict(cases),
+        'cases': dict(cases) if details else 'not exported',
         'computer': comp_exp,
         'submission-time': time.strftime(FORMAT_DATE_TIME, time.gmtime()),
         'required-landmarks': min_landmarks,
@@ -311,8 +324,8 @@ def export_summary_json(df_experiments, path_experiments, path_output, min_landm
     return path_json
 
 
-def main(path_experiment, path_cover, path_dataset, path_output,
-         path_reference=None, path_comp_bm=None, nb_workers=NB_THREADS, min_landmarks=1.):
+def main(path_experiment, path_cover, path_dataset, path_output, path_reference=None,
+         path_comp_bm=None, nb_workers=NB_THREADS, min_landmarks=1., details=True):
     """ main entry point
 
     :param str path_experiment: path to experiment folder
@@ -325,6 +338,7 @@ def main(path_experiment, path_cover, path_dataset, path_output,
     :param int nb_workers: number of parallel processes
     :param float min_landmarks: required number of submitted landmarks in range (0, 1),
         match values in COL_FOUND_LNDS
+    :param bool details: exporting case details
     """
 
     path_results = os.path.join(path_experiment, NAME_CSV_REGISTRATION_PAIRS)
@@ -364,7 +378,7 @@ def main(path_experiment, path_cover, path_dataset, path_output,
     logging.debug('exporting CSV results: %s', path_results)
     df_experiments.to_csv(path_results)
 
-    export_summary_json(df_experiments, path_experiment, path_output, min_landmarks)
+    export_summary_json(df_experiments, path_experiment, path_output, min_landmarks, details)
 
 
 if __name__ == '__main__':

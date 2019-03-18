@@ -6,7 +6,7 @@ First you need to install Docker.io and run everything as super user `sudo -i`.
 
 ## Build and export
 
-For all operation with docker images you need to be super-user, simply run `sudo -i` and continue with following commands.
+For all operation with docker images you need to be the right user, or simply run `sudo -i` and continue with following commands.
 
 Before you start, you need to adjust the ration of provided landmarks in `Dockerfile` using `--min_landmarks` parameter in Entry point.
 
@@ -54,10 +54,10 @@ mkdir submission output
 and upload the sample submission to `submission` and run the image
 ```bash
 docker run --rm -it \
-        --memory=4g \
-        -v $(pwd)/submission/:/input/ \
-        -v $(pwd)/output/:/output/ \
-        anhir
+    --memory=4g \
+    -v $(pwd)/submission/:/input/ \
+    -v $(pwd)/output/:/output/ \
+    anhir
 ```
 
 
@@ -74,7 +74,7 @@ docker save anhir | gzip -c > anhir.tar.gz
 ## Browsing and cleaning
 
 **Browsing**
-To see your local biulded images use:
+To see your locally build images use:
 ```bash
 docker image ls
 ```

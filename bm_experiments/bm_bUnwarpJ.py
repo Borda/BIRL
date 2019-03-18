@@ -155,7 +155,8 @@ class BmUnwarpJ(ImRegBenchmark):
     ...           'path_config_bUnwarpJ': fn_path_conf('ImageJ_bUnwarpJ-pure-image_histol-1k.txt')}
     >>> benchmark = BmUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> params['path_config_IJ_SIFT'] = fn_path_conf('ImageJ_bUnwarpJ-pure-image_histol-1k.txt')
+    >>> params['path_config_bUnwarpJ'] = fn_path_conf('ImageJ_bUnwarpJ-landmarks_histol-1k.txt')
+    >>> params['path_config_IJ_SIFT'] = fn_path_conf('ImageJ_SIFT_histol-1k.txt')
     >>> benchmark = BmUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
     >>> del benchmark
@@ -198,7 +199,7 @@ class BmUnwarpJ(ImRegBenchmark):
             t_start = time.time()
             path_log = os.path.join(path_dir, NAME_LOG_REGISTRATION)
             exec_commands([cmd_hist_match], path_logger=path_log)
-            record['Time hist. matrching'] = (time.time() - t_start) / 60.
+            record['Time hist. matching'] = (time.time() - t_start) / 60.
             path_im_move = path_img_out
 
         with open(self.params['path_config_bUnwarpJ'], 'r') as fp:
@@ -299,7 +300,7 @@ class BmUnwarpJ(ImRegBenchmark):
         with open(path_time, 'r') as fp:
             exec_time = float(fp.read()) / 1000. / 60.
         # in case used hist. matching were used
-        exec_time += record.get('Time hist. matrching', 0)
+        exec_time += record.get('Time hist. matching', 0)
         return exec_time
 
 

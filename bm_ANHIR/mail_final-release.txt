@@ -1,0 +1,15 @@
+Dear <NAME>,
+
+We would like to inform you that the Automatic Non-rigid Histological Image Registration (ANHIR, https://anhir.grand-challenge.org) challenge is entering its last stage. We are now releasing a complete set of landmarks.
+
+The landmarks are now available for download, please follow our instructions (https://anhir.grand-challenge.org/Download). Your results with these landmarks will be used for the final evaluation and ranking. This set of landmarks replaces all previous versions which cannot be used for the final submission.
+
+Please log in to the challenge page - https://anhir.grand-challenge.org/evaluation/submissions/create - and create your submission. The challenge deadline is on the 31st of March.
+
+Let us remind you that we will have a workshop at the ISBI conference (https://biomedicalimaging.org/2019) where the winners of this challenge will be announced and the best methods presented. If you would like to present your method at the workshop, please submit its short description as soon as possible but by the 2nd of April at the latest. The sooner you submit, the sooner we will be able to confirm your invitation to present at the workshop. See https://anhir.grand-challenge.org/Evaluation for instructions. Let us also remind you that we would also like to write a journal article with the challenge results.
+
+Please let us know any question or comment you may have.
+
+Good luck!
+We are looking forward to meeting you in Venice.
+Jiri Borovec & Arrate Munoz-Barrutia & Jan Kybic & Ignacio Arganda-Carreras

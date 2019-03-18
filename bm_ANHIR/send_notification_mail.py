@@ -6,6 +6,7 @@ Sending the invitation mail
 
 import os
 import smtplib
+import traceback
 from email.mime.text import MIMEText
 
 import tqdm
@@ -17,9 +18,9 @@ PORT = 25
 LOGIN = 'username'  # univ user name
 PASS = 'PASSWORD'  # my password
 SENDER = 'Jiri Borovec <jiri.borovec@fel.cvut.cz>'
-SUBJECT = 'ISBI 2019 - ANHIR - Image Registration Challenge'
+SUBJECT = 'ISBI 2019 - ANHIR - Image Registration Challenge - final phase'
 # UPDATE_MAIL_TXT = 'mail_dataset.txt'
-UPDATE_MAIL_TXT = 'mail_pre-release.txt'
+UPDATE_MAIL_TXT = 'mail_final-release.txt'
 MAIL_LIST_CSV = 'mail-list-test.csv'
 # MAIL_LIST_CSV = 'mail-list.csv'
 
@@ -89,6 +90,7 @@ def wrap_send_mail(idx, row, smtp):
         send_mail(smtp, row['Email'], row)
     except Exception:
         print('ERROR: %i - %s - %s' % (idx, row['Name'], row['Email']))
+        print(traceback.format_exc())
 
 
 def main(path_csv):
