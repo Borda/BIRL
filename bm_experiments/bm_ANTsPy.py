@@ -15,8 +15,8 @@ Run the basic ANTs registration with original parameters:
     -c ./data_images/pairs-imgs-lnds_histol.csv \
     -d ./data_images \
     -o ./results \
-    --exec_Python python3 \
-    --path_script ./scripts/Python/run_ANTsPy.py
+    -py python3 \
+    -script ./scripts/Python/run_ANTsPy.py
 
 
 Disclaimer:
@@ -50,9 +50,9 @@ def extend_parse(a_parser):
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     a_parser.add_argument('-py', '--exec_Python', type=str, required=True,
-                          help='path to the Python executable with ANTsPy')
-    a_parser.add_argument('--path_script', required=True,
-                          type=str, help='path to the image regist. script')
+                          help='path to the Python executable with ANTsPy', default='python3')
+    a_parser.add_argument('-script', '--path_script', required=True,
+                          type=str, help='path to the image registration script')
     return a_parser
 
 

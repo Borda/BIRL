@@ -7,10 +7,9 @@
 
 ## Install packages if needed, then load them
 # See: https://github.com/jonclayden/RNiftyReg
-# install.packages(c("png", "jpeg" ,"devtools"))
+# install.packages(c("png", "jpeg", "OpenImageR" ,"devtools"))
 # devtools::install_github("jonclayden/RNiftyReg")
-library(png)
-library(jpeg)
+library(OpenImageR)
 library(methods)
 library(RNiftyReg)
 # require("png", "jpeg", "RNiftyReg")
@@ -28,15 +27,21 @@ pathLnd <- args[3]
 outPath <- args[4]
 outTime <- paste(outPath, 'time.txt', sep='')
 outLnd <- paste(outPath, 'points.txt', sep='')
-outImg <- paste(outPath, 'warped.png', sep='')
+outImg <- paste(outPath, 'warped.jpg', sep='')
 
 time.start <- Sys.time()
 
 ## Read images, and convert (naively) to greyscale by averaging the RGB channels
-target <- readJPEG(pathImgA)
-source <- readJPEG(pathImgB)
-target <- apply(target, 1:2, mean)
-source <- apply(source, 1:2, mean)
+target <- rgb_2gray(readImage(pathImgA))
+source <- rgb_2gray(readImage(pathImgB))
+
+## NiftyReg supports max image size 2048, so any larger image has to be scaled
+maxSize <- max(max(dim(target)), max(dim(source)))
+scale <- maxSize / 2048.
+if (scale > 1) {
+    target <- resizeImage(target, floor(dim(target)[1] / scale), floor(dim(target)[2] / scale))
+    source <- resizeImage(source, floor(dim(source)[1] / scale), floor(dim(source)[2] / scale))
+}
 
 ## Register the images and retrieve the affine matrix
 result <- niftyreg.linear(source, target,
@@ -44,33 +49,50 @@ result <- niftyreg.linear(source, target,
                           nLevels=3,
                           maxIterations=5,
                           useBlockPercentage=50,
-                          verbose=FALSE,
-                          estimateOnly=FALSE)
+                          estimateOnly=FALSE,
+                          verbose=TRUE)
 result
 
 ## Export registration time
 time.taken <- Sys.time() - time.start
 cat(time.taken, file=outTime)
+outTime
 
 ## Save image as bitmap
 # png::writePNG(result$image, outImg)
 
+clip_values <- function(x, a, b) {
+    ifelse(x <= a,  a, ifelse(x >= b, b, x))
+}
+
 ## Transform image
 # output <- applyAffine( invertAffine( result$affine[[1]] ) , source, target, finalInterpolation=3)
 imgWarp <- applyTransform( forward(result) , source)
+imgWarp <- clip_values(imgWarp, 0, 1)
+if (scale > 1) {
+    imgWarp <- resizeImage(imgWarp, round(dim(imgWarp)[1] * scale), round(dim(imgWarp)[2] * scale))
+}
 ## Save image as bitmap
-png::writePNG(imgWarp, outImg)
+writeImage(imgWarp, outImg)
+outImg
 
 ## Load landmarks from CSV
 points <- as.matrix(read.table(pathLnd, skip=1, sep = ','))
 points <- points[, c(3, 2)]
+if (scale > 1) {
+    points <- points / scale
+}
 ## Transform points
 #pointsWarp <- transformWithAffine(points, invertAffine( result$affine[[1]] ), source, target)
 pointsWarp <- applyTransform( forward(result) , points)
 pointsWarp <- pointsWarp[, c(2,1)]
+if (scale > 1) {
+    pointsWarp <- pointsWarp * scale
+}
 ## Save transformed points
 cat('point\n',nrow(pointsWarp),'\n', file=outLnd)
 write.table(pointsWarp, file=outLnd, sep = ' ', append=TRUE, row.names=FALSE, col.names=FALSE)
+outLnd
 
 ## Exit
 quit('yes')

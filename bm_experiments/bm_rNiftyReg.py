@@ -10,7 +10,7 @@ INSTALLATION for Linux:
     >> sudo apt-get -y install libcurl4-gnutls-dev libxml2-dev libssl-dev
 2. Run R and install required R packages
     >> R
-    > install.packages(c("png", "jpeg", "devtools"))
+    > install.packages(c("png", "jpeg", "OpenImageR", "devtools"))
     > devtools::install_github("jonclayden/RNiftyReg")
 
 
@@ -22,12 +22,12 @@ Run the basic R script:
     output/
 
 Run the RNiftyReg benchmark:
->> python bm_experiments/bm_RNiftyReg.py \
+>> python bm_experiments/bm_rNiftyReg.py \
     -c ./data_images/pairs-imgs-lnds_histol.csv \
     -d ./data_images \
     -o ./results \
-    -rexec Rscript \
-    -rscript ./scripts/Rscript/RNiftyReg_linear.r
+    -rr Rscript \
+    -script ./scripts/Rscript/RNiftyReg_linear.r
 
 Disclaimer:
 * tested for RNiftyReg > 2.x
@@ -50,7 +50,7 @@ from bm_experiments import bm_comp_perform
 
 NAME_FILE_TIME = 'time.txt'
 NAME_FILE_LANDMARKS = 'points.txt'
-NAME_FILE_IMAGE = 'warped.png'
+NAME_FILE_IMAGE = 'warped.jpg'
 
 
 def extend_parse(a_parser):
@@ -59,10 +59,10 @@ def extend_parse(a_parser):
     :return object:
     """
     # SEE: https://docs.python.org/3/library/argparse.html
-    a_parser.add_argument('-rexec', '--exec_R', type=str, required=True,
+    a_parser.add_argument('-rr', '--exec_R', type=str, required=True,
                           help='path to the Rscript executable', default='Rscript')
-    a_parser.add_argument('-rscript', '--path_R_script', required=True,
-                          type=str, help='path to the Rscript with registration')
+    a_parser.add_argument('-script', '--path_R_script', required=True,
+                          type=str, help='path to the R script with registration')
     return a_parser
 
 

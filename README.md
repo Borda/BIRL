@@ -139,14 +139,14 @@ Moreover we developed two additional script for converting large images, handlin
         -config ./configs/ImageJ_bUnwarpJ-pure-image_histol-1k.txt \
         --hist_matching
     ```
-* **[RNiftyReg](https://github.com/jonclayden/RNiftyReg)** is an R-native interface to the [NiftyReg image registration library](http://sourceforge.net/projects/niftyreg/) which contains programs to perform rigid, affine and non-linear registration of Nifti or analyse images.
+* **[RNiftyReg](https://github.com/jonclayden/RNiftyReg)** is an R-native interface to the [NiftyReg image registration library](http://sourceforge.net/projects/niftyreg/) which contains programs to perform rigid, affine and non-linear registration of Nifti or analyse images. _NiftyReg supports max image size 2048._
     ```bash
-    python bm_experiments/bm_RNiftyReg.py \
+    python bm_experiments/bm_rNiftyReg.py \
         -c ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
-        -rexec Rscript \
-        -rscript ./scripts/Rscript/RNiftyReg_linear.r
+        -rr Rscript \
+        -script ./scripts/Rscript/RNiftyReg_linear.r
     ```
 * **[Advanced Normalization Tools](http://stnava.github.io/ANTs/) (ANTs)** is a medical imaging framework containing state-of-the-art medical image registration and segmentation methods. For illustration see ANTsPy [registration tutorial](https://github.com/ANTsX/ANTsPy/blob/master/tutorials/10minTutorial.ipynb).
     ```bash
@@ -154,8 +154,8 @@ Moreover we developed two additional script for converting large images, handlin
         -c ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
-        --exec_Python python3 \
-        --path_script ./scripts/Python/run_ANTsPy.py
+        -py python3 \
+        -script ./scripts/Python/run_ANTsPy.py
     ```
 * ...
 
