@@ -9,3 +9,4 @@ scikit-image
 opencv-python
 openslide-python
 mock
+psutil

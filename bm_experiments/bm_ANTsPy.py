@@ -20,7 +20,8 @@ Run the basic ANTs registration with original parameters:
 
 
 Disclaimer:
-* needed to use own compiled version
+* required to use own compiled last version since some previous releases
+  do not contain `ants.apply_transforms_to_points`
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """

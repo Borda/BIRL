@@ -20,6 +20,11 @@ import pandas as pd
 from skimage.io import imread, imsave
 from skimage.color import rgb2gray
 
+from PIL import Image
+# PIL.Image.DecompressionBombError: could be decompression bomb DOS attack.
+# SEE: https://gitlab.mister-muffin.de/josch/img2pdf/issues/42
+Image.MAX_IMAGE_PIXELS = None
+
 # setting paths
 paths = {
     'fixed': os.path.abspath(os.path.expanduser(sys.argv[1])),
@@ -42,6 +47,7 @@ lnds.columns = ['y', 'x']
 # perform image registration
 mytx = ants.registration(fixed=fixed,
                          moving=moving,
+                         initial_transform='AffineFast',
                          type_of_transform='ElasticSyN')
 print('Transform: %r' % mytx)
 t_elapsed = time.time() - t_start
