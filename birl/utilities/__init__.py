@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 import matplotlib
 import numpy as np
@@ -10,7 +11,8 @@ if not os.environ.get('DISPLAY', '') and matplotlib.rcParams['backend'] != 'agg'
     matplotlib.use('Agg')
 
 # _tkinter.TclError: couldn't connect to display "localhost:10.0"
-if os.system('python -c "from matplotlib import pyplot; pyplot.close(pyplot.figure())"'):
+cmd_matplotlib = 'python -c "from matplotlib import pyplot; pyplot.close(pyplot.figure())"'
+if subprocess.call(cmd_matplotlib, stdout=None, stderr=None, shell=True):
     print('Problem with display. Using non-interactive Agg backend')
     matplotlib.use('Agg')
 

@@ -250,3 +250,124 @@ def export_figure(path_fig, fig):
     logging.debug('exporting Figure: %s', path_fig)
     fig.savefig(path_fig)
     plt.close(fig)
+
+
+def effective_decimals(num):
+    """ find the first effective decimal
+
+    :param float num: number
+    :return int: number of the first effective decimals
+    """
+    dec = 0
+    while 0. < num < 1.:
+        dec += 1
+        num *= 10
+    return dec
+
+
+class RadarChart(object):
+    """
+    See:
+    * https://stackoverflow.com/questions/24659005
+    * https://datascience.stackexchange.com/questions/6084
+
+    >>> import pandas as pd
+    >>> df = pd.DataFrame(np.random.random((5, 3)), columns=list('abc'))
+    >>> fig = RadarChart(df)
+    """
+
+    def __init__(self, df, steps=5, fig=None, rect=None, fill_alpha=0.05, *args, **kw):
+        """ draw a dataFrame with scaled axis
+
+        :param df: data
+        :param int steps: number of steps per axis
+        :param obj|None fig: Figure or None for a new one
+        :param (float, float, float, float) rect: rectangle inside figure
+        :param fill_alpha: transparency of filled region
+        :param args: optional arguments
+        :param kw: optional key arguments
+        """
+        if fig is None:
+            fig = plt.figure()
+        if rect is None:
+            rect = [0.05, 0.05, 0.95, 0.95]
+
+        self.titles = list(df.columns)
+        self.nb_steps = steps
+        self.data = df.copy()
+        self.angles = np.linspace(0, 360, len(self.titles), endpoint=False)
+        self.axes = [fig.add_axes(rect, projection="polar", label="axes%d" % i)
+                     for i in range(len(self.titles))]
+        self.fig = fig
+
+        self.ax = self.axes[0]
+        self.ax.set_thetagrids(self.angles, labels=self.titles, wrap=True)  # , fontsize=14
+
+        for ax in self.axes[1:]:
+            self.__ax_set_invisible(ax)
+
+        for ax, angle, title in zip(self.axes, self.angles, self.titles):
+            self.__draw_labels(ax, angle, title)
+
+        self.maxs = np.array([self.data[title].max() for title in self.titles])
+        for idx, row in self.data.iterrows():
+            self.__draw_curve(idx, row, fill_alpha, *args, **kw)
+
+        for ax in self.axes:
+            for theta, label in zip(ax.get_xticks(), ax.get_xticklabels()):
+                self.__realign_polar_xtick(ax, theta, label)
+
+        self.ax.legend(loc='center left', bbox_to_anchor=(1., 0.7))
+
+    @classmethod
+    def __ax_set_invisible(self, ax):
+        ax.patch.set_visible(False)
+        ax.grid(False)
+        ax.xaxis.set_visible(False)
+
+    def __draw_labels(self, ax, angle, title):
+        """ draw some labels
+
+        :param ax:
+        :param float angle: angle in degree
+        :param str title: name
+        """
+        vals = np.linspace(self.data[title].min(), self.data[title].max(), self.nb_steps + 1)
+        dec = effective_decimals(self.data[title].max()) + 1
+        ax.set_rgrids(range(1, self.nb_steps), angle=angle, labels=np.around(vals, dec))
+        ax.spines["polar"].set_visible(False)
+        # ax.set_ylim(0, 5)
+
+    def __draw_curve(self, idx, row, fill_alpha=0.05, *args, **kw):
+        """ draw particular curve
+
+        :param str idx: name
+        :param row: data with values
+        :param fill_alpha: transparency of filled region
+        :param args: optional arguments
+        :param kw: optional key arguments
+        """
+        vals = row.values / self.maxs * self.nb_steps + 1
+        self.ax.plot(np.deg2rad(self.angles), vals, label=idx, *args, **kw)
+        self.ax.fill(np.deg2rad(self.angles), vals, alpha=fill_alpha)
+
+    @classmethod
+    def __realign_polar_xtick(self, ax, theta, label):
+        """ shift label for particular axis
+
+        :param ax: axis
+        :param obj theta:
+        :param obj label:
+        """
+        # https://stackoverflow.com/questions/20222436
+        theta = theta * ax.get_theta_direction() + ax.get_theta_offset()
+        theta = np.pi / 2 - theta
+        y, x = np.cos(theta), np.sin(theta)
+        if x >= 0.1:
+            label.set_horizontalalignment('left')
+        elif x <= -0.1:
+            label.set_horizontalalignment('right')
+        if y >= 0.5:
+            label.set_verticalalignment('bottom')
+        elif y <= -0.5:
+            label.set_verticalalignment('top')

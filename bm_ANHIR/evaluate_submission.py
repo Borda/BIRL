@@ -39,7 +39,7 @@ DOCKER
     -o /output \
     --min_landmarks 0.20
 or run locally:
->> python evaluate_submission.py \
+>> python bm_ANHIR/evaluate_submission.py \
     -e bm_ANHIR/submission \
     -c bm_ANHIR/dataset_ANHIR/dataset_medium.csv \
     -d bm_ANHIR/dataset_ANHIR/landmarks_user \
@@ -75,7 +75,7 @@ from birl.cls_benchmark import (
     NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COVER_COLUMNS_WRAP,
     COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP, COL_POINTS_REF, COL_POINTS_MOVE,
     COL_TIME, COL_ROBUSTNESS, compute_registration_statistic, update_path_)
-# from bm_experiments.bm_comp_perform import NAME_REPORT
+from bm_ANHIR.generate_regist_pairs import COL_STATUS, VAL_STATUS_TRAIN, VAL_STATUS_TEST
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .9))
 NAME_CSV_RESULTS = 'registration-results.csv'
@@ -130,6 +130,8 @@ def filter_landmarks(idx_row, path_output, path_dataset, path_reference):
     path_load = update_path_(row[COL_POINTS_MOVE], path_dataset)
     pairs = common_landmarks(load_landmarks(path_ref), load_landmarks(path_load),
                              threshold=1)
+    if not pairs.size:
+        return idx, 0.
     pairs = sorted(pairs.tolist(), key=lambda p: p[1])
     ind_ref = np.asarray(pairs)[:, 0]
     nb_common = min([len(load_landmarks(update_path_(row[col], path_reference)))
@@ -205,7 +207,8 @@ def parse_landmarks(idx_row):
         # 'warped landmarks': np.round(lnds_warp, 1).tolist(),
         'matched-landmarks': match_lnds,
         'Robustness': robust,
-        'Norm-Time_minutes': row[COL_NORM_TIME]
+        'Norm-Time_minutes': row.get(COL_NORM_TIME, None),
+        'Status': row.get(COL_STATUS, None),
     }
     # copy all columns with rTRE, TRE and Overlap
     record.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
@@ -243,8 +246,9 @@ def compute_scores(df_experiments, min_landmarks=1.):
 
     # compute summary
     df_summary = df_experiments.describe()
-    df_robust = df_experiments[df_experiments[COL_ROBUSTNESS] > 0.5]
-    df_summary_robust = df_robust.describe()
+    df_summary_robust = df_experiments[df_experiments[COL_ROBUSTNESS] > 0.5].describe()
+    df_summary_train = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TRAIN].describe()
+    df_summary_test = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TEST].describe()
     pd.set_option('expand_frame_repr', False)
 
     # pre-compute some optional metrics
@@ -254,15 +258,24 @@ def compute_scores(df_experiments, min_landmarks=1.):
         time_all = df_summary[COL_NORM_TIME]['mean']
         time_robust = df_summary_robust[COL_NORM_TIME]['mean']
     else:
-        time_all, time_robust = np.nan, np.nan
+        time_all, time_robust = None, None
     # parse final metrics
     scores = {
         'Average-Robustness': df_summary[COL_ROBUSTNESS]['mean'],
+        'Average-Robustness_train': df_summary_train[COL_ROBUSTNESS]['mean'],
+        'Average-Robustness_test': df_summary_test[COL_ROBUSTNESS]['mean'],
         'Average-Median-rTRE': df_summary['rTRE Median (final)']['mean'],
+        'Average-Median-rTRE_train': df_summary_train['rTRE Median (final)']['mean'],
+        'Average-Median-rTRE_test': df_summary_test['rTRE Median (final)']['mean'],
         'Average-Median-rTRE-Robust': df_summary_robust['rTRE Median (final)']['mean'],
         'Average-Rank-Median-rTRE': None,
         'Average-Max-rTRE': df_summary['rTRE Max (final)']['mean'],
+        'Average-Max-rTRE_train': df_summary_train['rTRE Max (final)']['mean'],
+        'Average-Max-rTRE_test': df_summary_test['rTRE Max (final)']['mean'],
         'Average-Max-rTRE-Robust': df_summary_robust['rTRE Max (final)']['mean'],
+        'Median-Average-rTRE': np.median(df_experiments['rTRE Mean (final)']),
+        'Median-Median-rTRE': np.median(df_experiments['rTRE Median (final)']),
+        'Median-Max-rTRE': np.median(df_experiments['rTRE Max (final)']),
         'Average-Rank-Max-rTRE': None,
         'Average-used-landmarks': score_used_lnds,
         'Average-Norm-Time': time_all,
@@ -330,7 +343,7 @@ def main(path_experiment, path_cover, path_dataset, path_output, path_reference=
 
     :param str path_experiment: path to experiment folder
     :param str path_cover: path to assignment file (requested registration pairs)
-    :param str path_dataset: path to provided landmarks
+    :param str path_dataset: path to provided landmarkstext
     :param str path_output: path to generated results
     :param str|None path_reference: path to the complete landmark collection,
         if None use dataset folder
@@ -378,7 +391,9 @@ def main(path_experiment, path_cover, path_dataset, path_output, path_reference=
     logging.debug('exporting CSV results: %s', path_results)
     df_experiments.to_csv(path_results)
 
-    export_summary_json(df_experiments, path_experiment, path_output, min_landmarks, details)
+    path_json = export_summary_json(df_experiments, path_experiment, path_output,
+                                    min_landmarks, details)
+    return path_json
 
 
 if __name__ == '__main__':

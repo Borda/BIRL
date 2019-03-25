@@ -572,6 +572,7 @@ def compute_registration_statistic(idx_row, df_experiments,
     path_landmarks = update_path_(row[col_lnds_warp], path_experiment)
     if path_landmarks and os.path.isfile(path_landmarks):
         points_warp = load_landmarks(path_landmarks)
+        points_warp = np.nan_to_num(points_warp)
     else:
         logging.warning('Invalid path to the landmarks: "%s" <- "%s"',
                         path_landmarks, row[col_lnds_warp])

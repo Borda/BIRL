@@ -4,6 +4,8 @@ Evaluate experiments
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
+from itertools import chain
+
 import numpy as np
 from scipy.spatial import distance
 
@@ -100,9 +102,10 @@ def compute_affine_transf_diff(points_ref, points_init, points_est):
     if not all(pts is not None and list(pts) for pts in [points_ref, points_init, points_est]):
         return {}
 
-    mtx_init = estimate_affine_transform(points_ref, points_init)[0]
+    points_ref = np.nan_to_num(points_ref)
+    mtx_init = estimate_affine_transform(points_ref, np.nan_to_num(points_init))[0]
     affine_init = get_affine_components(np.asarray(mtx_init))
-    mtx_est = estimate_affine_transform(points_ref, points_est)[0]
+    mtx_est = estimate_affine_transform(points_ref, np.nan_to_num(points_est))[0]
     affine_estim = get_affine_components(np.asarray(mtx_est))
 
     diff = {'Affine %s %s Diff' % (n, c): (np.array(affine_estim[n]) - np.array(affine_init[n]))[i]
@@ -112,3 +115,41 @@ def compute_affine_transf_diff(points_ref, points_init, points_est):
     diff.update({'Affine %s Diff' % n: affine_estim[n] - affine_init[n]
                  for n in ['shear']})
     return diff
+
+
+def compute_ranking(user_cases, field, reverse=False):
+    """ compute ranking over selected field
+
+    :param {str: {}} user_cases: dictionary with measures for user and case
+    :param str field: name of field to be ranked
+    :param bool reverse: use reverse ordering
+    :return {}: extended dictionary
+
+    >>> user_cases = {
+    ...     'karel': {1: {'rTRE': 0.04}, 2: {'rTRE': 0.25}, 3: {'rTRE': 0.1}},
+    ...     'pepa': {1: {'rTRE': 0.33}, 3: {'rTRE': 0.05}},
+    ...     'franta': {2: {'rTRE': 0.01}, 3: {'rTRE': 0.15}}
+    ... }
+    >>> user_cases = compute_ranking(user_cases, 'rTRE')
+    >>> import pandas as pd
+    >>> pd.DataFrame({usr: {cs: user_cases[usr][cs]['rTRE_rank'] for cs in user_cases[usr]}
+    ...               for usr in user_cases})[sorted(user_cases.keys())]  # doctest: +NORMALIZE_WHITESPACE
+       franta  karel  pepa
+    1       3      1     2
+    2       1      2     3
+    3       3      2     1
+    """
+    users = list(user_cases.keys())
+    cases = set(chain(*[user_cases[u].keys() for u in user_cases]))
+
+    for cs in cases:
+        usr_val = [(u, user_cases[u][cs].get(field, np.nan))
+                   for u in users if cs in user_cases[u]]
+        usr_val = sorted(usr_val, key=lambda x: x[1], reverse=reverse)
+        usr_rank = dict((usr, i + 1) for i, (usr, _) in enumerate(usr_val))
+        for usr in users:
+            if cs not in user_cases[usr]:
+                user_cases[usr][cs] = {}
+            user_cases[usr][cs][field + '_rank'] = usr_rank.get(usr, len(users))
+
+    return user_cases
