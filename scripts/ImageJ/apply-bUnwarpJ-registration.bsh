@@ -1,0 +1,68 @@
+/*
+ * Image registration via bUnwarpJ plugin
+ *
+ * EXAMPLE:
+ * >> ~/Applications/Fiji.app/ImageJ-linux64 --java-home /usr/lib/jvm/java-8-openjdk-amd64 \
+        --headless apply_bUnwarpJ.bsh deformed-bridge.png bridge.png \
+        2 0 0 3 0.1 0.1 0.0 1.0 10.0 0.01 \
+        bridge-direct.txt bridge-inverse.txt
+ *
+ * Copyright (C) 2019 Ignacio Arganda-Carreras <ignacio.arganda@ehu.eus>
+ */
+
+import ij.ImagePlus;
+import ij.IJ;
+import bunwarpj.bUnwarpJ_;
+
+if( bsh.args.length < 13 )
+{
+	IJ.log( "bUnwarpJ_align.bsh" );
+	IJ.log( "USAGE: bUnwarpJ_align.bsh movingImage mode subsampleFactor minScale maxScale divWeight curlWeight landmarkWeight imageWeight consistencyWeight stopThreshold" );
+	IJ.log( "       'movingImage' path to moving image" );
+	IJ.log( "       'fixedImage' path to fixed image" );
+	IJ.log( "       'mode' 0-2 (0-Accurate, 1-Fast 2-Mono)" );
+	IJ.log( "       'subsampleFactor' 0-7 (0 = 2^0, 7 = 2^7)" );
+	IJ.log( "       'minScale' 0-3 (0-Very Coarse, 1-Coarse, 2-Fine, 3-Very Fine)" );
+	IJ.log( "       'maxScale' 0-4 (0-Very Coarse, 1-Coarse, 2-Fine, 3-Very Fine, 4-Super Fine)" );
+	IJ.log( "       'divWeight' weight to penalize divergence (Ex. 0.1)" );
+	IJ.log( "       'curlWeight' weight to penalize curl (Ex. 0.1)" );
+	IJ.log( "       'landmarkWeight' weight to penalize landmark location error (Ex. 1.0)" );
+	IJ.log( "       'imageWeight' weight to penalize intensity difference (Ex. 1.0)" );
+	IJ.log( "       'consistencyWeight' weight to penalize consistency difference (Ex. 1.0)" );
+	IJ.log( "       'stopThreshold' error function stopping threshold value (Ex. 0.01)" );
+	IJ.log( "       'movingTransfFile' name of the bUnwarpJ transform file to apply to moving image (output)" );
+	IJ.log( "       'fixedTransfFile' name of the bUnwarpJ transform file to apply to fixed image (output [optional])" );
+	return;
+}
+
+// registration parameters
+movingImage = new ImagePlus( bsh.args[ 0 ] );
+fixedImage = new ImagePlus( bsh.args[ 1 ] );
+mode = Integer.parseInt( bsh.args[ 2 ] );
+subsampleFactor = Integer.parseInt( bsh.args[ 3 ] );
+minScale = Integer.parseInt( bsh.args[ 4 ] );
+maxScale = Integer.parseInt( bsh.args[ 5 ] );
+divWeight = Double.parseDouble( bsh.args[ 6 ] );
+curlWeight = Double.parseDouble( bsh.args[ 7 ] );
+landmarkWeight = Double.parseDouble( bsh.args[ 8 ] );
+imageWeight = Double.parseDouble( bsh.args[ 9 ] );
+consistencyWeight = Double.parseDouble( bsh.args[ 10 ] );
+stopThreshold = Double.parseDouble( bsh.args[ 11 ] );
+movingTransfFile = new File( bsh.args[ 12 ] );
+if( bsh.args.length >= 13 )
+	fixedTransfFile = new File( bsh.args[ 13 ] );
+
+// no masks
+maskIpTgt = null;
+maskIpSrc = null;
+
+// compute registration without GUI
+t = bUnwarpJ_.computeTransformationBatch( fixedImage, movingImage, maskIpTgt, maskIpSrc, mode, 
+						subsampleFactor, minScale, maxScale, 
+						divWeight, curlWeight, landmarkWeight, 
+						imageWeight, consistencyWeight, stopThreshold );
+
+// save transforms
+t.saveDirectTransformation( movingTransfFile.getAbsolutePath() );
+if( mode < 2 )
+	t.saveInverseTransformation( fixedTransfFile.getAbsolutePath() );

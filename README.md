@@ -129,15 +129,16 @@ Moreover we developed two additional script for converting large images, handlin
 
 ### Included registration methods
 
-* **[bUnwarpJ](http://imagej.net/BUnwarpJ)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for elastic registration (optional integration with [Feature Extraction](http://imagej.net/Feature_Extraction)).
+* **[bUnwarpJ](http://imagej.net/BUnwarpJ)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for elastic registration (optional usage of histogram matching and integration with [Feature Extraction](http://imagej.net/Feature_Extraction)).
     ```bash
     python bm_experiments/bm_bUnwarpJ.py \
         -c ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         -fiji ./applications/Fiji.app/ImageJ-linux64 \
-        -config ./configs/ImageJ_bUnwarpJ-pure-image_histol-1k.txt \
-        --hist_matching
+        -config ./configs/ImageJ_bUnwarpJ-pure-image_histol.json \
+        --hist_matching \
+        --visual
     ```
 * **[RNiftyReg](https://github.com/jonclayden/RNiftyReg)** is an R-native interface to the [NiftyReg image registration library](http://sourceforge.net/projects/niftyreg/) which contains programs to perform rigid, affine and non-linear registration of Nifti or analyse images. _NiftyReg supports max image size 2048._
     ```bash
@@ -146,7 +147,8 @@ Moreover we developed two additional script for converting large images, handlin
         -d ./data_images \
         -o ./results \
         -rr Rscript \
-        -script ./scripts/Rscript/RNiftyReg_linear.r
+        -script ./scripts/Rscript/RNiftyReg_linear.r\
+        --visual
     ```
 * **[Advanced Normalization Tools](http://stnava.github.io/ANTs/) (ANTs)** is a medical imaging framework containing state-of-the-art medical image registration and segmentation methods. For illustration see ANTsPy [registration tutorial](https://github.com/ANTsX/ANTsPy/blob/master/tutorials/10minTutorial.ipynb).
     ```bash
@@ -155,7 +157,8 @@ Moreover we developed two additional script for converting large images, handlin
         -d ./data_images \
         -o ./results \
         -py python3 \
-        -script ./scripts/Python/run_ANTsPy.py
+        -script ./scripts/Python/run_ANTsPy.py \
+        --visual
     ```
 * ...
 

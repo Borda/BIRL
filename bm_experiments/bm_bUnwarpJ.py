@@ -18,7 +18,8 @@ Run the basic bUnwarpJ registration with original parameters:
     -d ./data_images \
     -o ./results \
     -fiji ./applications/Fiji.app/ImageJ-linux64 \
-    -config ./configs/ImageJ_bUnwarpJ-pure-image_histol-1k.txt
+    -config ./configs/ImageJ_bUnwarpJ-pure-image_histol.json \
+    --hist_matching --visual --unique
 
 The bUnwarpJ is supporting SIFT and MOPS feature extraction as landmarks
 see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support
@@ -27,8 +28,9 @@ see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support
     -d ./data_images \
     -o ./results \
     -fiji ./applications/Fiji.app/ImageJ-linux64 \
-    -config ./configs/ImageJ_bUnwarpJ-landmarks_histol-1k.txt \
-    -sift ./configs/ImageJ_SIFT_histol-1k.txt
+    -config ./configs/ImageJ_bUnwarpJ-landmarks_histol.json \
+    -sift TODO \
+    --hist_matching --visual --unique
 
 Disclaimer:
 * tested for version ImageJ 1.52i & 2.35
@@ -41,82 +43,53 @@ import os
 import sys
 import time
 import logging
+import json
 import shutil
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import update_path, load_landmarks, save_landmarks
 from birl.utilities.experiments import create_basic_parse, parse_arg_params, exec_commands
-from birl.cls_benchmark import ImRegBenchmark, NAME_LOG_REGISTRATION
+from birl.cls_benchmark import ImRegBenchmark, NAME_LOG_REGISTRATION, COL_TIME
 from birl.bm_template import main
 from bm_experiments import bm_comp_perform
 
-NAME_MACRO_REGISTRATION = 'macro_registration.ijm'
-NAME_MACRO_WARP_IMAGE = 'macro_warp_image.ijm'
 PATH_IJ_SCRIPTS = os.path.join(update_path('scripts'), 'ImageJ')
-PATH_SCRIPT_WARP_LANDMARKS = os.path.join(PATH_IJ_SCRIPTS, 'apply-bunwarpj-transform.bsh')
+PATH_SCRIPT_REGISTRATION = os.path.join(PATH_IJ_SCRIPTS, 'apply-bUnwarpJ-registration.bsh')
+PATH_SCRIPT_WARP_LANDMARKS = os.path.join(PATH_IJ_SCRIPTS, 'apply-bUnwarpJ-transform.bsh')
 PATH_SCRIPT_HIST_MATCHING = os.path.join(PATH_IJ_SCRIPTS, 'histogram-matching.bsh')
-PATH_SCRIPT_HIST_MATCH_IJM = os.path.join(PATH_IJ_SCRIPTS, 'histogram-matching-for-macro.bsh')
+# PATH_SCRIPT_HIST_MATCH_IJM = os.path.join(PATH_IJ_SCRIPTS, 'histogram-matching-for-macro.bsh')
 NAME_LANDMARKS = 'source_landmarks.txt'
 NAME_LANDMARKS_WARPED = 'warped_source_landmarks.txt'
 COMMAND_WARP_LANDMARKS = '%(path_fiji)s --headless %(path_bsh)s' \
                          ' %(source)s %(target)s' \
                          ' %(output)s/' + NAME_LANDMARKS + \
                          ' %(output)s/' + NAME_LANDMARKS_WARPED + \
-                         ' %(output)s/inverse_transform.txt' \
-                         ' %(output)s/direct_transform.txt' \
+                         ' %(output)s/transform-inverse.txt' \
+                         ' %(output)s/transform-direct.txt' \
                          ' %(warp)s'
 COMMAND_HIST_MATCHING = '%(path_fiji)s --headless %(path_bsh)s' \
                         ' %(target)s %(source)s %(output)s'
-# macro for feature extraction - SIFT
-MACRO_SIFT = '''
-run("Extract SIFT Correspondences",
-    "source_image=sourceImage target_image=targetImage %(config_SIFT)s");
-'''
-# macro for feature extraction - MOPS
-MACRO_MOPS = '''
-run("Extract MOPS Correspondences",
-    "source_image=sourceImage target_image=targetImage %(config_MOPS)s");
-'''
-# MACRO_HIST_MATCHING = '''
-# // open script as text
-# bshText = File.openAsString( "%s" );
-# // evaluate script
-# eval("bsh", bshText );
-# ''' % PATH_SCRIPT_HIST_MATCH_IJM
-# macro performing the registration
-MACRO_REGISTRATION = '''// Registration
-//run("Memory & Threads...", "maximum=6951 parallel=1");
-
-print ("-> images opening...");
-open("%(source)s");
-rename("sourceImage")
-open("%(target)s");
-rename("targetImage");
-
-time = getTime();
-print ("-> start feature extraction...");
-%(SIFT)s
-%(MOPS)s
-
-print ("-> start registration...");
-run("bUnwarpJ",
-    "source_image=sourceImage target_image=targetImage "
-    + " registration=%(config_bUnwarpJ)s save_transformations "
-    + " save_direct_transformation=%(output)s/direct_transform.txt "
-    + " save_inverse_transformation=%(output)s/inverse_transform.txt");
-
-time = getTime() - time;
-print ("-> registration finished");
-print("TIME: " + time + "ms");
-
-// export the time into a file
-file = File.open("%(output)s/TIME.txt");
-print(file, time);
-
-run("Close All");
-run("Quit");
-exit();
-'''
+COMMAND_REGISTRATION = '%(path_fiji)s --headless %(path_bsh)s' \
+                       ' %(source)s %(target)s %(params)s' \
+                       ' %(output)s/transform-direct.txt %(output)s/transform-inverse.txt'
+REQUIRED_PARAMS = ['mode', 'subsampleFactor', 'minScale', 'maxScale', 'divWeight', 'curlWeight',
+                   'landmarkWeight', 'imageWeight', 'consistencyWeight', 'stopThreshold']
+DEFAULT_PARAMS = {
+    'mode': 1,
+    'subsampleFactor': 0,
+    'minScale': 0,
+    'maxScale': 3,
+    'divWeight': 0.1,
+    'curlWeight': 0.1,
+    'landmarkWeight': 0.,
+    'imageWeight': 1.,
+    'consistencyWeight': 10.,
+    'stopThreshold': 0.01,
+}
+assert all(k in DEFAULT_PARAMS for k in REQUIRED_PARAMS), \
+    'default params are missing some required parameters'
+COL_TIME_HIST_MATCH = 'Time hist. matching'
+COL_IMAGE_MOVE_TEMP = 'Source image TEMP'
 
 
 def extend_parse(a_parser):
@@ -127,12 +100,12 @@ def extend_parse(a_parser):
     # SEE: https://docs.python.org/3/library/argparse.html
     a_parser.add_argument('-fiji', '--path_fiji', type=str, required=True,
                           help='path to the Fiji executable')
-    a_parser.add_argument('-config', '--path_config_bUnwarpJ', required=True,
+    a_parser.add_argument('-config', '--path_config_bunwarpj', required=True,
                           type=str, help='path to the bUnwarpJ configuration')
-    a_parser.add_argument('-sift', '--path_config_IJ_SIFT', required=False,
-                          type=str, help='path to the ImageJ SIFT configuration')
-    a_parser.add_argument('-mops', '--path_config_IJ_MOPS', required=False,
-                          type=str, help='path to the ImageJ MOPS configuration')
+    # a_parser.add_argument('-sift', '--path_config_IJ_SIFT', required=False,
+    #                       type=str, help='path to the ImageJ SIFT configuration')
+    # a_parser.add_argument('-mops', '--path_config_IJ_MOPS', required=False,
+    #                       type=str, help='path to the ImageJ MOPS configuration')
     a_parser.add_argument('--hist_matching', action='store_true', required=False,
                           default=False, help='apply histogram matching before registration')
     return a_parser
@@ -152,42 +125,40 @@ class BmUnwarpJ(ImRegBenchmark):
     ...           'path_cover': os.path.join(update_path('data_images'),
     ...                                      'pairs-imgs-lnds_mix.csv'),
     ...           'path_fiji': '.', 'hist_matching': True,
-    ...           'path_config_bUnwarpJ': fn_path_conf('ImageJ_bUnwarpJ-pure-image_histol-1k.txt')}
+    ...           'path_config_bunwarpj': fn_path_conf('ImageJ_bUnwarpJ-pure-image_histol.json')}
     >>> benchmark = BmUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> params['path_config_bUnwarpJ'] = fn_path_conf('ImageJ_bUnwarpJ-landmarks_histol-1k.txt')
-    >>> params['path_config_IJ_SIFT'] = fn_path_conf('ImageJ_SIFT_histol-1k.txt')
+    >>> # TODO
+    >>> # params['path_config_bunwarpj'] = fn_path_conf('ImageJ_bUnwarpJ-landmarks_histol.json')
+    >>> # params['path_config_IJ_SIFT'] = fn_path_conf('ImageJ_SIFT_histol-1k.txt')
     >>> benchmark = BmUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
     REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['path_fiji',
-                                                        'path_config_bUnwarpJ']
+                                                        'path_config_bunwarpj']
 
     def _prepare(self):
         """ prepare Benchmark - copy configurations """
         logging.info('-> copy configuration...')
 
-        self._copy_config_to_expt('path_config_bUnwarpJ')
-        if 'path_config_IJ_SIFT' in self.params:
-            self._copy_config_to_expt('path_config_IJ_SIFT')
-        if 'path_config_IJ_MOPS' in self.params:
-            self._copy_config_to_expt('path_config_IJ_MOPS')
+        self._copy_config_to_expt('path_config_bunwarpj')
+        # if 'path_config_IJ_SIFT' in self.params:
+        #     self._copy_config_to_expt('path_config_IJ_SIFT')
+        # if 'path_config_IJ_MOPS' in self.params:
+        #     self._copy_config_to_expt('path_config_IJ_MOPS')
 
     def _prepare_img_registration(self, record):
-        """ prepare the experiment folder if it is required,
-
-        * create registration macros
+        """ prepare the experiment folder if it is required
 
         :param {str: str|float} dict record: dictionary with regist. params
         :return {str: str|float}: the same or updated registration info
         """
-        logging.debug('.. generate macros before registration experiment')
+        logging.debug('.. prepare image before registration experiment')
         # set the paths for this experiment
         path_dir = self._get_path_reg_dir(record)
         path_im_ref, path_im_move, _, _ = self._get_paths(record)
-        path_regist = os.path.join(path_dir, os.path.basename(path_im_move))
 
         # if histograms matching was selected
         if self.params.get('hist_matching', False):
@@ -199,47 +170,8 @@ class BmUnwarpJ(ImRegBenchmark):
             t_start = time.time()
             path_log = os.path.join(path_dir, NAME_LOG_REGISTRATION)
             exec_commands([cmd_hist_match], path_logger=path_log)
-            record['Time hist. matching'] = (time.time() - t_start) / 60.
-            path_im_move = path_img_out
-
-        with open(self.params['path_config_bUnwarpJ'], 'r') as fp:
-            lines = fp.readlines()
-        # merge lines into one string
-        config_bunwarpj = ' '.join(l.strip() for l in lines)
-        # define set of all possible parameters for macros generating
-        dict_params = {
-            'source': path_im_move,
-            'target': path_im_ref,
-            'config_bUnwarpJ': config_bunwarpj,
-            'output': path_dir,
-            'warp': path_regist
-        }
-
-        dict_params['SIFT'] = 'print("no SIFT performed");'
-        # if config for SIFT is defined add SIFT extraction
-        if 'path_config_IJ_SIFT' in self.params:
-            with open(self.params['path_config_IJ_SIFT'], 'r') as fp:
-                lines = fp.readlines()
-            dict_params['config_SIFT'] = ' '.join(l.strip() for l in lines)
-            dict_params['SIFT'] = MACRO_SIFT % dict_params
-
-        dict_params['MOPS'] = 'print("no MOPS performed");'
-        # if config for MOPS is defined add MOPS extraction
-        if 'path_config_IJ_MOPS' in self.params:
-            with open(self.params['path_config_IJ_MOPS'], 'r') as fp:
-                lines = fp.readlines()
-            dict_params['config_MOPS'] = ' '.join(l.strip() for l in lines)
-            dict_params['MOPS'] = MACRO_MOPS % dict_params
-
-        # dict_params['hist_matching'] = 'print("no histogram-matching performed");'
-        # # if histograms matching was selected
-        # if self.params.get('hist_matching', False):
-        #     dict_params['hist_matching'] = MACRO_HIST_MATCHING
-
-        # generate the registration macro
-        macro_regist = MACRO_REGISTRATION % dict_params
-        with open(os.path.join(path_dir, NAME_MACRO_REGISTRATION), 'w') as fp:
-            fp.write(macro_regist)
+            record[COL_TIME_HIST_MATCH] = (time.time() - t_start) / 60.
+            record[COL_IMAGE_MOVE_TEMP] = path_img_out
 
         return record
 
@@ -249,9 +181,19 @@ class BmUnwarpJ(ImRegBenchmark):
         :param {str: str|float} record: dictionary with registration params
         :return str|[str]: the execution commands
         """
-        path_macro = os.path.join(self._get_path_reg_dir(record),
-                                  NAME_MACRO_REGISTRATION)
-        cmd = '%s -batch %s' % (self.params['path_fiji'], path_macro)
+        path_im_ref, path_im_move, _, _ = self._get_paths(record)
+        path_dir = self._get_path_reg_dir(record)
+        config = DEFAULT_PARAMS
+        with open(self.params['path_config_bunwarpj'], 'r') as fp:
+            config.update(json.load(fp))
+        assert config['mode'] < 2, 'Mono mode does not supports inverse transform' \
+                                   ' which is need for landmarks warping.'
+        bunwarpj_config = [config[k] for k in REQUIRED_PARAMS]
+        cmd = COMMAND_REGISTRATION % {
+            'path_fiji': self.params['path_fiji'], 'path_bsh': PATH_SCRIPT_REGISTRATION,
+            'target': path_im_ref, 'source': record.get(COL_IMAGE_MOVE_TEMP, path_im_move),
+            'output': path_dir, 'params': ' '.join(map(str, bunwarpj_config))
+        }
         return cmd
 
     def _extract_warped_image_landmarks(self, record):
@@ -293,14 +235,8 @@ class BmUnwarpJ(ImRegBenchmark):
         :param record: {str: value}, dictionary with registration params
         :return float|None: time in minutes
         """
-        path_dir = self._get_path_reg_dir(record)
-        path_time = os.path.join(path_dir, 'TIME.txt')
-        if not os.path.isfile(path_time):
-            return None
-        with open(path_time, 'r') as fp:
-            exec_time = float(fp.read()) / 1000. / 60.
         # in case used hist. matching were used
-        exec_time += record.get('Time hist. matching', 0)
+        exec_time = record[COL_TIME] + record.get(COL_TIME_HIST_MATCH, 0)
         return exec_time
 
 
