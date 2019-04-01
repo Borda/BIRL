@@ -62,10 +62,8 @@ references:
         unzip -q applications/fiji-linux64.zip -d applications/
         rm applications/fiji-linux64.zip
         rm -rf results && mkdir results
-        python bm_experiments/bm_bUnwarpJ.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ-pure-image_histol.yaml --hist_matching --visual
-        # todo, add feature usage
-        # python bm_experiments/bm_bUnwarpJ.py -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ-landmarks_histol.yaml -sift ./configs/ImageJ_SIFT_histol-1k.txt --unique
-        # python bm_experiments/bm_bUnwarpJ.py -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ-landmarks_histol.yaml -mops ./configs/ImageJ_MOPS_histol-1k.txt --unique
+        python bm_experiments/bm_bUnwarpJ.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ_histol.yaml --hist_matching --visual
+        python bm_experiments/bm_bUnwarpJ.py -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml --unique
         tree -L 3 ./results
         rm -rf ./applications/Fiji.app
 

@@ -11,7 +11,7 @@ import types
 import logging
 import argparse
 import subprocess
-# import multiprocessing.pool
+import collections
 import multiprocessing as mproc
 from functools import wraps
 
@@ -358,3 +358,32 @@ def is_iterable(var):
     True
     """
     return any(isinstance(var, cls) for cls in [list, tuple, types.GeneratorType])
+
+
+def dict_deep_update(dict_base, dict_update):
+    """ update recursively
+
+    :param {} dict_base:
+    :param {} dict_update:
+    :return {}:
+
+    >>> d = {'level1': {'level2': {'levelA': 0, 'levelB': 1}}}
+    >>> u = {'level1': {'level2': {'levelB': 10}}}
+    >>> import json
+    >>> print(json.dumps(dict_deep_update(d, u), sort_keys=True, indent=2))  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    {
+      "level1": {
+        "level2": {
+          "levelA": 0,
+          "levelB": 10
+        }
+      }
+    }
+    """
+    for k in dict_update:
+        val = dict_update[k]
+        if isinstance(val, collections.Mapping):
+            dict_base[k] = dict_deep_update(dict_base.get(k, {}), val)
+        else:
+            dict_base[k] = val
+    return dict_base

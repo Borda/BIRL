@@ -1,0 +1,122 @@
+/*
+ * Image registration via bUnwarpJ plugin with SIFT features
+ *
+ * EXAMPLE:
+ * >> ~/Applications/Fiji.app/ImageJ-linux64 --java-home /usr/lib/jvm/java-8-openjdk-amd64  \
+        --headless apply-SIFT-bUnwarpJ-registration.bsh deformed-bridge.png bridge.png \
+        1.6 3 64 1024 8 8 0.92 25 0.05 1 \
+        2 0 0 3 0.1 0.1 1.0 1.0 10.0 0.01 \
+        bridge-direct.txt bridge-inverse.txt
+ *
+ * Copyright (C) 2019 Ignacio Arganda-Carreras <ignacio.arganda@ehu.eus>
+ */
+
+import ij.ImagePlus;
+import ij.IJ;
+import bunwarpj.bUnwarpJ_;
+import histogram2.HistogramMatcher;
+
+if( bsh.args.length < 23 )
+{
+	IJ.log( "bUnwarpJ_align_hist_match_SIFT.bsh" );
+	IJ.log( "USAGE: bUnwarpJ_align_hist_match_SIFT.bsh movingImage mode  subsampleFactor minScale maxScale divWeight curlWeight landmarkWeight imageWeight consistencyWeight stopThreshold" );
+	IJ.log( "       'movingImage' path to moving image" );
+	IJ.log( "       'fixedImage' path to fixed image" );
+
+	// SIFT parameters
+
+ 	IJ.log( "       'initialSigma' initial Gaussian blur sigma (SIFT parameter, ex. 1.6)" );
+ 	IJ.log( "       'steps' steps per scale octave (SIFT parameter, ex. 3)" );
+ 	IJ.log( "       'minOctaveSize' minimum image size in pixels (SIFT parameter, ex. 64)" );
+ 	IJ.log( "       'maxOctaveSize' AAAmaximum image size in pixels (SIFT parameter, ex. 1024)" );
+ 	IJ.log( "       'fdSize' feature descriptor size (SIFT parameter, ex. 4)" );
+ 	IJ.log( "       'fdBins' feature descriptor orientation bins (SIFT parameter, ex. 8)" );
+ 	IJ.log( "       'rod' closest/next closest ratio (SIFT parameter, ex. 0.92)" );
+	IJ.log( "       'maxEpsilon' maximal alignment error in pixels (SIFT parameter, ex. 25)" );
+	IJ.log( "       'minInlierRatio' inlier ratio (SIFT parameter, ex. 0.05)" );
+	IJ.log( "       'modelIndex' expected transformation (SIFT parameter, 0:Translation, 1:Rigid, 2:Similarity, 3:Affine, 4:Perspective)" );
+
+	// bUnwarpJ parameters
+	
+	IJ.log( "       'mode' 0-2 (0-Accurate, 1-Fast 2-Mono)" );
+	IJ.log( "       'subsampleFactor' 0-7 (0 = 2^0, 7 = 2^7)" );
+	IJ.log( "       'minScale' 0-3 (0-Very Coarse, 1-Coarse, 2-Fine, 3-Very Fine)" );
+	IJ.log( "       'maxScale' 0-4 (0-Very Coarse, 1-Coarse, 2-Fine, 3-Very Fine, 4-Super Fine)" );
+	IJ.log( "       'divWeight' weight to penalize divergence (Ex. 0.1)" );
+	IJ.log( "       'curlWeight' weight to penalize curl (Ex. 0.1)" );
+	IJ.log( "       'landmarkWeight' weight to penalize landmark location error (Ex. 1.0)" );
+	IJ.log( "       'imageWeight' weight to penalize intensity difference (Ex. 1.0)" );
+	IJ.log( "       'consistencyWeight' weight to penalize consistency difference (Ex. 1.0)" );
+	IJ.log( "       'stopThreshold' error function stopping threshold value (Ex. 0.01)" );
+	IJ.log( "       'movingTransfFile' name of the bUnwarpJ transform file to apply to moving image (output)" );
+	IJ.log( "       'fixedTransfFile' name of the bUnwarpJ transform file to apply to fixed image (output [optional])" );
+	return;
+}
+
+// registration parameters
+movingImage = new ImagePlus( bsh.args[ 0 ] );
+fixedImage = new ImagePlus( bsh.args[ 1 ] );
+
+initialSigma = Float.parseFloat( bsh.args[ 2 ] );
+steps = Integer.parseInt( bsh.args[ 3 ] );
+minOctaveSize = Integer.parseInt( bsh.args[ 4 ] );
+maxOctaveSize = Integer.parseInt( bsh.args[ 5 ] );
+fdSize = Integer.parseInt( bsh.args[ 6 ] );
+fdBins = Integer.parseInt( bsh.args[ 7 ] );
+rod = Float.parseFloat( bsh.args[ 8 ] );
+maxEpsilon = Float.parseFloat( bsh.args[ 9 ] );
+minInlierRatio = Float.parseFloat( bsh.args[ 10 ] );
+modelIndex = Integer.parseInt( bsh.args[ 11 ] );
+
+mode = Integer.parseInt( bsh.args[ 12 ] );
+subsampleFactor = Integer.parseInt( bsh.args[ 13 ] );
+minScale = Integer.parseInt( bsh.args[ 14 ] );
+maxScale = Integer.parseInt( bsh.args[ 15 ] );
+divWeight = Double.parseDouble( bsh.args[ 16 ] );
+curlWeight = Double.parseDouble( bsh.args[ 17 ] );
+landmarkWeight = Double.parseDouble( bsh.args[ 18 ] );
+imageWeight = Double.parseDouble( bsh.args[ 19 ] );
+consistencyWeight = Double.parseDouble( bsh.args[ 20 ] );
+stopThreshold = Double.parseDouble( bsh.args[ 21 ] );
+movingTransfFile = new File( bsh.args[ 22 ] );
+if( bsh.args.length >= 23 )
+	fixedTransfFile = new File( bsh.args[ 23 ] );
+
+// no masks
+maskIpTgt = null;
+maskIpSrc = null;
+
+/* IGNORING HIST. MATCHING
+    // histogram matching
+    ip1 = movingImage.getProcessor();
+    ip2 = fixedImage.getProcessor();
+
+    hist1 = ip1.getHistogram();
+    hist2 = ip2.getHistogram();
+
+    matcher = new HistogramMatcher();
+    newHist = matcher.matchHistograms(hist1, hist2);
+
+    ip1.applyTable( newHist );
+    movingImage.setProcessor( ip1 );
+*/
+
+// SIFT
+sift = new SIFT_ExtractPointRoi();
+sift.exec( fixedImage, movingImage,
+			initialSigma, steps,
+			minOctaveSize, maxOctaveSize,
+			fdSize, fdBins,
+			rod, maxEpsilon,
+			minInlierRatio, modelIndex );
+
+// compute registration without GUI
+t = bUnwarpJ_.computeTransformationBatch( fixedImage, movingImage, maskIpTgt, maskIpSrc, mode, 
+						subsampleFactor, minScale, maxScale, 
+						divWeight, curlWeight, landmarkWeight, 
+						imageWeight, consistencyWeight, stopThreshold );
+
+// save transforms
+t.saveDirectTransformation( movingTransfFile.getAbsolutePath() );
+if( mode < 2 )
+	t.saveInverseTransformation( fixedTransfFile.getAbsolutePath() );

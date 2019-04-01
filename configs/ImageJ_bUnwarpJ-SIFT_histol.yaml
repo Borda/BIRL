@@ -1,0 +1,23 @@
+SIFT:
+  initialSigma: 1.6
+  steps: 3
+  minOctaveSize: 64
+  maxOctaveSize: 1024
+  fdSize: 8
+  fdBins: 8
+  rod: 0.92
+  maxEpsilon: 25
+  minInlierRatio: 0.05
+  modelIndex: 1
+
+bUnwarpJ:
+  mode: 1
+  subsampleFactor: 2
+  minScale: 0
+  maxScale: 3
+  divWeight: 0.1
+  curlWeight: 0.1
+  landmarkWeight: 1.0
+  imageWeight: 0.5
+  consistencyWeight: 10.0
+  stopThreshold: 0.01

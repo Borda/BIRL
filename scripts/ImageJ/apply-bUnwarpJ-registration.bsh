@@ -17,7 +17,7 @@ import bunwarpj.bUnwarpJ_;
 if( bsh.args.length < 13 )
 {
 	IJ.log( "bUnwarpJ_align.bsh" );
-	IJ.log( "USAGE: bUnwarpJ_align.bsh movingImage mode subsampleFactor minScale maxScale divWeight curlWeight landmarkWeight imageWeight consistencyWeight stopThreshold" );
+	IJ.log( "USAGE: apply-bUnwarpJ-registration.bsh movingImage mode subsampleFactor minScale maxScale divWeight curlWeight landmarkWeight imageWeight consistencyWeight stopThreshold" );
 	IJ.log( "       'movingImage' path to moving image" );
 	IJ.log( "       'fixedImage' path to fixed image" );
 	IJ.log( "       'mode' 0-2 (0-Accurate, 1-Fast 2-Mono)" );

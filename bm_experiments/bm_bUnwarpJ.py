@@ -18,7 +18,7 @@ Run the basic bUnwarpJ registration with original parameters:
     -d ./data_images \
     -o ./results \
     -fiji ./applications/Fiji.app/ImageJ-linux64 \
-    -config ./configs/ImageJ_bUnwarpJ-pure-image_histol.yaml \
+    -config ./configs/ImageJ_bUnwarpJ_histol.yaml \
     --hist_matching --visual --unique
 
 The bUnwarpJ is supporting SIFT and MOPS feature extraction as landmarks
@@ -28,8 +28,7 @@ see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support
     -d ./data_images \
     -o ./results \
     -fiji ./applications/Fiji.app/ImageJ-linux64 \
-    -config ./configs/ImageJ_bUnwarpJ-landmarks_histol.yaml \
-    -sift TODO \
+    -config ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml \
     --hist_matching --visual --unique
 
 Disclaimer:
@@ -49,13 +48,15 @@ import yaml
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import update_path, load_landmarks, save_landmarks
-from birl.utilities.experiments import create_basic_parse, parse_arg_params, exec_commands
+from birl.utilities.experiments import (create_basic_parse, parse_arg_params, exec_commands,
+                                        dict_deep_update)
 from birl.cls_benchmark import ImRegBenchmark, NAME_LOG_REGISTRATION, COL_TIME
 from birl.bm_template import main
 from bm_experiments import bm_comp_perform
 
 PATH_IJ_SCRIPTS = os.path.join(update_path('scripts'), 'ImageJ')
-PATH_SCRIPT_REGISTRATION = os.path.join(PATH_IJ_SCRIPTS, 'apply-bUnwarpJ-registration.bsh')
+PATH_SCRIPT_REGISTRATION_BASE = os.path.join(PATH_IJ_SCRIPTS, 'apply-bUnwarpJ-registration.bsh')
+PATH_SCRIPT_REGISTRATION_SIFT = os.path.join(PATH_IJ_SCRIPTS, 'apply-SIFT-bUnwarpJ-registration.bsh')
 PATH_SCRIPT_WARP_LANDMARKS = os.path.join(PATH_IJ_SCRIPTS, 'apply-bUnwarpJ-transform.bsh')
 PATH_SCRIPT_HIST_MATCHING = os.path.join(PATH_IJ_SCRIPTS, 'histogram-matching.bsh')
 # PATH_SCRIPT_HIST_MATCH_IJM = os.path.join(PATH_IJ_SCRIPTS, 'histogram-matching-for-macro.bsh')
@@ -73,22 +74,42 @@ COMMAND_HIST_MATCHING = '%(path_fiji)s --headless %(path_bsh)s' \
 COMMAND_REGISTRATION = '%(path_fiji)s --headless %(path_bsh)s' \
                        ' %(source)s %(target)s %(params)s' \
                        ' %(output)s/transform-direct.txt %(output)s/transform-inverse.txt'
-REQUIRED_PARAMS = ['mode', 'subsampleFactor', 'minScale', 'maxScale', 'divWeight', 'curlWeight',
-                   'landmarkWeight', 'imageWeight', 'consistencyWeight', 'stopThreshold']
+REQUIRED_PARAMS_BUNWARPJ = (
+    'mode', 'subsampleFactor', 'minScale', 'maxScale', 'divWeight', 'curlWeight',
+    'landmarkWeight', 'imageWeight', 'consistencyWeight', 'stopThreshold')
+REQUIRED_PARAMS_SIFT = (
+    'initialSigma', 'steps', 'minOctaveSize', 'maxOctaveSize', 'fdSize', 'fdBins', 'rod',
+    'maxEpsilon', 'minInlierRatio', 'modelIndex')
 DEFAULT_PARAMS = {
-    'mode': 1,
-    'subsampleFactor': 0,
-    'minScale': 0,
-    'maxScale': 3,
-    'divWeight': 0.1,
-    'curlWeight': 0.1,
-    'landmarkWeight': 0.,
-    'imageWeight': 1.,
-    'consistencyWeight': 10.,
-    'stopThreshold': 0.01,
+    'bUnwarpJ': {
+        'mode': 1,
+        'subsampleFactor': 0,
+        'minScale': 0,
+        'maxScale': 3,
+        'divWeight': 0.1,
+        'curlWeight': 0.1,
+        'landmarkWeight': 0.,
+        'imageWeight': 1.,
+        'consistencyWeight': 10.,
+        'stopThreshold': 0.01,
+    },
+    'SIFT': {
+        'initialSigma': 1.6,
+        'steps': 3,
+        'minOctaveSize': 64,
+        'maxOctaveSize': 1024,
+        'fdSize': 8,
+        'fdBins': 8,
+        'rod': 0.92,
+        'maxEpsilon': 25,
+        'minInlierRatio': 0.05,
+        'modelIndex': 1
+    }
 }
-assert all(k in DEFAULT_PARAMS for k in REQUIRED_PARAMS), \
-    'default params are missing some required parameters'
+assert all(k in DEFAULT_PARAMS['bUnwarpJ'] for k in REQUIRED_PARAMS_BUNWARPJ), \
+    'default params are missing some required parameters for bUnwarpJ'
+assert all(k in DEFAULT_PARAMS['SIFT'] for k in REQUIRED_PARAMS_SIFT), \
+    'default params are missing some required parameters for SIFT'
 COL_TIME_HIST_MATCH = 'Time hist. matching'
 COL_IMAGE_MOVE_TEMP = 'Source image TEMP'
 
@@ -101,12 +122,8 @@ def extend_parse(a_parser):
     # SEE: https://docs.python.org/3/library/argparse.html
     a_parser.add_argument('-fiji', '--path_fiji', type=str, required=True,
                           help='path to the Fiji executable')
-    a_parser.add_argument('-config', '--path_config_bunwarpj', required=True,
+    a_parser.add_argument('-config', '--path_config', required=True,
                           type=str, help='path to the bUnwarpJ configuration')
-    # a_parser.add_argument('-sift', '--path_config_IJ_SIFT', required=False,
-    #                       type=str, help='path to the ImageJ SIFT configuration')
-    # a_parser.add_argument('-mops', '--path_config_IJ_MOPS', required=False,
-    #                       type=str, help='path to the ImageJ MOPS configuration')
     a_parser.add_argument('--hist_matching', action='store_true', required=False,
                           default=False, help='apply histogram matching before registration')
     return a_parser
@@ -126,29 +143,23 @@ class BmUnwarpJ(ImRegBenchmark):
     ...           'path_cover': os.path.join(update_path('data_images'),
     ...                                      'pairs-imgs-lnds_mix.csv'),
     ...           'path_fiji': '.', 'hist_matching': True,
-    ...           'path_config_bunwarpj': fn_path_conf('ImageJ_bUnwarpJ-pure-image_histol.yaml')}
+    ...           'path_config': fn_path_conf('ImageJ_bUnwarpJ_histol.yaml')}
     >>> benchmark = BmUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> # TODO
-    >>> # params['path_config_bunwarpj'] = fn_path_conf('ImageJ_bUnwarpJ-landmarks_histol.yaml')
-    >>> # params['path_config_IJ_SIFT'] = fn_path_conf('ImageJ_SIFT_histol-1k.txt')
+    >>> params['path_config'] = fn_path_conf('ImageJ_bUnwarpJ-SIFT_histol.yaml')
     >>> benchmark = BmUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
     REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['path_fiji',
-                                                        'path_config_bunwarpj']
+                                                        'path_config']
 
     def _prepare(self):
         """ prepare Benchmark - copy configurations """
         logging.info('-> copy configuration...')
 
-        self._copy_config_to_expt('path_config_bunwarpj')
-        # if 'path_config_IJ_SIFT' in self.params:
-        #     self._copy_config_to_expt('path_config_IJ_SIFT')
-        # if 'path_config_IJ_MOPS' in self.params:
-        #     self._copy_config_to_expt('path_config_IJ_MOPS')
+        self._copy_config_to_expt('path_config')
 
     def _prepare_img_registration(self, record):
         """ prepare the experiment folder if it is required
@@ -185,15 +196,23 @@ class BmUnwarpJ(ImRegBenchmark):
         path_im_ref, path_im_move, _, _ = self._get_paths(record)
         path_dir = self._get_path_reg_dir(record)
         config = DEFAULT_PARAMS
-        with open(self.params['path_config_bunwarpj'], 'r') as fp:
-            config.update(yaml.load(fp))
-        assert config['mode'] < 2, 'Mono mode does not supports inverse transform' \
-                                   ' which is need for landmarks warping.'
-        bunwarpj_config = [config[k] for k in REQUIRED_PARAMS]
+        with open(self.params['path_config'], 'r') as fp:
+            config = dict_deep_update(config, yaml.load(fp))
+        assert config['bUnwarpJ']['mode'] < 2, 'Mono mode does not supports inverse transform' \
+                                               ' which is need for landmarks warping.'
+
+        config_sift = [config['SIFT'][k] for k in REQUIRED_PARAMS_SIFT] \
+            if config.get('SIFT', False) else []
+        config_bunwarpj = [config['bUnwarpJ'][k] for k in REQUIRED_PARAMS_BUNWARPJ]
+        path_reg_script = PATH_SCRIPT_REGISTRATION_SIFT if config_sift else PATH_SCRIPT_REGISTRATION_BASE
+
         cmd = COMMAND_REGISTRATION % {
-            'path_fiji': self.params['path_fiji'], 'path_bsh': PATH_SCRIPT_REGISTRATION,
-            'target': path_im_ref, 'source': record.get(COL_IMAGE_MOVE_TEMP, path_im_move),
-            'output': path_dir, 'params': ' '.join(map(str, bunwarpj_config))
+            'path_fiji': self.params['path_fiji'],
+            'path_bsh': path_reg_script,
+            'target': path_im_ref,
+            'source': record.get(COL_IMAGE_MOVE_TEMP, path_im_move),
+            'output': path_dir,
+            'params': ' '.join(map(str, config_sift + config_bunwarpj))
         }
         return cmd
 

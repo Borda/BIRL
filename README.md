@@ -140,7 +140,7 @@ Even though this framework is completely customizable we include several image r
         -d ./data_images \
         -o ./results \
         -fiji ./applications/Fiji.app/ImageJ-linux64 \
-        -config ./configs/ImageJ_bUnwarpJ-pure-image_histol.yaml \
+        -config ./configs/ImageJ_bUnwarpJ_histol.yaml \
         --hist_matching \
         --visual --unique
     ```

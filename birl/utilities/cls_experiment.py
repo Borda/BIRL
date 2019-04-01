@@ -117,8 +117,8 @@ class Experiment(object):
             self.params.get('path_out'), self.__class__.__name__,
             self.params.get('name'), stamp_unique)
         self.params['path_exp'] = path_exp
-        with open(os.path.join(path_exp, CONFIG_YAML), 'w') as f:
-            yaml.dump(self.params, f)
+        with open(os.path.join(path_exp, CONFIG_YAML), 'w') as fp:
+            yaml.dump(self.params, fp, default_flow_style=False)
 
     def __del__(self):
         """ terminating experiment """
