@@ -18,7 +18,7 @@ Run the basic bUnwarpJ registration with original parameters:
     -d ./data_images \
     -o ./results \
     -fiji ./applications/Fiji.app/ImageJ-linux64 \
-    -config ./configs/ImageJ_bUnwarpJ-pure-image_histol.json \
+    -config ./configs/ImageJ_bUnwarpJ-pure-image_histol.yaml \
     --hist_matching --visual --unique
 
 The bUnwarpJ is supporting SIFT and MOPS feature extraction as landmarks
@@ -28,7 +28,7 @@ see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support
     -d ./data_images \
     -o ./results \
     -fiji ./applications/Fiji.app/ImageJ-linux64 \
-    -config ./configs/ImageJ_bUnwarpJ-landmarks_histol.json \
+    -config ./configs/ImageJ_bUnwarpJ-landmarks_histol.yaml \
     -sift TODO \
     --hist_matching --visual --unique
 
@@ -43,8 +43,9 @@ import os
 import sys
 import time
 import logging
-import json
 import shutil
+
+import yaml
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import update_path, load_landmarks, save_landmarks
@@ -125,11 +126,11 @@ class BmUnwarpJ(ImRegBenchmark):
     ...           'path_cover': os.path.join(update_path('data_images'),
     ...                                      'pairs-imgs-lnds_mix.csv'),
     ...           'path_fiji': '.', 'hist_matching': True,
-    ...           'path_config_bunwarpj': fn_path_conf('ImageJ_bUnwarpJ-pure-image_histol.json')}
+    ...           'path_config_bunwarpj': fn_path_conf('ImageJ_bUnwarpJ-pure-image_histol.yaml')}
     >>> benchmark = BmUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
     >>> # TODO
-    >>> # params['path_config_bunwarpj'] = fn_path_conf('ImageJ_bUnwarpJ-landmarks_histol.json')
+    >>> # params['path_config_bunwarpj'] = fn_path_conf('ImageJ_bUnwarpJ-landmarks_histol.yaml')
     >>> # params['path_config_IJ_SIFT'] = fn_path_conf('ImageJ_SIFT_histol-1k.txt')
     >>> benchmark = BmUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
@@ -185,7 +186,7 @@ class BmUnwarpJ(ImRegBenchmark):
         path_dir = self._get_path_reg_dir(record)
         config = DEFAULT_PARAMS
         with open(self.params['path_config_bunwarpj'], 'r') as fp:
-            config.update(json.load(fp))
+            config.update(yaml.load(fp))
         assert config['mode'] < 2, 'Mono mode does not supports inverse transform' \
                                    ' which is need for landmarks warping.'
         bunwarpj_config = [config[k] for k in REQUIRED_PARAMS]

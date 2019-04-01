@@ -6,15 +6,16 @@ Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 from __future__ import absolute_import
 
 import os
-import json
 import copy
 import logging
+
+import yaml
 
 from birl.utilities.experiments import (
     set_experiment_logger, string_dict, create_experiment_folder, release_logger_files)
 
 # default output file for exporting experiment configuration
-CONFIG_JSON = 'config.json'
+CONFIG_YAML = 'config.yml'
 #: default file for exporting results in formatted text format
 RESULTS_TXT = 'results.txt'
 #: default file for exporting results in table format
@@ -116,8 +117,8 @@ class Experiment(object):
             self.params.get('path_out'), self.__class__.__name__,
             self.params.get('name'), stamp_unique)
         self.params['path_exp'] = path_exp
-        with open(os.path.join(path_exp, CONFIG_JSON), 'w') as f:
-            json.dump(self.params, f)
+        with open(os.path.join(path_exp, CONFIG_YAML), 'w') as f:
+            yaml.dump(self.params, f)
 
     def __del__(self):
         """ terminating experiment """

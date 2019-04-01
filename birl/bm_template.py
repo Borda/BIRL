@@ -61,14 +61,14 @@ class BmTemplate(ImRegBenchmark):
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
-    >>> open('sample_config.txt', 'w').close()
+    >>> open('sample_config.yaml', 'w').close()
     >>> main({'nb_workers': 1, 'unique': False, 'visual': True,
     ...       'path_out': path_out, 'path_cover': path_csv,
-    ...       'path_sample_config': 'sample_config.txt'}, BmTemplate)  # doctest: +ELLIPSIS
+    ...       'path_sample_config': 'sample_config.yaml'}, BmTemplate)  # doctest: +ELLIPSIS
     '...'
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
-    >>> os.remove('sample_config.txt')
+    >>> os.remove('sample_config.yaml')
 
     Running in multiple parallel threads:
     >>> from birl.utilities.data_io import create_folder, update_path

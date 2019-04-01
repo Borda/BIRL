@@ -121,7 +121,7 @@ class TestBmRegistration(unittest.TestCase):
 
     def test_benchmark_template(self):
         """ test run in single thread """
-        path_config = os.path.join(self.path_out, 'sample_config.txt')
+        path_config = os.path.join(self.path_out, 'sample_config.yaml')
         open(path_config, 'w').close()
         params = {
             'path_cover': PATH_CSV_COVER_MIX,

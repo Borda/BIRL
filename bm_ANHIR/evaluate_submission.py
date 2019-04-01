@@ -244,43 +244,43 @@ def compute_scores(df_experiments, min_landmarks=1.):
         logging.warning('There are %i cases which incomplete landmarks.',
                         sum(mask_incomplete))
 
+    if COL_NORM_TIME not in df_experiments.columns:
+        df_experiments[COL_NORM_TIME] = np.nan
+
+    df_expt_train = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TRAIN]
+    df_expt_test = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TEST]
+    df_expt_robust = df_experiments[df_experiments[COL_ROBUSTNESS] > 0.5]
     # compute summary
     df_summary = df_experiments.describe()
-    df_summary_robust = df_experiments[df_experiments[COL_ROBUSTNESS] > 0.5].describe()
-    df_summary_train = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TRAIN].describe()
-    df_summary_test = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TEST].describe()
+    df_summary_robust = df_expt_robust.describe()
     pd.set_option('expand_frame_repr', False)
 
     # pre-compute some optional metrics
-    score_used_lnds = df_summary_robust[COL_FOUND_LNDS]['mean'] \
+    score_used_lnds = np.mean(df_expt_robust[COL_FOUND_LNDS]) \
         if COL_FOUND_LNDS in df_experiments.columns else 0
-    if COL_NORM_TIME in df_experiments.columns:
-        time_all = df_summary[COL_NORM_TIME]['mean']
-        time_robust = df_summary_robust[COL_NORM_TIME]['mean']
-    else:
-        time_all, time_robust = None, None
     # parse final metrics
     scores = {
         'Average-Robustness': df_summary[COL_ROBUSTNESS]['mean'],
-        'Average-Robustness_train': df_summary_train[COL_ROBUSTNESS]['mean'],
-        'Average-Robustness_test': df_summary_test[COL_ROBUSTNESS]['mean'],
-        'Average-Median-rTRE': df_summary['rTRE Median (final)']['mean'],
-        'Average-Median-rTRE_train': df_summary_train['rTRE Median (final)']['mean'],
-        'Average-Median-rTRE_test': df_summary_test['rTRE Median (final)']['mean'],
-        'Average-Median-rTRE-Robust': df_summary_robust['rTRE Median (final)']['mean'],
-        'Average-Rank-Median-rTRE': None,
-        'Average-Max-rTRE': df_summary['rTRE Max (final)']['mean'],
-        'Average-Max-rTRE_train': df_summary_train['rTRE Max (final)']['mean'],
-        'Average-Max-rTRE_test': df_summary_test['rTRE Max (final)']['mean'],
-        'Average-Max-rTRE-Robust': df_summary_robust['rTRE Max (final)']['mean'],
-        'Median-Average-rTRE': np.median(df_experiments['rTRE Mean (final)']),
-        'Median-Median-rTRE': np.median(df_experiments['rTRE Median (final)']),
-        'Median-Max-rTRE': np.median(df_experiments['rTRE Max (final)']),
-        'Average-Rank-Max-rTRE': None,
+        'Average-Robustness_' + VAL_STATUS_TRAIN: np.mean(df_expt_train[COL_ROBUSTNESS]),
+        'Average-Robustness_' + VAL_STATUS_TEST: np.mean(df_expt_test[COL_ROBUSTNESS]),
+        'Average-Rank-Median-rTRE': np.nan,
+        'Average-Rank-Max-rTRE': np.nan,
         'Average-used-landmarks': score_used_lnds,
-        'Average-Norm-Time': time_all,
-        'Average-Norm-Time-Robust': time_robust,
     }
+    for name, col in [('Median-rTRE', 'rTRE Median (final)'), ('Max-rTRE', 'rTRE Max (final)'),
+                      ('Average-rTRE', 'rTRE Mean (final)'), ('Norm-Time', COL_NORM_TIME)]:
+        scores['Average-' + name] = df_summary[col]['mean']
+        scores['Average-' + name + '-Robust'] = df_summary_robust[col]['mean']
+        scores['Median-' + name] = np.median(df_experiments[col])
+        scores['Median-' + name + '-Robust'] = np.median(df_expt_robust[col])
+
+    for name, col in [('Average-rTRE', 'rTRE Mean (final)'),
+                      ('Median-rTRE', 'rTRE Median (final)'),
+                      ('Max-rTRE', 'rTRE Max (final)')]:
+        for stat_name, stat_func in [('Average', np.mean), ('Median', np.median)]:
+            scores[stat_name + '-' + name + '_' + VAL_STATUS_TRAIN] = stat_func(df_expt_train[col])
+            scores[stat_name + '-' + name + '_' + VAL_STATUS_TEST] = stat_func(df_expt_test[col])
+
     return scores
 
 

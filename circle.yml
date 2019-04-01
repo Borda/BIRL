@@ -47,10 +47,10 @@ references:
     run:
       name: General experiments
       command: |
-        mkdir applications && mkdir results && touch configs/sample_config.txt
+        mkdir applications && mkdir results && touch configs/sample_config.yaml
         # python bm_experiments/bm_comp_perform.py  -o ./results -n 1 # reach time-out while running in 36 threads
-        python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique --path_sample_config configs/sample_config.txt
-        python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results --path_sample_config configs/sample_config.txt
+        python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique --path_sample_config configs/sample_config.yaml
+        python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results --path_sample_config configs/sample_config.yaml
         python bm_experiments/evaluate_experiment.py -d ./data_images -e ./results/BmTemplate --visual
         tree ./results/BmTemplate
 
@@ -62,10 +62,10 @@ references:
         unzip -q applications/fiji-linux64.zip -d applications/
         rm applications/fiji-linux64.zip
         rm -rf results && mkdir results
-        python bm_experiments/bm_bUnwarpJ.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ-pure-image_histol.json --hist_matching --visual
+        python bm_experiments/bm_bUnwarpJ.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ-pure-image_histol.yaml --hist_matching --visual
         # todo, add feature usage
-        # python bm_experiments/bm_bUnwarpJ.py -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ-landmarks_histol.json -sift ./configs/ImageJ_SIFT_histol-1k.txt --unique
-        # python bm_experiments/bm_bUnwarpJ.py -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ-landmarks_histol.json -mops ./configs/ImageJ_MOPS_histol-1k.txt --unique
+        # python bm_experiments/bm_bUnwarpJ.py -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ-landmarks_histol.yaml -sift ./configs/ImageJ_SIFT_histol-1k.txt --unique
+        # python bm_experiments/bm_bUnwarpJ.py -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results -fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ-landmarks_histol.yaml -mops ./configs/ImageJ_MOPS_histol-1k.txt --unique
         tree -L 3 ./results
         rm -rf ./applications/Fiji.app
 

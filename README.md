@@ -136,7 +136,7 @@ Moreover we developed two additional script for converting large images, handlin
         -d ./data_images \
         -o ./results \
         -fiji ./applications/Fiji.app/ImageJ-linux64 \
-        -config ./configs/ImageJ_bUnwarpJ-pure-image_histol.json \
+        -config ./configs/ImageJ_bUnwarpJ-pure-image_histol.yaml \
         --hist_matching \
         --visual
     ```
@@ -176,7 +176,7 @@ mkdir results
 python birl/bm_template.py \
     -c ./data_images/pairs-imgs-lnds_mix.csv \
     -o ./results \
-    --path_sample_config sample_config.txt \
+    --path_sample_config sample_config.yaml \
     --unique --visual
 ```
 or with relative paths:
@@ -185,7 +185,7 @@ python birl/bm_template.py \
     -c ./data_images/pairs-imgs-lnds_histol.csv \
     -d ./data_images \
     -o ./results \
-    --path_sample_config sample_config.txt
+    --path_sample_config sample_config.yaml
 ```
 
 Measure your computer performance using average execution time on several simple image registrations.

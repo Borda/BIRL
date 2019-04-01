@@ -5,6 +5,7 @@ six>=1.7.3
 pillow>=2.1.0
 matplotlib>=2.0.2,<3.0.0  # new version does not support py2
 tqdm>=4.7.4,<=4.30  # higher fails ascii for py2
+pyyaml
 scikit-image
 opencv-python
 openslide-python
