@@ -123,7 +123,7 @@ def compute_ranking(user_cases, field, reverse=False):
     :param {str: {}} user_cases: dictionary with measures for user and case
     :param str field: name of field to be ranked
     :param bool reverse: use reverse ordering
-    :return {}: extended dictionary
+    :return {str: {str: {}}}: extended dictionary
 
     >>> user_cases = {
     ...     'karel': {1: {'rTRE': 0.04}, 2: {'rTRE': 0.25}, 3: {'rTRE': 0.1}},
