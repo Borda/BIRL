@@ -127,6 +127,10 @@ Moreover we developed two additional script for converting large images, handlin
 
 ## Experiments with included methods
 
+Even though this framework is completely customizable we include several image registration methods commonly used in medical imaging.
+
+![visualise-regist-results](figures/registration_visual_landmarks.jpg)
+
 ### Included registration methods
 
 * **[bUnwarpJ](http://imagej.net/BUnwarpJ)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for elastic registration (optional usage of histogram matching and integration with [Feature Extraction](http://imagej.net/Feature_Extraction)).
@@ -138,7 +142,7 @@ Moreover we developed two additional script for converting large images, handlin
         -fiji ./applications/Fiji.app/ImageJ-linux64 \
         -config ./configs/ImageJ_bUnwarpJ-pure-image_histol.yaml \
         --hist_matching \
-        --visual
+        --visual --unique
     ```
 * **[RNiftyReg](https://github.com/jonclayden/RNiftyReg)** is an R-native interface to the [NiftyReg image registration library](http://sourceforge.net/projects/niftyreg/) which contains programs to perform rigid, affine and non-linear registration of Nifti or analyse images. _NiftyReg supports max image size 2048._
     ```bash
@@ -147,8 +151,8 @@ Moreover we developed two additional script for converting large images, handlin
         -d ./data_images \
         -o ./results \
         -rr Rscript \
-        -script ./scripts/Rscript/RNiftyReg_linear.r\
-        --visual
+        -script ./scripts/Rscript/RNiftyReg_linear.r \
+        --visual --unique
     ```
 * **[Advanced Normalization Tools](http://stnava.github.io/ANTs/) (ANTs)** is a medical imaging framework containing state-of-the-art medical image registration and segmentation methods. For illustration see ANTsPy [registration tutorial](https://github.com/ANTsX/ANTsPy/blob/master/tutorials/10minTutorial.ipynb).
     ```bash
@@ -158,7 +162,7 @@ Moreover we developed two additional script for converting large images, handlin
         -o ./results \
         -py python3 \
         -script ./scripts/Python/run_ANTsPy.py \
-        --visual
+        --visual --unique
     ```
 * ...
 
