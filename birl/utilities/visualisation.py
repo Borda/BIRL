@@ -437,20 +437,25 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
     return im, cbar
 
 
-def draw_matrix_user_ranking(df_stat, fig=None):
+def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None):
     """ show matrix as image, sorted per column and unique colour per user
 
-    :param DF df_stat:
+    :param DF df_stat: table where index are users and columns are scoring
+    :param bool higher_better: ranking such that larger value is better
     :return Figure:
 
     >>> df = pd.DataFrame(np.random.random((5, 3)), columns=list('abc'))
     >>> fig = draw_matrix_user_ranking(df)
     """
     mx = np.zeros(df_stat.as_matrix().shape)
+    nan = -np.inf if higher_better else np.inf
     for i, col in enumerate(df_stat.columns):
-        idx_vals = list(zip(range(len(df_stat)), df_stat[col]))
-        idxs = np.array(sorted(idx_vals, key=lambda iv: iv[1]))[:, 0]
-        mx[:, i] = idxs
+        vals = [v if not np.isnan(v) else nan for v in df_stat[col]]
+        idx_vals = list(zip(range(len(df_stat)), vals))
+        # sort according second element - vale
+        idx_vals = sorted(idx_vals, key=lambda iv: iv[1], reverse=higher_better)
+        # if values are NaN keep index as NaN
+        mx[:, i] = [idx if val != nan else np.nan for idx, val in idx_vals]
 
     if fig is None:
         fig, ax = plt.subplots(figsize=np.array(df_stat.as_matrix().shape[::-1]) * 0.5)
@@ -470,6 +475,24 @@ def draw_matrix_user_ranking(df_stat, fig=None):
 
 
 def grouping_cumulative(df, col_index, col_column):
+    """ compute histogram statistic over selected column and in addition group this histograms
+
+    :param df: rich table
+    :param str col_index: column which will be used s index in resulting table
+    :param str col_column: column used for computing a histogram
+    :return DF:
+
+    >>> np.random.seed(0)
+    >>> df = pd.DataFrame()
+    >>> df['result'] = np.random.randint(0, 2, 50)
+    >>> df['user'] = np.array(list('abc'))[np.random.randint(0, 3, 50)]
+    >>> grouping_cumulative(df, 'user', 'result')  # doctest: +NORMALIZE_WHITESPACE
+             0     1
+    user
+    a     10.0  12.0
+    b      4.0   9.0
+    c      6.0   9.0
+    """
     df_counts = pd.DataFrame()
     for idx, dfg in df[[col_index, col_column]].groupby(col_index):
         counts = dict(Counter(dfg[col_column]))
@@ -479,3 +502,48 @@ def grouping_cumulative(df, col_index, col_column):
     return df_counts
 
 
+def aggregate_user_score_timeline(df, col_aggreg, col_user, col_score,
+                                  lower_better=True, top_down=True, interp=False):
+    """ compute some cumulative statistic over given table, assuming col_aggreg is continues
+    first it is grouped by col_aggreg and chose min/max (according to lower_better) of col_score
+    assuming that col_aggreg is sortable like a timeline do propagation of min/max
+    from past values depending on top_down (which reverse the order)
+
+    :param df: rich table containing col_aggreg, col_user, col_score
+    :param str col_aggreg: used for grouping assuming to be like a timeline
+    :param str col_user: by this column the scores are assumed to be independent
+    :param str col_score: the scoring value for selecting the best
+    :param bool lower_better: taking min/max of scoring value
+    :param bool top_down: reversing the order according to col_aggreg
+    :param bool interp: in case some scores for col_aggreg are missing, interpolate from past
+    :return DF:
+
+    >>> np.random.seed(0)
+    >>> df = pd.DataFrame()
+    >>> df['day'] = np.random.randint(0, 5, 50)
+    >>> df['user'] = np.array(list('abc'))[np.random.randint(0, 3, 50)]
+    >>> df['score'] = np.random.random(50)
+    >>> aggregate_user_score_timeline(df, 'day', 'user', 'score')  # doctest: +NORMALIZE_WHITESPACE
+              b         c         a
+    4  0.447125  0.131798  0.566601
+    0  0.223082  0.004695  0.093941
+    3  0.118728  0.004695  0.093941
+    1  0.118728  0.004695  0.093941
+    2  0.118728  0.004695  0.020108
+    """
+    users = df[col_user].unique().tolist()
+    aggrs = df[col_aggreg].unique().tolist()
+    mtx = np.full((len(aggrs), len(users)), fill_value=np.nan)
+    fn_best = np.nanmin if lower_better else np.nanmax
+    for usr, dfg in df.groupby(col_user):
+        for agg, dfgg in dfg.groupby(col_aggreg):
+            mtx[aggrs.index(agg), users.index(usr)] = fn_best(dfgg[col_score])
+    for j in range(len(users)):
+        vrange = range(len(aggrs)) if top_down else range(len(aggrs))[::-1]
+        for i in vrange:
+            if not interp and np.isnan(mtx[i, j]):
+                continue
+            vals = mtx[:i + 1, j] if top_down else mtx[i:, j]
+            mtx[i, j] = fn_best(vals)
+    df_agg = pd.DataFrame(mtx, columns=users, index=aggrs)
+    return df_agg
