@@ -6,8 +6,10 @@ Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 
 import os
 import logging
+from collections import Counter
 
 import numpy as np
+import pandas as pd
 import matplotlib.pylab as plt
 from PIL import ImageDraw
 from matplotlib import colors as plt_colors, ticker as plt_ticker
@@ -272,7 +274,6 @@ class RadarChart(object):
     * https://stackoverflow.com/questions/24659005
     * https://datascience.stackexchange.com/questions/6084
 
-    >>> import pandas as pd
     >>> df = pd.DataFrame(np.random.random((5, 3)), columns=list('abc'))
     >>> fig = RadarChart(df)
     """
@@ -442,7 +443,6 @@ def draw_matrix_user_ranking(df_stat, fig=None):
     :param DF df_stat:
     :return Figure:
 
-    >>> import pandas as pd
     >>> df = pd.DataFrame(np.random.random((5, 3)), columns=list('abc'))
     >>> fig = draw_matrix_user_ranking(df)
     """
@@ -461,10 +461,21 @@ def draw_matrix_user_ranking(df_stat, fig=None):
     fmt = plt_ticker.FuncFormatter(lambda x, pos: df_stat.index[x])
 
     draw_heatmap(mx, np.arange(1, len(df_stat) + 1), df_stat.columns, ax=ax,
-                 cmap=plt.get_cmap("nipy_spectral", len(df_stat)), norm=norm,
+                 cmap=plt.get_cmap('nipy_spectral', len(df_stat)), norm=norm,
                  cbar_kw=dict(ticks=range(len(df_stat)), format=fmt),
-                 cbarlabel="Users")
+                 cbarlabel='Users')
     ax.set_ylabel('Ranking')
 
     return fig
+
+
+def grouping_cumulative(df, col_index, col_column):
+    df_counts = pd.DataFrame()
+    for idx, dfg in df[[col_index, col_column]].groupby(col_index):
+        counts = dict(Counter(dfg[col_column]))
+        counts[col_index] = idx
+        df_counts = df_counts.append(counts, ignore_index=True)
+    df_counts.set_index(col_index, inplace=True)
+    return df_counts
+
 
