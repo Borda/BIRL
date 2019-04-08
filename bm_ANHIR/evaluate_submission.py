@@ -202,6 +202,7 @@ def parse_landmarks(idx_row):
     record = {
         'name-tissue': os.path.basename(os.path.dirname(path_dir)),
         'scale-tissue': parse_path_scale(os.path.basename(path_dir)),
+        'type-tissue': row.get(COL_TISSUE, None),
         'name-reference': os.path.splitext(os.path.basename(row[COL_POINTS_REF]))[0],
         'name-source': os.path.splitext(os.path.basename(row[COL_POINTS_MOVE]))[0],
         # 'reference landmarks': np.round(lnds_ref, 1).tolist(),
@@ -244,16 +245,6 @@ def compute_scores(df_experiments, min_landmarks=1.):
         df_experiments.loc[mask_incomplete, COL_ROBUSTNESS] = 0
         logging.warning('There are %i cases which incomplete landmarks.',
                         sum(mask_incomplete))
-
-    if COL_NORM_TIME not in df_experiments.columns:
-        df_experiments[COL_NORM_TIME] = np.nan
-
-    # note, we expect that the path starts with tissue and Unix sep "/" is used
-    def _get_tussie(cell):
-        tissue = cell.split(os.sep)[0]
-        return tissue[:tissue.index('_')] if '_' in cell else tissue
-
-    df_experiments[COL_TISSUE] = df_experiments[COL_POINTS_REF].apply(_get_tussie)
 
     df_expt_train = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TRAIN]
     df_expt_test = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TEST]
@@ -320,6 +311,16 @@ def export_summary_json(df_experiments, path_experiments, path_output,
     :param bool details: exporting case details
     :return str: path to exported results
     """
+    if COL_NORM_TIME not in df_experiments.columns:
+        df_experiments[COL_NORM_TIME] = np.nan
+
+    # note, we expect that the path starts with tissue and Unix sep "/" is used
+    def _get_tussie(cell):
+        tissue = cell.split(os.sep)[0]
+        return tissue[:tissue.index('_')] if '_' in cell else tissue
+
+    df_experiments[COL_TISSUE] = df_experiments[COL_POINTS_REF].apply(_get_tussie)
+
     # export partial results
     cases = list(wrap_execute_sequence(parse_landmarks, df_experiments.iterrows(),
                                        desc='Parsing landmarks', nb_workers=1))

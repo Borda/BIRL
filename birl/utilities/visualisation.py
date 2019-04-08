@@ -409,7 +409,7 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
     # We want to show all ticks and label them with the respective list entries.
     if col_labels is not None:
         ax.set_xticks(np.arange(data.shape[1]))
-        ax.set_xticklabels(col_labels, rotation=-90, va='center')
+        ax.set_xticklabels(col_labels, va='center')
     else:
         ax.set_xticks([])
 
@@ -423,12 +423,14 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
     ax.tick_params(top=True, bottom=False, labeltop=True, labelbottom=False)
 
     # Rotate the tick labels and set their alignment.
-    plt.setp(ax.get_xticklabels(), rotation=-90, ha='right', rotation_mode='anchor')
+    plt.setp(ax.get_xticklabels(), rotation=90, ha='left', rotation_mode='anchor')
 
     # Turn spines off and create white grid.
     for edge, spine in ax.spines.items():
         spine.set_visible(False)
 
+    ax.grid(False)  # for the general grid
+    # grid splitting particular color-box, kind of padding
     ax.set_xticks(np.arange(data.shape[1] + 1) - 0.5, minor=True)
     ax.set_yticks(np.arange(data.shape[0] + 1) - 0.5, minor=True)
     ax.grid(which='minor', color='w', linestyle='-', linewidth=3)
