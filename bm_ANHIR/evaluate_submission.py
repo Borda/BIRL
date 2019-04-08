@@ -83,6 +83,7 @@ NAME_JSON_COMPUTER = 'computer-performances.json'
 NAME_JSON_RESULTS = 'metrics.json'
 COL_NORM_TIME = 'Norm. execution time [minutes]'
 COL_FOUND_LNDS = 'Ration matched landmarks'
+COL_TISSUE = 'Tissue kind'
 CMP_THREADS = ('1', 'n')
 
 
@@ -247,6 +248,13 @@ def compute_scores(df_experiments, min_landmarks=1.):
     if COL_NORM_TIME not in df_experiments.columns:
         df_experiments[COL_NORM_TIME] = np.nan
 
+    # note, we expect that the path starts with tissue and Unix sep "/" is used
+    def _get_tussie(cell):
+        tissue = cell.split(os.sep)[0]
+        return tissue[:tissue.index('_')] if '_' in cell else tissue
+
+    df_experiments[COL_TISSUE] = df_experiments[COL_POINTS_REF].apply(_get_tussie)
+
     df_expt_train = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TRAIN]
     df_expt_test = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TEST]
     df_expt_robust = df_experiments[df_experiments[COL_ROBUSTNESS] > 0.5]
@@ -258,28 +266,36 @@ def compute_scores(df_experiments, min_landmarks=1.):
     # pre-compute some optional metrics
     score_used_lnds = np.mean(df_expt_robust[COL_FOUND_LNDS]) \
         if COL_FOUND_LNDS in df_experiments.columns else 0
-    # parse final metrics
+    # parse specific metrics
     scores = {
         'Average-Robustness': df_summary[COL_ROBUSTNESS]['mean'],
-        'Average-Robustness_' + VAL_STATUS_TRAIN: np.mean(df_expt_train[COL_ROBUSTNESS]),
-        'Average-Robustness_' + VAL_STATUS_TEST: np.mean(df_expt_test[COL_ROBUSTNESS]),
         'Average-Rank-Median-rTRE': np.nan,
         'Average-Rank-Max-rTRE': np.nan,
         'Average-used-landmarks': score_used_lnds,
     }
-    for name, col in [('Median-rTRE', 'rTRE Median (final)'), ('Max-rTRE', 'rTRE Max (final)'),
-                      ('Average-rTRE', 'rTRE Mean (final)'), ('Norm-Time', COL_NORM_TIME)]:
+    # parse MEan & median specific measures
+    for name, col in [('Median-rTRE', 'rTRE Median (final)'),
+                      ('Max-rTRE', 'rTRE Max (final)'),
+                      ('Average-rTRE', 'rTRE Mean (final)'),
+                      ('Norm-Time', COL_NORM_TIME)]:
         scores['Average-' + name] = df_summary[col]['mean']
         scores['Average-' + name + '-Robust'] = df_summary_robust[col]['mean']
         scores['Median-' + name] = np.median(df_experiments[col])
         scores['Median-' + name + '-Robust'] = np.median(df_expt_robust[col])
 
+    # parse metrics according to TEST and TRAIN case
     for name, col in [('Average-rTRE', 'rTRE Mean (final)'),
                       ('Median-rTRE', 'rTRE Median (final)'),
-                      ('Max-rTRE', 'rTRE Max (final)')]:
-        for stat_name, stat_func in [('Average', np.mean), ('Median', np.median)]:
+                      ('Max-rTRE', 'rTRE Max (final)'),
+                      ('Robustness', 'Robustness')]:
+        # iterate over common measures
+        for stat_name, stat_func in [('Average', np.mean),
+                                     ('Median', np.median)]:
             scores[stat_name + '-' + name + '_' + VAL_STATUS_TRAIN] = stat_func(df_expt_train[col])
             scores[stat_name + '-' + name + '_' + VAL_STATUS_TEST] = stat_func(df_expt_test[col])
+            # parse according to Tissue
+            for tissue, df_tissue in df_experiments.groupby(COL_TISSUE):
+                scores[stat_name + '-' + name + '_tissue_' + tissue] = stat_func(df_tissue[col])
 
     return scores
 
