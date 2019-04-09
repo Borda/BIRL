@@ -15,22 +15,41 @@ from birl.utilities.registration import (
     estimate_affine_transform, get_affine_components, norm_angle)
 
 
-def compute_points_dist_statistic(points_ref, points_est):
+def compute_tre(points_1, points_2):
+    """ computing Target Registration Error for each landmark pair
+
+    :param ndarray points_1:
+    :param ndarray points_2:
+    :return ndarray:
+
+    >>> np.random.seed(0)
+    >>> compute_tre(np.random.random((6, 2)), np.random.random((9, 2)))  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    array([ 0.21...,  0.70...,  0.44...,  0.34...,  0.41...,  0.41...])
+    """
+    nb_common = min([len(pts) for pts in [points_1, points_2]])
+    assert nb_common > 0, 'no common landmarks for metric'
+    points_1 = np.asarray(points_1)[:nb_common]
+    points_2 = np.asarray(points_2)[:nb_common]
+    diffs = np.sqrt(np.sum(np.power(points_1 - points_2, 2), axis=1))
+    return diffs
+
+
+def compute_target_regist_error_statistic(points_ref, points_est):
     """ compute distance as between related points in two sets
     and make a statistic on those distances - mean, std, median, min, max
 
-    :param points_ref: np.array<nb_points, dim>
-    :param points_est: np.array<nb_points, dim>
+    :param ndarray points_ref: final landmarks in target image of  np.array<nb_points, dim>
+    :param ndarray points_est: warped landmarks from source to target of np.array<nb_points, dim>
     :return: (np.array<nb_points, 1>, {str: float})
 
     >>> points_ref = np.array([[1, 2], [3, 4], [2, 1]])
     >>> points_est = np.array([[3, 4], [2, 1], [1, 2]])
-    >>> dist, stat = compute_points_dist_statistic(points_ref, points_ref)
+    >>> dist, stat = compute_target_regist_error_statistic(points_ref, points_ref)
     >>> dist
     array([ 0.,  0.,  0.])
     >>> all(stat[k] == 0 for k in stat if k not in ['overlap points'])
     True
-    >>> dist, stat = compute_points_dist_statistic(points_ref, points_est)
+    >>> dist, stat = compute_target_regist_error_statistic(points_ref, points_est)
     >>> dist  #doctest: +ELLIPSIS
     array([ 2.828...,  3.162...,  1.414...])
     >>> import pandas as pd
@@ -45,20 +64,17 @@ def compute_points_dist_statistic(points_ref, points_est):
     dtype: float64
 
     Wrong input:
-    >>> compute_points_dist_statistic(None, np.array([[1, 2], [3, 4], [2, 1]]))
+    >>> compute_target_regist_error_statistic(None, np.array([[1, 2], [3, 4], [2, 1]]))
     ([], {'overlap points': 0})
     """
     if not all(pts is not None and list(pts) for pts in [points_ref, points_est]):
         return [], {'overlap points': 0}
 
     lnd_sizes = [len(points_ref), len(points_est)]
-    nb_common = min(lnd_sizes)
-    assert nb_common > 0, 'no common landmarks for metric'
-    points_ref = np.asarray(points_ref)[:nb_common]
-    points_est = np.asarray(points_est)[:nb_common]
-    diffs = np.sqrt(np.sum(np.power(points_ref - points_est, 2), axis=1))
+    assert min(lnd_sizes) > 0, 'no common landmarks for metric'
+    diffs = compute_tre(points_ref, points_est)
 
-    inter_dist = distance.cdist(points_ref, points_ref)
+    inter_dist = distance.cdist(points_ref[:len(diffs)], points_ref[:len(diffs)])
     # inter_dist[range(len(points_ref)), range(len(points_ref))] = np.inf
     dist = np.mean(inter_dist, axis=0)
     weights = dist / np.sum(dist)
@@ -70,9 +86,34 @@ def compute_points_dist_statistic(points_ref, points_est):
         'Median': np.median(diffs),
         'Min': np.min(diffs),
         'Max': np.max(diffs),
-        'overlap points': nb_common / float(max(lnd_sizes))
+        'overlap points': min(lnd_sizes) / float(max(lnd_sizes))
     }
     return diffs, dict_stat
+
+
+def compute_tre_robustness(points_target, points_init, points_warp):
+    """ compute robustness as improvement for each TRE
+
+    :param ndarra points_target: final landmarks in target image
+    :param ndarra points_init: initial landmarks in source image
+    :param ndarra points_warp: warped landmarks from source to target
+    :return bool: improvement
+
+    >>> np.random.seed(0)
+    >>> compute_tre_robustness(np.random.random((10, 2)),
+    ...                        np.random.random((9, 2)),
+    ...                        np.random.random((8, 2)))
+    False
+    >>> compute_tre_robustness(np.random.random((10, 2)),
+    ...                        np.random.random((9, 2)) + 5,
+    ...                        np.random.random((8, 2)) + 2)
+    True
+    """
+    nb_common = min([len(pts) for pts in [points_init, points_target, points_warp]])
+    tre_init = compute_tre(points_init[:nb_common], points_target[:nb_common])
+    tre_final = compute_tre(points_warp[:nb_common], points_target[:nb_common])
+    robust = np.all(tre_final < tre_init)
+    return robust
 
 
 def compute_affine_transf_diff(points_ref, points_init, points_est):

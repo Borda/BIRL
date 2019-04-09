@@ -27,7 +27,8 @@ import pandas as pd
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (
     update_path, create_folder, image_size, load_landmarks, load_image, save_image)
-from birl.utilities.evaluate import compute_points_dist_statistic, compute_affine_transf_diff
+from birl.utilities.evaluate import (
+    compute_target_regist_error_statistic, compute_affine_transf_diff, compute_tre_robustness)
 from birl.utilities.experiments import exec_commands, string_dict, wrap_execute_sequence
 from birl.utilities.visualisation import (
     export_figure, draw_image_points, draw_images_warped_landmarks)
@@ -591,8 +592,8 @@ def compute_registration_statistic(idx_row, df_experiments,
                                   'final', img_diag, wo_affine=False)
     row_ = dict(df_experiments.loc[idx])
     if 'TRE Mean (final)' in row_:
-        robust = row_['TRE Mean (final)'] < row_['TRE Mean (init)']
-        df_experiments.loc[idx, COL_ROBUSTNESS] = int(robust)
+        df_experiments.loc[idx, COL_ROBUSTNESS] = \
+            compute_tre_robustness(points_target, points_init, points_warp)
 
 
 def compute_registration_accuracy(df_experiments, idx, points1, points2,
@@ -611,7 +612,7 @@ def compute_registration_accuracy(df_experiments, idx, points1, points2,
         # removing the affine transform and assume only local/elastic deformation
         _, _, points1, _ = estimate_affine_transform(points1, points2)
 
-    _, stat = compute_points_dist_statistic(points1, points2)
+    _, stat = compute_target_regist_error_statistic(points1, points2)
     if img_diag is not None:
         df_experiments.at[idx, COL_IMAGE_DIAGONAL] = img_diag
     # update particular idx

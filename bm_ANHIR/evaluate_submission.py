@@ -197,8 +197,6 @@ def parse_landmarks(idx_row):
     #     if isinstance(row[COL_POINTS_MOVE_WARP], str)else np.array([[]])
     path_dir = os.path.dirname(row[COL_POINTS_MOVE])
     match_lnds = np.nan_to_num(row[COL_FOUND_LNDS]) if COL_FOUND_LNDS in row else 0.
-    robust = int(row['TRE Mean (final)'] < row['TRE Mean (init)']) \
-        if 'TRE Mean (final)' in row else 0.
     record = {
         'name-tissue': os.path.basename(os.path.dirname(path_dir)),
         'scale-tissue': parse_path_scale(os.path.basename(path_dir)),
@@ -208,7 +206,7 @@ def parse_landmarks(idx_row):
         # 'reference landmarks': np.round(lnds_ref, 1).tolist(),
         # 'warped landmarks': np.round(lnds_warp, 1).tolist(),
         'matched-landmarks': match_lnds,
-        'Robustness': robust,
+        'Robustness': row.get(COL_ROBUSTNESS, 0),
         'Norm-Time_minutes': row.get(COL_NORM_TIME, None),
         'Status': row.get(COL_STATUS, None),
     }
@@ -249,9 +247,6 @@ def compute_scores(df_experiments, min_landmarks=1.):
     df_expt_train = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TRAIN]
     df_expt_test = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TEST]
     df_expt_robust = df_experiments[df_experiments[COL_ROBUSTNESS] > 0.5]
-    # compute summary
-    df_summary = df_experiments.describe()
-    df_summary_robust = df_expt_robust.describe()
     pd.set_option('expand_frame_repr', False)
 
     # pre-compute some optional metrics
@@ -259,7 +254,7 @@ def compute_scores(df_experiments, min_landmarks=1.):
         if COL_FOUND_LNDS in df_experiments.columns else 0
     # parse specific metrics
     scores = {
-        'Average-Robustness': df_summary[COL_ROBUSTNESS]['mean'],
+        'Average-Robustness': np.mean(df_experiments[COL_ROBUSTNESS]),
         'Average-Rank-Median-rTRE': np.nan,
         'Average-Rank-Max-rTRE': np.nan,
         'Average-used-landmarks': score_used_lnds,
@@ -269,8 +264,8 @@ def compute_scores(df_experiments, min_landmarks=1.):
                       ('Max-rTRE', 'rTRE Max (final)'),
                       ('Average-rTRE', 'rTRE Mean (final)'),
                       ('Norm-Time', COL_NORM_TIME)]:
-        scores['Average-' + name] = df_summary[col]['mean']
-        scores['Average-' + name + '-Robust'] = df_summary_robust[col]['mean']
+        scores['Average-' + name] = np.mean(df_experiments[col])
+        scores['Average-' + name + '-Robust'] = np.mean(df_expt_robust[col])
         scores['Median-' + name] = np.median(df_experiments[col])
         scores['Median-' + name + '-Robust'] = np.median(df_expt_robust[col])
 
