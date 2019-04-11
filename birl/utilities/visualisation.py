@@ -8,7 +8,6 @@ import os
 import logging
 
 import numpy as np
-import pandas as pd
 import matplotlib.pylab as plt
 from PIL import ImageDraw
 from matplotlib import colors as plt_colors, ticker as plt_ticker
@@ -274,6 +273,7 @@ class RadarChart(object):
     * https://stackoverflow.com/questions/24659005
     * https://datascience.stackexchange.com/questions/6084
 
+    >>> import pandas as pd
     >>> df = pd.DataFrame(np.random.random((5, 3)), columns=list('abc'))
     >>> fig = RadarChart(df)
     """
@@ -376,7 +376,7 @@ class RadarChart(object):
 
 
 def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
-                 cbar_kw={}, cbarlabel="", **kwargs):
+                 cbar_kw=None, cbarlabel="", **kwargs):
     """
     Create a draw_heatmap from a numpy array and two lists of labels.
 
@@ -397,6 +397,7 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
         cbarlabel  : The label for the colorbar
     All other arguments are directly passed on to the imshow call.
     """
+    cbar_kw = {} if cbar_kw is None else cbar_kw
     if ax is None:
         ax = plt.figure(figsize=data.shape[::-1]).gca()
     # Plot the draw_heatmap
@@ -426,7 +427,7 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
     plt.setp(ax.get_xticklabels(), rotation=90, ha='left', rotation_mode='anchor')
 
     # Turn spines off and create white grid.
-    for edge, spine in ax.spines.items():
+    for _, spine in ax.spines.items():
         spine.set_visible(False)
 
     ax.grid(False)  # for the general grid
@@ -446,6 +447,7 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None):
     :param bool higher_better: ranking such that larger value is better
     :return Figure:
 
+    >>> import pandas as pd
     >>> df = pd.DataFrame(np.random.random((5, 3)), columns=list('abc'))
     >>> fig = draw_matrix_user_ranking(df)
     """

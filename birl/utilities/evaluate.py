@@ -239,12 +239,12 @@ def grouping_cumulative(df, col_index, col_column):
     >>> df = pd.DataFrame()
     >>> df['result'] = np.random.randint(0, 2, 50)
     >>> df['user'] = np.array(list('abc'))[np.random.randint(0, 3, 50)]
-    >>> grouping_cumulative(df, 'user', 'result')  # doctest: +NORMALIZE_WHITESPACE
-             0     1
+    >>> grouping_cumulative(df, 'user', 'result').astype(int)  # doctest: +NORMALIZE_WHITESPACE
+           0   1
     user
-    a     10.0  12.0
-    b      4.0   9.0
-    c      6.0   9.0
+    a     10  12
+    b      4   9
+    c      6   9
     """
     df_counts = pd.DataFrame()
     for idx, dfg in df[[col_index, col_column]].groupby(col_index):
@@ -276,13 +276,13 @@ def aggregate_user_score_timeline(df, col_aggreg, col_user, col_score,
     >>> df['day'] = np.random.randint(0, 5, 50)
     >>> df['user'] = np.array(list('abc'))[np.random.randint(0, 3, 50)]
     >>> df['score'] = np.random.random(50)
-    >>> aggregate_user_score_timeline(df, 'day', 'user', 'score')  # doctest: +NORMALIZE_WHITESPACE
-              b         c         a
-    4  0.447125  0.131798  0.566601
-    0  0.223082  0.004695  0.093941
-    3  0.118728  0.004695  0.093941
-    1  0.118728  0.004695  0.093941
-    2  0.118728  0.004695  0.020108
+    >>> aggregate_user_score_timeline(df, 'day', 'user', 'score').round(3)  # doctest: +NORMALIZE_WHITESPACE
+           b      c      a
+    4  0.447  0.132  0.567
+    0  0.223  0.005  0.094
+    3  0.119  0.005  0.094
+    1  0.119  0.005  0.094
+    2  0.119  0.005  0.020
     """
     users = df[col_user].unique().tolist()
     aggrs = df[col_aggreg].unique().tolist()
