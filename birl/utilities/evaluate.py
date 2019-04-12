@@ -103,16 +103,16 @@ def compute_tre_robustness(points_target, points_init, points_warp):
     >>> compute_tre_robustness(np.random.random((10, 2)),
     ...                        np.random.random((9, 2)),
     ...                        np.random.random((8, 2)))
-    False
+    0.375
     >>> compute_tre_robustness(np.random.random((10, 2)),
     ...                        np.random.random((9, 2)) + 5,
     ...                        np.random.random((8, 2)) + 2)
-    True
+    1.0
     """
     nb_common = min([len(pts) for pts in [points_init, points_target, points_warp]])
     tre_init = compute_tre(points_init[:nb_common], points_target[:nb_common])
     tre_final = compute_tre(points_warp[:nb_common], points_target[:nb_common])
-    robust = np.all(tre_final < tre_init)
+    robust = np.sum(tre_final < tre_init) / float(len(tre_final))
     return robust
 
 
@@ -288,14 +288,17 @@ def aggregate_user_score_timeline(df, col_aggreg, col_user, col_score,
     aggrs = df[col_aggreg].unique().tolist()
     mtx = np.full((len(aggrs), len(users)), fill_value=np.nan)
     fn_best = np.nanmin if lower_better else np.nanmax
+    # for each user
     for usr, dfg in df.groupby(col_user):
+        # find the best over particular time unit - day
         for agg, dfgg in dfg.groupby(col_aggreg):
             mtx[aggrs.index(agg), users.index(usr)] = fn_best(dfgg[col_score])
+    # for each user
     for j in range(len(users)):
+        # depending on the schema invert timeline
         vrange = range(len(aggrs)) if top_down else range(len(aggrs))[::-1]
-        for i in vrange:
-            if not interp and np.isnan(mtx[i, j]):
-                continue
+        # if the particular value is not NaN or interpolate missing values
+        for i in (i for i in vrange if interp or not np.isnan(mtx[i, j])):
             vals = mtx[:i + 1, j] if top_down else mtx[i:, j]
             mtx[i, j] = fn_best(vals)
     df_agg = pd.DataFrame(mtx, columns=users, index=aggrs)

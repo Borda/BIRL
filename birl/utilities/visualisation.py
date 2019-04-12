@@ -398,8 +398,7 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
     All other arguments are directly passed on to the imshow call.
     """
     cbar_kw = {} if cbar_kw is None else cbar_kw
-    if ax is None:
-        ax = plt.figure(figsize=data.shape[::-1]).gca()
+    ax = plt.figure(figsize=data.shape[::-1]).gca() if ax is None else ax
     # Plot the draw_heatmap
     im = ax.imshow(data, **kwargs)
 
@@ -454,9 +453,8 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None):
     ranking = compute_matrix_user_ranking(df_stat, higher_better)
 
     if fig is None:
-        fig, ax = plt.subplots(figsize=np.array(df_stat.as_matrix().shape[::-1]) * 0.5)
-    else:
-        ax = fig.gca()
+        fig, _ = plt.subplots(figsize=np.array(df_stat.as_matrix().shape[::-1]) * 0.35)
+    ax = fig.gca()
     arange = np.linspace(-0.5, len(df_stat) - 0.5, len(df_stat) + 1)
     norm = plt_colors.BoundaryNorm(arange, len(df_stat))
     fmt = plt_ticker.FuncFormatter(lambda x, pos: df_stat.index[x])
