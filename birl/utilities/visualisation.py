@@ -10,9 +10,11 @@ import logging
 import numpy as np
 import matplotlib.pylab as plt
 from PIL import ImageDraw
+from matplotlib import colors as plt_colors, ticker as plt_ticker
 
 from birl.utilities.data_io import convert_ndarray2image
 from birl.utilities.dataset import scale_large_images_landmarks
+from birl.utilities.evaluate import compute_matrix_user_ranking
 #: default figure size for visualisations
 MAX_FIGURE_SIZE = 18  # inches
 
@@ -317,7 +319,7 @@ class RadarChart(object):
             for theta, label in zip(ax.get_xticks(), ax.get_xticklabels()):
                 self.__realign_polar_xtick(ax, theta, label)
 
-        self.ax.legend(loc='center left', bbox_to_anchor=(1., 0.7))
+        self.ax.legend(loc='center left', bbox_to_anchor=(1.2, 0.7))
 
     @classmethod
     def __ax_set_invisible(self, ax):
@@ -371,3 +373,96 @@ class RadarChart(object):
             label.set_verticalalignment('bottom')
         elif y <= -0.5:
             label.set_verticalalignment('top')
+
+
+def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
+                 cbar_kw=None, cbarlabel="", **kwargs):
+    """
+    Create a draw_heatmap from a numpy array and two lists of labels.
+
+    https://matplotlib.org/gallery/images_contours_and_fields/image_annotated_heatmap.html
+
+    Arguments:
+        data       : A 2D numpy array of shape (N,M)
+        row_labels : A list or array of length N with the labels
+                     for the rows
+        col_labels : A list or array of length M with the labels
+                     for the columns
+    Optional arguments:
+        ax         : A matplotlib.axes.Axes instance to which the draw_heatmap
+                     is plotted. If not provided, use current axes or
+                     create a new one.
+        cbar_kw    : A dictionary with arguments to
+                     :meth:`matplotlib.Figure.colorbar`.
+        cbarlabel  : The label for the colorbar
+    All other arguments are directly passed on to the imshow call.
+    """
+    cbar_kw = {} if cbar_kw is None else cbar_kw
+    ax = plt.figure(figsize=data.shape[::-1]).gca() if ax is None else ax
+    # Plot the draw_heatmap
+    im = ax.imshow(data, **kwargs)
+
+    # Create colorbar
+    cbar = ax.figure.colorbar(im, ax=ax, **cbar_kw)
+    cbar.ax.set_ylabel(cbarlabel, rotation=-90, va='bottom')
+
+    # We want to show all ticks and label them with the respective list entries.
+    if col_labels is not None:
+        ax.set_xticks(np.arange(data.shape[1]))
+        ax.set_xticklabels(col_labels, va='center')
+    else:
+        ax.set_xticks([])
+
+    if row_labels is not None:
+        ax.set_yticks(np.arange(data.shape[0]))
+        ax.set_yticklabels(row_labels, va='center')
+    else:
+        ax.set_yticks([])
+
+    # Let the horizontal axes labeling appear on top.
+    ax.tick_params(top=True, bottom=False, labeltop=True, labelbottom=False)
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=90, ha='left', rotation_mode='anchor')
+
+    # Turn spines off and create white grid.
+    for _, spine in ax.spines.items():
+        spine.set_visible(False)
+
+    ax.grid(False)  # for the general grid
+    # grid splitting particular color-box, kind of padding
+    ax.set_xticks(np.arange(data.shape[1] + 1) - 0.5, minor=True)
+    ax.set_yticks(np.arange(data.shape[0] + 1) - 0.5, minor=True)
+    ax.grid(which='minor', color='w', linestyle='-', linewidth=3)
+    ax.tick_params(which='minor', bottom=False, left=False)
+
+    return im, cbar
+
+
+def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None):
+    """ show matrix as image, sorted per column and unique colour per user
+
+    :param DF df_stat: table where index are users and columns are scoring
+    :param bool higher_better: ranking such that larger value is better
+    :return Figure:
+
+    >>> import pandas as pd
+    >>> df = pd.DataFrame(np.random.random((5, 3)), columns=list('abc'))
+    >>> fig = draw_matrix_user_ranking(df)
+    """
+    ranking = compute_matrix_user_ranking(df_stat, higher_better)
+
+    if fig is None:
+        fig, _ = plt.subplots(figsize=np.array(df_stat.as_matrix().shape[::-1]) * 0.35)
+    ax = fig.gca()
+    arange = np.linspace(-0.5, len(df_stat) - 0.5, len(df_stat) + 1)
+    norm = plt_colors.BoundaryNorm(arange, len(df_stat))
+    fmt = plt_ticker.FuncFormatter(lambda x, pos: df_stat.index[x])
+
+    draw_heatmap(ranking, np.arange(1, len(df_stat) + 1), df_stat.columns, ax=ax,
+                 cmap=plt.get_cmap('nipy_spectral', len(df_stat)), norm=norm,
+                 cbar_kw=dict(ticks=range(len(df_stat)), format=fmt),
+                 cbarlabel='Users')
+    ax.set_ylabel('Ranking')
+
+    return fig

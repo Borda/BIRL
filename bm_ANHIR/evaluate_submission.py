@@ -83,6 +83,7 @@ NAME_JSON_COMPUTER = 'computer-performances.json'
 NAME_JSON_RESULTS = 'metrics.json'
 COL_NORM_TIME = 'Norm. execution time [minutes]'
 COL_FOUND_LNDS = 'Ration matched landmarks'
+COL_TISSUE = 'Tissue kind'
 CMP_THREADS = ('1', 'n')
 
 
@@ -196,17 +197,16 @@ def parse_landmarks(idx_row):
     #     if isinstance(row[COL_POINTS_MOVE_WARP], str)else np.array([[]])
     path_dir = os.path.dirname(row[COL_POINTS_MOVE])
     match_lnds = np.nan_to_num(row[COL_FOUND_LNDS]) if COL_FOUND_LNDS in row else 0.
-    robust = int(row['TRE Mean (final)'] < row['TRE Mean (init)']) \
-        if 'TRE Mean (final)' in row else 0.
     record = {
         'name-tissue': os.path.basename(os.path.dirname(path_dir)),
         'scale-tissue': parse_path_scale(os.path.basename(path_dir)),
+        'type-tissue': row.get(COL_TISSUE, None),
         'name-reference': os.path.splitext(os.path.basename(row[COL_POINTS_REF]))[0],
         'name-source': os.path.splitext(os.path.basename(row[COL_POINTS_MOVE]))[0],
         # 'reference landmarks': np.round(lnds_ref, 1).tolist(),
         # 'warped landmarks': np.round(lnds_warp, 1).tolist(),
         'matched-landmarks': match_lnds,
-        'Robustness': robust,
+        'Robustness': row.get(COL_ROBUSTNESS, 0),
         'Norm-Time_minutes': row.get(COL_NORM_TIME, None),
         'Status': row.get(COL_STATUS, None),
     }
@@ -244,42 +244,44 @@ def compute_scores(df_experiments, min_landmarks=1.):
         logging.warning('There are %i cases which incomplete landmarks.',
                         sum(mask_incomplete))
 
-    if COL_NORM_TIME not in df_experiments.columns:
-        df_experiments[COL_NORM_TIME] = np.nan
-
     df_expt_train = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TRAIN]
     df_expt_test = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TEST]
     df_expt_robust = df_experiments[df_experiments[COL_ROBUSTNESS] > 0.5]
-    # compute summary
-    df_summary = df_experiments.describe()
-    df_summary_robust = df_expt_robust.describe()
     pd.set_option('expand_frame_repr', False)
 
     # pre-compute some optional metrics
     score_used_lnds = np.mean(df_expt_robust[COL_FOUND_LNDS]) \
         if COL_FOUND_LNDS in df_experiments.columns else 0
-    # parse final metrics
+    # parse specific metrics
     scores = {
-        'Average-Robustness': df_summary[COL_ROBUSTNESS]['mean'],
-        'Average-Robustness_' + VAL_STATUS_TRAIN: np.mean(df_expt_train[COL_ROBUSTNESS]),
-        'Average-Robustness_' + VAL_STATUS_TEST: np.mean(df_expt_test[COL_ROBUSTNESS]),
+        'Average-Robustness': np.mean(df_experiments[COL_ROBUSTNESS]),
         'Average-Rank-Median-rTRE': np.nan,
         'Average-Rank-Max-rTRE': np.nan,
         'Average-used-landmarks': score_used_lnds,
     }
-    for name, col in [('Median-rTRE', 'rTRE Median (final)'), ('Max-rTRE', 'rTRE Max (final)'),
-                      ('Average-rTRE', 'rTRE Mean (final)'), ('Norm-Time', COL_NORM_TIME)]:
-        scores['Average-' + name] = df_summary[col]['mean']
-        scores['Average-' + name + '-Robust'] = df_summary_robust[col]['mean']
+    # parse MEan & median specific measures
+    for name, col in [('Median-rTRE', 'rTRE Median (final)'),
+                      ('Max-rTRE', 'rTRE Max (final)'),
+                      ('Average-rTRE', 'rTRE Mean (final)'),
+                      ('Norm-Time', COL_NORM_TIME)]:
+        scores['Average-' + name] = np.mean(df_experiments[col])
+        scores['Average-' + name + '-Robust'] = np.mean(df_expt_robust[col])
         scores['Median-' + name] = np.median(df_experiments[col])
         scores['Median-' + name + '-Robust'] = np.median(df_expt_robust[col])
 
+    # parse metrics according to TEST and TRAIN case
     for name, col in [('Average-rTRE', 'rTRE Mean (final)'),
                       ('Median-rTRE', 'rTRE Median (final)'),
-                      ('Max-rTRE', 'rTRE Max (final)')]:
-        for stat_name, stat_func in [('Average', np.mean), ('Median', np.median)]:
+                      ('Max-rTRE', 'rTRE Max (final)'),
+                      ('Robustness', 'Robustness')]:
+        # iterate over common measures
+        for stat_name, stat_func in [('Average', np.mean),
+                                     ('Median', np.median)]:
             scores[stat_name + '-' + name + '_' + VAL_STATUS_TRAIN] = stat_func(df_expt_train[col])
             scores[stat_name + '-' + name + '_' + VAL_STATUS_TEST] = stat_func(df_expt_test[col])
+            # parse according to Tissue
+            for tissue, df_tissue in df_experiments.groupby(COL_TISSUE):
+                scores[stat_name + '-' + name + '_tissue_' + tissue] = stat_func(df_tissue[col])
 
     return scores
 
@@ -304,6 +306,16 @@ def export_summary_json(df_experiments, path_experiments, path_output,
     :param bool details: exporting case details
     :return str: path to exported results
     """
+    if COL_NORM_TIME not in df_experiments.columns:
+        df_experiments[COL_NORM_TIME] = np.nan
+
+    # note, we expect that the path starts with tissue and Unix sep "/" is used
+    def _get_tussie(cell):
+        tissue = cell.split(os.sep)[0]
+        return tissue[:tissue.index('_')] if '_' in cell else tissue
+
+    df_experiments[COL_TISSUE] = df_experiments[COL_POINTS_REF].apply(_get_tussie)
+
     # export partial results
     cases = list(wrap_execute_sequence(parse_landmarks, df_experiments.iterrows(),
                                        desc='Parsing landmarks', nb_workers=1))

@@ -30,14 +30,13 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as fp:
 
 setup(
     name='BIRL',
-    version='0.2.0',
+    version='0.2.1',
     url='https://borda.github.io/BIRL',
 
     author='Jiri Borovec',
     author_email='jiri.borovec@fel.cvut.cz',
     license='BSD 3-clause',
-    description='Benchmark on Image Registration methods'
-                ' with Landmark validation',
+    description='Benchmark on Image Registration methods with Landmark validation',
 
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -49,14 +48,19 @@ setup(
     install_requires=requirements,
     include_package_data=True,
     classifiers=[
+        'Environment :: Console',
+        'Natural Language :: English',
         # How mature is this project? Common values are
         #   3 - Alpha, 4 - Beta, 5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
+        'Topic :: Scientific/Engineering :: Bio-Informatics',
+        'Topic :: Scientific/Engineering :: Medical Science Apps.',
         'Topic :: Software Development :: Build Tools',
         # Pick your license as you wish
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
         'Programming Language :: Python :: 2',
