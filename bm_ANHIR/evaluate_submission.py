@@ -72,10 +72,9 @@ from birl.utilities.data_io import create_folder, load_landmarks, save_landmarks
 from birl.utilities.dataset import common_landmarks, parse_path_scale
 from birl.utilities.experiments import wrap_execute_sequence, parse_arg_params, FORMAT_DATE_TIME
 from birl.cls_benchmark import (
-    NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COVER_COLUMNS_WRAP,
-    COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP, COL_POINTS_REF, COL_POINTS_MOVE,
+    NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COVER_COLUMNS_WRAP, COL_STATUS,
+    COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP, COL_POINTS_REF, COL_POINTS_MOVE, COL_POINTS_MOVE_WARP,
     COL_TIME, COL_ROBUSTNESS, compute_registration_statistic, update_path_)
-from bm_ANHIR.generate_regist_pairs import COL_STATUS, VAL_STATUS_TRAIN, VAL_STATUS_TEST
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .9))
 NAME_CSV_RESULTS = 'registration-results.csv'
@@ -235,17 +234,15 @@ def compute_scores(df_experiments, min_landmarks=1.):
         raise ValueError('Missing `overlap points (final)` column,'
                          ' because there are probably missing wrap landmarks.')
     hold_overlap = df_experiments['overlap points (init)'] == df_experiments['overlap points (final)']
-    mask_incomplete = ~hold_overlap | df_experiments[COL_FOUND_LNDS] < min_landmarks
+    mask_incomplete = ~hold_overlap | (df_experiments[COL_FOUND_LNDS] < min_landmarks)
     # rewrite incomplete cases by initial stat
     if sum(mask_incomplete) > 0:
-        for col_f, col_i in zip(*_filter_measure_columns(df_experiments)):
+        for col_f, col_i in zip(*_filter_tre_measure_columns(df_experiments)):
             df_experiments.loc[mask_incomplete, col_f] = df_experiments.loc[mask_incomplete, col_i]
-        df_experiments.loc[mask_incomplete, COL_ROBUSTNESS] = 0
+        df_experiments.loc[mask_incomplete, COL_ROBUSTNESS] = 0.
         logging.warning('There are %i cases which incomplete landmarks.',
                         sum(mask_incomplete))
 
-    df_expt_train = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TRAIN]
-    df_expt_test = df_experiments[df_experiments[COL_STATUS] == VAL_STATUS_TEST]
     df_expt_robust = df_experiments[df_experiments[COL_ROBUSTNESS] > 0.5]
     pd.set_option('expand_frame_repr', False)
 
@@ -259,7 +256,7 @@ def compute_scores(df_experiments, min_landmarks=1.):
         'Average-Rank-Max-rTRE': np.nan,
         'Average-used-landmarks': score_used_lnds,
     }
-    # parse MEan & median specific measures
+    # parse Mean & median specific measures
     for name, col in [('Median-rTRE', 'rTRE Median (final)'),
                       ('Max-rTRE', 'rTRE Max (final)'),
                       ('Average-rTRE', 'rTRE Mean (final)'),
@@ -269,6 +266,8 @@ def compute_scores(df_experiments, min_landmarks=1.):
         scores['Median-' + name] = np.median(df_experiments[col])
         scores['Median-' + name + '-Robust'] = np.median(df_expt_robust[col])
 
+    # filter all statuses in the experiments
+    statuses = df_experiments[COL_STATUS].unique()
     # parse metrics according to TEST and TRAIN case
     for name, col in [('Average-rTRE', 'rTRE Mean (final)'),
                       ('Median-rTRE', 'rTRE Median (final)'),
@@ -277,8 +276,9 @@ def compute_scores(df_experiments, min_landmarks=1.):
         # iterate over common measures
         for stat_name, stat_func in [('Average', np.mean),
                                      ('Median', np.median)]:
-            scores[stat_name + '-' + name + '_' + VAL_STATUS_TRAIN] = stat_func(df_expt_train[col])
-            scores[stat_name + '-' + name + '_' + VAL_STATUS_TEST] = stat_func(df_expt_test[col])
+            for status in statuses:
+                df_expt_ = df_experiments[df_experiments[COL_STATUS] == status]
+                scores[stat_name + '-' + name + '_' + status] = stat_func(df_expt_[col])
             # parse according to Tissue
             for tissue, df_tissue in df_experiments.groupby(COL_TISSUE):
                 scores[stat_name + '-' + name + '_tissue_' + tissue] = stat_func(df_tissue[col])
@@ -286,7 +286,7 @@ def compute_scores(df_experiments, min_landmarks=1.):
     return scores
 
 
-def _filter_measure_columns(df_experiments):
+def _filter_tre_measure_columns(df_experiments):
     # copy the initial to final for missing
     cols_final = [col for col in df_experiments.columns
                   if re.match(r'(r)?TRE \w+ .final.', col)]
@@ -310,18 +310,18 @@ def export_summary_json(df_experiments, path_experiments, path_output,
         df_experiments[COL_NORM_TIME] = np.nan
 
     # note, we expect that the path starts with tissue and Unix sep "/" is used
-    def _get_tussie(cell):
+    def _get_tissue(cell):
         tissue = cell.split(os.sep)[0]
         return tissue[:tissue.index('_')] if '_' in cell else tissue
 
-    df_experiments[COL_TISSUE] = df_experiments[COL_POINTS_REF].apply(_get_tussie)
+    df_experiments[COL_TISSUE] = df_experiments[COL_POINTS_REF].apply(_get_tissue)
 
     # export partial results
     cases = list(wrap_execute_sequence(parse_landmarks, df_experiments.iterrows(),
                                        desc='Parsing landmarks', nb_workers=1))
 
     # copy the initial to final for missing
-    for col, col2 in zip(*_filter_measure_columns(df_experiments)):
+    for col, col2 in zip(*_filter_tre_measure_columns(df_experiments)):
         mask = df_experiments[col].isnull()
         df_experiments.loc[mask, col] = df_experiments.loc[mask, col2]
 
@@ -347,6 +347,34 @@ def export_summary_json(df_experiments, path_experiments, path_output,
     with open(path_json, 'w') as fp:
         json.dump(results, fp)
     return path_json
+
+
+def replicate_missing_warped_landmarks(df_experiments, path_dataset, path_experiment):
+    """ if some warped landmarks are missing replace the path by initial landmarks
+
+    :param DF df_experiments:
+    :param str path_dataset:
+    :param str path_experiment:
+    :return DF:
+    """
+    # find empty warped landmarks paths
+    missing_mask = df_experiments[COL_POINTS_MOVE_WARP].isnull()
+    # for the empty place the initial landmarks
+    df_experiments.loc[missing_mask, COL_POINTS_MOVE_WARP] = df_experiments.loc[missing_mask, COL_POINTS_MOVE]
+    # for the empty place maximal execution time
+    df_experiments.loc[missing_mask, COL_TIME] = df_experiments[COL_TIME].max()
+
+    count = 0
+    # iterate over whole table
+    for idx, row in df_experiments.iterrows():
+        path_csv = update_path_(row[COL_POINTS_MOVE_WARP], path_experiment)
+        if not os.path.isfile(path_csv):
+            path_csv = update_path_(row[COL_POINTS_MOVE], path_dataset)
+            df_experiments.loc[idx, COL_POINTS_MOVE_WARP] = path_csv
+            count += 1
+
+    logging.info('Missing warped landmarks: %i', count)
+    return df_experiments
 
 
 def main(path_experiment, path_cover, path_dataset, path_output, path_reference=None,
@@ -382,6 +410,8 @@ def main(path_experiment, path_cover, path_dataset, path_output, path_reference=
     df_experiments = pd.merge(df_cover, df_results, how='left', on=COVER_COLUMNS)
     df_experiments.drop([COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP],
                         axis=1, errors='ignore', inplace=True)
+
+    df_experiments = replicate_missing_warped_landmarks(df_experiments, path_dataset, path_experiment)
 
     normalize_exec_time(df_experiments, path_experiment, path_comp_bm)
 

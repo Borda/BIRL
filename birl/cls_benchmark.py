@@ -80,6 +80,8 @@ COL_TIME = 'Execution time [minutes]'
 COL_IMAGE_SIZE = 'Image size [pixels]'
 #: image diagonal in pixels
 COL_IMAGE_DIAGONAL = 'Image diagonal [pixels]'
+# define train / test status
+COL_STATUS = 'status'
 
 # list of columns in cover csv
 COVER_COLUMNS = (COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_REF, COL_POINTS_MOVE)
@@ -510,7 +512,8 @@ def update_path_(path, path_base=None):
     :param str|None path_base: optional base path
     :return str: update path
     """
-    path = os.path.join(path_base, str(path)) if path_base else path
+    if path_base and not str(path).startswith('/') and not str(path).startswith('~'):
+        path = os.path.join(path_base, str(path))
     return update_path(path, absolute=True)
 
 

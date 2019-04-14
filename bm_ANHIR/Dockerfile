@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #    wget https://bootstrap.pypa.io/get-pip.py --progress=bar:force:noscroll && python get-pip.py && \
 
 # Install BIRL package
-    pip install --upgrade --force-reinstall --no-cache-dir git+https://github.com/Borda/BIRL.git>=0.2 && \
+    pip install --upgrade --force-reinstall --no-cache-dir git+https://github.com/Borda/BIRL.git>=0.2.1 && \
 #    pip install --upgrade --force-reinstall --no-cache-dir git+https://github.com/Borda/BIRL.git@devel && \
 
 # Clean image from not needed packages

@@ -18,7 +18,7 @@ forum](https://img.shields.io/badge/dynamic/json.svg?label=forum&url=https%3A%2F
 
 ---
 
-_This project is the key component of **[Automatic Non-rigid Histological Image Registration (ANHIR)](https://anhir.grand-challenge.org)** hosted at [ISBI 2019](https://biomedicalimaging.org/2019/challenges/) conference. The related challenge discussion is hosted on [forum.image.sc](https://forum.image.sc/tags/anhir)._
+_This project/framework is the key component of **[Automatic Non-rigid Histological Image Registration (ANHIR)](https://anhir.grand-challenge.org)** challenge hosted at [ISBI 2019](https://biomedicalimaging.org/2019/challenges/) conference. The related discussion is hosted on [forum.image.sc](https://forum.image.sc/tags/anhir)._
 
 ---
 

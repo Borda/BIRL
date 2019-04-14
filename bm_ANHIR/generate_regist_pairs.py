@@ -18,9 +18,8 @@ sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import image_size
 from birl.utilities.dataset import IMAGE_EXTENSIONS, generate_pairing
 from birl.cls_benchmark import (
-    COL_IMAGE_REF, COL_IMAGE_MOVE, COL_TIME, COL_POINTS_REF, COL_POINTS_MOVE,
-    COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP, COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL,
-    update_path_)
+    COL_STATUS, COL_IMAGE_REF, COL_IMAGE_MOVE, COL_TIME, COL_POINTS_REF, COL_POINTS_MOVE,
+    COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP, COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL, update_path_)
 
 DATASET_IMAGES = '/datagrid/Medical/dataset_ANHIR/images_private'
 DATASET_LANDMARKS = '/datagrid/Medical/dataset_ANHIR/landmarks_all'
@@ -56,7 +55,6 @@ HIDE_TEST_TISSUE_STEP = 3
 # requires empty columns in the dataset cover
 COLUMNS_EMPTY = (COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP, COL_TIME)
 # define train / test status
-COL_STATUS = 'status'
 VAL_STATUS_TRAIN = 'training'
 VAL_STATUS_TEST = 'evaluation'
 
