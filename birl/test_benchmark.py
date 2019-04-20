@@ -29,7 +29,7 @@ from birl.cls_benchmark import ImRegBenchmark
 from birl.cls_benchmark import (
     NAME_CSV_RESULTS, NAME_TXT_RESULTS, NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS,
     COL_IMAGE_MOVE_WARP, COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP,
-    _visual_image_move_warp_lnds_move_warp, _visual_image_ref_warp_lnds_move_warp,
+    _visual_image_move_warp_lnds_move_warp, _visual_image_move_warp_lnds_ref_warp,
     visualise_registration)
 from birl.bm_template import BmTemplate
 
@@ -202,7 +202,7 @@ class TestBmRegistration(unittest.TestCase):
     def test_fail_visual(self):
         fig = _visual_image_move_warp_lnds_move_warp({COL_POINTS_MOVE_WARP: 'abc'})
         self.assertIsNone(fig)
-        fig = _visual_image_ref_warp_lnds_move_warp({COL_POINTS_REF_WARP: 'abc'})
+        fig = _visual_image_move_warp_lnds_ref_warp({COL_POINTS_REF_WARP: 'abc'})
         self.assertIsNone(fig)
         fig = visualise_registration((0, {}))
         self.assertIsNone(fig)

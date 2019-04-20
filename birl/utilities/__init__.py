@@ -5,14 +5,14 @@ import matplotlib
 import numpy as np
 import pandas as pd
 
+
+CMD_TRY_MATPLOTLIB = 'python -c "from matplotlib import pyplot; pyplot.close(pyplot.figure())"'
 # in case you are running on machine without display, e.g. server
 if not os.environ.get('DISPLAY', '') and matplotlib.rcParams['backend'] != 'agg':
     print('No display found. Using non-interactive Agg backend')
     matplotlib.use('Agg')
-
 # _tkinter.TclError: couldn't connect to display "localhost:10.0"
-cmd_matplotlib = 'python -c "from matplotlib import pyplot; pyplot.close(pyplot.figure())"'
-if subprocess.call(cmd_matplotlib, stdout=None, stderr=None, shell=True):
+elif subprocess.call(CMD_TRY_MATPLOTLIB, stdout=None, stderr=None, shell=True):
     print('Problem with display. Using non-interactive Agg backend')
     matplotlib.use('Agg')
 

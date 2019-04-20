@@ -3,9 +3,9 @@ Execute Image registration with ANTsPy
 https://github.com/ANTsX/ANTsPy/blob/master/tutorials/10minTutorial.ipynb
 
 >> python ./scripts/Python/run_ANTsPy.py \
-    ./data_images/rat-kidney_/scale-5pc/Rat_Kidney_HE.jpg \
-    ./data_images/rat-kidney_/scale-5pc/Rat_Kidney_PanCytokeratin.jpg \
-    ./data_images/rat-kidney_/scale-5pc/Rat_Kidney_PanCytokeratin.csv \
+    ./data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.jpg \
+    ./data_images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.jpg \
+    ./data_images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.csv \
     ./results
 
 Copyright (C) 2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>

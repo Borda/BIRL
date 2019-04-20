@@ -360,6 +360,13 @@ class ImRegBenchmark(Experiment):
 
         row = self._parse_regist_results(row)
         row = self._clear_after_registration(row)
+
+        if self.params.get('visual', False):
+            logging.debug('-> visualise results of experiment: %r', idx)
+            visualise_registration(
+                (idx, row), path_dataset=self.params.get('path_dataset', None),
+                path_experiment=self.params.get('path_exp', None))
+
         return row
 
     def _summarise(self):
@@ -373,14 +380,6 @@ class ImRegBenchmark(Experiment):
             path_experiment=self.params.get('path_exp', None))
         self.__execute_method(_compute_landmarks_statistic, self._df_experiments,
                               desc='compute TRE', nb_workers=1)
-        # add visualisations
-        _visualise_registration = partial(
-            visualise_registration,
-            path_dataset=self.params.get('path_dataset', None),
-            path_experiment=self.params.get('path_exp', None))
-        if self.params.get('visual', False):
-            self.__execute_method(_visualise_registration, self._df_experiments,
-                                  desc='visualise results')
         # export stat to csv
         if self._df_experiments.empty:
             logging.warning('no experimental results were collected')
@@ -447,9 +446,8 @@ class ImRegBenchmark(Experiment):
     def _extract_warped_image_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
-        :param record: {str: value}, dictionary with registration params
-        :return (str, str, str, str): paths to img_ref_warp, img_move_warp,
-                                                lnds_ref_warp, lnds_move_warp
+        :param {str: value} record: dictionary with registration params
+        :return {str: str}: paths to warped images/landmarks
         """
         # detect image
         path_img = os.path.join(record[COL_REG_DIR],
@@ -457,7 +455,11 @@ class ImRegBenchmark(Experiment):
         # detect landmarks
         path_lnd = os.path.join(record[COL_REG_DIR],
                                 os.path.basename(record[COL_POINTS_MOVE]))
-        return None, path_img, path_lnd, None
+        # return formatted results
+        return {COL_IMAGE_REF_WARP: None,
+                COL_IMAGE_MOVE_WARP: path_img,
+                COL_POINTS_REF_WARP: path_lnd,
+                COL_POINTS_MOVE_WARP: None}
 
     def _extract_execution_time(self, record):
         """ if needed update the execution time
@@ -476,14 +478,13 @@ class ImRegBenchmark(Experiment):
         :return: {str: value}
         """
         # Update the registration outputs / paths
-        paths = self._extract_warped_image_landmarks(record)
-        columns = (COL_IMAGE_REF_WARP, COL_IMAGE_MOVE_WARP,
-                   COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP)
+        res_paths = self._extract_warped_image_landmarks(record)
 
-        for path, col in zip(paths, columns):
+        for col in (k for k in res_paths if res_paths[k] is not None):
+            path = res_paths[col]
             # detect image and landmarks
             path = self._relativize_path(path, 'path_exp')
-            if path is not None and os.path.isfile(self._update_path(path, 'expt')):
+            if os.path.isfile(self._update_path(path, 'expt')):
                 record[col] = path
 
         # Update the registration time
@@ -527,7 +528,7 @@ def _image_diag(record, path_img_ref=None):
     :param str path_img_ref: optional path to the reference image
     :return float|None: image diagonal
     """
-    img_diag = record[COL_IMAGE_DIAGONAL] if COL_IMAGE_DIAGONAL in record else None
+    img_diag = dict(record).get(COL_IMAGE_DIAGONAL, None)
     if not img_diag and path_img_ref and os.path.isfile(path_img_ref):
         _, img_diag = image_size(path_img_ref)
     return img_diag
@@ -567,19 +568,24 @@ def compute_registration_statistic(idx_row, df_experiments,
         return
 
     # define what is the target and init state according to the experiment results
-    is_move_warp = COL_POINTS_MOVE_WARP in row and row[COL_POINTS_MOVE_WARP]
+    is_move_warp = isinstance(row.get(COL_POINTS_MOVE_WARP, None), str)
     points_init = points_move if is_move_warp else points_ref
     points_target = points_ref if is_move_warp else points_move
     col_lnds_warp = COL_POINTS_MOVE_WARP if is_move_warp else COL_POINTS_REF_WARP
 
-    # load landmarks
-    path_landmarks = update_path_(row[col_lnds_warp], path_experiment)
-    if path_landmarks and os.path.isfile(path_landmarks):
-        points_warp = load_landmarks(path_landmarks)
+    # check if there are reference landmarks
+    if points_target is None:
+        logging.warning('Missing landmarks in "%s"',
+                        COL_POINTS_REF if is_move_warp else COL_POINTS_MOVE)
+        return
+    # load warped landmarks
+    path_lnds_wapr = update_path_(row[col_lnds_warp], path_experiment)
+    if path_lnds_wapr and os.path.isfile(path_lnds_wapr):
+        points_warp = load_landmarks(path_lnds_wapr)
         points_warp = np.nan_to_num(points_warp)
     else:
         logging.warning('Invalid path to the landmarks: "%s" <- "%s"',
-                        path_landmarks, row[col_lnds_warp])
+                        path_lnds_wapr, row[col_lnds_warp])
         return
 
     # compute Affine statistic
@@ -594,6 +600,7 @@ def compute_registration_statistic(idx_row, df_experiments,
     compute_registration_accuracy(df_experiments, idx, points_target, points_warp,
                                   'final', img_diag, wo_affine=False)
     row_ = dict(df_experiments.loc[idx])
+    # compute the robustness
     if 'TRE Mean (final)' in row_:
         df_experiments.loc[idx, COL_ROBUSTNESS] = \
             compute_tre_robustness(points_target, points_init, points_warp)
@@ -637,8 +644,8 @@ def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
     :param str|None path_experiment: path to the experiment folder
     :return obj|None:
     """
-    assert COL_POINTS_MOVE_WARP in record and isinstance(record[COL_POINTS_MOVE_WARP], str), \
-        'Missing registered image "%s"' % COL_POINTS_MOVE_WARP
+    assert isinstance(record.get(COL_POINTS_MOVE_WARP, None), str), \
+        'Missing registered points in "%s"' % COL_POINTS_MOVE_WARP
     path_points_warp = update_path_(record[COL_POINTS_MOVE_WARP], path_experiment)
     if not os.path.isfile(path_points_warp):
         logging.warning('missing warped landmarks for: %r', dict(record))
@@ -646,8 +653,8 @@ def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
 
     points_ref, points_move, path_img_ref = _load_landmarks(record, path_dataset)
 
-    if COL_IMAGE_MOVE_WARP not in record or not isinstance(record[COL_IMAGE_MOVE_WARP], str):
-        logging.warning('Missing registered image "%s"', COL_IMAGE_MOVE_WARP)
+    if not isinstance(record.get(COL_IMAGE_MOVE_WARP, None), str):
+        logging.warning('Missing registered image in "%s"', COL_IMAGE_MOVE_WARP)
         image_warp = None
     else:
         path_image_warp = update_path_(record[COL_IMAGE_MOVE_WARP], path_experiment)
@@ -670,7 +677,7 @@ def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
     return fig
 
 
-def _visual_image_ref_warp_lnds_move_warp(record, path_dataset=None,
+def _visual_image_move_warp_lnds_ref_warp(record, path_dataset=None,
                                           path_experiment=None):
     """ visualise the case with warped reference landmarks to the move frame
 
@@ -679,8 +686,8 @@ def _visual_image_ref_warp_lnds_move_warp(record, path_dataset=None,
     :param str|None path_experiment: path to the experiment folder
     :return obj|None:
     """
-    assert COL_POINTS_REF_WARP in record and isinstance(record[COL_POINTS_REF_WARP], str), \
-        'Missing registered image "%s"' % COL_POINTS_REF_WARP
+    assert isinstance(record.get(COL_POINTS_REF_WARP, None), str), \
+        'Missing registered points in "%s"' % COL_POINTS_REF_WARP
     path_points_warp = update_path_(record[COL_POINTS_REF_WARP], path_experiment)
     if not os.path.isfile(path_points_warp):
         logging.warning('missing warped landmarks for: %r', dict(record))
@@ -719,10 +726,10 @@ def visualise_registration(idx_row, path_dataset=None, path_experiment=None):
     row = dict(row)  # convert even series to dictionary
     fig, path_fig = None, None
     # visualise particular experiment by idx
-    if COL_POINTS_MOVE_WARP in row and isinstance(row[COL_IMAGE_MOVE_WARP], str):
+    if isinstance(row.get(COL_POINTS_MOVE_WARP, None), str):
         fig = _visual_image_move_warp_lnds_move_warp(row, path_dataset, path_experiment)
-    elif COL_POINTS_REF_WARP in row and isinstance(row[COL_POINTS_REF_WARP], str):
-        fig = _visual_image_ref_warp_lnds_move_warp(row, path_dataset, path_experiment)
+    elif isinstance(row.get(COL_POINTS_REF_WARP, None), str):
+        fig = _visual_image_move_warp_lnds_ref_warp(row, path_dataset, path_experiment)
     else:
         logging.error('Visualisation: no output image or landmarks')
 
@@ -754,7 +761,8 @@ def export_summary_results(df_experiments, path_out, params=None,
         df_experiments.set_index('ID', inplace=True)
     df_summary = df_experiments.describe(percentiles=costume_percentiles).T
     df_summary['median'] = df_experiments.median()
-    nb_missing = np.sum(df_experiments['TRE Mean (init)'].isnull())
+    nb_missing = np.sum(df_experiments['TRE Mean (init)'].isnull())\
+        if 'TRE Mean (init)' in df_experiments.columns else len(df_experiments)
     df_summary['missing'] = nb_missing / float(len(df_experiments))
     df_summary.sort_index(inplace=True)
     path_csv = os.path.join(path_out, name_csv)

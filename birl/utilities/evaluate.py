@@ -26,7 +26,8 @@ def compute_tre(points_1, points_2):
     >>> compute_tre(np.random.random((6, 2)), np.random.random((9, 2)))  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     array([ 0.21...,  0.70...,  0.44...,  0.34...,  0.41...,  0.41...])
     """
-    nb_common = min([len(pts) for pts in [points_1, points_2]])
+    nb_common = min([len(pts) for pts in [points_1, points_2]
+                     if pts is not None])
     assert nb_common > 0, 'no common landmarks for metric'
     points_1 = np.asarray(points_1)[:nb_common]
     points_2 = np.asarray(points_2)[:nb_common]
@@ -109,6 +110,7 @@ def compute_tre_robustness(points_target, points_init, points_warp):
     ...                        np.random.random((8, 2)) + 2)
     1.0
     """
+    assert all(pts is not None for pts in [points_init, points_target, points_warp])
     nb_common = min([len(pts) for pts in [points_init, points_target, points_warp]])
     tre_init = compute_tre(points_init[:nb_common], points_target[:nb_common])
     tre_final = compute_tre(points_warp[:nb_common], points_target[:nb_common])

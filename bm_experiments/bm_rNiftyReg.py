@@ -16,9 +16,9 @@ INSTALLATION for Linux:
 
 Run the basic R script:
 >> Rscript scripts/Rscript/RNiftyReg_linear.r \
-    data_images/rat-kidney_/scale-5pc/Rat_Kidney_HE.jpg \
-    data_images/rat-kidney_/scale-5pc/Rat_Kidney_PanCytokeratin.jpg \
-    data_images/rat-kidney_/scale-5pc/Rat_Kidney_HE.csv \
+    data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.jpg \
+    data_images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.jpg \
+    data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.csv \
     output/
 
 Run the RNiftyReg benchmark:
@@ -44,7 +44,7 @@ import shutil
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import load_landmarks, save_landmarks
 from birl.utilities.experiments import create_basic_parse, parse_arg_params
-from birl.cls_benchmark import ImRegBenchmark
+from birl.cls_benchmark import ImRegBenchmark, COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP
 from birl.bm_template import main
 from bm_experiments import bm_comp_perform
 
@@ -132,7 +132,8 @@ class BmRNiftyReg(ImRegBenchmark):
             path_img_warp = os.path.join(path_dir, name_img_move + ext_img_warp)
             os.rename(path_regist, path_img_warp)
 
-        return None, path_img_warp, None, path_lnds_warp
+        return {COL_IMAGE_MOVE_WARP: path_img_warp,
+                COL_POINTS_MOVE_WARP: path_lnds_warp}
 
     def _extract_execution_time(self, record):
         """ if needed update the execution time

@@ -22,7 +22,8 @@ import logging
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.experiments import create_basic_parse, parse_arg_params
-from birl.cls_benchmark import ImRegBenchmark, COL_IMAGE_MOVE, COL_POINTS_MOVE
+from birl.cls_benchmark import (ImRegBenchmark, COL_IMAGE_MOVE, COL_POINTS_MOVE,
+                                COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP)
 
 
 def extend_parse(a_parser):
@@ -121,15 +122,17 @@ class BmTemplate(ImRegBenchmark):
     def _extract_warped_image_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
-        :param record: {str: value}, dictionary with registration params
-        :return (str, str, str, str): paths to ...
+        :param {str: value} record: dictionary with registration params
+        :return {str: str}: paths to ...
         """
         path_reg_dir = self._get_path_reg_dir(record)
         # detect image
         path_img = os.path.join(path_reg_dir, os.path.basename(record[COL_IMAGE_MOVE]))
         # detect landmarks
         path_lnd = os.path.join(path_reg_dir, os.path.basename(record[COL_POINTS_MOVE]))
-        return None, path_img, None, path_lnd
+        # return formatted results
+        return {COL_IMAGE_MOVE_WARP: path_img,
+                COL_POINTS_MOVE_WARP: path_lnd}
 
     def _extract_execution_time(self, record):
         """ if needed update the execution time

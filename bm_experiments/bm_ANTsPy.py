@@ -34,7 +34,7 @@ import shutil
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.experiments import create_basic_parse, parse_arg_params
-from birl.cls_benchmark import ImRegBenchmark
+from birl.cls_benchmark import ImRegBenchmark, COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP
 from birl.bm_template import main
 from bm_experiments import bm_comp_perform
 
@@ -101,8 +101,8 @@ class BmANTsPy(ImRegBenchmark):
     def _extract_warped_image_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
-        :param record: {str: value}, dictionary with registration params
-        :return (str, str, str, str): paths to
+        :param {str: value} record: dictionary with registration params
+        :return {str: str}: paths to ...
         """
         path_dir = self._get_path_reg_dir(record)
         _, path_im_move, _, path_lnds_move = self._get_paths(record)
@@ -117,7 +117,8 @@ class BmANTsPy(ImRegBenchmark):
             path_lnds_warp = os.path.join(path_dir, os.path.basename(path_lnds_move))
             os.rename(os.path.join(path_dir, NAME_LNDS_WARPED), path_lnds_warp)
 
-        return None, path_im_warp, None, path_lnds_warp
+        return {COL_IMAGE_MOVE_WARP: path_im_warp,
+                COL_POINTS_MOVE_WARP: path_lnds_warp}
 
     def _extract_execution_time(self, record):
         """ if needed update the execution time

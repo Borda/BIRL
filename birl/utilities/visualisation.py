@@ -211,8 +211,7 @@ def draw_images_warped_landmarks(image_target, image_source,
 
     draw_landmarks_origin_target_warped(ax, points_init, points_target, points_warped)
     ax.legend(loc='lower right', title='Legend')
-    ax.set_xlim([0, im_size[1]])
-    ax.set_ylim([im_size[0], 0])
+    ax.set(xlim=[0, im_size[1]], ylim=[im_size[0], 0])
     ax.axes.get_xaxis().set_ticklabels([])
     ax.axes.get_yaxis().set_ticklabels([])
     return fig
