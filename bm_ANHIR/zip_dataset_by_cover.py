@@ -46,11 +46,22 @@ def arg_parse_params():
 
 
 def _process_cmd(command):
+    """ execute a command
+
+    :param str command: command to be executed
+    """
     logging.info(command)
     subprocess.call(command, shell=True)
 
 
 def main(path_dataset, path_landmarks_out, path_landmarks_in, path_csv):
+    """ main entry point
+
+    :param str path_dataset: path to image dataset
+    :param str path_landmarks_out: path to landmarks dataset [output]
+    :param str path_landmarks_in: path to landmarks dataset [intput]
+    :param str path_csv: path to dataset cover table
+    """
     name_csv = os.path.splitext(os.path.basename(path_csv))[0]
     df_cover = pd.read_csv(path_csv)
 
@@ -82,4 +93,6 @@ def main(path_dataset, path_landmarks_out, path_landmarks_in, path_csv):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     arg_params = arg_parse_params()
+    logging.info('running...')
     main(**arg_params)
+    logging.info('Done :]')

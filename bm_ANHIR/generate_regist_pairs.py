@@ -1,6 +1,6 @@
 """
-Creating cover file for configuring registration image pairs
-The paths and all other constants are set to run on CMP grid for ANHIR dataset
+Creating cover file for configuring registration image pairs for ANHIR dataset.
+The paths and all other constants are set to run on CMP grid.
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -60,6 +60,12 @@ VAL_STATUS_TEST = 'evaluation'
 
 
 def get_relative_paths(paths, path_base):
+    """ transform paths to relati according given base path
+
+    :param [str] paths: collection of paths
+    :param str path_base: past that can be removed from the input paths
+    :return str:
+    """
     paths_r = [p.replace(path_base, '')[1:] for p in sorted(paths)]
     return paths_r
 
@@ -121,12 +127,14 @@ def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out,
                          step_hide_landmarks, tissue_partial):
     """ generate cover CSV file for particular dataset size/scale
 
-    :param str name:
-    :param {} dataset:
-    :param str path_images:
-    :param str path_landmarks:
-    :param str path_out:
-    :param int step_hide_landmarks:
+    :param str name: name of selected scale
+    :param {str: {scale_name: float}} dataset: definition of dataset
+        fist level key is name of the tissue,
+        next dictionary is composed from scale name and used scale in percents
+    :param str path_images: path to folder with images
+    :param str path_landmarks: path to folder with landmarks
+    :param str path_out: path to output directory
+    :param int step_hide_landmarks: take each N-th image/landmark out as a test case
     :param [str] tissue_partial:
     """
     # name, scale_step = dataset
@@ -156,6 +164,19 @@ def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out,
 
 def main(path_images, path_landmarks, path_out, step_lnds, dataset,
          tissue_partial, scale_names):
+    """ the main entry point
+
+    :param str path_images: path to folder with images
+    :param str path_landmarks: path to folder with landmarks
+    :param str path_out: path to output directory
+    :param int step_lnds: take each N-th image/landmark out as a test case
+    :param {str: {scale_name: float}} dataset: definition of dataset
+        fist level key is name of the tissue,
+        next dictionary is composed from scale name and used scale in percents
+    :param [str] tissue_partial: names of tissues which will have partially hidden cases
+        also consider a testing tissues
+    :param [str] scale_names: name of chosen scales
+    """
 
     _create_cover = partial(create_dataset_cover,
                             dataset=dataset,
@@ -165,8 +186,8 @@ def main(path_images, path_landmarks, path_out, step_lnds, dataset,
                             step_hide_landmarks=step_lnds,
                             tissue_partial=tissue_partial)
 
-    for name in scale_names:
-        _create_cover(name)
+    for sc_name in scale_names:
+        _create_cover(sc_name)
 
 
 if __name__ == '__main__':

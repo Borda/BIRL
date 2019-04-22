@@ -260,7 +260,7 @@ def scale_set_landmarks(path_set, scales=DEFAULT_SCALES):
 def dataset_scale_landmarks(path_dataset, scales=DEFAULT_SCALES, nb_workers=NB_THREADS):
     """ generate several scales within the same dataset
 
-    :param str path_dataset: path to the souorce/generated dataset
+    :param str path_dataset: path to the source/generated dataset
     :param [inr] scales: created scales
     :param int nb_workers: number of jobs running in parallel
     :return:
@@ -297,6 +297,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     arg_params = arg_parse_params()
+    logging.info('running...')
     main(**arg_params)
-
     logging.info('DONE')

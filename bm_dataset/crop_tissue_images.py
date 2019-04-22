@@ -90,6 +90,13 @@ def crop_image(img_path, crop_dims=(0, 1), padding=0.15):
 
 
 def main(path_images, padding, nb_workers):
+    """ main entry point
+
+    :param str path_images: path to the images
+    :param float padding: percentage of the image size to be used as padding
+        around detected tissue in the scan image, the range is (0, 1)
+    :param int nb_workers: nb jobs running in parallel
+    """
     image_paths = sorted(glob.glob(path_images))
 
     if not image_paths:
@@ -105,6 +112,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     arg_params = arg_parse_params()
+    logging.info('running...')
     main(**arg_params)
-
     logging.info('DONE')

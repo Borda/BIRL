@@ -214,7 +214,7 @@ def draw_image_landmarks(image, points):
     """
     shape = np.array(image.shape[:2])
     fig_size = shape / float(max(shape)) * FIG_MAX_SIZE
-    fig_size = fig_size.tolist()[-1::-1]
+    fig_size = np.array(fig_size).tolist()[-1::-1]
     fig = plt.figure(figsize=fig_size)
     ax = fig.gca()
     ax.imshow(image)

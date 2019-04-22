@@ -83,16 +83,14 @@ def generate_pairs(path_pattern_imgs, path_pattern_lnds, mode):
     return df_cover
 
 
-def main(path_pattern_images, path_pattern_landmarks, path_csv, mode):
+def main(path_pattern_images, path_pattern_landmarks, path_csv, mode='all2all'):
     """ main entry point
 
-    :param str path_pattern_images:
-    :param str path_pattern_landmarks:
-    :param str path_csv:
+    :param str path_pattern_images: path to images
+    :param str path_pattern_landmarks: path to landmarks
+    :param str path_csv: path output cover table, add new rows if it exists
     :param str mode: option first2all or all2all
     """
-    logging.info('running...')
-
     # if the cover file exist continue in it, otherwise create new
     if os.path.isfile(path_csv):
         logging.info('loading existing csv file: %s', path_csv)
@@ -108,11 +106,11 @@ def main(path_pattern_images, path_pattern_landmarks, path_csv, mode):
     logging.info('saving csv file with %i records \n %s', len(df_cover), path_csv)
     df_cover.to_csv(path_csv)
 
-    logging.info('DONE')
-
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     arg_params = arg_parse_params()
+    logging.info('running...')
     main(**arg_params)
+    logging.info('DONE')

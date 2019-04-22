@@ -101,6 +101,13 @@ def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
 
 
 def main(path_images, dimension, overwrite, nb_workers):
+    """ main entry point
+
+    :param path_images: path to images
+    :param int dimension: for 2D inages it is 0 or 1
+    :param bool overwrite: whether overwrite existing image on output
+    :param int nb_workers: nb jobs running in parallel
+    """
     image_paths = sorted(glob.glob(path_images))
 
     if not image_paths:
@@ -116,6 +123,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     arg_params = arg_parse_params()
+    logging.info('running...')
     main(**arg_params)
-
     logging.info('DONE')

@@ -51,7 +51,7 @@ NAME_LOG_REGISTRATION = 'registration.log'
 NAME_IMAGE_MOVE_WARP_POINTS = 'image_warped_landmarks_warped.jpg'
 #: output image name in experiment folder for reg. results - warped landmarks in reference image
 NAME_IMAGE_REF_POINTS_WARP = 'image_ref_landmarks_warped.jpg'
-#: output image name in experiment folder for showing improved alignment by used reguistration
+#: output image name in experiment folder for showing improved alignment by used registration
 NAME_IMAGE_WARPED_VISUAL = 'registration_visual_landmarks.jpg'
 # columns names in cover and also registration table
 #: reference (registration target) image
@@ -545,7 +545,7 @@ def _load_landmarks(record, path_dataset):
 def compute_registration_statistic(idx_row, df_experiments,
                                    path_dataset=None, path_experiment=None):
     """ after successful registration load initial nad estimated landmarks
-    afterwords compute various statistic for init, and finalNoBmTemplatene alignment
+    afterwords compute various statistic for init, and final alignment
 
     :param (int, dict) idx_row: tow from iterated table
     :param DF df_experiments: DataFrame with experiments
@@ -747,7 +747,7 @@ def export_summary_results(df_experiments, path_out, params=None,
 
     :param DF df_experiments: DataFrame with experiments
     :param str path_out: path to the output folder
-    :param {str: any} params: experiment parameters
+    :param {str: any}|None params: experiment parameters
     :param str name_csv: results file name
     :param str name_txt: results file name
 

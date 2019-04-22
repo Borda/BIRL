@@ -171,7 +171,7 @@ def draw_images_warped_landmarks(image_target, image_source,
     :param ndarray points_target: np.array<nb_points, dim>
     :param ndarray points_init: np.array<nb_points, dim>
     :param ndarray points_warped: np.array<nb_points, dim>
-    :param float figsize_max: maximal figure size for major image dimension
+    :param float fig_size_max: maximal figure size for major image dimension
     :return: object
 
     >>> image = np.random.random((50, 50, 3))

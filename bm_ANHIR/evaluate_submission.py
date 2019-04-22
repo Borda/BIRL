@@ -287,6 +287,11 @@ def compute_scores(df_experiments, min_landmarks=1.):
 
 
 def _filter_tre_measure_columns(df_experiments):
+    """ get columns related to TRE measures
+
+    :param DF df_experiments: experiment table
+    :return ([str], [str]):
+    """
     # copy the initial to final for missing
     cols_final = [col for col in df_experiments.columns
                   if re.match(r'(r)?TRE \w+ .final.', col)]
@@ -352,10 +357,10 @@ def export_summary_json(df_experiments, path_experiments, path_output,
 def replicate_missing_warped_landmarks(df_experiments, path_dataset, path_experiment):
     """ if some warped landmarks are missing replace the path by initial landmarks
 
-    :param DF df_experiments:
-    :param str path_dataset:
-    :param str path_experiment:
-    :return DF:
+    :param DF df_experiments: experiment table
+    :param str path_dataset: path to dataset folder
+    :param str path_experiment: path ti user experiment folder
+    :return DF: experiment table
     """
     # find empty warped landmarks paths
     missing_mask = df_experiments[COL_POINTS_MOVE_WARP].isnull()
@@ -383,7 +388,7 @@ def main(path_experiment, path_cover, path_dataset, path_output, path_reference=
 
     :param str path_experiment: path to experiment folder
     :param str path_cover: path to assignment file (requested registration pairs)
-    :param str path_dataset: path to provided landmarkstext
+    :param str path_dataset: path to provided landmarks
     :param str path_output: path to generated results
     :param str|None path_reference: path to the complete landmark collection,
         if None use dataset folder
@@ -442,6 +447,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     arg_params = parse_arg_params(create_parser())
+    logging.info('running...')
     main(**arg_params)
-
     logging.info('DONE')

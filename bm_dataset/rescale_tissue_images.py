@@ -57,6 +57,13 @@ def arg_parse_params():
 
 
 def scale_image(img_path, scale, image_ext=IMAGE_EXTENSION, overwrite=False):
+    """ scaling images by given scale factor
+
+    :param img_path: input image path
+    :param int scale: selected scaling in percents
+    :param str image_ext: image extension used on output
+    :param bool overwrite: whether overwrite existing image on output
+    """
     base = os.path.dirname(os.path.dirname(img_path))
     name = os.path.splitext(os.path.basename(img_path))[0]
     base_scale = parse_path_scale(os.path.dirname(img_path))
@@ -94,6 +101,15 @@ def wrap_scale_image(img_path_scale, image_ext=IMAGE_EXTENSION, overwrite=False)
 
 
 def main(path_images, scales, image_extension, overwrite, nb_workers):
+    """ main entry point
+
+    :param str path_images: path to input images
+    :param [float] scales: define scales in percentage, range (0, 100)
+    :param str image_extension: image extension used on output
+    :param bool overwrite: whether overwrite existing image on output
+    :param int nb_workers: nb jobs running in parallel
+    :return:
+    """
     image_paths = sorted(glob.glob(path_images))
     image_path_scales = [(im_path, sc) for im_path in image_paths
                          for sc in scales]
@@ -112,6 +128,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     arg_params = arg_parse_params()
+    logging.info('running...')
     main(**arg_params)
-
     logging.info('DONE')

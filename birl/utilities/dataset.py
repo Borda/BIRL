@@ -257,7 +257,7 @@ def generate_pairing(count, step_hide=None):
 def parse_path_scale(path_folder):
     """ from given path with annotation parse scale
 
-    :param str path: path to the scale folder
+    :param str path_folder: path to the scale folder
     :return int: scale
 
     >>> parse_path_scale('scale-.1pc')
@@ -479,7 +479,7 @@ def simplify_polygon(points, tol_degree=5):
     """ simplify path, drop point on the same line
 
     :param ndarray points: point in polygon
-    :param float tol: tolerance on change in orientation
+    :param float tol_degree: tolerance on change in orientation
     :return [[float]]:
 
     >>> pts = [[1, 2], [2, 4], [1, 5], [2, 8], [3, 8], [5, 8], [7, 8], [8, 7],
@@ -515,7 +515,7 @@ def compute_bounding_polygon(landmarks):
     points = np.array(landmarks)
     # split to two half by diagonal from [min, min] to [max, max]
     points = points[points[:, 0].argsort()]
-    pt_begin, pt_end, (idx_begin, idx_end) = get_close_diag_corners(points)
+    pt_begin, pt_end, _ = get_close_diag_corners(points)
     is_above = np.array([is_point_above_line(pt_begin, pt_end, pt) for pt in points])
 
     poly = []

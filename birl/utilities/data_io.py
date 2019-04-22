@@ -25,6 +25,7 @@ def create_folder(path_folder, ok_existing=True):
     """ create a folder if it not exists
 
     :param str path_folder: path to creating folder
+    :param bool ok_existing: suppres warning for missing
     :return str|None: path to created folder
 
     >>> p_dir = create_folder('./sample-folder', ok_existing=True)
@@ -241,6 +242,7 @@ def image_size(path_image, decimal=1):
     """ get image size (without loading image raster)
 
     :param str path_image: path to the image
+    :param int decimal: rounding digits
     :return (int, int), float: image size and diagonal
 
     >>> img = np.random.random((50, 75, 3))

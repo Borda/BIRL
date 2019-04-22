@@ -62,6 +62,14 @@ def arg_parse_params():
 
 
 def convert_image(path_img, level=DEFAULT_LEVEL, overwrite=False):
+    """ convert TIFF/SVS image to standard format
+    The output image has the same name and it is exported in the same folder
+
+    :param str path_img: path to the input image
+    :param int level: selected level of the internal pyramid representation
+        the level 0 means full scale and higher number is small image in pyramid scaling
+    :param bool overwrite: whether overwrite existing image on output
+    """
     slide_img = OpenSlide(path_img)
     assert level < len(slide_img.level_dimensions), \
         'unsupported level %i of %i' % (level, slide_img.level_count)
@@ -104,6 +112,14 @@ def convert_image(path_img, level=DEFAULT_LEVEL, overwrite=False):
 
 
 def main(path_images, level=DEFAULT_LEVEL, overwrite=False, nb_workers=1):
+    """ main entry point
+
+    :param str path_images: path to images
+    :param int level: selected level of the internal pyramid representation
+        the level 0 means full scale and higher number is small image in pyramid scaling
+    :param bool overwrite: whether overwrite existing image on output
+    :param int nb_workers: nb jobs running in parallel
+    """
     paths_img = sorted(glob.glob(path_images))
 
     _wrap_convert = partial(convert_image,
@@ -118,6 +134,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     arg_params = arg_parse_params()
+    logging.info('running...')
     main(**arg_params)
-
     logging.info('DONE')

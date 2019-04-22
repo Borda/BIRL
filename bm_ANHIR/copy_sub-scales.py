@@ -27,6 +27,14 @@ FORCE_COPY = False
 
 
 def main(path_csv, path_in, path_out, col_name, train_only=True):
+    """ main entry point
+
+    :param str path_csv: path to dataset cover
+    :param str path_in: path to input images
+    :param str path_out: path to output images
+    :param str col_name: column from the cover table
+    :param bool train_only: use only training cases
+    """
     df = pd.read_csv(path_csv)
     if train_only:
         df = df[df[COL_STATUS] == VAL_STATUS_TRAIN]
@@ -56,8 +64,9 @@ def main(path_csv, path_in, path_out, col_name, train_only=True):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-
+    logging.info('running...')
     main(PATH_CSV, PATH_LANDMARKS_ALL, PATH_LANDMARKS, COL_POINTS_REF, train_only=True)
     main(PATH_CSV, PATH_LANDMARKS_ALL, PATH_LANDMARKS, COL_POINTS_MOVE, train_only=False)
     main(PATH_CSV, PATH_IMAGES_ALL, PATH_IMAGES, COL_IMAGE_REF, train_only=False)
     main(PATH_CSV, PATH_IMAGES_ALL, PATH_IMAGES, COL_IMAGE_MOVE, train_only=False)
+    logging.info('Done >]')

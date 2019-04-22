@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Sending the invitation mail
+Sending the invitation mail according selected template text and list of participants
+The participants list is exported from ANHIR participants on grand-challenges.org
 
+Copyright (C) 2018-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
@@ -26,6 +28,11 @@ MAIL_LIST_CSV = 'mail-list-test.csv'
 
 
 def load_text(name_file):
+    """ load mail-template text
+
+    :param str name_file: name of the file, assuming to be in the same folder
+    :return str: text
+    """
     with open(os.path.join(os.path.dirname(__file__), name_file)) as fp:
         text = fp.read()
     return text
@@ -38,7 +45,7 @@ def prepare_mail_invitation(name, pub, doi, link):
     :param str pub: publication title
     :param str doi: publication DOI
     :param str link: publication link
-    :return str:
+    :return str: enriched text
     """
     text = load_text('mail_invitation.txt')
     text = text.replace('<NAME>', name)
@@ -51,7 +58,7 @@ def prepare_mail_update(name, mail_txt=UPDATE_MAIL_TXT):
     """ prepare general mail
 
     :param str name: Participant
-    :return str:
+    :return str: enriched text
     """
     text = load_text(mail_txt)
     text = text.replace('<NAME>', name)
@@ -62,8 +69,8 @@ def send_mail(smtp, email, row, subject=SUBJECT):
     """ send an email
 
     :param obj smtp:
-    :param str email:
-    :param {} row:
+    :param str email: email address
+    :param {} row: full from participants list
     :param str subject:
     """
     # text = prepare_mail_invitation(row['Name'], row['Publication name'],
@@ -96,7 +103,7 @@ def wrap_send_mail(idx, row, smtp):
 def main(path_csv):
     """ main entry point
 
-    :param str path_csv:
+    :param str path_csv: path to the participants list
     """
     df_mail_list = pd.read_csv(path_csv)
     df_mail_list.drop_duplicates(subset=['Email'], inplace=True)

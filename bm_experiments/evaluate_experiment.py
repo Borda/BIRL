@@ -89,6 +89,6 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     arg_params = parse_arg_params(create_parser())
+    logging.info('running...')
     main(**arg_params)
-
     logging.info('DONE')

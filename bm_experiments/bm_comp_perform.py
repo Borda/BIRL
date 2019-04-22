@@ -67,6 +67,12 @@ def arg_parse_params():
 
 
 def _prepare_images(path_out, im_size=IMAGE_SIZE):
+    """ generate and prepare synth. images for registration
+
+    :param str path_out: path to the folder
+    :param (int, int) im_size: desired image size
+    :return (str, str): paths to target and source image
+    """
     image = resize(data.astronaut(), output_shape=im_size, mode='constant')
     img_target = random_noise(image, var=IMAGE_NOISE)
     path_img_target = os.path.join(path_out, NAME_IMAGE_TARGET)
@@ -83,6 +89,10 @@ def _prepare_images(path_out, im_size=IMAGE_SIZE):
 
 
 def _clean_images(image_paths):
+    """ remove temporary images
+
+    :param str image_paths: path to images
+    """
     for p_img in image_paths:
         os.remove(p_img)
 
@@ -190,6 +200,10 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_workers=NB_THREADS):
 
 
 def _get_ram():
+    """ get the RAM of the computer
+
+    :return int: RAM value in GB
+    """
     try:
         from psutil import virtual_memory
         ram = virtual_memory().total / 1024. ** 3
@@ -203,6 +217,7 @@ def main(path_out='', nb_runs=5):
     """ the main entry point
 
     :param str path_out: path to export the report and save temporal images
+    :param int nb_runs: number of trails to have an robust average value
     """
     skimage_version = skimage.__version__.split('.')
     skimage_version = tuple(map(int, skimage_version))
@@ -244,7 +259,7 @@ def main(path_out='', nb_runs=5):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    logging.info('running...')
     arg_params = arg_parse_params()
+    logging.info('running...')
     main(**arg_params)
     logging.info('Done :]')
