@@ -256,9 +256,9 @@ class ImRegBenchmark(Experiment):
                 path = self._update_path(record[col], 'data')
             return path
 
-        paths = [__path_img(col) for col in (COL_IMAGE_REF, COL_IMAGE_MOVE)] \
-                + [self._update_path(record[col], 'data')
-                   for col in (COL_POINTS_REF, COL_POINTS_MOVE)]
+        paths = [__path_img(col) for col in (COL_IMAGE_REF, COL_IMAGE_MOVE)]
+        paths += [self._update_path(record[col], 'data')
+                  for col in (COL_POINTS_REF, COL_POINTS_MOVE)]
         return paths
 
     def _get_path_reg_dir(self, record):

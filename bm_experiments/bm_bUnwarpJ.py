@@ -42,7 +42,6 @@ from __future__ import absolute_import
 
 import os
 import sys
-import time
 import logging
 import shutil
 
@@ -52,7 +51,7 @@ sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import update_path, load_landmarks, save_landmarks
 from birl.utilities.experiments import (create_basic_parse, parse_arg_params, exec_commands,
                                         dict_deep_update)
-from birl.cls_benchmark import (ImRegBenchmark, NAME_LOG_REGISTRATION, COL_TIME,
+from birl.cls_benchmark import (ImRegBenchmark, NAME_LOG_REGISTRATION,
                                 COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP)
 from birl.bm_template import main
 from bm_experiments import bm_comp_perform

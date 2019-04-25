@@ -336,7 +336,7 @@ def image_histogram_matching(source, template):
         if img.ndim == 3 and img.shape[-1] == 1:
             img = img[..., 0]
         if img.max() < 1.5:
-            img = np.clip(np.round(img * 255), 0, 255)#.astype(np.uint8)
+            img = np.clip(np.round(img * 255), 0, 255)  # .astype(np.uint8)
         assert img.max() > 1.5, 'expected range of source image is (0, 255)'
         return img
 
@@ -351,8 +351,7 @@ def image_histogram_matching(source, template):
         source = rgb2hsv(source)
         template = rgb2hsv(template)
         for ch in range(source.shape[-1]):
-            matched[..., ch] = _match_cumulative_cdf(source[..., ch],
-                                                    template[..., ch])
+            matched[..., ch] = _match_cumulative_cdf(source[..., ch], template[..., ch])
         matched = hsv2rgb(matched)
     else:
         logging.warning('unsupported image dimensions: %r', source.shape)
@@ -373,7 +372,7 @@ def image_histogram_matching(source, template):
 #     >>> lut = histogram_match_cumulative_cdf(np.random.randint(0, 18, (150, 200)),
 #     ...                                      np.random.randint(128, 145, (200, 180)))
 #     >>> lut
-#     """#
+#     """
 #     # TODO: Hist. matching - find LUT on smaller and blured images
 #
 #     src_values, src_counts = np.unique(source.ravel(), return_inverse=True, return_counts=True)
