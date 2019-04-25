@@ -56,8 +56,12 @@ class TestBmRegistration(unittest.TestCase):
     @classmethod
     def test_benchmark_invalid_inputs(self):
         # test missing some parameters
-        params = {'path_cover': 'x', 'path_out': 'x',
-                  'nb_workers': 0, 'unique': False}
+        params = {
+            'path_cover': 'x',
+            'path_out': 'x',
+            'nb_workers': 0,
+            'unique': False,
+        }
         # try a missing params
         for miss in ['path_cover', 'path_out', 'nb_workers', 'unique']:
             params_miss = params.copy()
@@ -66,7 +70,7 @@ class TestBmRegistration(unittest.TestCase):
         # not defined output folder
         assert_raises(Exception, ImRegBenchmark, params)
 
-    def test_benchmark_invalid(self):
+    def test_benchmark_failing(self):
         """ test run in parallel with failing experiment """
         params = {
             'path_cover': PATH_CSV_COVER_MIX,
@@ -93,13 +97,15 @@ class TestBmRegistration(unittest.TestCase):
             'nb_workers': 2,
             'visual': True,
             'unique': False,
+            'preprocessing': ['gray', 'hist-matching'],
         }
         benchmark = ImRegBenchmark(params)
         # run it for the first time, complete experiment
         benchmark.run()
         # rerun experiment simulated repeating unfinished benchmarks
         benchmark.run()
-        self.check_benchmark_results(benchmark, final_means=[0., 0., 0., 0.],
+        self.check_benchmark_results(benchmark,
+                                     final_means=[0., 0., 0., 0.],
                                      final_stds=[0., 0., 0., 0.])
         del benchmark
 
@@ -113,10 +119,13 @@ class TestBmRegistration(unittest.TestCase):
             'nb_workers': 1,
             'visual': True,
             'unique': False,
+            'preprocessing': ['hist-matching', 'gray'],
         }
         benchmark = ImRegBenchmark(params)
         benchmark.run()
-        self.check_benchmark_results(benchmark, final_means=[0., 0.], final_stds=[0., 0.])
+        self.check_benchmark_results(benchmark,
+                                     final_means=[0., 0.],
+                                     final_stds=[0., 0.])
         del benchmark
 
     def test_benchmark_template(self):
@@ -133,7 +142,8 @@ class TestBmRegistration(unittest.TestCase):
         }
         benchmark = BmTemplate(params)
         benchmark.run()
-        self.check_benchmark_results(benchmark, final_means=[28., 68., 73., 76.],
+        self.check_benchmark_results(benchmark,
+                                     final_means=[28., 68., 73., 76.],
                                      final_stds=[13., 28., 28., 34.])
         os.remove(path_config)
         del benchmark

@@ -102,8 +102,14 @@ class BmRNiftyReg(ImRegBenchmark):
         """
         path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(record)
         path_dir = self._get_path_reg_dir(record) + os.path.sep
-        cmd = ' '.join([self.params['exec_R'], self.params['path_R_script'],
-                       path_im_ref, path_im_move, path_lnds_move, path_dir])
+        cmd = ' '.join([
+            self.params['exec_R'],
+            self.params['path_R_script'],
+            path_im_ref,
+            path_im_move,
+            path_lnds_move,
+            path_dir,
+        ])
         return cmd
 
     def _extract_warped_image_landmarks(self, record):

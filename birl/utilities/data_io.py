@@ -12,7 +12,7 @@ from functools import wraps
 import numpy as np
 import pandas as pd
 from PIL import Image
-from skimage.color import gray2rgb
+from skimage.color import gray2rgb, rgb2hsv, hsv2rgb
 
 #: landmarks coordinates, loading from CSV file
 LANDMARK_COORDS = ['X', 'Y']
@@ -318,3 +318,91 @@ def save_image(path_image, image):
         return False
     image = convert_ndarray2image(image)
     image.save(path_image)
+
+
+def image_histogram_matching(source, template):
+    """ adjust image histogram between two images
+
+    https://www.researchgate.net/post/Histogram_matching_for_color_images
+    https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/histogram_matching.py
+    https://stackoverflow.com/questions/32655686/histogram-matching-of-two-images-in-python-2-x
+
+    :param ndarray source:
+    :param ndarray template:
+    :return ndarray:
+    """
+    # in case gray images normalise dimensionality
+    def _normalise_image(img):
+        if img.ndim == 3 and img.shape[-1] == 1:
+            img = img[..., 0]
+        if img.max() < 1.5:
+            img = np.clip(np.round(img * 255), 0, 255)#.astype(np.uint8)
+        assert img.max() > 1.5, 'expected range of source image is (0, 255)'
+        return img
+
+    source = _normalise_image(source)
+    template = _normalise_image(template)
+    assert source.ndim == template.ndim, 'the image dimensionality has to be equal'
+
+    if source.ndim == 2:
+        matched = _match_cumulative_cdf(source, template)
+    elif source.ndim == 3:
+        matched = np.empty(source.shape, dtype=source.dtype)
+        source = rgb2hsv(source)
+        template = rgb2hsv(template)
+        for ch in range(source.shape[-1]):
+            matched[..., ch] = _match_cumulative_cdf(source[..., ch],
+                                                    template[..., ch])
+        matched = hsv2rgb(matched)
+    else:
+        logging.warning('unsupported image dimensions: %r', source.shape)
+        matched = source
+
+    return matched
+
+
+# def histogram_match_cumulative_cdf(source, template):
+#     """ Adjust the pixel values of a grayscale image such that its histogram
+#     matches that of a target image
+#
+#     :param source:
+#     :param template:
+#     :return:
+#
+#     >>> np.random.seed(0)
+#     >>> lut = histogram_match_cumulative_cdf(np.random.randint(0, 18, (150, 200)),
+#     ...                                      np.random.randint(128, 145, (200, 180)))
+#     >>> lut
+#     """#
+#     # TODO: Hist. matching - find LUT on smaller and blured images
+#
+#     src_values, src_counts = np.unique(source.ravel(), return_inverse=True, return_counts=True)
+#     src_unique_indices = None # reverese indexes of values in src_values
+#     tmpl_values, tmpl_counts = np.unique(template.ravel(), return_counts=True)
+#
+#     # calculate normalized quantiles for each array
+#     src_quantiles = np.cumsum(src_counts) / source.size
+#     tmpl_quantiles = np.cumsum(tmpl_counts) / template.size
+#
+#     interp_a_values = np.interp(src_quantiles, tmpl_quantiles, tmpl_values)
+#
+#     val_lut = (tmpl_values, interp_a_values)
+#     # new_image = interp_a_values[src_unique_indices].reshape(source.shape)
+#     return val_lut
+
+
+def _match_cumulative_cdf(source, template):
+    """
+    Return modified source array so that the cumulative density function of
+    its values matches the cumulative density function of the template.
+    """
+    src_values, src_unique_indices, src_counts = np.unique(
+        source.ravel(), return_inverse=True, return_counts=True)
+    tmpl_values, tmpl_counts = np.unique(template.ravel(), return_counts=True)
+
+    # calculate normalized quantiles for each array
+    src_quantiles = np.cumsum(src_counts) / source.size
+    tmpl_quantiles = np.cumsum(tmpl_counts) / template.size
+
+    interp_a_values = np.interp(src_quantiles, tmpl_quantiles, tmpl_values)
+    return interp_a_values[src_unique_indices].reshape(source.shape)

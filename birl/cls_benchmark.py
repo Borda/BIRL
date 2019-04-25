@@ -23,10 +23,12 @@ from functools import partial
 
 import numpy as np
 import pandas as pd
+from skimage.color import rgb2gray
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (
-    update_path, create_folder, image_size, load_landmarks, load_image, save_image)
+    update_path, create_folder, image_size, load_landmarks, load_image, save_image,
+    image_histogram_matching)
 from birl.utilities.evaluate import (
     compute_target_regist_error_statistic, compute_affine_transf_diff, compute_tre_robustness)
 from birl.utilities.experiments import exec_commands, string_dict, wrap_execute_sequence
@@ -76,12 +78,16 @@ COL_REG_DIR = 'Registration folder'
 COL_ROBUSTNESS = 'Robustness'
 #: measured time of image registration in minutes
 COL_TIME = 'Execution time [minutes]'
+#: measured time of image pre-processing in minutes
+COL_TIME_PREPROC = 'Pre-processing time [minutes]'
 #: tuple of image size
 COL_IMAGE_SIZE = 'Image size [pixels]'
 #: image diagonal in pixels
 COL_IMAGE_DIAGONAL = 'Image diagonal [pixels]'
 # define train / test status
 COL_STATUS = 'status'
+# extension to the image column name for temporary pre-process image
+COL_IMAGE_EXT_TEMP = ' TEMP'
 
 # list of columns in cover csv
 COVER_COLUMNS = (COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_REF, COL_POINTS_MOVE)
@@ -234,14 +240,25 @@ class ImRegBenchmark(Experiment):
         else:
             logging.warning('Missing config: %s', path_source)
 
-    def _get_paths(self, row):
-        """ expand the relative paths to absolute
+    def _get_paths(self, record, prefer_pproc=True):
+        """ expand the relative paths to absolute, if TEMP path is used, take it
 
-        :param row: row from cover file with relative paths
+        :param {} record: row from cover file with relative paths
+        :param bool prefer_pproc: prefer using preprocess images
         :return (str, str, str, str): path to reference and moving image
             and reference and moving landmarks
         """
-        paths = [self._update_path(row[col], 'data') for col in COVER_COLUMNS]
+        def __path_img(col):
+            is_temp = isinstance(record.get(col + COL_IMAGE_EXT_TEMP, None), str)
+            if prefer_pproc and is_temp:
+                path = self._update_path(record[col + COL_IMAGE_EXT_TEMP], 'expt')
+            else:
+                path = self._update_path(record[col], 'data')
+            return path
+
+        paths = [__path_img(col) for col in (COL_IMAGE_REF, COL_IMAGE_MOVE)] \
+                + [self._update_path(record[col], 'data')
+                   for col in (COL_POINTS_REF, COL_POINTS_MOVE)]
         return paths
 
     def _get_path_reg_dir(self, record):
@@ -331,6 +348,60 @@ class ImRegBenchmark(Experiment):
                             ' "%r"', idx)
         return check
 
+    def __images_preprocessing(self, record):
+        """ create some pre-process images, convert to gray scale and histogram matching
+
+        :param {} record: the input record
+        :return {}: updated record with optionally added pre-process images
+        """
+        path_dir = self._get_path_reg_dir(record)
+
+        def __path_img(path_img, pproc):
+            img_name, img_ext = os.path.splitext(os.path.basename(path_img))
+            return os.path.join(path_dir, img_name + '_' + pproc + img_ext)
+
+        for pproc in self.params.get('preprocessing', []):
+            path_img_ref, path_img_move, _, _ = self._get_paths(record, prefer_pproc=True)
+            if pproc == 'hist-matching':
+                path_img_new = __path_img(path_img_move, pproc)
+                save_image(path_img_new, image_histogram_matching(
+                    load_image(path_img_move), load_image(path_img_ref)))
+                record[COL_IMAGE_MOVE + COL_IMAGE_EXT_TEMP] = \
+                    self._relativize_path(path_img_new, destination='path_exp')
+            elif pproc in ('gray', 'grey'):
+                for col, path_img in [(COL_IMAGE_REF, path_img_ref),
+                                      (COL_IMAGE_MOVE, path_img_move)]:
+                    path_img_new = __path_img(path_img, pproc)
+                    save_image(path_img_new, rgb2gray(load_image(path_img)))
+                    record[col + COL_IMAGE_EXT_TEMP] = \
+                        self._relativize_path(path_img_new, destination='path_exp')
+            else:
+                logging.warning('unrecognized pre-processing: %s', pproc)
+        return record
+
+    def __remove_pproc_images(self, record):
+        """ remove preprocess (temporary) image if they are not also final
+
+        :param {} record: the input record
+        :return {}: updated record with optionally removed temp images
+        """
+        # iterate over both - target and source images
+        for col_in, col_warp in [(COL_IMAGE_REF, COL_IMAGE_REF_WARP),
+                                 (COL_IMAGE_MOVE, COL_IMAGE_MOVE_WARP)]:
+            col_temp = col_in + COL_IMAGE_EXT_TEMP
+            is_temp = isinstance(record.get(col_temp, None), str)
+            # skip if the field is empty
+            if not is_temp:
+                continue
+            # the warped image is not the same as pre-process image is equal
+            elif record.get(col_warp, None) != record.get(col_temp, None):
+                # update the path to the pre-process image in experiment folder
+                path_img = self._update_path(record[col_temp], destination='expt')
+                # remove image and from the field
+                os.remove(path_img)
+            del record[col_temp]
+        return record
+
     def _perform_registration(self, df_row):
         """ run single registration experiment with all sub-stages
 
@@ -347,6 +418,10 @@ class ImRegBenchmark(Experiment):
             return None
         create_folder(path_dir_reg)
 
+        time_start = time.time()
+        # do some requested pre-processing if required
+        row = self.__images_preprocessing(row)
+        row[COL_TIME_PREPROC] = (time.time() - time_start) / 60.
         row = self._prepare_img_registration(row)
 
         # measure execution time
@@ -357,6 +432,8 @@ class ImRegBenchmark(Experiment):
             return None
         # compute the registration time in minutes
         row[COL_TIME] = (time.time() - time_start) / 60.
+        # remove some temporary images
+        row = self.__remove_pproc_images(row)
 
         row = self._parse_regist_results(row)
         row = self._clear_after_registration(row)
@@ -464,7 +541,7 @@ class ImRegBenchmark(Experiment):
     def _extract_execution_time(self, record):
         """ if needed update the execution time
 
-        :param record: {str: value}, dictionary with registration params
+        :param {} record: dictionary {str: value} with registration params
         :return float|None: time in minutes
         """
         _ = self._get_path_reg_dir(record)
@@ -474,7 +551,7 @@ class ImRegBenchmark(Experiment):
         """ evaluate rests of the experiment and identity the registered image
         and landmarks when the process finished
 
-        :param record: {str: value}, dictionary with registration params
+        :param {} record: dictionary {str: value} with registration params
         :return: {str: value}
         """
         # Update the registration outputs / paths

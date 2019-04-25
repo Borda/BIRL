@@ -30,7 +30,7 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as fp:
 
 setup(
     name='BIRL',
-    version='0.2.1',
+    version='0.2.2',
     url='https://borda.github.io/BIRL',
 
     author='Jiri Borovec',
