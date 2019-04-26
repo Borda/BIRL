@@ -356,25 +356,31 @@ class ImRegBenchmark(Experiment):
         """
         path_dir = self._get_path_reg_dir(record)
 
-        def __path_img(path_img, pproc):
+        def _path_img(path_img, pproc):
             img_name, img_ext = os.path.splitext(os.path.basename(path_img))
             return os.path.join(path_dir, img_name + '_' + pproc + img_ext)
+
+        def _save_img(col, path_img_new, img):
+            col_temp = col + COL_IMAGE_EXT_TEMP
+            if isinstance(record.get(col_temp, None), str):
+                path_img = self._update_path(record[col_temp], destination='expt')
+                os.remove(path_img)
+            save_image(path_img_new, img)
+            record[col + COL_IMAGE_EXT_TEMP] = \
+                self._relativize_path(path_img_new, destination='path_exp')
 
         for pproc in self.params.get('preprocessing', []):
             path_img_ref, path_img_move, _, _ = self._get_paths(record, prefer_pproc=True)
             if pproc == 'hist-matching':
-                path_img_new = __path_img(path_img_move, pproc)
-                save_image(path_img_new, image_histogram_matching(
-                    load_image(path_img_move), load_image(path_img_ref)))
-                record[COL_IMAGE_MOVE + COL_IMAGE_EXT_TEMP] = \
-                    self._relativize_path(path_img_new, destination='path_exp')
+                path_img_new = _path_img(path_img_move, pproc)
+                img = image_histogram_matching(load_image(path_img_move),
+                                               load_image(path_img_ref))
+                _save_img(COL_IMAGE_MOVE, path_img_new, img)
             elif pproc in ('gray', 'grey'):
                 for col, path_img in [(COL_IMAGE_REF, path_img_ref),
                                       (COL_IMAGE_MOVE, path_img_move)]:
-                    path_img_new = __path_img(path_img, pproc)
-                    save_image(path_img_new, rgb2gray(load_image(path_img)))
-                    record[col + COL_IMAGE_EXT_TEMP] = \
-                        self._relativize_path(path_img_new, destination='path_exp')
+                    path_img_new = _path_img(path_img, pproc)
+                    _save_img(col, path_img_new, rgb2gray(load_image(path_img)))
             else:
                 logging.warning('unrecognized pre-processing: %s', pproc)
         return record
