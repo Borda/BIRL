@@ -341,18 +341,20 @@ def image_histogram_matching(source, reference, use_color='hsv'):
     >>> path_imgs = os.path.join(update_path('data_images'), 'rat-kidney_', 'scale-5pc')
     >>> img1 = load_image(os.path.join(path_imgs, 'Rat-Kidney_HE.jpg'))
     >>> img2 = load_image(os.path.join(path_imgs, 'Rat-Kidney_PanCytokeratin.jpg'))
-    >>> image_histogram_matching(img1[..., 0], img2[..., 0]).shape == img1.shape[:2]
-    True
     >>> image_histogram_matching(img1, img2).shape == img1.shape
     True
+    >>> img = image_histogram_matching(img1[..., 0], np.expand_dims(img2[..., 0], 2))
+    >>> img.shape == img1.shape[:2]
+    True
+    >>> image_histogram_matching(np.random.random((10, 20, 30, 5)),
+    ...                          np.random.random((30, 10, 20, 5))).ndim
+    4
     """
     # in case gray images normalise dimensionality
     def _normalise_image(img):
+        # normalise gray-scale images
         if img.ndim == 3 and img.shape[-1] == 1:
             img = img[..., 0]
-        # if img.max() < 1.5:
-        #     img = np.clip(np.round(img * 255), 0, 255)  # .astype(np.uint8)
-        # assert img.max() > 1.5, 'expected range of source image is (0, 255)'
         return img
 
     source = _normalise_image(source)
