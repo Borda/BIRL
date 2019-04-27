@@ -44,7 +44,7 @@ The dataset is defined by a CSV file containing paths to target and sensed image
 * running several image registration experiment in **parallel**
 * **resuming** unfinished sequence of registration benchmark
 * handling around dataset and **creating own experiments**
-* apply basic **image pre-processing**
+* using basic **image pre-processing** - normalizing
 * rerun evaluation and visualisation for finished experiments
 
 

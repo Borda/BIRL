@@ -329,13 +329,17 @@ def save_image(path_image, image):
 def image_histogram_matching(source, reference, use_color='hsv'):
     """ adjust image histogram between two images
 
+    Optionally transform the image to more continues color space.
+    The source and target image does not need to be the same size, but RGB/gray.
+
+    See cor related information:
     https://www.researchgate.net/post/Histogram_matching_for_color_images
     https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/histogram_matching.py
     https://stackoverflow.com/questions/32655686/histogram-matching-of-two-images-in-python-2-x
     https://github.com/mapbox/rio-hist/issues/3
 
-    :param ndarray source: image to be transformed
-    :param ndarray reference: reference image
+    :param ndarray source: 2D image to be transformed
+    :param ndarray reference: reference 2D image
     :return ndarray: transformed image
 
     >>> path_imgs = os.path.join(update_path('data_images'), 'rat-kidney_', 'scale-5pc')
@@ -386,9 +390,9 @@ def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
     """ Adjust the pixel values of a grayscale image such that its histogram
     matches that of a target image
 
-    :param source:
-    :param template:
-    :return:
+    :param ndarray source: 2D image to be transformed, np.array<height1, width1>
+    :param ndarray reference: reference 2D image, np.array<height2, width2>
+    :return ndarray: transformed image, np.array<height1, width1>
 
     >>> np.random.seed(0)
     >>> img = histogram_match_cumulative_cdf(np.random.randint(0, 18, (10, 12)),
