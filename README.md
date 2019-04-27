@@ -169,6 +169,8 @@ The general Image Registration benchmarks contain couple required and optional p
 * `--unique` each experiment has creation stamp included in its name (prevent overwriting experiments with the same method)
 * `--visual` generate a simple visualisation of particular image registrations
 
+![preprocessing-hist-matching](figures/Rat-kidney_hist-matching.jpg)
+
 Measure your computer performance using average execution time on several simple image registrations.
 The registration consists of loading images, denoising, feature detection, transform estimation and image warping. 
 ```bash
