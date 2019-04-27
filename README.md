@@ -44,6 +44,7 @@ The dataset is defined by a CSV file containing paths to target and sensed image
 * running several image registration experiment in **parallel**
 * **resuming** unfinished sequence of registration benchmark
 * handling around dataset and **creating own experiments**
+* using basic **image pre-processing** - normalizing
 * rerun evaluation and visualisation for finished experiments
 
 
@@ -131,7 +132,56 @@ Even though this framework is completely customizable we include several image r
 
 ![visualise-regist-results](figures/registration_visual_landmarks.jpg)
 
+### Install methods and run benchmarks
+
+For each registration method, different experiments can be performed independently using different values of the parameters or image pairs sets. 
+
+Sample execution of the "empty" benchmark template:
+```bash
+mkdir results
+python birl/bm_template.py \
+    -c ./data_images/pairs-imgs-lnds_mix.csv \
+    -o ./results \
+    --path_sample_config sample_config.yaml \
+    --preprocessing hist-matching gray \
+    --unique --visual
+```
+or with relative paths:
+```bash
+mkdir results
+python birl/bm_template.py \
+    -c ./data_images/pairs-imgs-lnds_histol.csv \
+    -d ./data_images \
+    -o ./results \
+    --path_sample_config sample_config.yaml \
+    --preprocessing gray hist-matching
+```
+
+The general Image Registration benchmarks contain couple required and optional parameters which are shared among 'all' methods/benchmarks. The brief description is following...
+
+**Required** parameters:
+* `-c`/`--path_cover` path to the cover table describing image/landmarks registration pairs
+* `-d`/`--path_dataset` path to the dataset folder with images and landmarks
+* `-o`/`--path_out` output path for saving results
+
+**Optional** parameters:
+* `--preprocessing` offer some image pre-processing before image registration starts, the order defines order of performed operations; the options are `hist-matching` equalise source to target image and `gray` converting both images to gray-scale
+* `--unique` each experiment has creation stamp included in its name (prevent overwriting experiments with the same method)
+* `--visual` generate a simple visualisation of particular image registrations
+
+![preprocessing-hist-matching](figures/Rat-kidney_hist-matching.jpg)
+
+Measure your computer performance using average execution time on several simple image registrations.
+The registration consists of loading images, denoising, feature detection, transform estimation and image warping. 
+```bash
+python bm_experiments/bm_comp_perform.py -o ./results
+```
+This script generate simple report exported in JSON file on given output path.
+
+
 ### Included registration methods
+
+For each benchmark experiment, the explanation about how to install and use a particular registration method is given in the documentation. Brief text at the top of each file.
 
 * **[bUnwarpJ](http://imagej.net/BUnwarpJ)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for elastic registration (optional usage of histogram matching and integration with [Feature Extraction](http://imagej.net/Feature_Extraction)).
     ```bash
@@ -141,7 +191,7 @@ Even though this framework is completely customizable we include several image r
         -o ./results \
         -fiji ./applications/Fiji.app/ImageJ-linux64 \
         -config ./configs/ImageJ_bUnwarpJ_histol.yaml \
-        --hist_matching \
+        --preprocessing hist-matching \
         --visual --unique
     ```
 * **[RNiftyReg](https://github.com/jonclayden/RNiftyReg)** is an R-native interface to the [NiftyReg image registration library](http://sourceforge.net/projects/niftyreg/) which contains programs to perform rigid, affine and non-linear registration of Nifti or analyse images. _NiftyReg supports max image size 2048._
@@ -167,37 +217,6 @@ Even though this framework is completely customizable we include several image r
 * ...
 
 Some more image registration methods integrated in ImageJ are listed in [Registration](https://imagej.net/Registration).
-
-### Install methods and run benchmarks
-
-For each benchmark experiment, the explanation about how to install and use a particular registration method is given in the documentation. Brief text at the top of each file.
-
-For each registration method, different experiments can be performed independently using different values of the parameters or image pairs sets. 
-
-Sample execution of the "empty" benchmark template:
-```bash
-mkdir results
-python birl/bm_template.py \
-    -c ./data_images/pairs-imgs-lnds_mix.csv \
-    -o ./results \
-    --path_sample_config sample_config.yaml \
-    --unique --visual
-```
-or with relative paths:
-```bash
-python birl/bm_template.py \
-    -c ./data_images/pairs-imgs-lnds_histol.csv \
-    -d ./data_images \
-    -o ./results \
-    --path_sample_config sample_config.yaml
-```
-
-Measure your computer performance using average execution time on several simple image registrations.
-The registration consists of loading images, denoising, feature detection, transform estimation and image warping. 
-```bash
-python bm_experiments/bm_comp_perform.py -o ./results
-```
-This script generate simple report exported in JSON file on given output path.
 
 
 ### Add custom registration method

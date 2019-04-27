@@ -93,8 +93,14 @@ class BmANTsPy(ImRegBenchmark):
         path_dir = self._get_path_reg_dir(record)
         path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(record)
 
-        cmd = ' '.join([self.params['exec_Python'], self.params['path_script'],
-                        path_im_ref, path_im_move, path_lnds_move, path_dir])
+        cmd = ' '.join([
+            self.params['exec_Python'],
+            self.params['path_script'],
+            path_im_ref,
+            path_im_move,
+            path_lnds_move,
+            path_dir,
+        ])
 
         return cmd
 

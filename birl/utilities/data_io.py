@@ -12,13 +12,19 @@ from functools import wraps
 import numpy as np
 import pandas as pd
 from PIL import Image
-from skimage.color import gray2rgb
+from skimage.color import gray2rgb, rgb2hsv, hsv2rgb, rgb2lab, lab2rgb, lch2lab, lab2lch
 
 #: landmarks coordinates, loading from CSV file
 LANDMARK_COORDS = ['X', 'Y']
 # PIL.Image.DecompressionBombError: could be decompression bomb DOS attack.
 # SEE: https://gitlab.mister-muffin.de/josch/img2pdf/issues/42
 Image.MAX_IMAGE_PIXELS = None
+CONVERT_RGB = {
+    'hsv': (rgb2hsv, hsv2rgb),
+    'lab': (rgb2lab, lab2rgb),
+    'lch': (lambda img: lab2lch(rgb2lab(img)),
+            lambda img: lab2rgb(lch2lab(img))),
+}
 
 
 def create_folder(path_folder, ok_existing=True):
@@ -318,3 +324,111 @@ def save_image(path_image, image):
         return False
     image = convert_ndarray2image(image)
     image.save(path_image)
+
+
+def image_histogram_matching(source, reference, use_color='hsv'):
+    """ adjust image histogram between two images
+
+    Optionally transform the image to more continues color space.
+    The source and target image does not need to be the same size, but RGB/gray.
+
+    See cor related information:
+    https://www.researchgate.net/post/Histogram_matching_for_color_images
+    https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/histogram_matching.py
+    https://stackoverflow.com/questions/32655686/histogram-matching-of-two-images-in-python-2-x
+    https://github.com/mapbox/rio-hist/issues/3
+
+    :param ndarray source: 2D image to be transformed
+    :param ndarray reference: reference 2D image
+    :return ndarray: transformed image
+
+    >>> path_imgs = os.path.join(update_path('data_images'), 'rat-kidney_', 'scale-5pc')
+    >>> img1 = load_image(os.path.join(path_imgs, 'Rat-Kidney_HE.jpg'))
+    >>> img2 = load_image(os.path.join(path_imgs, 'Rat-Kidney_PanCytokeratin.jpg'))
+    >>> image_histogram_matching(img1, img2).shape == img1.shape
+    True
+    >>> img = image_histogram_matching(img1[..., 0], np.expand_dims(img2[..., 0], 2))
+    >>> img.shape == img1.shape[:2]
+    True
+    >>> image_histogram_matching(np.random.random((10, 20, 30, 5)),
+    ...                          np.random.random((30, 10, 20, 5))).ndim
+    4
+    """
+    # in case gray images normalise dimensionality
+    def _normalise_image(img):
+        # normalise gray-scale images
+        if img.ndim == 3 and img.shape[-1] == 1:
+            img = img[..., 0]
+        return img
+
+    source = _normalise_image(source)
+    reference = _normalise_image(reference)
+    assert source.ndim == reference.ndim, 'the image dimensionality has to be equal'
+
+    if source.ndim == 2:
+        matched = histogram_match_cumulative_cdf(source, reference)
+    elif source.ndim == 3:
+        matched = np.empty(source.shape, dtype=source.dtype)
+
+        conv_from_rgb, conv_to_rgb = CONVERT_RGB.get(use_color, (None, None))
+        if conv_from_rgb:
+            source = conv_from_rgb(source)
+            reference = conv_from_rgb(reference)
+        for ch in range(source.shape[-1]):
+            matched[..., ch] = histogram_match_cumulative_cdf(source[..., ch],
+                                                              reference[..., ch])
+        if conv_to_rgb:
+            matched = conv_to_rgb(matched)
+    else:
+        logging.warning('unsupported image dimensions: %r', source.shape)
+        matched = source
+
+    return matched
+
+
+def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
+    """ Adjust the pixel values of a grayscale image such that its histogram
+    matches that of a target image
+
+    :param ndarray source: 2D image to be transformed, np.array<height1, width1>
+    :param ndarray reference: reference 2D image, np.array<height2, width2>
+    :return ndarray: transformed image, np.array<height1, width1>
+
+    >>> np.random.seed(0)
+    >>> img = histogram_match_cumulative_cdf(np.random.randint(0, 18, (10, 12)),
+    ...                                      np.random.randint(128, 145, (15, 13)))
+    >>> img.astype(int)
+    array([[139, 142, 129, 132, 132, 135, 137, 133, 135, 139, 130, 135],
+           [135, 141, 144, 134, 140, 136, 137, 143, 134, 142, 142, 129],
+           [132, 144, 141, 135, 129, 130, 137, 129, 138, 132, 139, 130],
+           [129, 129, 133, 134, 135, 136, 144, 142, 133, 137, 138, 130],
+           [130, 135, 137, 132, 135, 139, 141, 129, 141, 132, 139, 138],
+           [139, 133, 135, 133, 142, 132, 139, 133, 136, 141, 142, 132],
+           [142, 140, 143, 144, 134, 137, 132, 129, 134, 129, 144, 133],
+           [130, 143, 132, 130, 138, 140, 143, 135, 137, 129, 138, 139],
+           [130, 130, 132, 132, 141, 132, 144, 141, 137, 130, 133, 138],
+           [139, 136, 139, 130, 143, 129, 129, 135, 141, 138, 136, 140]])
+    """
+    source = np.round(source * 255) if source.max() < 1.5 else source
+    source = source.astype(int)
+    out_float = reference.max() < 1.5
+    reference = np.round(reference * 255) if reference.max() < 1.5 else reference
+    reference = reference.astype(int)
+
+    # use smaller image
+    step = int(np.max(np.array([source.shape, reference.shape])) / norm_img_size)
+    step = max(1, step)
+    src_counts = np.bincount(source[::step, ::step].ravel())
+    # src_values = np.arange(0, len(src_counts))
+    ref_counts = np.bincount(reference[::step, ::step].ravel())
+    ref_values = np.arange(0, len(ref_counts))
+    # calculate normalized quantiles for each array
+    src_quantiles = np.cumsum(src_counts) / float(source.size)
+    ref_quantiles = np.cumsum(ref_counts) / float(reference.size)
+
+    interp_a_values = np.interp(src_quantiles, ref_quantiles, ref_values)
+    matched = np.round(interp_a_values)[source]
+
+    if out_float:
+        matched = matched.astype(float) / 255.
+    return matched

@@ -143,8 +143,11 @@ def create_basic_parse():
                         help='whether each experiment have unique time stamp')
     parser.add_argument('--visual', dest='visual', action='store_true',
                         help='whether visualise partial results')
-    parser.add_argument('--lock_expt', dest='lock_thread', action='store_true',
-                        help='whether lock to run experiment in single thread')
+    parser.add_argument('--preprocessing', type=str, required=False, nargs='+',
+                        help='use some image pre-processing, the other matter',
+                        choices=['gray', 'hist-matching'])
+    # parser.add_argument('--lock_expt', dest='lock_thread', action='store_true',
+    #                     help='whether lock to run experiment in single thread')
     parser.add_argument('--run_comp_benchmark', action='store_true',
                         help='run computation benchmark on the end')
     parser.add_argument('--nb_workers', type=int, required=False, default=1,
