@@ -330,6 +330,14 @@ def image_histogram_matching(source, reference):
     :param ndarray source: image to be transformed
     :param ndarray reference: reference image
     :return ndarray: transformed image
+
+    >>> path_imgs = os.path.join(update_path('data_images'), 'rat-kidney_', 'scale-5pc')
+    >>> img1 = load_image(os.path.join(path_imgs, 'Rat-Kidney_HE.jpg'))
+    >>> img2 = load_image(os.path.join(path_imgs, 'Rat-Kidney_PanCytokeratin.jpg'))
+    >>> image_histogram_matching(img1[..., 0], img2[..., 0]).shape
+    (787, 1164)
+    >>> image_histogram_matching(img1, img2).shape
+    (787, 1164, 3)
     """
     # in case gray images normalise dimensionality
     def _normalise_image(img):
@@ -370,9 +378,19 @@ def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
     :return:
 
     >>> np.random.seed(0)
-    >>> lut = histogram_match_cumulative_cdf(np.random.randint(0, 18, (150, 200)),
-    ...                                      np.random.randint(128, 145, (200, 180)))
-    >>> lut
+    >>> img = histogram_match_cumulative_cdf(np.random.randint(0, 18, (10, 12)),
+    ...                                      np.random.randint(128, 145, (15, 13)))
+    >>> img.astype(int)
+    array([[139, 142, 129, 132, 132, 135, 137, 133, 135, 139, 130, 135],
+           [135, 141, 144, 134, 140, 136, 137, 143, 134, 142, 142, 129],
+           [132, 144, 141, 135, 129, 130, 137, 129, 138, 132, 139, 130],
+           [129, 129, 133, 134, 135, 136, 144, 142, 133, 137, 138, 130],
+           [130, 135, 137, 132, 135, 139, 141, 129, 141, 132, 139, 138],
+           [139, 133, 135, 133, 142, 132, 139, 133, 136, 141, 142, 132],
+           [142, 140, 143, 144, 134, 137, 132, 129, 134, 129, 144, 133],
+           [130, 143, 132, 130, 138, 140, 143, 135, 137, 129, 138, 139],
+           [130, 130, 132, 132, 141, 132, 144, 141, 137, 130, 133, 138],
+           [139, 136, 139, 130, 143, 129, 129, 135, 141, 138, 136, 140]])
     """
     source = np.round(source * 255) if source.max() < 1.5 else source
     source = source.astype(int)
@@ -392,7 +410,7 @@ def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
     ref_quantiles = np.cumsum(ref_counts) / reference.size
 
     interp_a_values = np.interp(src_quantiles, ref_quantiles, ref_values)
-    matched = interp_a_values[source]
+    matched = np.round(interp_a_values)[source]
 
     if out_float:
         matched = matched.astype(float) / 255.
