@@ -320,7 +320,7 @@ def save_image(path_image, image):
     image.save(path_image)
 
 
-def image_histogram_matching(source, reference):
+def image_histogram_matching(source, reference, use_hsv=True):
     """ adjust image histogram between two images
 
     https://www.researchgate.net/post/Histogram_matching_for_color_images
@@ -356,12 +356,14 @@ def image_histogram_matching(source, reference):
         matched = histogram_match_cumulative_cdf(source, reference)
     elif source.ndim == 3:
         matched = np.empty(source.shape, dtype=source.dtype)
-        source = rgb2hsv(source)
-        reference = rgb2hsv(reference)
+        if use_hsv:
+            source = rgb2hsv(source)
+            reference = rgb2hsv(reference)
         for ch in range(source.shape[-1]):
             matched[..., ch] = histogram_match_cumulative_cdf(source[..., ch],
                                                               reference[..., ch])
-        matched = hsv2rgb(matched)
+        if use_hsv:
+            matched = hsv2rgb(matched)
     else:
         logging.warning('unsupported image dimensions: %r', source.shape)
         matched = source
@@ -406,8 +408,8 @@ def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
     ref_counts = np.bincount(reference[::step, ::step].ravel())
     ref_values = np.arange(0, len(ref_counts))
     # calculate normalized quantiles for each array
-    src_quantiles = np.cumsum(src_counts) / source.size
-    ref_quantiles = np.cumsum(ref_counts) / reference.size
+    src_quantiles = np.cumsum(src_counts) / float(source.size)
+    ref_quantiles = np.cumsum(ref_counts) / float(reference.size)
 
     interp_a_values = np.interp(src_quantiles, ref_quantiles, ref_values)
     matched = np.round(interp_a_values)[source]
@@ -415,20 +417,3 @@ def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
     if out_float:
         matched = matched.astype(float) / 255.
     return matched
-
-
-# def _match_cumulative_cdf(source, template):
-#     """
-#     Return modified source array so that the cumulative density function of
-#     its values matches the cumulative density function of the template.
-#     """
-#     src_values, src_unique_indices, src_counts = np.unique(
-#         source.ravel(), return_inverse=True, return_counts=True)
-#     tmpl_values, tmpl_counts = np.unique(template.ravel(), return_counts=True)
-#
-#     # calculate normalized quantiles for each array
-#     src_quantiles = np.cumsum(src_counts) / source.size
-#     tmpl_quantiles = np.cumsum(tmpl_counts) / template.size
-#
-#     interp_a_values = np.interp(src_quantiles, tmpl_quantiles, tmpl_values)
-#     return interp_a_values[src_unique_indices].reshape(source.shape)
