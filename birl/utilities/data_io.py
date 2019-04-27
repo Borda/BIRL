@@ -334,10 +334,10 @@ def image_histogram_matching(source, reference, use_hsv=True):
     >>> path_imgs = os.path.join(update_path('data_images'), 'rat-kidney_', 'scale-5pc')
     >>> img1 = load_image(os.path.join(path_imgs, 'Rat-Kidney_HE.jpg'))
     >>> img2 = load_image(os.path.join(path_imgs, 'Rat-Kidney_PanCytokeratin.jpg'))
-    >>> image_histogram_matching(img1[..., 0], img2[..., 0]).shape
-    (787, 1164)
-    >>> image_histogram_matching(img1, img2).shape
-    (787, 1164, 3)
+    >>> image_histogram_matching(img1[..., 0], img2[..., 0]).shape == img1.shape[:2]
+    True
+    >>> image_histogram_matching(img1, img2).shape == img1.shape
+    True
     """
     # in case gray images normalise dimensionality
     def _normalise_image(img):
