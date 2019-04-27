@@ -12,13 +12,19 @@ from functools import wraps
 import numpy as np
 import pandas as pd
 from PIL import Image
-from skimage.color import gray2rgb, rgb2hsv, hsv2rgb
+from skimage.color import gray2rgb, rgb2hsv, hsv2rgb, rgb2lab, lab2rgb, lch2lab, lab2lch
 
 #: landmarks coordinates, loading from CSV file
 LANDMARK_COORDS = ['X', 'Y']
 # PIL.Image.DecompressionBombError: could be decompression bomb DOS attack.
 # SEE: https://gitlab.mister-muffin.de/josch/img2pdf/issues/42
 Image.MAX_IMAGE_PIXELS = None
+CONVERT_RGB = {
+    'hsv': (rgb2hsv, hsv2rgb),
+    'lab': (rgb2lab, lab2rgb),
+    'lch': (lambda img: lab2lch(rgb2lab(img)),
+            lambda img: lab2rgb(lch2lab(img))),
+}
 
 
 def create_folder(path_folder, ok_existing=True):
@@ -320,12 +326,13 @@ def save_image(path_image, image):
     image.save(path_image)
 
 
-def image_histogram_matching(source, reference, use_hsv=True):
+def image_histogram_matching(source, reference, use_color='hsv'):
     """ adjust image histogram between two images
 
     https://www.researchgate.net/post/Histogram_matching_for_color_images
     https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/histogram_matching.py
     https://stackoverflow.com/questions/32655686/histogram-matching-of-two-images-in-python-2-x
+    https://github.com/mapbox/rio-hist/issues/3
 
     :param ndarray source: image to be transformed
     :param ndarray reference: reference image
@@ -356,14 +363,16 @@ def image_histogram_matching(source, reference, use_hsv=True):
         matched = histogram_match_cumulative_cdf(source, reference)
     elif source.ndim == 3:
         matched = np.empty(source.shape, dtype=source.dtype)
-        if use_hsv:
-            source = rgb2hsv(source)
-            reference = rgb2hsv(reference)
+
+        conv_from_rgb, conv_to_rgb = CONVERT_RGB.get(use_color, (None, None))
+        if conv_from_rgb:
+            source = conv_from_rgb(source)
+            reference = conv_from_rgb(reference)
         for ch in range(source.shape[-1]):
             matched[..., ch] = histogram_match_cumulative_cdf(source[..., ch],
                                                               reference[..., ch])
-        if use_hsv:
-            matched = hsv2rgb(matched)
+        if conv_to_rgb:
+            matched = conv_to_rgb(matched)
     else:
         logging.warning('unsupported image dimensions: %r', source.shape)
         matched = source
