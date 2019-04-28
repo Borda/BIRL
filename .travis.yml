@@ -27,14 +27,20 @@ matrix:
     - python: 3.7
       env: TOXENV=py37
 
+# See http://docs.travis-ci.com/user/caching/#pip-cache
+cache: pip
+
 install:
   - sudo apt-get install python-opencv openslide-tools
   - pip install -r requirements.txt
+  - pip install -r requirements-dev.txt
   - pip install tox
-  - pip --version ; pip freeze
+  - pip --version ; pip list
 
 script:
-  - tox
+  # integration
+  - tox --sitepackages
+  # sample run
   - mkdir results && touch configs/sample_config.yaml
   - python bm_experiments/bm_comp_perform.py -o ./results -n 1
   - python birl/bm_template.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique --path_sample_config configs/sample_config.yaml

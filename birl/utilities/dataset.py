@@ -687,7 +687,8 @@ def scale_large_images_landmarks(images, landmarks):
     :param [ndarray] landmarks: list of landmarks
     :return ([ndarray], [ndarray]): lists of images and landmarks
 
-    >>> scale_large_images_landmarks([np.zeros((8000, 500, 3), dtype=np.uint8)], [None, None])  # doctest: +ELLIPSIS
+    >>> scale_large_images_landmarks([np.zeros((8000, 500, 3), dtype=np.uint8)],
+    ...                              [None, None])  # doctest: +ELLIPSIS
     ([array(...)], [None, None])
     """
     if not images:

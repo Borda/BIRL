@@ -23,7 +23,8 @@ def compute_tre(points_1, points_2):
     :return ndarray:
 
     >>> np.random.seed(0)
-    >>> compute_tre(np.random.random((6, 2)), np.random.random((9, 2)))  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+    >>> compute_tre(np.random.random((6, 2)),
+    ...             np.random.random((9, 2)))  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     array([ 0.21...,  0.70...,  0.44...,  0.34...,  0.41...,  0.41...])
     """
     nb_common = min([len(pts) for pts in [points_1, points_2]
@@ -177,8 +178,10 @@ def compute_ranking(user_cases, field, reverse=False):
     ... }
     >>> user_cases = compute_ranking(user_cases, 'rTRE')
     >>> import pandas as pd
-    >>> pd.DataFrame({usr: {cs: user_cases[usr][cs]['rTRE_rank'] for cs in user_cases[usr]}
-    ...               for usr in user_cases})[sorted(user_cases.keys())]  # doctest: +NORMALIZE_WHITESPACE
+    >>> df = pd.DataFrame({usr: {cs: user_cases[usr][cs]['rTRE_rank']
+    ...                          for cs in user_cases[usr]}
+    ...                    for usr in user_cases})[sorted(user_cases.keys())]
+    >>> df  # doctest: +NORMALIZE_WHITESPACE
        franta  karel  pepa
     1       3      1     2
     2       1      2     3
@@ -278,7 +281,8 @@ def aggregate_user_score_timeline(df, col_aggreg, col_user, col_score,
     >>> df['day'] = np.random.randint(0, 5, 50)
     >>> df['user'] = np.array(list('abc'))[np.random.randint(0, 3, 50)]
     >>> df['score'] = np.random.random(50)
-    >>> aggregate_user_score_timeline(df, 'day', 'user', 'score').round(3)  # doctest: +NORMALIZE_WHITESPACE
+    >>> df_agg = aggregate_user_score_timeline(df, 'day', 'user', 'score')
+    >>> df_agg.round(3)  # doctest: +NORMALIZE_WHITESPACE
            b      c      a
     4  0.447  0.132  0.567
     0  0.223  0.005  0.094

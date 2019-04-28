@@ -295,7 +295,8 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_workers=NB_THREADS,
         if it is set None, bar is suppressed
     :param bool ordered: whether enforce ordering in the parallelism
 
-    >>> list(wrap_execute_sequence(np.sqrt, range(5), nb_workers=1, ordered=True))  # doctest: +ELLIPSIS
+    >>> list(wrap_execute_sequence(np.sqrt, range(5), nb_workers=1,
+    ...                            ordered=True))  # doctest: +ELLIPSIS
     [0.0, 1.0, 1.41..., 1.73..., 2.0]
     >>> list(wrap_execute_sequence(sum, [[0, 1]] * 5, nb_workers=2, desc=None))
     [1, 1, 1, 1, 1]
@@ -373,7 +374,8 @@ def dict_deep_update(dict_base, dict_update):
     >>> d = {'level1': {'level2': {'levelA': 0, 'levelB': 1}}}
     >>> u = {'level1': {'level2': {'levelB': 10}}}
     >>> import json
-    >>> print(json.dumps(dict_deep_update(d, u), sort_keys=True, indent=2))  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    >>> d = json.dumps(dict_deep_update(d, u), sort_keys=True, indent=2)
+    >>> print(d)  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     {
       "level1": {
         "level2": {

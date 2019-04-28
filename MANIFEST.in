@@ -24,26 +24,22 @@ exclude bm_ANHIR
 recursive-exclude notebooks *.ipynb
 exclude notebooks
 
-# Exclude the data files
-recursive-exclude data_images *
-exclude data_images
+# Include the data files
+recursive-include data_images *
 
-# Exclude the method config files
-recursive-exclude configs *
-exclude configs
+# Include the method config files
+recursive-include configs *
 
 # Exclude the documentation files
 recursive-exclude docs *
 exclude docs
 
-# Exclude the Rscript files
-recursive-include scripts *.r
-
 # Exclude the ImageJ macro files
-recursive-include scripts *.ijm *.bsh *.py
+recursive-include scripts *.r *.ijm *.bsh *.py
 
 # Include the Requirements
 include requirements.txt
+exclude requirements-*.txt
 
 # Exclude build configs
 exclude *.yml

@@ -15,10 +15,10 @@ references:
       name: Install PyPI dependences
       command: |
         sudo pip install -U backports.functools_lru_cache  # required for matplotlib @py2
-        sudo pip install coverage pytest pytest-cov codecov flake8
         pip install -r requirements.txt --user
+        sudo pip install -r requirements-dev.txt
         python --version ; pwd ; ls -l
-        pip --version ; pip freeze
+        pip --version ; pip list
 
   test_coverage: &test_coverage
     run:

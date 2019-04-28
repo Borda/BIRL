@@ -76,7 +76,8 @@ def get_affine_components(matrix):
 
     >>> mtx = np.array([[ -0.95,   0.1,  65.], [  0.1,   0.95, -60.], [  0.,   0.,   1.]])
     >>> import  pandas as pd
-    >>> pd.Series(get_affine_components(mtx)).sort_index()  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    >>> aff = pd.Series(get_affine_components(mtx)).sort_index()
+    >>> aff  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     rotation                           173.9...
     scale                    (0.95..., 0.95...)
     shear                              -3.14...

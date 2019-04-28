@@ -16,33 +16,33 @@ from setuptools import setup, find_packages
 # Python 3 only projects can skip this import
 from io import open
 
-here = path.abspath(path.dirname(__file__))
+import birl
 
-with open(path.join(here, 'requirements.txt'), encoding='utf-8') as fp:
-    requirements = [r.rstrip() for r in fp.readlines() if not r.startswith('#')]
+PATH_HERE = path.abspath(path.dirname(__file__))
+
+with open(path.join(PATH_HERE, 'requirements.txt'), encoding='utf-8') as fp:
+    requirements = [rq.rstrip() for rq in fp.readlines() if not rq.startswith('#')]
 
 # Get the long description from the README file
-with open(path.join(here, 'README.md'), encoding='utf-8') as fp:
-    long_description = fp.read()
+# with open(path.join(PATH_HERE, 'README.md'), encoding='utf-8') as fp:
+#     long_description = fp.read()
 
 # Arguments marked as "Required" below must be included for upload to PyPI.
 # Fields marked as "Optional" may be commented out.
-
 setup(
     name='BIRL',
-    version='0.2.2',
-    url='https://borda.github.io/BIRL',
+    version=birl.__version__,
+    url=birl.__home__,
 
-    author='Jiri Borovec',
-    author_email='jiri.borovec@fel.cvut.cz',
-    license='BSD 3-clause',
+    author=birl.__author__,
+    author_email=birl.__author_email__,
+    license=birl.__license__,
     description='Benchmark on Image Registration methods with Landmark validation',
 
-    long_description=long_description,
+    long_description=birl.__doc__,
     long_description_content_type='text/markdown',
 
-    packages=find_packages(
-        exclude=['docs', 'notebooks', 'scripts*', 'bm_*']),
+    packages=find_packages(exclude=['docs', 'notebooks', 'scripts*', 'bm_*']),
 
     keywords='benchmark image registration landmarks',
     install_requires=requirements,
