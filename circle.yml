@@ -32,6 +32,15 @@ references:
         codecov
         rm -rf results
 
+  make_docs: &make_docs
+   run:
+     name: Make Documentation
+     command: |
+       sudo apt-get install pandoc
+       sudo pip install -r docs/requirements.txt
+       # sphinx-apidoc -o ./docs/source ./imsegm **/test_* --force --follow-links
+       cd docs; make html
+
   run_dataset: &run_dataset
     run:
       name: Dataset
@@ -76,9 +85,13 @@ jobs:
       - image: circleci/python:2.7
     steps: &steps
       - checkout
+      # INSTALLATION
       - *install_deps
       - *install_pips
+      # TESTING
       - *test_coverage
+      # DOCUMENTATION
+      - *make_docs
       - *run_dataset
       - *run_experiment
       - *run_bunwarpj
