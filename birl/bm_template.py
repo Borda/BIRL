@@ -3,14 +3,16 @@ All other benchmarks should be deviated this way so the core functionality
 of the benchmarks such as loading or evaluation is not overwritten
 
 INSTALLATION:
+
 1. ...
 
-EXAMPLE (usage):
->> mkdir ./results
->> python birl/bm_template.py \
-    -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images \
-    -o ./results --visual --unique \
-    --path_sample_config none
+Sample run::
+
+    mkdir ./results
+    python birl/bm_template.py \
+        -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images \
+        -o ./results --visual --unique \
+        --path_sample_config none
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -46,19 +48,22 @@ class BmTemplate(ImRegBenchmark):
         note that the basic parameters are inherited
 
     General methods that should be overwritten:
-     * _check_required_params
-     * _prepare_img_registration
-     * _execute_img_registration/_generate_regist_command
-     * _extract_warped_image_landmarks
-     * _extract_execution_time
-     * _clear_after_registration
 
-    NOTE: The actual implementation simulates the "WORSE" registration while
-    it blindly copies the moving landmarks as results of the registration.
-    It also copies the moving images so there is correct "warping" between
-    image and landmarks. It means that there was no registration performed.
+     * `_check_required_params`
+     * `_prepare_img_registration`
+     * `_execute_img_registration`/`_generate_regist_command`
+     * `_extract_warped_image_landmarks`
+     * `_extract_execution_time`
+     * `_clear_after_registration`
 
-    Running in single thread:
+    .. note:: The actual implementation simulates the "WORSE" registration while
+     it blindly copies the moving landmarks as results of the registration.
+     It also copies the moving images so there is correct "warping" between
+     image and landmarks. It means that there was no registration performed.
+
+    Examples
+    --------
+    >>> # Running in single thread:
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
@@ -71,7 +76,7 @@ class BmTemplate(ImRegBenchmark):
     >>> shutil.rmtree(path_out, ignore_errors=True)
     >>> os.remove('sample_config.yaml')
 
-    Running in multiple parallel threads:
+    >>> # Running in multiple parallel threads:
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')

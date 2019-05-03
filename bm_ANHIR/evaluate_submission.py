@@ -2,12 +2,14 @@
 Evaluating passed experiments, for instance if metric was changed
 
 The expected submission structure and required files:
+
  * `registration-results.csv` - cover file with experimental results
  * `computer-performances.json` - computer performance evaluation
  * landmarks in CSV files with relative path described
     in `registration-results.csv` in column 'Warped source landmarks'
 
 The required files in the reference (ground truth):
+
  * `dataset.csv` - cover file with planed registrations
  * `computer-performances.json` - reference performance evaluation
  * `lnds_provided/` provided landmarks in CSV files with relative path described
@@ -16,39 +18,43 @@ The required files in the reference (ground truth):
     path described in `dataset_cover.csv` in both columns 'Target landmarks'
     and 'Source landmarks'
 
+Sample usage::
 
-EXAMPLE
--------
->> python evaluate_submission.py \
-    -e ./results/BmUnwarpJ \
-    -c ./data_images/pairs-imgs-lnds_histol.csv \
-    -d ./data_images \
-    -r ./data_images \
-    -p ./bm_experiments/computer-performances_cmpgrid-71.json \
-    -o ./output \
-    --min_landmarks 0.20
+    python evaluate_submission.py \
+        -e ./results/BmUnwarpJ \
+        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -d ./data_images \
+        -r ./data_images \
+        -p ./bm_experiments/computer-performances_cmpgrid-71.json \
+        -o ./output \
+        --min_landmarks 0.20
 
 DOCKER
 ------
->> python evaluate_submission.py \
-    -e /input \
-    -c /opt/evaluation/dataset.csv \
-    -d /opt/evaluation/lnds_provided \
-    -r /opt/evaluation/lnds_reference \
-    -p /opt/evaluation/computer-performances.json \
-    -o /output \
-    --min_landmarks 0.20
-or run locally:
->> python bm_ANHIR/evaluate_submission.py \
-    -e bm_ANHIR/submission \
-    -c bm_ANHIR/dataset_ANHIR/dataset_medium.csv \
-    -d bm_ANHIR/dataset_ANHIR/landmarks_user \
-    -r bm_ANHIR/dataset_ANHIR/landmarks_all \
-    -p bm_ANHIR/dataset_ANHIR/computer-performances_cmpgrid-71.json \
-    -o output \
-    --min_landmarks 0.20
+Running in grad-challenge.org environment::
+
+    python evaluate_submission.py \
+        -e /input \
+        -c /opt/evaluation/dataset.csv \
+        -d /opt/evaluation/lnds_provided \
+        -r /opt/evaluation/lnds_reference \
+        -p /opt/evaluation/computer-performances.json \
+        -o /output \
+        --min_landmarks 0.20
+
+or run locally::
+
+    python bm_ANHIR/evaluate_submission.py \
+        -e bm_ANHIR/submission \
+        -c bm_ANHIR/dataset_ANHIR/dataset_medium.csv \
+        -d bm_ANHIR/dataset_ANHIR/landmarks_user \
+        -r bm_ANHIR/dataset_ANHIR/landmarks_all \
+        -p bm_ANHIR/dataset_ANHIR/computer-performances_cmpgrid-71.json \
+        -o output \
+        --min_landmarks 0.20
 
 References:
+
 * https://grand-challengeorg.readthedocs.io/en/latest/evaluation.html
 
 Copyright (C) 2018-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>

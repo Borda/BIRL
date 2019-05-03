@@ -1,27 +1,32 @@
 """
 Benchmark for ANTs
-see:
+
+See references:
+
 * http://stnava.github.io/ANTs
 * https://sourceforge.net/projects/advants/
 * https://github.com/ANTsX/ANTsPy
 
-INSTALLATION:
-* Install it as python package
-    > pip install git+https://github.com/ANTsX/ANTsPy.git
+Installation
+------------
+1. Install it as python package::
+
+    pip install git+https://github.com/ANTsX/ANTsPy.git
+
+Usage
+-----
+Run the basic ANTs registration with original parameters::
+
+    python bm_experiments/bm_ANTsPy.py \
+        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -d ./data_images \
+        -o ./results \
+        -py python3 \
+        -script ./scripts/Python/run_ANTsPy.py
 
 
-Run the basic ANTs registration with original parameters:
->> python bm_experiments/bm_ANTsPy.py \
-    -c ./data_images/pairs-imgs-lnds_histol.csv \
-    -d ./data_images \
-    -o ./results \
-    -py python3 \
-    -script ./scripts/Python/run_ANTsPy.py
-
-
-Disclaimer:
-* required to use own compiled last version since some previous releases
-  do not contain `ants.apply_transforms_to_points`
+.. note:: required to use own compiled last version since some previous releases
+ do not contain `ants.apply_transforms_to_points`
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -60,6 +65,8 @@ def extend_parse(a_parser):
 class BmANTsPy(ImRegBenchmark):
     """ Benchmark for ANTs wrapper in Python
     no run test while this method requires manual installation of ANTsPy package
+
+    For the app installation details, see module details.
 
     EXAMPLE
     -------

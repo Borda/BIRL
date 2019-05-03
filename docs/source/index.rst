@@ -9,7 +9,8 @@ Contents
 
    readme
    birl
-   examples
+   bm_dataset
+   bm_experiments
    ANHIR
 
 Indices and tables

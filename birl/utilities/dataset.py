@@ -531,8 +531,8 @@ def compute_bounding_polygon(landmarks):
 def compute_convex_hull(landmarks):
     """ compute convex hull around landmarks
 
-    http://lagrange.univ-lyon1.fr/docs/scipy/0.17.1/generated/scipy.spatial.ConvexHull.html
-    https://stackoverflow.com/questions/21727199
+    * http://lagrange.univ-lyon1.fr/docs/scipy/0.17.1/generated/scipy.spatial.ConvexHull.html
+    * https://stackoverflow.com/questions/21727199
 
     :param ndarray landmarks:
     :return ndarray:

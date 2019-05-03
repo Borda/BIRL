@@ -2,39 +2,50 @@
 Benchmark for ImageJ plugin - bUnwarpJ
 see: http://imagej.net/BUnwarpJ
 
-INSTALLATION:
-1. Enter the application folder in this project
-    >> cd <BIRL>/applications
-2. Download Fiji - https://fiji.sc/
-    >> wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
-3. Extract the downloaded application
-    >> unzip fiji-linux64.zip
-4. Try to run Fiji
-    >> Fiji.app/ImageJ-linux64
+Installation
+------------
+1. Enter the application folder in this project::
 
-Run the basic bUnwarpJ registration with original parameters:
->> python bm_experiments/bm_bUnwarpJ.py \
-    -c ./data_images/pairs-imgs-lnds_histol.csv \
-    -d ./data_images \
-    -o ./results \
-    -fiji ./applications/Fiji.app/ImageJ-linux64 \
-    -config ./configs/ImageJ_bUnwarpJ_histol.yaml \
-    --preprocessing hist-matching \
-    --visual --unique
+    cd <BIRL>/applications
+
+2. Download Fiji - https://fiji.sc/ ::
+
+    wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip
+
+3. Extract the downloaded application::
+
+    unzip fiji-linux64.zip
+
+4. Try to run Fiji::
+
+    Fiji.app/ImageJ-linux64
+
+Usage
+-----
+Run the basic bUnwarpJ registration with original parameters::
+
+    python bm_experiments/bm_bUnwarpJ.py \
+        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -d ./data_images \
+        -o ./results \
+        -fiji ./applications/Fiji.app/ImageJ-linux64 \
+        -config ./configs/ImageJ_bUnwarpJ_histol.yaml \
+        --preprocessing hist-matching \
+        --visual --unique
 
 The bUnwarpJ is supporting SIFT and MOPS feature extraction as landmarks
-see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support
->> python bm_experiments/bm_bUnwarpJ.py \
-    -c ./data_images/pairs-imgs-lnds_histol.csv \
-    -d ./data_images \
-    -o ./results \
-    -fiji ./applications/Fiji.app/ImageJ-linux64 \
-    -config ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml \
-    --preprocessing hist-matching \
-    --visual --unique
+see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support ::
 
-Disclaimer:
-* tested for version ImageJ 1.52i & 2.35
+    python bm_experiments/bm_bUnwarpJ.py \
+        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -d ./data_images \
+        -o ./results \
+        -fiji ./applications/Fiji.app/ImageJ-linux64 \
+        -config ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml \
+        --preprocessing hist-matching \
+        --visual --unique
+
+.. note:: tested for version ImageJ 1.52i & 2.35
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -127,6 +138,8 @@ def extend_parse(a_parser):
 class BmUnwarpJ(ImRegBenchmark):
     """ Benchmark for ImageJ plugin - bUnwarpJ
     no run test while this method requires manual installation of ImageJ
+
+    For the app installation details, see module details.
 
     EXAMPLE
     -------

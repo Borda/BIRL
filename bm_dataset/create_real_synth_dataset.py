@@ -3,11 +3,12 @@ Script for generating synthetic datasets from a single image and landmarks.
 The output is set of geometrical deformed images with also change color space
 and related computed new landmarks.
 
-Example run:
->> python create_real_synth_dataset.py \
-    -i ../data_images/images/Rat-Kidney_HE.jpg \
-    -l ../data_images/landmarks/Rat-Kidney_HE.csv \
-    -o ../output/synth_dataset  --visual
+Sample run::
+
+    python create_real_synth_dataset.py \
+        -i ../data_images/images/Rat-Kidney_HE.jpg \
+        -l ../data_images/landmarks/Rat-Kidney_HE.csv \
+        -o ../output/synth_dataset  --visual
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -182,7 +183,6 @@ def image_color_shift_hue(image, change_satur=True):
     :param image: np.array<height, width, 3>
     :param bool change_satur: whether change also the saturation
     :return: np.array<height, width, 3>
-
     """
     # generate hue shift
     h_shift = np.random.randint(HUE_SHIFT_MIN, HUE_SHIFT_MAX)

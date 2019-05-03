@@ -268,7 +268,6 @@ def effective_decimals(num):
 
 class RadarChart(object):
     """
-    See:
     * https://stackoverflow.com/questions/24659005
     * https://datascience.stackexchange.com/questions/6084
 

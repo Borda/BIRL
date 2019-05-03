@@ -7,21 +7,23 @@ ANNOTATIONS/<tissue>/<user>_scale-<number>pc/<csv-file>
 The expected structure of dataset is
 DATASET/<tissue>/scale-<number>pc/<image-file>
 
-EXAMPLE
--------
->> python rescale_tissue_landmarks.py -a data_images -d results
+Sample usage::
 
->> python bm_dataset/rescale_tissue_landmarks.py \
-    -a /datagrid/Medical/dataset_ANHIR/landmarks_all \
-    -d /datagrid/Medical/dataset_ANHIR/landmarks_user \
-    --scales 2 5 10 15 20 25 50 100 --nb_selected 0.2
+    python rescale_tissue_landmarks.py -a data_images -d results
+
+    python bm_dataset/rescale_tissue_landmarks.py \
+        -a /datagrid/Medical/dataset_ANHIR/landmarks_all \
+        -d /datagrid/Medical/dataset_ANHIR/landmarks_user \
+        --scales 2 5 10 15 20 25 50 100 --nb_selected 0.2
 
 In case, you are working with the user annotation you need to generate consensus
 landmark annotation first, using https://borda.github.io/dataset-histology-landmarks/
->> python handlers/run_generate_landmarks.py \
-    -a /datagrid/Medical/dataset_ANHIR/landmarks_annot \
-    -d /datagrid/Medical/dataset_ANHIR/landmarks_all \
-    --scales 2 5 10 15 20 25 50 100
+Sample usage::
+
+    python handlers/run_generate_landmarks.py \
+        -a /datagrid/Medical/dataset_ANHIR/landmarks_annot \
+        -d /datagrid/Medical/dataset_ANHIR/landmarks_all \
+        --scales 2 5 10 15 20 25 50 100
 
 Copyright (C) 2014-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """

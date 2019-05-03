@@ -3,11 +3,12 @@ General benchmark template for all registration methods.
 It also serves for evaluating the input registration pairs
 (while no registration is performed, there is only the initial deformation)
 
-EXAMPLE (usage):
->> mkdir ./results
->> python benchmarks/bm_registration.py \
-    -c data_images/pairs-imgs-lnds_histol.csv -d ./data_images \
-    -o ./results --unique
+Sample run (usage)::
+
+    mkdir ./results
+    python benchmarks/bm_registration.py \
+        -c data_images/pairs-imgs-lnds_histol.csv -d ./data_images \
+        -o ./results --unique
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -123,7 +124,8 @@ class ImRegBenchmark(Experiment):
         note that the basic parameters are inherited
 
     The benchmark has following steps:
-    1. check all necessary pathers and required parameters
+
+    1. check all necessary paths and required parameters
     2. load cover file and set all paths as absolute
     3. run individual registration experiment in sequence or in parallel
        (nb_workers > 1); if the particular experiment folder exist (assume
@@ -135,12 +137,14 @@ class ImRegBenchmark(Experiment):
         e) clean all extra files if any
     4. visualise results abd evaluate registration results
 
-    NOTE: The actual implementation simulates the "IDEAL" registration while
-    it blindly copies the reference landmarks as results of the registration.
-    In contrast to the right registration, it copies the moving images so there
-    is alignment (consistent warping) between resulting landmarks and image.
+    .. note:: The actual implementation simulates the "IDEAL" registration while
+     it blindly copies the reference landmarks as results of the registration.
+     In contrast to the right registration, it copies the moving images so there
+     is alignment (consistent warping) between resulting landmarks and image.
 
-    Running in single thread:
+    Examples
+    --------
+    >>> # Running in single thread:
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
@@ -152,7 +156,7 @@ class ImRegBenchmark(Experiment):
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
 
-    Running in multiple parallel threads:
+    >>> # Running in multiple parallel threads:
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')

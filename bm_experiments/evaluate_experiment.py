@@ -3,12 +3,13 @@ Evaluating passed experiments produced by this benchmark,
 for instance if metric was changed or some visualisations are missing
 
 The expected experiment structure is following:
+
  * `registration-results.csv` coordinate file with path to landmarks and images
  * particular experiment with warped landmarks
 
-EXAMPLE
--------
->> python evaluate_experiment.py \
+Sample Usage:
+.. code-block:: bash
+ python evaluate_experiment.py \
     -e ./results/BmUnwarpJ \
     -d ./data_images \
     --visual

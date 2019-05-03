@@ -3,11 +3,11 @@ Crop images around major object with set padding
 
 Note, that using these scripts for 1+GB images take several tens of GB RAM
 
-EXAMPLE
--------
->> python crop_tissue_images.py \
-    -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*.png" \
-    --padding 0.1 --nb_workers 2
+Sample usage::
+
+    python crop_tissue_images.py \
+        -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*.png" \
+        --padding 0.1 --nb_workers 2
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """

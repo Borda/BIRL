@@ -65,7 +65,7 @@ def compute_target_regist_error_statistic(points_ref, points_est):
     overlap points    1.00...
     dtype: float64
 
-    Wrong input:
+    >>> # Wrong input:
     >>> compute_target_regist_error_statistic(None, np.array([[1, 2], [3, 4], [2, 1]]))
     ([], {'overlap points': 0})
     """
@@ -141,7 +141,7 @@ def compute_affine_transf_diff(points_ref, points_init, points_est):
     Affine translation Y Diff    1.25...
     dtype: float64
 
-    Wrong input:
+    >>> # Wrong input:
     >>> compute_affine_transf_diff(None, np.array([[1, 2], [3, 4], [2, 1]]), None)
     {}
     """

@@ -4,33 +4,38 @@ LINKS:
 * http://cran.r-project.org/web/packages/RNiftyReg/RNiftyReg.pdf
 * https://github.com/jonclayden/RNiftyReg
 
-INSTALLATION for Linux:
-1. Install the R environment (https://stackoverflow.com/questions/31114991)
-    >> apt install r-base-core r-base-dev
-    >> sudo apt-get -y install libcurl4-gnutls-dev libxml2-dev libssl-dev
-2. Run R and install required R packages
-    >> R
-    > install.packages(c("png", "jpeg", "OpenImageR", "devtools"))
-    > devtools::install_github("jonclayden/RNiftyReg")
+Installation
+------------
+1. Install the R environment (https://stackoverflow.com/questions/31114991)::
 
+    apt install r-base-core r-base-dev
+    sudo apt-get -y install libcurl4-gnutls-dev libxml2-dev libssl-dev
 
-Run the basic R script:
->> Rscript scripts/Rscript/RNiftyReg_linear.r \
-    data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.jpg \
-    data_images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.jpg \
-    data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.csv \
-    output/
+2. Run R and install required R packages::
 
-Run the RNiftyReg benchmark:
->> python bm_experiments/bm_rNiftyReg.py \
-    -c ./data_images/pairs-imgs-lnds_histol.csv \
-    -d ./data_images \
-    -o ./results \
-    -rr Rscript \
-    -script ./scripts/Rscript/RNiftyReg_linear.r
+    install.packages(c("png", "jpeg", "OpenImageR", "devtools"))
+    devtools::install_github("jonclayden/RNiftyReg")
 
-Disclaimer:
-* tested for RNiftyReg > 2.x
+Usage
+-----
+Run the basic R script::
+
+    Rscript scripts/Rscript/RNiftyReg_linear.r \
+        data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.jpg \
+        data_images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.jpg \
+        data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.csv \
+        output/
+
+Run the RNiftyReg benchmark::
+
+    python bm_experiments/bm_rNiftyReg.py \
+        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -d ./data_images \
+        -o ./results \
+        -rr Rscript \
+        -script ./scripts/Rscript/RNiftyReg_linear.r
+
+.. note:: tested for RNiftyReg > 2.x
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -69,6 +74,8 @@ def extend_parse(a_parser):
 class BmRNiftyReg(ImRegBenchmark):
     """ Benchmark for R package - RNiftyReg
     no run test while this method requires manual installation of RNiftyReg
+
+    For the app installation details, see module details.
 
     EXAMPLE
     -------

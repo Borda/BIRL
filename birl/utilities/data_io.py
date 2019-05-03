@@ -71,7 +71,7 @@ def load_landmarks(path_file):
     >>> os.remove('./sample_landmarks.csv')
     >>> os.remove('./sample_landmarks.txt')
 
-    Wrong loading
+    >>> # Wrong loading
     >>> load_landmarks('./sample_landmarks.file')
     >>> open('./sample_landmarks.file', 'w').close()
     >>> load_landmarks('./sample_landmarks.file')
@@ -105,7 +105,7 @@ def load_landmarks_txt(path_file):
            [ 5.,  6.]])
     >>> os.remove('./sample_landmarks.txt')
 
-    Empty landmarks
+    >>> # Empty landmarks
     >>> open('./sample_landmarks.txt', 'w').close()
     >>> load_landmarks_txt('./sample_landmarks.txt').size
     0
@@ -314,7 +314,7 @@ def save_image(path_image, image):
     :param str path_image: path to the image
     :param image: np.array<height, width, ch>
 
-    Wrong path
+    >>> # Wrong path
     >>> save_image('./missing-path/any-image.png', np.zeros((10, 20)))
     False
     """
@@ -333,10 +333,11 @@ def image_histogram_matching(source, reference, use_color='hsv'):
     The source and target image does not need to be the same size, but RGB/gray.
 
     See cor related information:
-    https://www.researchgate.net/post/Histogram_matching_for_color_images
-    https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/histogram_matching.py
-    https://stackoverflow.com/questions/32655686/histogram-matching-of-two-images-in-python-2-x
-    https://github.com/mapbox/rio-hist/issues/3
+
+    * https://www.researchgate.net/post/Histogram_matching_for_color_images
+    * https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/histogram_matching.py
+    * https://stackoverflow.com/questions/32655686/histogram-matching-of-two-images-in-python-2-x
+    * https://github.com/mapbox/rio-hist/issues/3
 
     :param ndarray source: 2D image to be transformed
     :param ndarray reference: reference 2D image

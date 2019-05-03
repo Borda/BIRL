@@ -1,6 +1,8 @@
 """
 Copy files as all sub-scales
 
+Note that all paths are hard-coded to be used in CMP grid
+
 """
 
 import os

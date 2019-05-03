@@ -21,10 +21,10 @@ LOGIN = 'username'  # univ user name
 PASS = 'PASSWORD'  # my password
 SENDER = 'Jiri Borovec <jiri.borovec@fel.cvut.cz>'
 SUBJECT = 'ISBI 2019 - ANHIR - Image Registration Challenge - final phase'
-# UPDATE_MAIL_TXT = 'mail_dataset.txt'
-UPDATE_MAIL_TXT = 'mail_final-release.txt'
-MAIL_LIST_CSV = 'mail-list-test.csv'
-# MAIL_LIST_CSV = 'mail-list.csv'
+# UPDATE_MAIL_TXT = 'emails/text_dataset.txt'
+UPDATE_MAIL_TXT = 'emails/text_final-release.txt'
+MAIL_LIST_CSV = 'emails/mail-list_test.csv'
+# MAIL_LIST_CSV = 'emails/mail-list.csv'
 
 
 def load_text(name_file):
@@ -47,7 +47,7 @@ def prepare_mail_invitation(name, pub, doi, link):
     :param str link: publication link
     :return str: enriched text
     """
-    text = load_text('mail_invitation.txt')
+    text = load_text('text_invitation.txt')
     text = text.replace('<NAME>', name)
     ref = 'https://www.doi.org/%s' % doi if isinstance(doi, str) else link
     text = text.replace('<PAPER-TITLE>', pub).replace('<PAPER-LINK>', ref)

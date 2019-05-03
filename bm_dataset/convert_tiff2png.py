@@ -7,12 +7,12 @@ of a particular level (regarding the pyramid) using mosaic techniques
 Be aware that this conversion takes lots of memory, for example
 image of size 50k x 60k takes about 10GB in RAM
 
-EXAMPLE
--------
->> python convert_tiff2png.py -l 0 --nb_workers 2 \
-    -i "/datagrid/Medical/dataset_ANHIR/images_raw/*/*.tiff"
->> python convert_tiff2png.py -l 1 --nb_workers 5 --overwrite \
-    -i "/datagrid/Medical/dataset_ANHIR/images_raw/*/*.svs"
+Sample usage::
+
+    python convert_tiff2png.py -l 0 --nb_workers 2 \
+        -i "/datagrid/Medical/dataset_ANHIR/images_raw/*/*.tiff"
+    python convert_tiff2png.py -l 1 --nb_workers 5 --overwrite \
+        -i "/datagrid/Medical/dataset_ANHIR/images_raw/*/*.svs"
 
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>

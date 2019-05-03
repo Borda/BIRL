@@ -1,11 +1,12 @@
 """
-Script for generating
+Script for generating registration pairs in two schemas
 
-Example run:
->> python create_registration_pairs.py \
-    -i ../output/synth_dataset/*.jpg \
-    -l ../output/synth_dataset/*.csv \
-    -csv ../output/cover.csv --mode each2all
+Sample run::
+
+    python create_registration_pairs.py \
+        -i ../output/synth_dataset/*.jpg \
+        -l ../output/synth_dataset/*.csv \
+        -csv ../output/cover.csv --mode each2all
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """

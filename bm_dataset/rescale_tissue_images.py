@@ -5,11 +5,11 @@ With given path pattern to images crete particular scales within the same set
 
 Note, that using these scripts for 1+GB images take several tens of GB RAM
 
-EXAMPLE
--------
->> python rescale_tissue_images.py \
-    -i "/datagrid/Medical/dataset_ANHIR/images_private/COAD_*/scale-100pc/*.png" \
-    --scales 5 10 25 50 -ext .jpg --nb_workers 4
+Sample usage::
+
+    python rescale_tissue_images.py \
+        -i "/datagrid/Medical/dataset_ANHIR/images_private/COAD_*/scale-100pc/*.png" \
+        --scales 5 10 25 50 -ext .jpg --nb_workers 4
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """

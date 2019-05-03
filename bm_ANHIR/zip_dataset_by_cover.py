@@ -1,13 +1,13 @@
 """ Zip scaled datasets
 
 The paths and all other constants are set to run on CMP grid for ANHIR dataset
-zip only images mentioned in cover file and landmarks from source
+zip only images mentioned in cover file and landmarks from source::
 
->> python bm_ANHIR/zip_dataset_by_cover.py \
-    -i /datagrid/Medical/dataset_ANHIR/images_private \
-    -lo /datagrid/Medical/dataset_ANHIR/landmarks \
-    -li /datagrid/Medical/dataset_ANHIR/landmarks_user \
-    -csv /datagrid/Medical/dataset_ANHIR/images/dataset_medium.csv
+    python bm_ANHIR/zip_dataset_by_cover.py \
+        -i /datagrid/Medical/dataset_ANHIR/images_private \
+        -lo /datagrid/Medical/dataset_ANHIR/landmarks \
+        -li /datagrid/Medical/dataset_ANHIR/landmarks_user \
+        -csv /datagrid/Medical/dataset_ANHIR/images/dataset_medium.csv
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """

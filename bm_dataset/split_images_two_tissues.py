@@ -3,11 +3,11 @@ Splitting image containing two samples
 
 Note, that using these scripts for 1+GB images take several tens of GB RAM
 
-EXAMPLE
--------
->> python split_images_two_tissues.py \
-    -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*_*.png" \
-    --nb_workers 3
+Sample usage::
+
+    python split_images_two_tissues.py \
+        -i "/datagrid/Medical/dataset_ANHIR/images/COAD_*/scale-100pc/*_*.png" \
+        --nb_workers 3
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """

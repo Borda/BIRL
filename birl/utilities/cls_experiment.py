@@ -29,6 +29,8 @@ class Experiment(object):
     Tha basic template for experiment running with specific initialisation
     None, all required parameters used in future have to come in init phase
 
+    Example
+    -------
     >>> import birl.utilities.data_io as tl_io
     >>> path_out = tl_io.create_folder('output')
     >>> params = {'path_out': path_out, 'name': 'my_Experiment'}

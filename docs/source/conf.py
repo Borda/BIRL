@@ -45,7 +45,7 @@ with open('readme.md', 'w') as fp:
 
 # -- Project information -----------------------------------------------------
 
-project = birl.__name__
+project = 'BIRL'
 copyright = birl.__copyright__
 author = birl.__author__
 
@@ -71,6 +71,7 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     # 'sphinx.ext.viewcode',
+    'sphinx.ext.linkcode',
     'recommonmark',
     # 'm2r',
     'nbsphinx',
@@ -143,7 +144,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'BIRLDoc'
+htmlhelp_basename = project + '-doc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -166,7 +167,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'BIRL.tex', 'BIRL Documentation', author, 'manual'),
+    (master_doc, project + '.tex', project + ' Documentation', author, 'manual'),
 ]
 
 
@@ -175,7 +176,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'birl', 'BIRL Documentation', [author], 1)
+    (master_doc, project, project + ' Documentation', [author], 1)
 ]
 
 
@@ -185,9 +186,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'BIRL', 'BIRL Documentation',
-     author, 'BIRL', 'One line description of project.',
-     'Miscellaneous'),
+    (master_doc, project, project + ' Documentation', author, project,
+     'One line description of project.', 'Miscellaneous'),
 ]
 
 
@@ -229,7 +229,11 @@ todo_include_todos = True
 # sphinx-apidoc for me, since it's easy to forget to regen API docs
 # and commit them to my repo after making changes to my code.
 
-PACKAGES = ['birl']
+PACKAGES = [
+    birl.__name__,
+    'bm_dataset',
+    'bm_experiments',
+]
 
 
 def run_apidoc(_):
@@ -258,3 +262,54 @@ if not os.path.isdir(path_nbs):
 for path_ipynb in glob.glob(os.path.join(PATH_ROOT, 'notebooks', '*.ipynb')):
     path_ipynb2 = os.path.join(path_nbs, os.path.basename(path_ipynb))
     shutil.copy(path_ipynb, path_ipynb2)
+
+# Ignoring Third-party packages
+# https://stackoverflow.com/questions/15889621/sphinx-how-to-exclude-imports-in-automodule
+
+MOCK_MODULES = []
+with open(os.path.join(PATH_ROOT, 'requirements.txt'), 'r') as fp:
+    for ln in fp.readlines():
+        found = [ln.index(ch) for ch in list(',=<>#') if ch in ln]
+        pkg = ln[:min(found)] if found else ln
+        if pkg.rstrip():
+            MOCK_MODULES.append(pkg.rstrip())
+
+# TODO: better parse from package since the import name and package name may differ
+autodoc_mock_imports = MOCK_MODULES + ['cv2', 'skimage']
+# for mod_name in MOCK_MODULES:
+#     sys.modules[mod_name] = mock.Mock()
+
+
+# Options for the linkcode extension
+# ----------------------------------
+github_user = 'Borda'
+github_repo = project
+
+
+# Resolve function
+# This function is used to populate the (source) links in the API
+def linkcode_resolve(domain, info):
+    def find_source():
+        # try to find the file and line number, based on code from numpy:
+        # https://github.com/numpy/numpy/blob/master/doc/source/conf.py#L286
+        obj = sys.modules[info['module']]
+        for part in info['fullname'].split('.'):
+            obj = getattr(obj, part)
+        import inspect
+        import os
+        fn = inspect.getsourcefile(obj)
+        fn = os.path.relpath(fn, start=os.path.abspath('..'))
+        source, lineno = inspect.getsourcelines(obj)
+        return fn, lineno, lineno + len(source) - 1
+
+    if domain != 'py' or not info['module']:
+        return None
+    try:
+        filename = '%s#L%d-L%d' % find_source()
+    except Exception:
+        filename = info['module'].replace('.', '/') + '.py'
+    # import subprocess
+    # tag = subprocess.Popen(['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE,
+    #                        universal_newlines=True).communicate()[0][:-1]
+    return "https://github.com/%s/%s/blob/master/%s" \
+           % (github_user, github_repo, filename)

@@ -5,15 +5,17 @@ We run image registration in single thread and then in all available thread
 in parallel and measure the execution time.
 
 The tested image registration scenario is as following
+
  1. load both images
  2. perform som simple denoising
  3. extract ORB features
  4. estimate affine transform via RANSAC
  5. warp and export image
 
-Example run:
->> pip install --user tqdm numpy scikit-image
->> python bm_comp_perform.py -o ../output
+Example run::
+
+    pip install --user tqdm numpy scikit-image
+    python bm_comp_perform.py -o ../output
 
 Copyright (C) 2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
