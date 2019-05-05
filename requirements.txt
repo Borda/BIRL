@@ -9,6 +9,6 @@ pyyaml
 scikit-image
 opencv-python
 openslide-python
+SimpleITK
 mock
-psutil
-pathos
+psutilpathos
