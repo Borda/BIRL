@@ -1,8 +1,6 @@
 """
 Developed a new approach for image registration and motion estimation based
-on Markov Random Fields. On this website, you can download our software and test
-it for your own research and applications. From time to time, we will provide
-an updated version of the software including latest developments and/or new features.
+on Markov Random Fields.
 
 .. ref:: https://www.mrf-registration.net
 
@@ -127,7 +125,7 @@ class BmDROP(ImRegBenchmark):
         :return {str: str|float}: the same or updated registration info
         """
         logging.debug('.. converting images to MHD')
-        path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(record)
+        path_im_ref, path_im_move, _, _ = self._get_paths(record)
 
         for col, path_img in [(COL_IMAGE_REF, path_im_ref),
                               (COL_IMAGE_MOVE, path_im_move)]:
@@ -160,7 +158,7 @@ class BmDROP(ImRegBenchmark):
         :return {str: str}: paths to ...
         """
         path_reg_dir = self._get_path_reg_dir(record)
-        path_im_ref, path_im_move, path_lnds_ref, path_lnds_move = self._get_paths(record)
+        _, path_im_move, path_lnds_ref, _ = self._get_paths(record)
         # convert MHD image
         path_img_ = convert_from_mhd(os.path.join(path_reg_dir, 'output.mhd'))
         img_name = os.path.splitext(os.path.basename(path_im_move))[0]
