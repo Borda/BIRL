@@ -51,9 +51,9 @@ from bm_dataset.rescale_tissue_images import NB_THREADS, DEFAULT_SCALES, FOLDER_
 def arg_parse_params():
     """ argument parser from cmd
 
-    SEE: https://docs.python.org/3/library/argparse.html
     :return {str: ...}:
     """
+    # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--path_annots', type=str, required=False,
                         help='path to folder with annotations')

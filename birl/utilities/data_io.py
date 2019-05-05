@@ -332,7 +332,7 @@ def save_image(path_image, image):
 def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png'):
     """ convert standard image to MHD format
 
-    https://www.programcreek.com/python/example/96382/SimpleITK.WriteImage
+    .. ref:: https://www.programcreek.com/python/example/96382/SimpleITK.WriteImage
 
     :param str path_image: path to the input image
     :param str path_out_dir: path to output directory, if None use the input dir
@@ -365,6 +365,8 @@ def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png'):
 @io_image_decorate
 def convert_to_mhd(path_image, path_out_dir=None, to_gray=True):
     """ converting standard image to MHD (Nifty format)
+
+    .. ref:: https://stackoverflow.com/questions/37290631
 
     :param str path_image: path to the input image
     :param str path_out_dir: path to output directory, if None use the input dir

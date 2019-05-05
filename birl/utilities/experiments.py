@@ -229,8 +229,10 @@ def parse_arg_params(parser, upper_dirs=None):
 def exec_commands(commands, path_logger=None, timeout=None):
     """ run the given commands in system Command Line
 
-    SEE: https://stackoverflow.com/questions/1996518
-    https://www.quora.com/Whats-the-difference-between-os-system-and-subprocess-call-in-Python
+    See refs:
+
+    * https://stackoverflow.com/questions/1996518
+    * https://www.quora.com/Whats-the-difference-between-os-system-and-subprocess-call-in-Python
 
     :param [str] commands: commands to be executed
     :param str path_logger: path to the logger

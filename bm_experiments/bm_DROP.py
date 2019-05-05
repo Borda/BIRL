@@ -3,7 +3,8 @@ Developed a new approach for image registration and motion estimation based
 on Markov Random Fields. On this website, you can download our software and test
 it for your own research and applications. From time to time, we will provide
 an updated version of the software including latest developments and/or new features.
-See: https://www.mrf-registration.net/
+
+.. ref:: https://www.mrf-registration.net
 
 Related Publication
 Deformable Medical Image Registration: Setting the State of the Art with Discrete Methods
@@ -25,6 +26,9 @@ Installation for Linux
 Usage
 -----
 
+To see the explanation of particular parameters see the User Manual
+ http://www.mrf-registration.net/download/drop_user_guide_V1.05.pdf
+
 Sample run::
 
     mkdir ./results
@@ -38,10 +42,10 @@ Sample run::
 
 .. note:: experiments was tested on Linux Ubuntu based system
 
-.. note:: to check whether uoi have all needed libraries on Linux use `ldd dropreg2d`
- https://askubuntu.com/a/709271/863070
- and set path to the `libdroplib.so` as `export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib`
- https://unix.stackexchange.com/a/67783
+.. note:: to check whether uoi have all needed libraries on Linux use `ldd dropreg2d`,
+ see: https://askubuntu.com/a/709271/863070
+ AND set path to the `libdroplib.so` as `export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib`,
+ see: https://unix.stackexchange.com/a/67783 ; https://stackoverflow.com/a/49660575/4521646
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -53,12 +57,16 @@ import glob
 import shutil
 import logging
 
+import numpy as np
+import SimpleITK as sitk
+
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import convert_to_mhd, convert_from_mhd
+from birl.utilities.data_io import (
+    convert_to_mhd, convert_from_mhd, save_landmarks, load_landmarks)
 from birl.utilities.experiments import create_basic_parse, parse_arg_params
 from birl.cls_benchmark import (
-    ImRegBenchmark, COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_MOVE, COL_IMAGE_EXT_TEMP,
-    COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP)
+    ImRegBenchmark, COL_IMAGE_REF, COL_IMAGE_MOVE, COL_IMAGE_EXT_TEMP,
+    COL_IMAGE_MOVE_WARP, COL_POINTS_REF_WARP)
 from birl.bm_template import main
 from bm_experiments import bm_comp_perform
 
@@ -90,9 +98,13 @@ class BmDROP(ImRegBenchmark):
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
-    >>> params = {'nb_workers': 2, 'unique': False, 'visual': True,
-    ...           'path_out': path_out, 'path_cover': path_csv,
-    ...           'path_config': ''}
+    >>> params = {'path_cover': path_csv,
+    ...           'path_out': path_out,
+    ...           'nb_workers': 2,
+    ...           'unique': False,
+    ...           'visual': True,
+    ...           'path_drop': '.',  # dropreg2d
+    ...           'path_config': os.path.join(update_path('configs'), 'drop.txt')}
     >>> benchmark = BmDROP(params)
     >>> benchmark.run()  # doctest: +SKIP
     >>> del benchmark
@@ -148,21 +160,31 @@ class BmDROP(ImRegBenchmark):
         :return {str: str}: paths to ...
         """
         path_reg_dir = self._get_path_reg_dir(record)
-        _, path_im_move, _, path_lnds_move = self._get_paths(record)
+        path_im_ref, path_im_move, path_lnds_ref, path_lnds_move = self._get_paths(record)
         # convert MHD image
         path_img_ = convert_from_mhd(os.path.join(path_reg_dir, 'output.mhd'))
-        img_name, ext_img = os.path.splitext(os.path.basename(path_im_move))[0]
+        img_name = os.path.splitext(os.path.basename(path_im_move))[0]
+        ext_img = os.path.splitext(os.path.basename(path_img_))[1]
         path_img = path_img_.replace('output' + ext_img, img_name + ext_img)
         shutil.move(path_img_, path_img)
 
-        lnds_name = os.path.basename(path_lnds_move)
+        # load transform and warp landmarks
+        lnds_name = os.path.basename(path_lnds_ref)
         path_lnd = os.path.join(path_reg_dir, lnds_name)
+        # lnds_move = load_landmarks(path_lnds_move)
+        lnds_ref = load_landmarks(path_lnds_ref)
 
-        # TODO - load transform and warp landmarks
+        path_deform_x = os.path.join(path_reg_dir, 'output_x.mhd')
+        path_deform_y = os.path.join(path_reg_dir, 'output_y.mhd')
+        shift = extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds_ref)
+
+        # lnds_warp = lnds_move - shift
+        lnds_warp = lnds_ref + shift
+        save_landmarks(path_lnd, lnds_warp)
 
         # return formatted results
         return {COL_IMAGE_MOVE_WARP: path_img,
-                COL_POINTS_MOVE_WARP: path_lnd}
+                COL_POINTS_REF_WARP: path_lnd}
 
     def _clear_after_registration(self, record):
         """ clean unnecessarily files after the registration
@@ -177,55 +199,25 @@ class BmDROP(ImRegBenchmark):
         return record
 
 
-# def loadTransformedLandmarksPartialAxis_MHD (matlab, libs, transMHD, landmarks, fLog=None) :
-#     # FIXME - REMOVE
-#     transTXT = transMHD.replace('.mhd', '.txt')
-#     convertTransform_mhd2txt (matlab, libs, transMHD, transTXT, fLog)
-#
-#     lndAxis = [lnd[1] for lnd in landmarks]
-#     lndAxisNew = [0] * len(landmarks)
-#
-#     i = 0
-#     f = open(transTXT, 'r')
-#     for line in f :
-#         if i in lndAxis :
-#             elems = string.split(line.rstrip(),',')
-#             # elems = [float(e) for e in elems]
-#             for j in range(len(landmarks)) :
-#                 lnd = landmarks[j]
-#                 if lnd[1] == i :
-#                     # logger.debug('grid size is ~{}x{} anf lnd position is {}'.format(len(elems), i, lnd))
-#                     lndAxisNew[j] = float( elems[ lnd[0] ] )
-#                     # overflow the transform dim - mozna je transformace zmasena vzhledem k velikosti obrazku...
-#                     # if len(elems) >= lnd[0] :
-#                     #     lndAxisNew[j] = float( elems[ lnd[0] ] )
-#                     # else : # if out of range
-#                     #     lndAxisNew[j] = float( elems[-1] )
-#                     #     logger.warning('elem size is {} but landmark pos was {}'.format(len(elems), lnd[0]))
-#         i += 1
-#     f.close()
-#     return lndAxisNew
-#
-# def loadTransformedLandmarks_MHD (matlab, libs, transMHD, landmarks, fLog=None) :
-#     # FIXME - REMOVE
-#     logger.info ( ' loadTransformedLandmarks_MHD: -> exist: {} - file with transform: {}'.format(os.path.isfile(transMHD), transMHD) )
-#     logger.debug('landmarks: {}'.format(landmarks))
-#     # read X Trans
-#     fNameAxis_X = transMHD.replace('.mhd','_x.mhd')
-#     lndShift_X = loadTransformedLandmarksPartialAxis_MHD (matlab, libs, fNameAxis_X, landmarks, fLog)
-#     logger.debug ( ' loadTransformedLandmarks_MHD: {}'.format(lndShift_X) )
-#
-#     # read Y Trans
-#     fNameAxis_Y = transMHD.replace('.mhd','_y.mhd')
-#     lndShift_Y = loadTransformedLandmarksPartialAxis_MHD (matlab, libs, fNameAxis_Y, landmarks, fLog)
-#     logger.debug ( ' loadTransformedLandmarks_MHD: {}'.format(lndShift_Y) )
-#
-#     # landmarks = np.array(landmarks)
-#     lnd_X = [landmarks[i][0]-lndShift_Y[i] for i in range(len(landmarks))]
-#     lnd_Y = [landmarks[i][1]-lndShift_X[i] for i in range(len(landmarks))]
-#     # lndTrans = np.array( zip(lnd_X, lnd_Y) )
-#     lndTrans = zip(lnd_X, lnd_Y)
-#     return lndTrans
+def extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds):
+    """ given pair of deformation fields and landmark positions get shift
+
+    :param str path_deform_x: path to deformation field in X axis
+    :param str path_deform_y: path to deformation field in Y axis
+    :param ndarray lnds: landmarks
+    :return ndarray: shift for each landmarks
+    """
+    # define function for parsing particular shift from MHD
+    def _parse_shift(path_deform_, lnds):
+        deform_ = sitk.GetArrayFromImage(sitk.ReadImage(path_deform_))
+        shift_ = deform_[lnds[:, 1], lnds[:, 0]]
+        return shift_
+    # get shift in both axis
+    shift_x = _parse_shift(path_deform_x, lnds)
+    shift_y = _parse_shift(path_deform_y, lnds)
+    # concatenate
+    shift = np.array([shift_x, shift_y]).T
+    return shift
 
 
 # RUN by given parameters

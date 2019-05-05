@@ -1,8 +1,9 @@
 """A setuptools based setup module.
 
 See:
-https://packaging.python.org/en/latest/distributing.html
-https://github.com/pypa/sampleproject
+
+* https://packaging.python.org/en/latest/distributing.html
+* https://github.com/pypa/sampleproject
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
