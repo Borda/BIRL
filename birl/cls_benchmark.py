@@ -130,8 +130,11 @@ class ImRegBenchmark(Experiment):
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
-    >>> params = {'nb_workers': 1, 'unique': False, 'visual': True,
-    ...           'path_out': path_out, 'path_cover': path_csv}
+    >>> params = {'path_cover': path_csv,
+    ...           'path_out': path_out,
+    ...           'nb_workers': 1,
+    ...           'unique': False,
+    ...           'visual': True}
     >>> benchmark = ImRegBenchmark(params)
     >>> benchmark.run()
     True
@@ -142,8 +145,11 @@ class ImRegBenchmark(Experiment):
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
-    >>> params = {'nb_workers': 2, 'unique': False, 'visual': True,
-    ...           'path_out': path_out, 'path_cover': path_csv}
+    >>> params = {'path_cover': path_csv,
+    ...           'path_out': path_out,
+    ...           'nb_workers': 2,
+    ...           'unique': False,
+    ...           'visual': True}
     >>> benchmark = ImRegBenchmark(params)
     >>> benchmark.run()
     True
