@@ -124,9 +124,18 @@ class BmDROP(ImRegBenchmark):
         logging.debug('.. converting images to MHD')
         path_im_ref, path_im_move, _, _ = self._get_paths(record)
 
-        for col, path_img in [(COL_IMAGE_REF, path_im_ref),
-                              (COL_IMAGE_MOVE, path_im_move)]:
-            record[col + COL_IMAGE_EXT_TEMP] = convert_to_mhd(path_img, to_gray=True)
+        convert_queue = [(path_im_ref, COL_IMAGE_REF), (path_im_move, COL_IMAGE_MOVE)]
+
+        for path_img, col in convert_queue:
+            record[col + COL_IMAGE_EXT_TEMP] = \
+                convert_to_mhd(path_img, to_gray=True, overwrite=False)
+
+        # def __wrap_convert_mhd(path_img, col):
+        #     path_img = convert_to_mhd(path_img, to_gray=True, overwrite=False)
+        #     return path_img, col
+        #
+        # for path_img, col in iterate_mproc_map(__wrap_convert_mhd, convert_queue):
+        #     record[col + COL_IMAGE_EXT_TEMP] = path_img
 
         return record
 
@@ -140,11 +149,15 @@ class BmDROP(ImRegBenchmark):
         path_im_ref, path_im_move, _, _ = self._get_paths(record)
         path_dir = self._get_path_reg_dir(record)
 
-        command = '%s "%s" "%s" %s %s' % (self.params['exec_DROP'],
-                                          path_im_move,
-                                          path_im_ref,
-                                          os.path.join(path_dir, 'output'),
-                                          self.params['path_config'])
+        # NOTE: for some reason " in the command makes it crash in Run mode
+        # somehow it works fine even with " in Debug mode
+        command = ' '.join([
+            self.params['exec_DROP'],
+            path_im_move,
+            path_im_ref,
+            os.path.join(path_dir, 'output'),
+            self.params['path_config'],
+        ])
 
         return command
 
@@ -204,6 +217,7 @@ def extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds):
     """
     # define function for parsing particular shift from MHD
     def _parse_shift(path_deform_, lnds):
+        assert os.path.isfile(path_deform_), 'missing deformation: %s' % path_deform_
         deform_ = sitk.GetArrayFromImage(sitk.ReadImage(path_deform_))
         shift_ = deform_[lnds[:, 1], lnds[:, 0]]
         return shift_

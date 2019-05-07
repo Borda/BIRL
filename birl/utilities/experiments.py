@@ -260,9 +260,11 @@ def exec_commands(commands, path_logger=None, timeout=None):
     for cmd in commands:
         outputs += [cmd.encode('utf-8')]
         try:
+            # os.system(cmd)
+            # NOTE: for some reason " in the command makes it crash, e.g with DROP
             outputs += [subprocess.check_output(cmd.split(), **options)]
         except subprocess.CalledProcessError as e:
-            logging.exception(commands)
+            logging.exception(cmd)
             outputs += [e.output]
             success = False
     # export the output if path exists

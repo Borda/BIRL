@@ -11,4 +11,5 @@ opencv-python
 openslide-python
 SimpleITK
 mock
-psutilpathos
+psutil
+pathos

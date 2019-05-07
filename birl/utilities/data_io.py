@@ -346,6 +346,7 @@ def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png'):
     '...artificial_reference.png'
     """
     path_image = update_path(path_image)
+    assert os.path.isfile(path_image), 'missing image: %s' % path_image
     # Reads the image using SimpleITK
     itk_image = sitk.ReadImage(path_image)
 
@@ -363,13 +364,14 @@ def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png'):
 
 
 @io_image_decorate
-def convert_to_mhd(path_image, path_out_dir=None, to_gray=True):
+def convert_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True):
     """ converting standard image to MHD (Nifty format)
 
     .. ref:: https://stackoverflow.com/questions/37290631
 
     :param str path_image: path to the input image
     :param str path_out_dir: path to output directory, if None use the input dir
+    :param bool overwrite: allow overwrite existing image
     :return str: path to exported image
 
     >>> path_img = os.path.join(update_path('data_images'), 'images',
@@ -378,6 +380,15 @@ def convert_to_mhd(path_image, path_out_dir=None, to_gray=True):
     '...artificial_moving-affine.mhd'
     """
     path_image = update_path(path_image)
+    # define output/destination path
+    img_name = os.path.splitext(os.path.basename(path_image))[0]
+    if not path_out_dir:
+        path_out_dir = os.path.dirname(path_image)
+    path_image_new = os.path.join(path_out_dir, img_name + '.mhd')
+    # in case the image exists and you are not allowed to overwrite it
+    if os.path.isfile(path_image_new) and not overwrite:
+        return path_image_new
+
     img = load_image(path_image)
     # if required and RGB on input convert to gray-scale
     if to_gray and img.ndim == 3 and img.shape[2] in (3, 4):
@@ -389,14 +400,9 @@ def convert_to_mhd(path_image, path_out_dir=None, to_gray=True):
 
     image = sitk.GetImageFromArray(img.astype(np.uint8), isVector=False)
 
-    # define output/destination path
-    img_name = os.path.splitext(os.path.basename(path_image))[0]
-    if not path_out_dir:
-        path_out_dir = os.path.dirname(path_image)
-    path_image = os.path.join(path_out_dir, img_name + '.mhd')
     # do not use text in MHD, othwerwise it crash DROP method
-    sitk.WriteImage(image, path_image, False)
-    return path_image
+    sitk.WriteImage(image, path_image_new, False)
+    return path_image_new
 
 
 def image_histogram_matching(source, reference, use_color='hsv'):
