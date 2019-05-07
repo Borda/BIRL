@@ -30,12 +30,12 @@ To see the explanation of particular parameters see the User Manual
 Sample run::
 
     mkdir ./results
-    python birl/bm_DROP.py \
+    python bm_experiments/bm_DROP.py \
         -c ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         -DROP ~/Applications/DROP/dropreg2d \
-        --path_config ./configs/drop.txt
+        --path_config ./configs/drop.txt \
         --visual --unique
 
 .. note:: experiments was tested on Linux Ubuntu based system
@@ -75,9 +75,9 @@ def extend_parse(a_parser):
     :return object:
     """
     # SEE: https://docs.python.org/3/library/argparse.html
-    a_parser.add_argument('-DROP', '--path_drop', type=str, required=True,
+    a_parser.add_argument('-DROP', '--exec_DROP', type=str, required=True,
                           help='path to DROP executable, use `dropreg2d`')
-    a_parser.add_argument('--path_config', type=str, required=True,
+    a_parser.add_argument('-config', '--path_config', type=str, required=True,
                           help='parameters for DROP registration')
     return a_parser
 
@@ -101,7 +101,7 @@ class BmDROP(ImRegBenchmark):
     ...           'nb_workers': 2,
     ...           'unique': False,
     ...           'visual': True,
-    ...           'path_drop': '.',  # dropreg2d
+    ...           'exec_DROP': 'dropreg2d',
     ...           'path_config': os.path.join(update_path('configs'), 'drop.txt')}
     >>> benchmark = BmDROP(params)
     >>> benchmark.run()  # doctest: +SKIP
@@ -109,8 +109,7 @@ class BmDROP(ImRegBenchmark):
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
-    REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['path_drop',
-                                                        'path_config']
+    REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_DROP', 'path_config']
 
     def _prepare(self):
         logging.info('-> copy configuration...')
@@ -141,7 +140,7 @@ class BmDROP(ImRegBenchmark):
         path_im_ref, path_im_move, _, _ = self._get_paths(record)
         path_dir = self._get_path_reg_dir(record)
 
-        command = '%s "%s" "%s" %s %s' % (self.params['path_drop'],
+        command = '%s "%s" "%s" %s %s' % (self.params['exec_DROP'],
                                           path_im_move,
                                           path_im_ref,
                                           os.path.join(path_dir, 'output'),
