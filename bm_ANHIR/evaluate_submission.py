@@ -76,7 +76,7 @@ import pandas as pd
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import create_folder, load_landmarks, save_landmarks
 from birl.utilities.dataset import common_landmarks, parse_path_scale
-from birl.utilities.experiments import wrap_execute_sequence, parse_arg_params, FORMAT_DATE_TIME
+from birl.utilities.experiments import iterate_mproc_map, parse_arg_params, FORMAT_DATE_TIME
 from birl.cls_benchmark import (
     NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COVER_COLUMNS_WRAP, COL_STATUS,
     COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP, COL_POINTS_REF, COL_POINTS_MOVE, COL_POINTS_MOVE_WARP,
@@ -328,8 +328,8 @@ def export_summary_json(df_experiments, path_experiments, path_output,
     df_experiments[COL_TISSUE] = df_experiments[COL_POINTS_REF].apply(_get_tissue)
 
     # export partial results
-    cases = list(wrap_execute_sequence(parse_landmarks, df_experiments.iterrows(),
-                                       desc='Parsing landmarks', nb_workers=1))
+    cases = list(iterate_mproc_map(parse_landmarks, df_experiments.iterrows(),
+                                   desc='Parsing landmarks', nb_workers=1))
 
     # copy the initial to final for missing
     for col, col2 in zip(*_filter_tre_measure_columns(df_experiments)):
@@ -429,16 +429,16 @@ def main(path_experiment, path_cover, path_dataset, path_output, path_reference=
     logging.info('Filter used landmarks.')
     _filter_lnds = partial(filter_landmarks, path_output=path_output,
                            path_dataset=path_dataset, path_reference=path_reference)
-    for idx, ratio in wrap_execute_sequence(_filter_lnds, df_experiments.iterrows(),
-                                            desc='Filtering', nb_workers=nb_workers):
+    for idx, ratio in iterate_mproc_map(_filter_lnds, df_experiments.iterrows(),
+                                        desc='Filtering', nb_workers=nb_workers):
         df_experiments.loc[idx, COL_FOUND_LNDS] = np.round(ratio, 2)
 
     logging.info('Compute landmarks statistic.')
     _compute_lnds_stat = partial(compute_registration_statistic, df_experiments=df_experiments,
                                  path_dataset=path_output, path_experiment=path_experiment)
     # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
-    list(wrap_execute_sequence(_compute_lnds_stat, df_experiments.iterrows(),
-                               desc='Statistic', nb_workers=1))
+    list(iterate_mproc_map(_compute_lnds_stat, df_experiments.iterrows(),
+                           desc='Statistic', nb_workers=1))
 
     path_results = os.path.join(path_output, os.path.basename(path_results))
     logging.debug('exporting CSV results: %s', path_results)

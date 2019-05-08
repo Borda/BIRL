@@ -32,7 +32,7 @@ with open(path.join(PATH_HERE, 'requirements.txt'), encoding='utf-8') as fp:
 setup(
     name='BIRL',
     version=birl.__version__,
-    url=birl.__home__,
+    url=birl.__homepage__,
 
     author=birl.__author__,
     author_email=birl.__author_email__,

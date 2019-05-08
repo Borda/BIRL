@@ -143,7 +143,7 @@ mkdir results
 python birl/bm_template.py \
     -c ./data_images/pairs-imgs-lnds_mix.csv \
     -o ./results \
-    --path_sample_config sample_config.yaml \
+    -config sample_config.yaml \
     --preprocessing hist-matching gray \
     --unique --visual
 ```
@@ -154,7 +154,7 @@ python birl/bm_template.py \
     -c ./data_images/pairs-imgs-lnds_histol.csv \
     -d ./data_images \
     -o ./results \
-    --path_sample_config sample_config.yaml \
+    -config sample_config.yaml \
     --preprocessing gray hist-matching
 ```
 
@@ -190,7 +190,7 @@ For each benchmark experiment, the explanation about how to install and use a pa
         -c ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
-        -fiji ./applications/Fiji.app/ImageJ-linux64 \
+        -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
         -config ./configs/ImageJ_bUnwarpJ_histol.yaml \
         --preprocessing hist-matching \
         --visual --unique
@@ -201,7 +201,7 @@ For each benchmark experiment, the explanation about how to install and use a pa
         -c ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
-        -rr Rscript \
+        -R Rscript \
         -script ./scripts/Rscript/RNiftyReg_linear.r \
         --visual --unique
     ```

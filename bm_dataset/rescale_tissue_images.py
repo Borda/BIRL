@@ -27,7 +27,7 @@ from functools import partial
 import cv2 as cv
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.experiments import wrap_execute_sequence, is_iterable
+from birl.utilities.experiments import iterate_mproc_map, is_iterable
 from birl.utilities.dataset import (load_large_image, save_large_image,
                                     parse_path_scale, args_expand_parse_images)
 from birl.utilities.data_io import create_folder
@@ -120,8 +120,8 @@ def main(path_images, scales, image_extension, overwrite, nb_workers):
 
     _wrap_scale = partial(wrap_scale_image, image_ext=image_extension,
                           overwrite=overwrite)
-    list(wrap_execute_sequence(_wrap_scale, image_path_scales,
-                               desc='Scaling images', nb_workers=nb_workers))
+    list(iterate_mproc_map(_wrap_scale, image_path_scales, desc='Scaling images',
+                           nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

@@ -40,7 +40,7 @@ import numpy as np
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.experiments import wrap_execute_sequence, parse_arg_params, is_iterable
+from birl.utilities.experiments import iterate_mproc_map, parse_arg_params, is_iterable
 from birl.utilities.data_io import create_folder, load_landmarks_csv, save_landmarks_csv
 from birl.utilities.dataset import (list_sub_folders, parse_path_scale,
                                     compute_bounding_polygon, inside_polygon)
@@ -224,8 +224,8 @@ def dataset_expand_landmarks(path_annots, path_dataset, nb_selected=None,
 
     _wrap_extend = partial(extend_landmarks, path_dataset=path_dataset,
                            nb_selected=nb_selected, nb_total=nb_total)
-    counts = list(wrap_execute_sequence(_wrap_extend, sorted(list_sets),
-                                        nb_workers=nb_workers, desc='expand landmarks'))
+    counts = list(iterate_mproc_map(_wrap_extend, sorted(list_sets),
+                                    nb_workers=nb_workers, desc='expand landmarks'))
     return counts
 
 
@@ -271,8 +271,8 @@ def dataset_scale_landmarks(path_dataset, scales=DEFAULT_SCALES, nb_workers=NB_T
     logging.info('Found sets: %i', len(list_sets))
 
     _wrap_scale = partial(scale_set_landmarks, scales=scales)
-    counts = list(wrap_execute_sequence(_wrap_scale, sorted(list_sets),
-                                        nb_workers=nb_workers, desc='scaling sets'))
+    counts = list(iterate_mproc_map(_wrap_scale, sorted(list_sets),
+                                    nb_workers=nb_workers, desc='scaling sets'))
     return counts
 
 

@@ -32,7 +32,7 @@ from birl.utilities.data_io import (
     image_histogram_matching)
 from birl.utilities.evaluate import (
     compute_target_regist_error_statistic, compute_affine_transf_diff, compute_tre_robustness)
-from birl.utilities.experiments import exec_commands, string_dict, wrap_execute_sequence
+from birl.utilities.experiments import exec_commands, string_dict, iterate_mproc_map
 from birl.utilities.visualisation import (
     export_figure, draw_image_points, draw_images_warped_landmarks)
 from birl.utilities.registration import estimate_affine_transform
@@ -95,24 +95,6 @@ COVER_COLUMNS = (COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_REF, COL_POINTS_MOVE)
 COVER_COLUMNS_EXT = tuple(list(COVER_COLUMNS) + [COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL])
 COVER_COLUMNS_WRAP = tuple(list(COVER_COLUMNS) + [COL_IMAGE_REF_WARP, COL_IMAGE_MOVE_WARP,
                                                   COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP])
-
-
-# fixing ImportError: No module named 'copy_reg' for Python3
-if sys.version_info.major == 2:
-    import types
-    import copy_reg
-
-    def _reduce_method(m):
-        # SOLVING issue: cPickle.PicklingError:
-        #   Can't pickle <type 'instancemethod'>:
-        #       attribute lookup __builtin__.instancemethod failed
-        if m.im_self is None:
-            tp = m.im_class
-        else:
-            tp = m.im_self
-        return getattr, (tp, m.im_func.func_name)
-
-    copy_reg.pickle(types.MethodType, _reduce_method)
 
 
 class ImRegBenchmark(Experiment):
@@ -314,12 +296,10 @@ class ImRegBenchmark(Experiment):
         # run the experiment in parallel of single thread
         nb_workers = self.nb_workers if nb_workers is None else nb_workers
         iter_table = ((idx, dict(row)) for idx, row, in input_table.iterrows())
-        for res in wrap_execute_sequence(method, iter_table, ordered=True,
-                                         nb_workers=nb_workers, desc=desc):
-            if res is None or not aggr_experiments:
-                continue
-            self._df_experiments = self._df_experiments.append(res, ignore_index=True)
-            self.__export_df_experiments(path_csv)
+        for res in iterate_mproc_map(method, iter_table, nb_workers=nb_workers, desc=desc):
+            if res is not None and aggr_experiments:
+                self._df_experiments = self._df_experiments.append(res, ignore_index=True)
+                self.__export_df_experiments(path_csv)
         self._main_thread = True
 
     def __export_df_experiments(self, path_csv=None):
@@ -360,31 +340,39 @@ class ImRegBenchmark(Experiment):
         """
         path_dir = self._get_path_reg_dir(record)
 
-        def _path_img(path_img, pproc):
+        def __path_img(path_img, pproc):
             img_name, img_ext = os.path.splitext(os.path.basename(path_img))
             return os.path.join(path_dir, img_name + '_' + pproc + img_ext)
 
-        def _save_img(col, path_img_new, img):
+        def __save_img(col, path_img_new, img):
             col_temp = col + COL_IMAGE_EXT_TEMP
             if isinstance(record.get(col_temp, None), str):
                 path_img = self._update_path(record[col_temp], destination='expt')
                 os.remove(path_img)
             save_image(path_img_new, img)
-            record[col + COL_IMAGE_EXT_TEMP] = \
-                self._relativize_path(path_img_new, destination='path_exp')
+            return self._relativize_path(path_img_new, destination='path_exp'), col
+
+        def __convert_gray(path_img_col):
+            path_img, col = path_img_col
+            path_img_new = __path_img(path_img, 'gray')
+            __save_img(col, path_img_new, rgb2gray(load_image(path_img)))
+            return self._relativize_path(path_img_new, destination='path_exp'), col
 
         for pproc in self.params.get('preprocessing', []):
             path_img_ref, path_img_move, _, _ = self._get_paths(record, prefer_pproc=True)
             if pproc == 'hist-matching':
-                path_img_new = _path_img(path_img_move, pproc)
+                path_img_new = __path_img(path_img_move, pproc)
                 img = image_histogram_matching(load_image(path_img_move),
                                                load_image(path_img_ref))
-                _save_img(COL_IMAGE_MOVE, path_img_new, img)
+                path_img_new, col = __save_img(COL_IMAGE_MOVE, path_img_new, img)
+                record[col + COL_IMAGE_EXT_TEMP] = path_img_new
             elif pproc in ('gray', 'grey'):
-                for col, path_img in [(COL_IMAGE_REF, path_img_ref),
-                                      (COL_IMAGE_MOVE, path_img_move)]:
-                    path_img_new = _path_img(path_img, pproc)
-                    _save_img(col, path_img_new, rgb2gray(load_image(path_img)))
+                argv_params = [(path_img_ref, COL_IMAGE_REF),
+                               (path_img_move, COL_IMAGE_MOVE)]
+                # TODO: find a way how to convert images in parallel inside mproc pool
+                for path_img, col in iterate_mproc_map(__convert_gray, argv_params,
+                                                       nb_workers=1):
+                    record[col + COL_IMAGE_EXT_TEMP] = path_img
             else:
                 logging.warning('unrecognized pre-processing: %s', pproc)
         return record
@@ -395,6 +383,9 @@ class ImRegBenchmark(Experiment):
         :param {} record: the input record
         :return {}: updated record with optionally removed temp images
         """
+        # clean only if some preprocessing was required
+        if not self.params.get('preprocessing', []):
+            return record
         # iterate over both - target and source images
         for col_in, col_warp in [(COL_IMAGE_REF, COL_IMAGE_REF_WARP),
                                  (COL_IMAGE_MOVE, COL_IMAGE_MOVE_WARP)]:

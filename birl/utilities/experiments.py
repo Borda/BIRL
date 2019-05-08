@@ -13,6 +13,7 @@ import argparse
 import subprocess
 import collections
 import multiprocessing as mproc
+from pathos.multiprocessing import ProcessPool
 from functools import wraps
 
 import tqdm
@@ -30,6 +31,22 @@ FILE_LOGS = 'logging.txt'
 STR_LOG_FORMAT = '%(asctime)s:%(levelname)s@%(filename)s:%(processName)s - %(message)s'
 #: default logging template - date-time for logging to file
 LOG_FILE_FORMAT = logging.Formatter(STR_LOG_FORMAT, datefmt="%H:%M:%S")
+#: define all types to be assume list like
+ITERABLE_TYPES = (list, tuple, types.GeneratorType)
+
+
+# fixing ImportError: No module named 'copy_reg' for Python2
+# if sys.version_info.major == 2:
+#     import copy_reg
+#
+#     def _reduce_method(m):
+#         # SOLVING issue: cPickle.PicklingError:
+#         #   Can't pickle <type 'instancemethod'>:
+#         #       attribute lookup __builtin__.instancemethod failed
+#         tp = m.im_class if m.im_self is None else m.im_self
+#         return getattr, (tp, m.im_func.func_name)
+#
+#     copy_reg.pickle(types.MethodType, _reduce_method)
 
 
 def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
@@ -257,15 +274,20 @@ def exec_commands(commands, path_logger=None, timeout=None):
     return success
 
 
-# class NonDaemonPool(multiprocessing.pool.Pool):
+# class NonDaemonPool(ProcessPool):
 #     """ We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
 #     because the latter is only a wrapper function, not a proper class.
 #
 #     See: https://github.com/nipy/nipype/pull/2754
 #
-#     ERROR: fails on Windows
+#     Examples:
+#     `PicklingError: Can't pickle <class 'birl.utilities.experiments.NonDaemonProcess'>:
+#      it's not found as birl.utilities.experiments.NonDaemonProcess`
+#     `PicklingError: Can't pickle <function _wrap_func at 0x03152EF0>:
+#      it's not found as birl.utilities.experiments._wrap_func`
 #
-#     >>> NonDaemonPool(1)  # doctest: +SKIP
+#     >>> NonDaemonPool(1).map(sum, [(1, )] * 5)
+#     [1, 1, 1, 1, 1]
 #     """
 #     def Process(self, *args, **kwds):
 #         proc = super(NonDaemonPool, self).Process(*args, **kwds)
@@ -284,23 +306,33 @@ def exec_commands(commands, path_logger=None, timeout=None):
 #         return proc
 
 
-def wrap_execute_sequence(wrap_func, iterate_vals, nb_workers=NB_THREADS,
-                          desc='', ordered=False):
-    """ wrapper for execution parallel of single thread as for...
+def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=NB_THREADS, desc=''):
+    """ create a multi-porocessing pool and execute a wrapped function in separate process
 
     :param wrap_func: function which will be excited in the iterations
     :param [] iterate_vals: list or iterator which will ide in iterations
     :param int nb_workers: number og jobs running in parallel
     :param str|None desc: description for the bar,
         if it is set None, bar is suppressed
-    :param bool ordered: whether enforce ordering in the parallelism
 
-    >>> list(wrap_execute_sequence(np.sqrt, range(5), nb_workers=1,
-    ...                            ordered=True))  # doctest: +ELLIPSIS
+    Waiting reply on:
+
+    * https://github.com/celery/billiard/issues/280
+    * https://github.com/uqfoundation/pathos/issues/169
+
+    See:
+
+    * https://sebastianraschka.com/Articles/2014_multiprocessing.html
+    * https://github.com/nipy/nipype/pull/2754
+    * https://medium.com/contentsquare-engineering-blog/multithreading-vs-multiprocessing-in-python-ece023ad55a
+    * http://mindcache.me/2015/08/09/python-multiprocessing-module-daemonic-processes-are-not-allowed-to-have-children.html
+    * https://medium.com/@bfortuner/python-multithreading-vs-multiprocessing-73072ce5600b
+
+    >>> list(iterate_mproc_map(np.sqrt, range(5), nb_workers=1))  # doctest: +ELLIPSIS
     [0.0, 1.0, 1.41..., 1.73..., 2.0]
-    >>> list(wrap_execute_sequence(sum, [[0, 1]] * 5, nb_workers=2, desc=None))
+    >>> list(iterate_mproc_map(sum, [[0, 1]] * 5, nb_workers=2, desc=None))
     [1, 1, 1, 1, 1]
-    >>> list(wrap_execute_sequence(max, [[2, 1]] * 5, nb_workers=2, desc=''))
+    >>> list(iterate_mproc_map(max, [(2, 1)] * 5, nb_workers=2, desc=''))
     [2, 2, 2, 2, 2]
     """
     iterate_vals = list(iterate_vals)
@@ -316,28 +348,83 @@ def wrap_execute_sequence(wrap_func, iterate_vals, nb_workers=NB_THREADS,
         # Standard mproc.Pool created a demon processes which can be called
         # inside its children, cascade or multiprocessing
         # https://stackoverflow.com/questions/6974695/python-process-pool-non-daemonic
-        pool = mproc.Pool(nb_workers)
-        pooling = pool.imap if ordered else pool.imap_unordered
 
-        for out in pooling(wrap_func, iterate_vals):
-            tqdm_bar.update() if tqdm_bar is not None else None
-            yield out
-        pool.close()
-        pool.join()
+        # pool = mproc.Pool(nb_workers)
+        # pool = NonDaemonPool(nb_workers)
+        pool = ProcessPool(nb_workers)
+        # pool = Pool(nb_workers)
+        mapping = pool.imap
     else:
         logging.debug('perform sequential')
-        for out in map(wrap_func, iterate_vals):
-            tqdm_bar.update() if tqdm_bar is not None else None
-            yield out
+        pool = None
+        mapping = map
+
+    for out in mapping(wrap_func, iterate_vals):
+        tqdm_bar.update() if tqdm_bar is not None else None
+        yield out
+
+    if pool:
+        pool.close()
+        pool.join()
+        pool.clear()
 
     tqdm_bar.close() if tqdm_bar is not None else None
+
+
+# from pathos.helpers import mp
+# def perform_parallel(func, arg_params, deamonic=False):
+#     """ run all processes in  parallel and wait until all is finished
+#
+#     :param func: the function to be executed
+#     :param [] arg_params: list or tuple of parameters
+#     :return []: list of outputs
+#
+#     https://sebastianraschka.com/Articles/2014_multiprocessing.html
+#
+#     ERROR: Failing on Windows with PickleError
+#      or is it uses `dill` it terminates on infinite recursive call/load
+#
+#     >>> perform_parallel(max, [(2, 1)] * 5)
+#     [2, 2, 2, 2, 2]
+#     >>> power2 = lambda x: np.power(x, 2)
+#     >>> perform_parallel(power2, [1] * 5)
+#     [1, 1, 1, 1, 1]
+#     """
+#     # Define an output queue
+#     outputs = mp.Queue()
+#
+#     # define a wrapper which puts function returns to a queue
+#     @wraps(func)
+#     def _wrap_func(*argv):
+#         out = func(*argv)
+#         outputs.put(out)
+#
+#     # in case the parameters are just single variable
+#     # arg_params = [argv if is_iterable(argv) else [argv] for argv in arg_params]
+#
+#     # Setup a list of processes that we want to run
+#     processes = [mp.Process(target=_wrap_func, args=(argv, )) for argv in arg_params]
+#
+#     # Run processes
+#     for ps in processes:
+#         ps.daemon = deamonic
+#         ps.start()
+#
+#     # Exit the completed processes
+#     for ps in processes:
+#         ps.join()
+#
+#     # Get process results from the output queue
+#     results = [outputs.get() for _ in processes]
+#
+#     return results
 
 
 def try_decorator(func):
     """ costume decorator to wrap function in try/except
 
-    :param func:
-    :return:
+    :param func: decorated function
+    :return: output of the decor. function
     """
     @wraps(func)
     def wrap(*args, **kwargs):
@@ -348,11 +435,11 @@ def try_decorator(func):
     return wrap
 
 
-def is_iterable(var):
+def is_iterable(var, iterable_types=ITERABLE_TYPES):
     """ check if the variable is iterable
 
-    :param var:
-    :return bool:
+    :param var: tested variable
+    :return bool: iterable
 
     >>> is_iterable('abc')
     False
@@ -361,7 +448,8 @@ def is_iterable(var):
     >>> is_iterable((1, ))
     True
     """
-    return any(isinstance(var, cls) for cls in [list, tuple, types.GeneratorType])
+    is_iter = any(isinstance(var, cls) for cls in iterable_types)
+    return is_iter
 
 
 def dict_deep_update(dict_base, dict_update):

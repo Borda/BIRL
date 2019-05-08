@@ -11,3 +11,4 @@ opencv-python
 openslide-python
 mock
 psutil
+pathos

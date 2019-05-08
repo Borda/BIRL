@@ -28,7 +28,7 @@ Run the basic bUnwarpJ registration with original parameters::
         -c ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
-        -fiji ./applications/Fiji.app/ImageJ-linux64 \
+        -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
         -config ./configs/ImageJ_bUnwarpJ_histol.yaml \
         --preprocessing hist-matching \
         --visual --unique
@@ -40,7 +40,7 @@ see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support ::
         -c ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
-        -fiji ./applications/Fiji.app/ImageJ-linux64 \
+        -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
         -config ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml \
         --preprocessing hist-matching \
         --visual --unique
@@ -74,14 +74,14 @@ PATH_SCRIPT_WARP_LANDMARKS = os.path.join(PATH_IJ_SCRIPTS, 'apply-bUnwarpJ-trans
 # PATH_SCRIPT_HIST_MATCH_IJM = os.path.join(PATH_IJ_SCRIPTS, 'histogram-matching-for-macro.bsh')
 NAME_LANDMARKS = 'source_landmarks.txt'
 NAME_LANDMARKS_WARPED = 'warped_source_landmarks.txt'
-COMMAND_WARP_LANDMARKS = '%(path_fiji)s --headless %(path_bsh)s' \
+COMMAND_WARP_LANDMARKS = '%(exec_Fiji)s --headless %(path_bsh)s' \
                          ' %(source)s %(target)s' \
                          ' %(output)s/' + NAME_LANDMARKS + \
                          ' %(output)s/' + NAME_LANDMARKS_WARPED + \
                          ' %(output)s/transform-inverse.txt' \
                          ' %(output)s/transform-direct.txt' \
                          ' %(warp)s'
-COMMAND_REGISTRATION = '%(path_fiji)s --headless %(path_bsh)s' \
+COMMAND_REGISTRATION = '%(exec_Fiji)s --headless %(path_bsh)s' \
                        ' %(source)s %(target)s %(params)s' \
                        ' %(output)s/transform-direct.txt %(output)s/transform-inverse.txt'
 REQUIRED_PARAMS_BUNWARPJ = (
@@ -128,7 +128,7 @@ def extend_parse(a_parser):
     :return object:
     """
     # SEE: https://docs.python.org/3/library/argparse.html
-    a_parser.add_argument('-fiji', '--path_fiji', type=str, required=True,
+    a_parser.add_argument('-Fiji', '--exec_Fiji', type=str, required=True,
                           help='path to the Fiji executable')
     a_parser.add_argument('-config', '--path_config', required=True,
                           type=str, help='path to the bUnwarpJ configuration')
@@ -146,11 +146,13 @@ class BmUnwarpJ(ImRegBenchmark):
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> fn_path_conf = lambda n: os.path.join(update_path('configs'), n)
-    >>> params = {'nb_workers': 1, 'unique': False,
+    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
+    >>> params = {'path_cover': path_csv,
     ...           'path_out': path_out,
-    ...           'path_cover': os.path.join(update_path('data_images'),
-    ...                                      'pairs-imgs-lnds_mix.csv'),
-    ...           'path_fiji': '.', 'preprocessing': ['hist-matching'],
+    ...           'exec_Fiji': 'ImageJ-linux64',
+    ...           'preprocessing': ['hist-matching'],
+    ...           'nb_workers': 2,
+    ...           'unique': False,
     ...           'path_config': fn_path_conf('ImageJ_bUnwarpJ_histol.yaml')}
     >>> benchmark = BmUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
@@ -160,8 +162,7 @@ class BmUnwarpJ(ImRegBenchmark):
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
-    REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['path_fiji',
-                                                        'path_config']
+    REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_Fiji', 'path_config']
 
     def _prepare(self):
         """ prepare Benchmark - copy configurations """
@@ -189,7 +190,7 @@ class BmUnwarpJ(ImRegBenchmark):
         path_reg_script = PATH_SCRIPT_REGISTRATION_SIFT if config_sift else PATH_SCRIPT_REGISTRATION_BASE
 
         cmd = COMMAND_REGISTRATION % {
-            'path_fiji': self.params['path_fiji'],
+            'exec_Fiji': self.params['exec_Fiji'],
             'path_bsh': path_reg_script,
             'target': path_im_ref,
             'source': path_im_move,
@@ -212,7 +213,7 @@ class BmUnwarpJ(ImRegBenchmark):
         # warp moving landmarks to reference frame
         path_regist = os.path.join(path_dir, os.path.basename(path_im_move))
         dict_params = {
-            'path_fiji': self.params['path_fiji'],
+            'exec_Fiji': self.params['exec_Fiji'],
             'path_bsh': PATH_SCRIPT_WARP_LANDMARKS,
             'source': path_im_move,
             'target': path_im_ref,

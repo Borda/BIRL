@@ -27,7 +27,7 @@ import cv2 as cv
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.dataset import (find_split_objects, project_object_edge, load_large_image,
                                     save_large_image, args_expand_parse_images)
-from birl.utilities.experiments import wrap_execute_sequence
+from birl.utilities.experiments import iterate_mproc_map
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .5))
 SCALE_SIZE = 512
@@ -115,8 +115,8 @@ def main(path_images, dimension, overwrite, nb_workers):
         return
 
     _wrap_split = partial(split_image, cut_dim=dimension, overwrite=overwrite)
-    list(wrap_execute_sequence(_wrap_split, image_paths,
-                               desc='Cut image tissues', nb_workers=nb_workers))
+    list(iterate_mproc_map(_wrap_split, image_paths, desc='Cut image tissues',
+                           nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

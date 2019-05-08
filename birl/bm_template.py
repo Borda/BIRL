@@ -10,9 +10,11 @@ Sample run::
 
     mkdir ./results
     python birl/bm_template.py \
-        -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images \
-        -o ./results --visual --unique \
-        --path_sample_config none
+        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -d ./data_images \
+        -o ./results \
+        --visual --unique \
+        -config none
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -32,9 +34,13 @@ def extend_parse(a_parser):
     """ extent the basic arg parses by some extra required parameters
 
     :return object:
+
+    >>> parser = extend_parse(create_basic_parse())
+    >>> type(parser)
+    <class 'argparse.ArgumentParser'>
     """
     # SEE: https://docs.python.org/3/library/argparse.html
-    a_parser.add_argument('--path_sample_config', type=str, required=True,
+    a_parser.add_argument('-config', '--path_config', type=str, required=True,
                           help='some extra parameters')
     return a_parser
 
@@ -68,10 +74,14 @@ class BmTemplate(ImRegBenchmark):
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
     >>> open('sample_config.yaml', 'w').close()
-    >>> main({'nb_workers': 1, 'unique': False, 'visual': True,
-    ...       'path_out': path_out, 'path_cover': path_csv,
-    ...       'path_sample_config': 'sample_config.yaml'}, BmTemplate)  # doctest: +ELLIPSIS
-    '...'
+    >>> main({'path_cover': path_csv,
+    ...       'path_out': path_out,
+    ...       'nb_workers': 1,
+    ...       'unique': False,
+    ...       'visual': True,
+    ...       'path_config': 'sample_config.yaml'},
+    ...      BmTemplate)  # doctest: +ELLIPSIS
+    '...BmTemplate'
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     >>> os.remove('sample_config.yaml')
@@ -80,9 +90,12 @@ class BmTemplate(ImRegBenchmark):
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
-    >>> params = {'nb_workers': 2, 'unique': False, 'visual': True,
-    ...           'path_out': path_out, 'path_cover':
-    ...            path_csv, 'path_sample_config': ''}
+    >>> params = {'path_cover': path_csv,
+    ...           'path_out': path_out,
+    ...           'nb_workers': 2,
+    ...           'unique': False,
+    ...           'visual': True,
+    ...           'path_config': ''}
     >>> benchmark = BmTemplate(params)
     >>> benchmark.run()
     True
@@ -90,12 +103,12 @@ class BmTemplate(ImRegBenchmark):
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
-    REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['path_sample_config']
+    REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['path_config']
 
     def _prepare(self):
         logging.info('-> copy configuration...')
 
-        self._copy_config_to_expt('path_sample_config')
+        self._copy_config_to_expt('path_config')
 
     def _prepare_img_registration(self, record):
         """ prepare the experiment folder if it is required,
@@ -121,8 +134,8 @@ class BmTemplate(ImRegBenchmark):
         cmd_img = 'cp %s %s' % (path_im_move, os.path.join(path_reg_dir, name_img))
         name_lnds = os.path.basename(record[COL_POINTS_MOVE])
         cmd_lnds = 'cp %s %s' % (path_lnds_move, os.path.join(path_reg_dir, name_lnds))
-        command = [cmd_img, cmd_lnds]
-        return command
+        commands = [cmd_img, cmd_lnds]
+        return commands
 
     def _extract_warped_image_landmarks(self, record):
         """ get registration results - warped registered images and landmarks

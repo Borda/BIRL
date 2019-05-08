@@ -29,7 +29,7 @@ sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.dataset import (
     find_largest_object, project_object_edge, load_large_image, save_large_image,
     args_expand_parse_images)
-from birl.utilities.experiments import wrap_execute_sequence, try_decorator
+from birl.utilities.experiments import iterate_mproc_map, try_decorator
 
 NB_THREADS = max(1, int(mproc.cpu_count() * .5))
 SCALE_SIZE = 512
@@ -104,8 +104,8 @@ def main(path_images, padding, nb_workers):
         return
 
     _wrap_crop = partial(crop_image, padding=padding)
-    list(wrap_execute_sequence(_wrap_crop, image_paths,
-                               desc='Crop image tissue', nb_workers=nb_workers))
+    list(iterate_mproc_map(_wrap_crop, image_paths, desc='Crop image tissue',
+                           nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

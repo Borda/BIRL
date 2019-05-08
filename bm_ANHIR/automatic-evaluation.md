@@ -27,7 +27,7 @@ Run one of following sample registration experiments:
         -c ~/Medical-data/dataset_ANHIR/images/dataset_medium.csv \
         -d ~/Medical-temp/dataset_ANHIR/images \
         -o ~/Medical-temp/experiments_anhir/ \
-        --path_sample_config sample_config.yaml
+        -config sample_config.yaml
     python bm_experiments/bm_comp_perform.py -o ~/Medical-temp/experiments_anhir/BmTemplate
     # remove all registered images
     rm ~/Medical-temp/experiments_anhir/BmTemplate/*/*.jpg \
@@ -40,7 +40,7 @@ Run one of following sample registration experiments:
         -d ~/Medical-temp/dataset_ANHIR/images \
         -o ~/Medical-temp/experiments_anhir/ \
         --run_comp_benchmark \
-        -fiji ~/Applications/Fiji.app/ImageJ-linux64 \
+        -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
         -config ./configs/ImageJ_bUnwarpJ_histol-1k.txt
     # remove all registered images
     rm ~/Medical-temp/experiments_anhir/BmUnwarpJ/*/*.jpg \

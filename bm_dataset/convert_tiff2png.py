@@ -39,7 +39,7 @@ except Exception:
           ' To do so, please follow instructions - https://openslides.org')
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.experiments import wrap_execute_sequence
+from birl.utilities.experiments import iterate_mproc_map
 from birl.utilities.dataset import args_expand_parse_images
 
 DEFAULT_LEVEL = 1
@@ -126,8 +126,8 @@ def main(path_images, level=DEFAULT_LEVEL, overwrite=False, nb_workers=1):
                             level=level,
                             overwrite=overwrite)
 
-    list(wrap_execute_sequence(_wrap_convert, paths_img,
-                               desc='Converting images', nb_workers=nb_workers))
+    list(iterate_mproc_map(_wrap_convert, paths_img, desc='Converting images',
+                           nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

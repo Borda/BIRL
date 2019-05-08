@@ -76,6 +76,7 @@ class TestBmRegistration(unittest.TestCase):
             'path_cover': PATH_CSV_COVER_MIX,
             'path_dataset': PATH_DATA,
             'path_out': self.path_out,
+            'preprocessing': 'nothing',
             'nb_workers': 4,
             'visual': True,
             'unique': True,
@@ -94,10 +95,10 @@ class TestBmRegistration(unittest.TestCase):
         params = {
             'path_cover': PATH_CSV_COVER_MIX,
             'path_out': self.path_out,
+            'preprocessing': ['gray', 'hist-matching'],
             'nb_workers': 2,
             'visual': True,
             'unique': False,
-            'preprocessing': ['gray', 'hist-matching'],
         }
         benchmark = ImRegBenchmark(params)
         # run it for the first time, complete experiment
@@ -116,10 +117,10 @@ class TestBmRegistration(unittest.TestCase):
             'path_cover': PATH_CSV_COVER_ANHIR,
             'path_dataset': PATH_DATA,
             'path_out': self.path_out,
+            'preprocessing': ['hist-matching', 'gray'],
             'nb_workers': 1,
             'visual': True,
             'unique': False,
-            'preprocessing': ['hist-matching', 'gray'],
         }
         benchmark = ImRegBenchmark(params)
         benchmark.run()
@@ -135,10 +136,10 @@ class TestBmRegistration(unittest.TestCase):
         params = {
             'path_cover': PATH_CSV_COVER_MIX,
             'path_out': self.path_out,
+            'path_config': path_config,
             'nb_workers': 2,
             'unique': False,
             'visual': True,
-            'path_sample_config': path_config,
         }
         benchmark = BmTemplate(params)
         benchmark.run()

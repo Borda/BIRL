@@ -32,7 +32,7 @@ Run the RNiftyReg benchmark::
         -c ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
-        -rr Rscript \
+        -R Rscript \
         -script ./scripts/Rscript/RNiftyReg_linear.r
 
 .. note:: tested for RNiftyReg > 2.x
@@ -64,7 +64,7 @@ def extend_parse(a_parser):
     :return object:
     """
     # SEE: https://docs.python.org/3/library/argparse.html
-    a_parser.add_argument('-rr', '--exec_R', type=str, required=True,
+    a_parser.add_argument('-R', '--exec_R', type=str, required=True,
                           help='path to the Rscript executable', default='Rscript')
     a_parser.add_argument('-script', '--path_R_script', required=True,
                           type=str, help='path to the R script with registration')
@@ -93,8 +93,7 @@ class BmRNiftyReg(ImRegBenchmark):
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
-    REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_R',
-                                                        'path_R_script']
+    REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_R', 'path_R_script']
 
     def _prepare(self):
         logging.info('-> copy configuration...')

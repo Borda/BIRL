@@ -27,7 +27,7 @@ from functools import partial
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.experiments import wrap_execute_sequence, parse_arg_params
+from birl.utilities.experiments import iterate_mproc_map, parse_arg_params
 from birl.cls_benchmark import (NAME_CSV_REGISTRATION_PAIRS, export_summary_results,
                                 compute_registration_statistic, visualise_registration)
 
@@ -70,8 +70,8 @@ def main(path_experiment, path_dataset, visual=False, nb_workers=NB_THREADS):
     _compute_lnds_stat = partial(compute_registration_statistic, df_experiments=df_results,
                                  path_dataset=path_dataset, path_experiment=path_experiment)
     # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
-    list(wrap_execute_sequence(_compute_lnds_stat, df_experiments.iterrows(),
-                               desc='Statistic', nb_workers=1))
+    list(iterate_mproc_map(_compute_lnds_stat, df_experiments.iterrows(),
+                           desc='Statistic', nb_workers=1))
 
     path_csv = os.path.join(path_experiment, NAME_CSV_RESULTS)
     logging.debug('exporting CSV results: %s', path_csv)
@@ -82,8 +82,8 @@ def main(path_experiment, path_dataset, visual=False, nb_workers=NB_THREADS):
     if visual:
         _visualise_regist = partial(visualise_registration, path_dataset=path_dataset,
                                     path_experiment=path_experiment)
-        list(wrap_execute_sequence(_visualise_regist, df_experiments.iterrows(),
-                                   desc='Visualisation', nb_workers=nb_workers))
+        list(iterate_mproc_map(_visualise_regist, df_experiments.iterrows(),
+                               desc='Visualisation', nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

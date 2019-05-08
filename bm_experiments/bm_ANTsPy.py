@@ -83,8 +83,7 @@ class BmANTsPy(ImRegBenchmark):
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
-    REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_Python',
-                                                        'path_script']
+    REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_Python', 'path_script']
 
     def _prepare(self):
         """ prepare BM - copy configurations """

@@ -6,7 +6,7 @@ __version__ = '0.2.2'
 __author__ = 'Jiri Borovec'
 __author_email__ = 'jiri.borovec@fel.cvut.cz'
 __license__ = 'BSD 3-clause'
-__home__ = 'https://borda.github.io/BIRL',
+__homepage__ = 'https://borda.github.io/BIRL',
 __copyright__ = 'Copyright (c) 2014-2019, Jiri Borovec.'
 __doc__ = """
 # BIRL: Benchmark on Image Registration methods with Landmark validation

@@ -228,8 +228,8 @@ def io_image_decorate(func):
     to suppress PIl debug logging
     - DEBUG:PIL.PngImagePlugin:STREAM b'IHDR' 16 13
 
-    :param func:
-    :return:
+    :param func: decorated function
+    :return: output of the decor. function
     """
     @wraps(func)
     def wrap(*args, **kwargs):
