@@ -177,10 +177,11 @@ class BmDROP(ImRegBenchmark):
         shutil.move(path_img_, path_img)
 
         # load transform and warp landmarks
-        lnds_name = os.path.basename(path_lnds_ref)
-        path_lnd = os.path.join(path_reg_dir, lnds_name)
         # lnds_move = load_landmarks(path_lnds_move)
         lnds_ref = load_landmarks(path_lnds_ref)
+        lnds_name = os.path.basename(path_lnds_ref)
+        path_lnd = os.path.join(path_reg_dir, lnds_name)
+        assert lnds_ref is not None, 'missing landmarks to be transformed "%s"' % lnds_name
 
         path_deform_x = os.path.join(path_reg_dir, 'output_x.mhd')
         path_deform_y = os.path.join(path_reg_dir, 'output_y.mhd')
@@ -223,6 +224,7 @@ def extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds):
         shift_ = deform_[lnds[:, 1], lnds[:, 0]]
         return shift_
 
+    lnds = np.array(np.round(lnds), dtype=int)
     # get shift in both axis
     shift_x = __parse_shift(path_deform_x, lnds)
     shift_y = __parse_shift(path_deform_y, lnds)

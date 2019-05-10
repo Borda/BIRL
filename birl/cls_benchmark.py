@@ -377,7 +377,7 @@ class ImRegBenchmark(Experiment):
                                (path_img_move, COL_IMAGE_MOVE)]
                 # TODO: find a way how to convert images in parallel inside mproc pool
                 for path_img, col in iterate_mproc_map(__convert_gray, argv_params,
-                                                       nb_workers=1):
+                                                       nb_workers=1, desc=None):
                     record[col + COL_IMAGE_EXT_TEMP] = path_img
             else:
                 logging.warning('unrecognized pre-processing: %s', pproc)
