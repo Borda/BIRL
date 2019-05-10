@@ -216,15 +216,16 @@ def extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds):
     :return ndarray: shift for each landmarks
     """
     # define function for parsing particular shift from MHD
-    def _parse_shift(path_deform_, lnds):
+    def __parse_shift(path_deform_, lnds):
         assert os.path.isfile(path_deform_), 'missing deformation: %s' % path_deform_
         deform_ = sitk.GetArrayFromImage(sitk.ReadImage(path_deform_))
+        assert deform_ is not None, 'loaded deformation is Empty - %s' % path_deform_
         shift_ = deform_[lnds[:, 1], lnds[:, 0]]
         return shift_
 
     # get shift in both axis
-    shift_x = _parse_shift(path_deform_x, lnds)
-    shift_y = _parse_shift(path_deform_y, lnds)
+    shift_x = __parse_shift(path_deform_x, lnds)
+    shift_y = __parse_shift(path_deform_y, lnds)
     # concatenate
     shift = np.array([shift_x, shift_y]).T
     return shift
