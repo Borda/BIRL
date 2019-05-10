@@ -65,11 +65,11 @@ def load_landmarks(path_file):
     >>> points = np.array([[1, 2], [3, 4], [5, 6]])
     >>> save_landmarks('./sample_landmarks.csv', points)
     >>> pts1 = load_landmarks('./sample_landmarks.csv')
-    >>> pts2 = load_landmarks('./sample_landmarks.txt')
+    >>> pts2 = load_landmarks('./sample_landmarks.pts')
     >>> np.array_equal(pts1, pts2)
     True
     >>> os.remove('./sample_landmarks.csv')
-    >>> os.remove('./sample_landmarks.txt')
+    >>> os.remove('./sample_landmarks.pts')
 
     >>> # Wrong loading
     >>> load_landmarks('./sample_landmarks.file')
@@ -83,33 +83,33 @@ def load_landmarks(path_file):
     ext = os.path.splitext(path_file)[-1]
     if ext == '.csv':
         return load_landmarks_csv(path_file)
-    elif ext == '.txt':
-        return load_landmarks_txt(path_file)
+    elif ext == '.pts':
+        return load_landmarks_pts(path_file)
     else:
         logging.error('not supported landmarks file: %s',
                       os.path.basename(path_file))
 
 
-def load_landmarks_txt(path_file):
+def load_landmarks_pts(path_file):
     """ load file with landmarks in txt format
 
     :param str path_file: path to the input file
     :return: np.array<np_points, dim>
 
     >>> points = np.array([[1, 2], [3, 4], [5, 6]])
-    >>> save_landmarks_txt('./sample_landmarks.txt', points)
-    >>> pts = load_landmarks_txt('./sample_landmarks.txt')
+    >>> save_landmarks_pts('./sample_landmarks.pts', points)
+    >>> pts = load_landmarks_pts('./sample_landmarks.pts')
     >>> pts  # doctest: +NORMALIZE_WHITESPACE
     array([[ 1.,  2.],
            [ 3.,  4.],
            [ 5.,  6.]])
-    >>> os.remove('./sample_landmarks.txt')
+    >>> os.remove('./sample_landmarks.pts')
 
     >>> # Empty landmarks
-    >>> open('./sample_landmarks.txt', 'w').close()
-    >>> load_landmarks_txt('./sample_landmarks.txt').size
+    >>> open('./sample_landmarks.pts', 'w').close()
+    >>> load_landmarks_pts('./sample_landmarks.pts').size
     0
-    >>> os.remove('./sample_landmarks.txt')
+    >>> os.remove('./sample_landmarks.pts')
     """
     assert os.path.isfile(path_file), 'missing file "%s"' % path_file
     with open(path_file, 'r') as fp:
@@ -151,6 +151,9 @@ def load_landmarks_csv(path_file):
 def save_landmarks(path_file, landmarks):
     """ save landmarks into a specific file
 
+    both used formats csv/pts is using the same coordinate frame,
+    the origin (0, 0) is located in top left corner of the image
+
     :param str path_file: path to the output file
     :param landmarks: np.array<np_points, dim>
     """
@@ -158,11 +161,20 @@ def save_landmarks(path_file, landmarks):
         'missing folder "%s"' % os.path.dirname(path_file)
     path_file = os.path.splitext(path_file)[0]
     save_landmarks_csv(path_file + '.csv', landmarks)
-    save_landmarks_txt(path_file + '.txt', landmarks)
+    save_landmarks_pts(path_file + '.pts', landmarks)
 
 
-def save_landmarks_txt(path_file, landmarks):
+def save_landmarks_pts(path_file, landmarks):
     """ save landmarks into a txt file
+
+    we are using VTK pointdata legacy format, ITK compatible::
+
+        <index, point>
+        <number of points>
+        point1-x point1-y [point1-z]
+        point2-x point2-y [point2-z]
+
+    .. ref:: https://simpleelastix.readthedocs.io/PointBasedRegistration.html
 
     :param str path_file: path to the output file
     :param landmarks: np.array<np_points, dim>
@@ -177,6 +189,12 @@ def save_landmarks_txt(path_file, landmarks):
 
 def save_landmarks_csv(path_file, landmarks):
     """ save landmarks into a csv file
+
+    we are using simpleformat::
+
+        ,X,Y
+        0,point1-x,point1-y
+        1,point2-x,point2-y
 
     :param str path_file: path to the output file
     :param landmarks: np.array<np_points, dim>

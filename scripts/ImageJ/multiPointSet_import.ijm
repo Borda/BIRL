@@ -6,14 +6,14 @@
  * @mail jiri.borovec@fel.cvut.cz
  * 
  * @brief: This macro does importing set of points from Multi-point tool 
- * from .csv and .txt files (the name is specified during exporting)
+ * from .csv and .pts files (the name is specified during exporting)
  */
 
 // ask for a file to be imported
 fileName = File.openDialog("Select the file to import");
 allText = File.openAsString(fileName);
 tmp = split(fileName,".");
-// get file format {txt, csv}
+// get file format {pts, csv}
 extension = tmp[lengthOf(tmp)-1];
 // parse text by lines
 text = split(allText, "\n");
@@ -22,8 +22,8 @@ text = split(allText, "\n");
 var xPoints = newArray;
 var yPoints = newArray; 
 
-// in case input is in TXT format
-if (extension=="txt") {
+// in case input is in PTS format
+if (extension=="pts") {
 	print("importing TXT point set...");
 	//these are the column indexes
 	//hdr = split(text[0]);

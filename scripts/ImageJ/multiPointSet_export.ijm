@@ -6,7 +6,7 @@
  * @mail jiri.borovec@fel.cvut.cz
  * 
  * @brief: This macro does export set of points from Multi-point tool 
- * into .csv and .txt files (the name is specified during exporting)
+ * into .csv and .pts files (the name is specified during exporting)
  */
 
 // clean results
@@ -25,8 +25,8 @@ res = File.delete(File.directory + File.name)
 tmp = split(File.name,".");
 fileName = File.directory + tmp[0];
 
-// Exporting as TXT format (ITK compatible)
-file = File.open(fileName+".txt");
+// Exporting as PTS format (ITK compatible)
+file = File.open(fileName+".pts");
 print(file, "point");
 print(file, lengthOf(xCoordinates) );
 for(i=0; i<lengthOf(xCoordinates); i++) {

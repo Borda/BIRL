@@ -54,7 +54,7 @@ from birl.bm_template import main
 from bm_experiments import bm_comp_perform
 
 NAME_FILE_TIME = 'time.txt'
-NAME_FILE_LANDMARKS = 'points.txt'
+NAME_FILE_LANDMARKS = 'points.pts'
 NAME_FILE_IMAGE = 'warped.jpg'
 
 

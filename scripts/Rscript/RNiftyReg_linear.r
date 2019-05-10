@@ -26,7 +26,7 @@ pathLnd <- args[3]
 ## output folder
 outPath <- args[4]
 outTime <- paste(outPath, 'time.txt', sep='')
-outLnd <- paste(outPath, 'points.txt', sep='')
+outLnd <- paste(outPath, 'points.pts', sep='')
 outImg <- paste(outPath, 'warped.jpg', sep='')
 
 time.start <- Sys.time()

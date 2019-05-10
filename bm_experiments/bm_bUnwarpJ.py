@@ -72,8 +72,8 @@ PATH_SCRIPT_REGISTRATION_BASE = os.path.join(PATH_IJ_SCRIPTS, 'apply-bUnwarpJ-re
 PATH_SCRIPT_REGISTRATION_SIFT = os.path.join(PATH_IJ_SCRIPTS, 'apply-SIFT-bUnwarpJ-registration.bsh')
 PATH_SCRIPT_WARP_LANDMARKS = os.path.join(PATH_IJ_SCRIPTS, 'apply-bUnwarpJ-transform.bsh')
 # PATH_SCRIPT_HIST_MATCH_IJM = os.path.join(PATH_IJ_SCRIPTS, 'histogram-matching-for-macro.bsh')
-NAME_LANDMARKS = 'source_landmarks.txt'
-NAME_LANDMARKS_WARPED = 'warped_source_landmarks.txt'
+NAME_LANDMARKS = 'source_landmarks.pts'
+NAME_LANDMARKS_WARPED = 'warped_source_landmarks.pts'
 COMMAND_WARP_LANDMARKS = '%(exec_Fiji)s --headless %(path_bsh)s' \
                          ' %(source)s %(target)s' \
                          ' %(output)s/' + NAME_LANDMARKS + \
