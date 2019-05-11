@@ -205,7 +205,17 @@ For each benchmark experiment, the explanation about how to install and use a pa
         -cfg ./configs/ImageJ_RVSS_histol.yaml \
         --visual --unique
     ```
-* **[RNiftyReg](https://github.com/jonclayden/RNiftyReg)** is an R-native interface to the [NiftyReg image registration library](http://sourceforge.net/projects/niftyreg/) which contains programs to perform rigid, affine and non-linear registration of Nifti or analyse images. _NiftyReg supports max image size 2048._
+* **[elastix](http://elastix.isi.uu.nl/)** is image registration toolkit based on [ITK](http://www.itk.org/) and it consists of a collection of algorithms that are commonly used to solve (medical) image registration problems. For more details see [documentation](http://elastix.isi.uu.nl/download/elastix_manual_v4.8.pdf).
+    ```bash
+    python bm_experiments/bm_elastix.py \
+        -t ./data_images/pairs-imgs-lnds_histol.csv \
+        -d ./data_images \
+        -o ./results \
+        -elastix ~/Applications/elastix/bin \
+        -cfg ./configs/elastix_affine.txt \
+        --visual --unique
+    ```
+* **[rNiftyReg](https://github.com/jonclayden/RNiftyReg)** is an R-native interface to the [NiftyReg image registration library](http://sourceforge.net/projects/niftyreg/) which contains programs to perform rigid, affine and non-linear registration of Nifty or analyse images. _NiftyReg supports max image size 2048._
     ```bash
     python bm_experiments/bm_rNiftyReg.py \
         -t ./data_images/pairs-imgs-lnds_histol.csv \

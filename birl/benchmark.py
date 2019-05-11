@@ -35,7 +35,7 @@ from birl.utilities.experiments import (
     nb_workers, exec_commands, string_dict, iterate_mproc_map, create_basic_parser,
     parse_arg_params, Experiment)
 from birl.utilities.visualisation import (
-    export_figure, draw_image_points, draw_images_warped_landmarks)
+    export_figure, draw_image_points, draw_images_warped_landmarks, overlap_two_images)
 from birl.utilities.registration import estimate_affine_transform
 
 
@@ -109,6 +109,8 @@ class ImRegBenchmark(Experiment):
     NAME_RESULTS_TXT = 'results-summary.txt'
     #: logging file for registration experiments
     NAME_LOG_REGISTRATION = 'registration.log'
+    #: output image name in experiment folder for reg. results - overlap of reference and warped image
+    NAME_IMAGE_REF_WARP = 'image_refence-warped.jpg'
     #: output image name in experiment folder for reg. results - image and landmarks are warped
     NAME_IMAGE_MOVE_WARP_POINTS = 'image_warped_landmarks_warped.jpg'
     #: output image name in experiment folder for reg. results - warped landmarks in reference image
@@ -752,6 +754,27 @@ class ImRegBenchmark(Experiment):
             df_experiments.at[idx, '%s (%s)' % (name, state)] = stat[name]
 
     @classmethod
+    def _load_warped_image(cls, item, path_experiment=None):
+        """load the wapted image if it exists
+
+        :param dict item: row with the experiment
+        :param str|None path_experiment: path to the experiment folder
+        :return ndarray:
+        """
+        name_img = item.get(cls.COL_IMAGE_MOVE_WARP, None)
+        if not isinstance(name_img, str):
+            logging.warning('Missing registered image in "%s"', cls.COL_IMAGE_MOVE_WARP)
+            image_warp = None
+        else:
+            path_img_warp = cls.update_path_(name_img, path_experiment)
+            if os.path.isfile(path_img_warp):
+                image_warp = load_image(path_img_warp)
+            else:
+                logging.warning('Define image is missing: %s', path_img_warp)
+                image_warp = None
+        return image_warp
+
+    @classmethod
     def _visual_image_move_warp_lnds_move_warp(cls, item, path_dataset=None,
                                                path_experiment=None):
         """ visualise the case with warped moving image and landmarks
@@ -771,13 +794,7 @@ class ImRegBenchmark(Experiment):
 
         points_ref, points_move, path_img_ref = cls._load_landmarks(item, path_dataset)
 
-        if not isinstance(item.get(cls.COL_IMAGE_MOVE_WARP, None), str):
-            logging.warning('Missing registered image in "%s"', cls.COL_IMAGE_MOVE_WARP)
-            image_warp = None
-        else:
-            path_image_warp = cls.update_path_(item[cls.COL_IMAGE_MOVE_WARP], path_experiment)
-            image_warp = load_image(path_image_warp)
-
+        image_warp = cls._load_warped_image(item, path_experiment)
         points_warp = load_landmarks(path_points_warp)
         if not list(points_warp):
             return
@@ -817,14 +834,19 @@ class ImRegBenchmark(Experiment):
             return
         # draw image with landmarks
         image_move = load_image(cls.update_path_(item[cls.COL_IMAGE_MOVE], path_dataset))
-        # image_warp = tl_io.load_image(row['Moving image, Transf.'])
         image = draw_image_points(image_move, points_warp)
         save_image(os.path.join(cls.update_path_(item[cls.COL_REG_DIR], path_experiment),
                                 cls.NAME_IMAGE_REF_POINTS_WARP), image)
         del image
 
-        # visualise the landmarks move during registration
         image_ref = load_image(path_img_ref)
+        image_warp = cls._load_warped_image(item, path_experiment)
+        image = overlap_two_images(image_ref, image_warp)
+        save_image(os.path.join(cls.update_path_(item[cls.COL_REG_DIR], path_experiment),
+                                cls.NAME_IMAGE_REF_WARP), image)
+        del image, image_warp
+
+        # visualise the landmarks move during registration
         fig = draw_images_warped_landmarks(image_ref, image_move, points_ref,
                                            points_move, points_warp)
         del image_ref, image_move

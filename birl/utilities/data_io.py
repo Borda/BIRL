@@ -41,8 +41,7 @@ def create_folder(path_folder, ok_existing=True):
     >>> p_dir = create_folder('./sample-folder', ok_existing=True)
     >>> create_folder('./sample-folder', ok_existing=False)
     False
-    >>> import shutil
-    >>> shutil.rmtree(p_dir)
+    >>> os.rmdir(p_dir)
     """
     path_folder = os.path.abspath(path_folder)
     if not os.path.isdir(path_folder):
@@ -101,8 +100,10 @@ def load_landmarks_pts(path_file):
     :return ndarray: np.array<np_points, dim> of landmarks points
 
     >>> points = np.array([[1, 2], [3, 4], [5, 6]])
-    >>> save_landmarks_pts('./sample_landmarks.pts', points)
-    >>> pts = load_landmarks_pts('./sample_landmarks.pts')
+    >>> p_lnds = save_landmarks_pts('./sample_landmarks.csv', points)
+    >>> p_lnds
+    './sample_landmarks.pts'
+    >>> pts = load_landmarks_pts(p_lnds)
     >>> pts  # doctest: +NORMALIZE_WHITESPACE
     array([[ 1.,  2.],
            [ 3.,  4.],
@@ -138,8 +139,10 @@ def load_landmarks_csv(path_file):
     :return ndarray: np.array<np_points, dim> of landmarks points
 
     >>> points = np.array([[1, 2], [3, 4], [5, 6]])
-    >>> save_landmarks_csv('./sample_landmarks.csv', points)
-    >>> pts = load_landmarks_csv('./sample_landmarks.csv')
+    >>> p_lnds = save_landmarks_csv('./sample_landmarks', points)
+    >>> p_lnds
+    './sample_landmarks.csv'
+    >>> pts = load_landmarks_csv(p_lnds)
     >>> pts  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     array([[1, 2],
            [3, 4],
@@ -163,9 +166,9 @@ def save_landmarks(path_file, landmarks):
     """
     assert os.path.isdir(os.path.dirname(path_file)), \
         'missing folder "%s"' % os.path.dirname(path_file)
-    path_file = os.path.splitext(path_file)[0]
-    save_landmarks_csv(path_file + '.csv', landmarks)
-    save_landmarks_pts(path_file + '.pts', landmarks)
+    # path_file = os.path.splitext(path_file)[0] + '.extension'
+    save_landmarks_csv(path_file, landmarks)
+    save_landmarks_pts(path_file, landmarks)
 
 
 def save_landmarks_pts(path_file, landmarks):
@@ -182,13 +185,16 @@ def save_landmarks_pts(path_file, landmarks):
 
     :param str path_file: path to the output file
     :param landmarks: np.array<np_points, dim>
+    :return str: file path
     """
     assert os.path.isdir(os.path.dirname(path_file)), \
         'missing folder "%s"' % os.path.dirname(path_file)
+    path_file = os.path.splitext(path_file)[0] + '.pts'
     lines = ['point', str(len(landmarks))]
     lines += [' '.join(str(i) for i in point) for point in landmarks]
     with open(path_file, 'w') as fp:
         fp.write('\n'.join(lines))
+    return path_file
 
 
 def save_landmarks_csv(path_file, landmarks):
@@ -202,21 +208,22 @@ def save_landmarks_csv(path_file, landmarks):
 
     :param str path_file: path to the output file
     :param landmarks: np.array<np_points, dim>
+    :return str: file path
     """
     assert os.path.isdir(os.path.dirname(path_file)), \
         'missing folder "%s"' % os.path.dirname(path_file)
-    assert os.path.splitext(path_file)[-1] == '.csv', \
-        'wrong file extension "%s"' % os.path.basename(path_file)
+    path_file = os.path.splitext(path_file)[0] + '.csv'
     df = pd.DataFrame(landmarks, columns=LANDMARK_COORDS)
     df.index = np.arange(1, len(df) + 1)
     df.to_csv(path_file)
+    return path_file
 
 
-def update_path(path_file, lim_depth=5, absolute=True):
+def update_path(some_path, lim_depth=5, absolute=True):
     """ bubble in the folder tree up until it found desired file
     otherwise return original one
 
-    :param str path_file: original path
+    :param str soma_path: original path
     :param int lim_depth: max depth of going up in the folder tree
     :param bool absolute: format as absolute path
     :return str: updated path if it exists otherwise the original one
@@ -228,21 +235,21 @@ def update_path(path_file, lim_depth=5, absolute=True):
     >>> os.path.exists(update_path('~', absolute=False))
     True
     """
-    if path_file.startswith('/'):
-        return path_file
-    elif path_file.startswith('~'):
-        path_file = os.path.expanduser(path_file)
+    if some_path.startswith('/'):
+        return some_path
+    elif some_path.startswith('~'):
+        some_path = os.path.expanduser(some_path)
 
-    tmp_path = path_file[2:] if path_file.startswith('./') else path_file
+    tmp_path = some_path[2:] if some_path.startswith('./') else some_path
     for _ in range(lim_depth):
         if os.path.exists(tmp_path):
-            path_file = tmp_path
+            some_path = tmp_path
             break
         tmp_path = os.path.join('..', tmp_path)
 
     if absolute:
-        path_file = os.path.abspath(path_file)
-    return path_file
+        some_path = os.path.abspath(some_path)
+    return some_path
 
 
 def io_image_decorate(func):
@@ -271,7 +278,7 @@ def image_sizes(path_image, decimal=1):
 
     :param str path_image: path to the image
     :param int decimal: rounding digits
-    :return tuple(int,int), float: image size and diagonal
+    :return tuple(tuple(int,int),float): image size and diagonal
 
     >>> img = np.random.random((50, 75, 3))
     >>> save_image('./test_image.jpg', img)
@@ -291,7 +298,7 @@ def load_image(path_image, force_rgb=True):
 
     :param str path_image: path to the image
     :param bool force_rgb: convert RGB image
-    :return: np.array<height, width, ch>
+    :return ndarray: np.array<height, width, ch>
 
     >>> img = np.random.random((50, 50))
     >>> save_image('./test_image.jpg', img)

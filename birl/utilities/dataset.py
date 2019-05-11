@@ -702,3 +702,52 @@ def scale_large_images_landmarks(images, landmarks):
               if img is not None else None for img in images]
     landmarks = [lnds * scale if lnds is not None else None for lnds in landmarks]
     return images, landmarks
+
+
+def convert_landmarks_to_itk(lnds, image_size):
+    """converting used landmarks to ITK format
+
+    .. ref:: https://github.com/SuperElastix/elastix/issues/156#issuecomment-511712784
+
+    :param ndarray lnds: landmarks
+    :param (int,int) image_size: image height, width
+    :return ndarray: landmarks
+
+    >>> convert_landmarks_to_itk([[5, 20], [100, 150], [0, 100]], (150, 200))
+    array([[ 20, 145],
+           [150,  50],
+           [100, 150]])
+    """
+    height, width = image_size
+    # swap rows-columns to X-Y
+    lnds = np.array(lnds)[:, [1, 0]]
+    # revert the Y by height
+    lnds[:, 1] = height - lnds[:, 1]
+    return lnds
+
+
+def convert_landmarks_from_itk(lnds, image_size):
+    """converting ITK format to used in ImageJ
+
+    .. ref:: https://github.com/SuperElastix/elastix/issues/156#issuecomment-511712784
+
+    :param ndarray lnds: landmarks
+    :param (int,int) image_size: image height, width
+    :return ndarray: landmarks
+
+    >>> convert_landmarks_from_itk([[ 20, 145], [150,  50], [100, 150]], (150, 200))
+    array([[  5,  20],
+           [100, 150],
+           [  0, 100]])
+    >>> lnds = [[ 20, 145], [150,  50], [100, 150], [0, 0], [150, 200]]
+    >>> img_size = (150, 200)
+    >>> lnds2 = convert_landmarks_from_itk(convert_landmarks_to_itk(lnds, img_size), img_size)
+    >>> np.array_equal(lnds, lnds2)
+    True
+    """
+    height, width = image_size
+    # swap rows-columns to X-Y
+    lnds = np.array(lnds)[:, [1, 0]]
+    # revert the Y by height
+    lnds[:, 0] = height - lnds[:, 0]
+    return lnds
