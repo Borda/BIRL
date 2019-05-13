@@ -215,6 +215,16 @@ For each benchmark experiment, the explanation about how to install and use a pa
         -script ./scripts/Python/run_ANTsPy.py \
         --visual --unique
     ```
+* **[DROP](https://www.mrf-registration.net)** is image registration and motion estimation based on Markov Random Fields.
+    ```bash
+    python bm_experiments/bm_DROP.py \
+        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -d ./data_images \
+        -o ./results \
+        -DROP ~/Applications/DROP/dropreg2d \
+        --path_config ./configs/drop.txt \
+        --visual --unique
+    ```
 * ...
 
 Some more image registration methods integrated in ImageJ are listed in [Registration](https://imagej.net/Registration).

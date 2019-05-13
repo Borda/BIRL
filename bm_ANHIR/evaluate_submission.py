@@ -228,7 +228,7 @@ def parse_landmarks(idx_row):
 def compute_scores(df_experiments, min_landmarks=1.):
     """ compute all main metrics
 
-    SEE: https://anhir.grand-challenge.org/Evaluation/
+    .. ref:: https://anhir.grand-challenge.org/Evaluation/
 
     :param DF df_experiments: complete experiments
     :param float min_landmarks: required number of submitted landmarks in range (0, 1),
