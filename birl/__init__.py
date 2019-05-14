@@ -1,6 +1,16 @@
-import birl.utilities
+"""
+Using the try/except import since the init is called in setup  to get pkg info
+before satisfying install requirements
 
-birl.utilities
+"""
+
+try:
+    import birl.utilities
+    birl.utilities
+except ImportError:
+    import traceback
+    traceback.print_exc()
+
 
 __version__ = '0.2.2'
 __author__ = 'Jiri Borovec'
