@@ -51,7 +51,7 @@ from bm_dataset.rescale_tissue_images import NB_THREADS, DEFAULT_SCALES, FOLDER_
 def arg_parse_params():
     """ argument parser from cmd
 
-    :return {str: ...}:
+    :return dict:
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
@@ -77,7 +77,7 @@ def load_largest_scale(path_set):
     """ in given set find the largest scale and load all landmarks in full size
 
     :param str path_set: path to image/landmark set
-    :return {str: ndarray}: dictionary with loaded landmarks in full scale
+    :return dict: dictionary of ndarray with loaded landmarks in full scale
     """
     scales_folders = [(parse_path_scale(p), os.path.basename(p))
                       for p in list_sub_folders(path_set)]
@@ -122,10 +122,10 @@ def expand_random_warped_landmarks(names_lnds, names_lnds_new, nb_total):
     """ add some extra point which are randomly sampled in the first sample
     and warped to the other images using estimated affine transform
 
-    :param {str: ndarray} names_lnds: the original landmarks
-    :param {str: ndarray} names_lnds_new: the generated landmarks
+    :param dict names_lnds: mapping to ndarray of the original landmarks
+    :param dict names_lnds_new: mapping to ndarray of the generated landmarks
     :param int nb_total: total number of point - landmarks
-    :return {str: ndarray}:
+    :return dict: mapping to ndarray
     """
     # estimate then number of required points
     nb_min_new = min(map(len, names_lnds_new.values()))
@@ -217,7 +217,7 @@ def dataset_expand_landmarks(path_annots, path_dataset, nb_selected=None,
     :param float|int|None nb_selected: portion of selected points
     :param int|None nb_total: add extra points up to total number
     :param int nb_workers: number of jobs running in parallel
-    :return [int]:
+    :return list(int):
     """
     list_sets = list_sub_folders(path_annots)
     logging.info('Found sets: %i', len(list_sets))
@@ -235,8 +235,8 @@ def scale_set_landmarks(path_set, scales=DEFAULT_SCALES):
     the scales are created within the same path set
 
     :param str path_set: path to the image/landmark set
-    :param [int] scales: created scales
-    :return:
+    :param list(int) scales: created scales
+    :return dict:
     """
     logging.debug('> processing: %s', path_set)
     path_scale100 = os.path.join(path_set, FOLDER_TEMPLATE % 100)
@@ -282,11 +282,11 @@ def main(path_annots, path_dataset, scales, nb_selected=None, nb_total=None,
 
     :param str path_annots: root path to original dataset
     :param str path_dataset: root path to generated dataset
-    :param [int] scales: generated scales
+    :param list(int) scales: generated scales
     :param float|int|None nb_selected: portion of selected points
     :param int|None nb_total: add extra points up to total number
     :param int nb_workers: number of jobs running in parallel
-    :return:
+    :return tuple(int,int):
     """
     count_gene = dataset_expand_landmarks(path_annots, path_dataset,
                                           nb_selected, nb_total, nb_workers=nb_workers)

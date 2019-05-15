@@ -174,8 +174,8 @@ class BmUnwarpJ(ImRegBenchmark):
     def _generate_regist_command(self, record):
         """ generate the registration command(s)
 
-        :param {str: str|float} record: dictionary with registration params
-        :return str|[str]: the execution commands
+        :param dict record: dictionary with registration params
+        :return str|list(str): the execution commands
         """
         path_im_ref, path_im_move, _, _ = self._get_paths(record, prefer_pproc=True)
         path_dir = self._get_path_reg_dir(record)
@@ -203,8 +203,8 @@ class BmUnwarpJ(ImRegBenchmark):
     def _extract_warped_image_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
-        :param {str: value} record: dictionary with registration params
-        :return {str: str}: paths to ...
+        :param dict record: dictionary with registration params
+        :return dict: paths to ...
         """
         logging.debug('.. warp the registered image and get landmarks')
         path_dir = self._get_path_reg_dir(record)

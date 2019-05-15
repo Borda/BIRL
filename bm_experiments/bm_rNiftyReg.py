@@ -104,8 +104,8 @@ class BmRNiftyReg(ImRegBenchmark):
     def _generate_regist_command(self, record):
         """ generate the registration command(s)
 
-        :param {str: str|float} record: dictionary with registration params
-        :return str|[str]: the execution commands
+        :param dict record: dictionary with registration params
+        :return str|list(str): the execution commands
         """
         path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(record)
         path_dir = self._get_path_reg_dir(record) + os.path.sep
@@ -122,8 +122,8 @@ class BmRNiftyReg(ImRegBenchmark):
     def _extract_warped_image_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
-        :param record: {str: value}, dictionary with registration params
-        :return (str, str, str, str): paths to
+        :param dict record: dictionary with registration params
+        :return tuple(str,str,str,str): paths to
         """
         logging.debug('.. warp the registered image and get landmarks')
         path_dir = self._get_path_reg_dir(record)
@@ -150,7 +150,7 @@ class BmRNiftyReg(ImRegBenchmark):
 
     def _extract_execution_time(self, record):
         """ if needed update the execution time
-        :param record: {str: value}, dictionary with registration params
+        :param dict record: dictionary with registration params
         :return float|None: time in minutes
         """
         path_dir = self._get_path_reg_dir(record)

@@ -62,7 +62,7 @@ VAL_STATUS_TEST = 'evaluation'
 def get_relative_paths(paths, path_base):
     """ transform paths to relati according given base path
 
-    :param [str] paths: collection of paths
+    :param list(str) paths: collection of paths
     :param str path_base: past that can be removed from the input paths
     :return str:
     """
@@ -77,7 +77,7 @@ def list_landmarks_images(path_tissue, sc, path_landmarks, path_images):
     :param int sc: used scale
     :param str path_landmarks:
     :param str path_images:
-    :return ([str], [str]):
+    :return tuple(list(str),list(str)):
     """
     path_ = os.path.join(path_tissue, NAME_DIR_SCALE % sc, '*.csv')
     rp_lnds = get_relative_paths(glob.glob(path_), path_landmarks)
@@ -101,12 +101,12 @@ def list_landmarks_images(path_tissue, sc, path_landmarks, path_images):
 def generate_reg_pairs(rp_imgs, rp_lnds, pairs, public, path_images=DATASET_IMAGES):
     """ format a registration pair as dictionaries/rows in cover table for a set
 
-    :param [str] rp_imgs: relative paths to images
+    :param list(str) rp_imgs: relative paths to images
     :param rp_lnds: relative paths to related landmarks
-    :param [(int, int)] pairs: pairing among images/landmarks
-    :param [bool] public: marks whether the particular pair is training or evaluation
+    :param list(tuple(int,int)) pairs: pairing among images/landmarks
+    :param list(bool) public: marks whether the particular pair is training or evaluation
     :param str path_images: path to the dataset folder
-    :return [{}]: registration pairs
+    :return list(dict): registration pairs
     """
     reg_pairs = []
     for k, (i, j) in enumerate(pairs):
@@ -128,14 +128,14 @@ def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out,
     """ generate cover CSV file for particular dataset size/scale
 
     :param str name: name of selected scale
-    :param {str: {scale_name: float}} dataset: definition of dataset
+    :param dict({scale_name: float}) dataset: definition of dataset
         fist level key is name of the tissue,
         next dictionary is composed from scale name and used scale in percents
     :param str path_images: path to folder with images
     :param str path_landmarks: path to folder with landmarks
     :param str path_out: path to output directory
     :param int step_hide_landmarks: take each N-th image/landmark out as a test case
-    :param [str] tissue_partial:
+    :param list(str) tissue_partial:
     """
     # name, scale_step = dataset
     tissues = [(tissue, p) for tissue in sorted(dataset)
@@ -170,12 +170,12 @@ def main(path_images, path_landmarks, path_out, step_lnds, dataset,
     :param str path_landmarks: path to folder with landmarks
     :param str path_out: path to output directory
     :param int step_lnds: take each N-th image/landmark out as a test case
-    :param {str: {scale_name: float}} dataset: definition of dataset
+    :param dict({scale_name: float}) dataset: definition of dataset
         fist level key is name of the tissue,
         next dictionary is composed from scale name and used scale in percents
-    :param [str] tissue_partial: names of tissues which will have partially hidden cases
+    :param list(str) tissue_partial: names of tissues which will have partially hidden cases
         also consider a testing tissues
-    :param [str] scale_names: name of chosen scales
+    :param list(str) scale_names: name of chosen scales
     """
 
     _create_cover = partial(create_dataset_cover,

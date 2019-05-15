@@ -220,7 +220,7 @@ def draw_images_warped_landmarks(image_target, image_source,
 def create_figure(im_size, figsize_max=MAX_FIGURE_SIZE):
     """ create an empty figure of image size maximise maximal size
 
-    :param (int, int) im_size:
+    :param tuple(int,int) im_size:
     :param float figsize_max:
     :return:
 
@@ -282,8 +282,8 @@ class RadarChart(object):
         :param df: data
         :param int steps: number of steps per axis
         :param obj|None fig: Figure or None for a new one
-        :param (float, float, float, float) rect: rectangle inside figure
-        :param fill_alpha: transparency of filled region
+        :param tuple(float,float,float,float) rect: rectangle inside figure
+        :param float fill_alpha: transparency of filled region
         :param args: optional arguments
         :param kw: optional key arguments
         """

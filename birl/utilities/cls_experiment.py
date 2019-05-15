@@ -14,13 +14,13 @@ import yaml
 from birl.utilities.experiments import (
     set_experiment_logger, string_dict, create_experiment_folder, release_logger_files)
 
-# default output file for exporting experiment configuration
+#: default output file for exporting experiment configuration
 CONFIG_YAML = 'config.yml'
 #: default file for exporting results in formatted text format
 RESULTS_TXT = 'results.txt'
 #: default file for exporting results in table format
 RESULTS_CSV = 'results.csv'
-# default output file for logging
+#: default output file for logging
 FILE_LOGS = 'logging.txt'
 
 
@@ -28,6 +28,22 @@ class Experiment(object):
     """
     Tha basic template for experiment running with specific initialisation
     None, all required parameters used in future have to come in init phase
+
+    The workflow is following:
+
+    1. prepare experiment folder, copy configurations
+    2. `._prepare()` prepares experiment according its specification
+    3. `._load_data()` loads required input data and annotations
+    4. `._run()` performs the experimental body, run the method on input data
+    5. `._summarise()` evaluates result against annotation and summarize
+    6. terminate the experimnt
+
+    Particular specifics:
+
+    * each experiment is created in own/folder (if timestamp required)
+    * at the beginning experiment configs are copied to the folder
+    * logging: INFO level is used for console and DEBUG to file
+    * if several sources can be processed independently, you may parallelize it
 
     Example
     -------
@@ -45,7 +61,7 @@ class Experiment(object):
     """
 
     def __init__(self, exp_params, stamp_unique=True):
-        """ initialise the experiment, create experiment folder and set logger
+        """Initialise the experiment, create experiment folder and set logger.
 
         :param dict exp_params: {str: value}
         :param bool stamp_unique: add at the end of experiment folder unique
@@ -68,11 +84,24 @@ class Experiment(object):
 
     @classmethod
     def _check_required_params(self):
-        """ check some extra required parameters for this experiment """
+        """Check some extra required parameters for this experiment."""
         logging.debug('.. check if Experiment have all required parameters')
 
     def run(self):
-        """ running experiment """
+        """Running the complete experiment.
+
+        This ain method consist of following steps:
+
+        1. `_prepare()` prepares experiment, some extra procedures if needed
+        2. `_load_data()` loads required input data (and annotations)
+        3. `_run()` performs the experimented method on input data
+        4. `_summarise()` evaluates result against annotation and summarize
+
+        .. note:: all the particular procedures are empty and has to be completed
+         according to specification of the experiment (do some extra preparation
+         like copy extra configs, define how to load the data, perform custom method,
+         summarise results with ground truth / annotation)
+        """
         logging.info('running experiment...')
         self._prepare()
         self._load_data()
@@ -82,26 +111,30 @@ class Experiment(object):
 
     @classmethod
     def _prepare(self):
-        """ prepare the benchmark folder """
+        """Prepare the experiment folder."""
         logging.warning('-> preparing EMPTY experiments...')
 
     @classmethod
     def _load_data(self):
-        """ loading data """
+        """Loading data - source and annotations."""
         logging.warning('-> loading EMPTY data...')
 
     @classmethod
     def _run(self):
-        """ perform experiment """
+        """Perform experiment itself with given method and source data."""
         logging.warning('-> perform EMPTY experiment...')
 
     @classmethod
     def _summarise(self):
-        """ summarise experiment """
+        """Summarise experiment result against annotation."""
         logging.warning('-> summarise EMPTY experiment...')
 
     def __check_exist_path(self):
-        """ check existence of all paths """
+        """Check existence of all paths in parameters.
+
+        check existence of all parameters dictionary which has contains words:
+        'path', 'dir', 'file'
+        """
         list_names = [n for n in self.params
                       if any(m in n.lower() for m in ['path', 'dir', 'file'])]
         for n in list_names:
@@ -111,7 +144,11 @@ class Experiment(object):
             self.params[n] = p
 
     def __create_folder(self, stamp_unique=True):
-        """ create the experiment folder (iterate if necessary) """
+        """Create the experiment folder (iterate if necessary).
+
+        * create unique folder if timestamp is requested
+        * export experiment configuration to the folder
+        """
         assert 'path_out' in self.params, 'missing "path_out" among %r' \
                                           % self.params.keys()
         # create results folder for experiments
@@ -123,7 +160,10 @@ class Experiment(object):
             yaml.dump(self.params, fp, default_flow_style=False)
 
     def __del__(self):
-        """ terminating experiment """
+        """Terminating experiment.
+
+        close the logger if the termination instance is the main one
+        """
         if hasattr(self, '_main_thread') and self._main_thread:
             logging.info('terminating experiment...')
             release_logger_files()

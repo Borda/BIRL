@@ -101,7 +101,7 @@ class ImRegBenchmark(Experiment):
     """ General benchmark class for all registration methods.
     It also serves for evaluating the input registration pairs.
 
-    :param {str: str|float} params: dictionary with experiment configuration,
+    :param dict params: dictionary with experiment configuration,
         the required options are names in `REQUIRED_PARAMS`,
         note that the basic parameters are inherited
 
@@ -161,7 +161,7 @@ class ImRegBenchmark(Experiment):
     def __init__(self, params):
         """ initialise benchmark
 
-        :param dict params:  {str: value}
+        :param dict params:  parameters
         """
         assert 'unique' in params, 'missing "unique" among %r' % params.keys()
         super(ImRegBenchmark, self).__init__(params, params['unique'])
@@ -235,9 +235,9 @@ class ImRegBenchmark(Experiment):
     def _get_paths(self, record, prefer_pproc=True):
         """ expand the relative paths to absolute, if TEMP path is used, take it
 
-        :param {} record: row from cover file with relative paths
+        :param dict record: row from cover file with relative paths
         :param bool prefer_pproc: prefer using preprocess images
-        :return (str, str, str, str): path to reference and moving image
+        :return tuple(str,str,str,str): path to reference and moving image
             and reference and moving landmarks
         """
         def __path_img(col):
@@ -341,8 +341,8 @@ class ImRegBenchmark(Experiment):
     def __images_preprocessing(self, record):
         """ create some pre-process images, convert to gray scale and histogram matching
 
-        :param {} record: the input record
-        :return {}: updated record with optionally added pre-process images
+        :param dict record: the input record
+        :return dict: updated record with optionally added pre-process images
         """
         path_dir = self._get_path_reg_dir(record)
 
@@ -386,8 +386,8 @@ class ImRegBenchmark(Experiment):
     def __remove_pproc_images(self, record):
         """ remove preprocess (temporary) image if they are not also final
 
-        :param {} record: the input record
-        :return {}: updated record with optionally removed temp images
+        :param dict record: the input record
+        :return dict: updated record with optionally removed temp images
         """
         # clean only if some preprocessing was required
         if not self.params.get('preprocessing', []):
@@ -412,7 +412,7 @@ class ImRegBenchmark(Experiment):
     def _perform_registration(self, df_row):
         """ run single registration experiment with all sub-stages
 
-        :param (int, dict) df_row: tow from iterated table
+        :param tuple(int,dict) df_row: row from iterated table
         """
         idx, row = df_row
         logging.debug('-> perform single registration #%d...', idx)
@@ -477,8 +477,8 @@ class ImRegBenchmark(Experiment):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
 
-        :param {str: str|float} dict record: dictionary with regist. params
-        :return {str: str|float}: the same or updated registration info
+        :param dict dict record: dictionary with regist. params
+        :return dict: the same or updated registration info
         """
         logging.debug('.. no preparing before registration experiment')
         return record
@@ -486,8 +486,8 @@ class ImRegBenchmark(Experiment):
     def _execute_img_registration(self, record):
         """ execute the image registration itself
 
-        :param {} record:
-        :return {}:
+        :param dict record:
+        :return dict:
         """
         logging.debug('.. execute image registration as command line')
         path_dir_reg = self._get_path_reg_dir(record)
@@ -512,8 +512,8 @@ class ImRegBenchmark(Experiment):
     def _generate_regist_command(self, record):
         """ generate the registration command(s)
 
-        :param {str: str|float} record: dictionary with registration params
-        :return str|[str]: the execution commands
+        :param dict record: dictionary with registration params
+        :return str|list(str): the execution commands
         """
         logging.debug('.. simulate registration: '
                       'copy the target image and landmarks, simulate ideal case')
@@ -530,8 +530,8 @@ class ImRegBenchmark(Experiment):
     def _extract_warped_image_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
-        :param {str: value} record: dictionary with registration params
-        :return {str: str}: paths to warped images/landmarks
+        :param dict record: dictionary with registration params
+        :return dict: paths to warped images/landmarks
         """
         # detect image
         path_img = os.path.join(record[COL_REG_DIR],
@@ -548,7 +548,7 @@ class ImRegBenchmark(Experiment):
     def _extract_execution_time(self, record):
         """ if needed update the execution time
 
-        :param {} record: dictionary {str: value} with registration params
+        :param dict record: dictionary {str: value} with registration params
         :return float|None: time in minutes
         """
         _ = self._get_path_reg_dir(record)
@@ -558,8 +558,8 @@ class ImRegBenchmark(Experiment):
         """ evaluate rests of the experiment and identity the registered image
         and landmarks when the process finished
 
-        :param {} record: dictionary {str: value} with registration params
-        :return: {str: value}
+        :param dict record: dictionary {str: value} with registration params
+        :return dict:
         """
         # Update the registration outputs / paths
         res_paths = self._extract_warped_image_landmarks(record)
@@ -583,8 +583,8 @@ class ImRegBenchmark(Experiment):
     def _clear_after_registration(self, record):
         """ clean unnecessarily files after the registration
 
-        :param {str: value} record: dictionary with regist. information
-        :return {str: value}: the same or updated regist. info
+        :param dict record: dictionary with regist. information
+        :return dict: the same or updated regist. info
         """
         logging.debug('.. no cleaning after registration experiment')
         return record
@@ -608,7 +608,7 @@ def _image_diag(record, path_img_ref=None):
         2. image size exist in the table
         3. reference image exists
 
-    :param {}|DF record: one row from the table
+    :param dict|DF record: one row from the table
     :param str path_img_ref: optional path to the reference image
     :return float|None: image diagonal
     """
@@ -631,7 +631,7 @@ def compute_registration_statistic(idx_row, df_experiments,
     """ after successful registration load initial nad estimated landmarks
     afterwords compute various statistic for init, and final alignment
 
-    :param (int, dict) idx_row: tow from iterated table
+    :param tuple(int,dict) df_row: row from iterated table
     :param DF df_experiments: DataFrame with experiments
     :param str|None path_dataset: path to the dataset folder
     :param str|None path_experiment: path to the experiment folder
@@ -723,7 +723,7 @@ def _visual_image_move_warp_lnds_move_warp(record, path_dataset=None,
     """ visualise the case with warped moving image and landmarks
     to the reference frame so they are simple to overlap
 
-    :param {} record: row with the experiment
+    :param dict record: row with the experiment
     :param str|None path_dataset: path to the dataset folder
     :param str|None path_experiment: path to the experiment folder
     :return obj|None:
@@ -765,7 +765,7 @@ def _visual_image_move_warp_lnds_ref_warp(record, path_dataset=None,
                                           path_experiment=None):
     """ visualise the case with warped reference landmarks to the move frame
 
-    :param {} record: row with the experiment
+    :param dict record: row with the experiment
     :param str|None path_dataset: path to the dataset folder
     :param str|None path_experiment: path to the experiment folder
     :return obj|None:
@@ -802,7 +802,7 @@ def visualise_registration(idx_row, path_dataset=None, path_experiment=None):
     """ visualise the registration results according what landmarks were
     estimated - in registration or moving frame
 
-    :param (int, dict) idx_row: tow from iterated table
+    :param tuple(int,dict) df_row: row from iterated table
     :param str path_dataset: path to the dataset folder
     :param str path_experiment: path to the experiment folder
     """
@@ -831,7 +831,7 @@ def export_summary_results(df_experiments, path_out, params=None,
 
     :param DF df_experiments: DataFrame with experiments
     :param str path_out: path to the output folder
-    :param {str: any}|None params: experiment parameters
+    :param dict|None params: experiment parameters
     :param str name_csv: results file name
     :param str name_txt: results file name
 

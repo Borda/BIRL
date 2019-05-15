@@ -49,7 +49,7 @@ class BmTemplate(ImRegBenchmark):
     """ Basic template showing utilization by inheriting general workflow.
     This case serves as an example of using the general image regist. benchmark.
 
-    :param {str: str|float} params: dictionary with experiment configuration,
+    :param dict params: dictionary with experiment configuration,
         the required options are names in `REQUIRED_PARAMS`,
         note that the basic parameters are inherited
 
@@ -114,8 +114,8 @@ class BmTemplate(ImRegBenchmark):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
 
-        :param {str: str|float} dict record: dictionary with regist. params
-        :return {str: str|float}: the same or updated registration info
+        :param dict dict record: dictionary with regist. params
+        :return dict: the same or updated registration info
         """
         logging.debug('.. no preparing before registration experiment')
         return record
@@ -123,8 +123,8 @@ class BmTemplate(ImRegBenchmark):
     def _generate_regist_command(self, record):
         """ generate the registration command(s)
 
-        :param {str: str|float} record: dictionary with registration params
-        :return str|[str]: the execution commands
+        :param dict record: dictionary with registration params
+        :return str|list(str): the execution commands
         """
         logging.debug('.. simulate registration: '
                       'copy the source image and landmarks, like regist. failed')
@@ -140,8 +140,8 @@ class BmTemplate(ImRegBenchmark):
     def _extract_warped_image_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
-        :param {str: value} record: dictionary with registration params
-        :return {str: str}: paths to ...
+        :param dict record: dictionary with registration params
+        :return dict: paths to ...
         """
         path_reg_dir = self._get_path_reg_dir(record)
         # detect image
@@ -155,7 +155,7 @@ class BmTemplate(ImRegBenchmark):
     def _extract_execution_time(self, record):
         """ if needed update the execution time
 
-        :param record: {str: value}, dictionary with registration params
+        :param dict record: dictionary with registration params
         :return float|None: time in minutes
         """
         return 1. / 60  # running constant time 1 sec.
@@ -163,8 +163,8 @@ class BmTemplate(ImRegBenchmark):
     def _clear_after_registration(self, record):
         """ clean unnecessarily files after the registration
 
-        :param {str: value} record: dictionary with regist. information
-        :return {str: value}: the same or updated regist. info
+        :param dict record: dictionary with regist. information
+        :return dict: the same or updated regist. info
         """
         logging.debug('.. no cleaning after registration experiment')
         return record
@@ -173,7 +173,7 @@ class BmTemplate(ImRegBenchmark):
 def main(params, cls_benchmark):
     """ run the Main of selected experiment
 
-    :param {str: str|float} params: set of input parameters
+    :param dict params: set of input parameters
     :param cls_benchmark: class of selected benchmark
     """
     logging.info('running...')

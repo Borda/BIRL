@@ -55,7 +55,7 @@ def crop_image(img_path, crop_dims=(0, 1), padding=0.15):
     """ crop umages to by tight around tissue
 
     :param str img_path: path to image
-    :param (int) crop_dims: crop in selected dimensions
+    :param tuple(int) crop_dims: crop in selected dimensions
     :param float padding: padding around tissue
     """
     img = load_large_image(img_path)

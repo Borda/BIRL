@@ -36,7 +36,7 @@ CUT_DIMENSION = 0
 
 def arg_parse_params():
     """ parse the input parameters
-    :return dict: {str: any}
+    :return dict: parameters
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()

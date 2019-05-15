@@ -28,7 +28,7 @@ def estimate_affine_transform(points_0, points_1):
 
     :param ndarray points_0: set of points of shape (N, 2)
     :param ndarray points_1: set of points of shape (N, 2)
-    :return (ndarray, ndarray, ndarray, ndarray): transform. matrix & inverse
+    :return tuple(ndarray,ndarray,ndarray,ndarray): transform. matrix & inverse
         and warped point sets
 
     >>> pts0 = np.array([[4., 116.], [4., 4.], [26., 4.], [26., 116.]], dtype=int)
@@ -72,7 +72,7 @@ def get_affine_components(matrix):
     """ get the main components of Affine transform
 
     :param ndarray matrix: affine transformation matrix for 2d
-    :return {str: float}:
+    :return dict: dictionary of float values
 
     >>> mtx = np.array([[ -0.95,   0.1,  65.], [  0.1,   0.95, -60.], [  0.,   0.,   1.]])
     >>> import  pandas as pd

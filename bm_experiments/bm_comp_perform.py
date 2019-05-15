@@ -55,7 +55,7 @@ NAME_IMAGE_WARPED = 'temp_regist-image_warped-%i.jpg'
 
 def arg_parse_params():
     """ parse the input parameters
-    :return dict: {str: any}
+    :return dict: parameters
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
@@ -72,8 +72,8 @@ def _prepare_images(path_out, im_size=IMAGE_SIZE):
     """ generate and prepare synth. images for registration
 
     :param str path_out: path to the folder
-    :param (int, int) im_size: desired image size
-    :return (str, str): paths to target and source image
+    :param tuple(int,int) im_size: desired image size
+    :return tuple(str,str): paths to target and source image
     """
     image = resize(data.astronaut(), output_shape=im_size, mode='constant')
     img_target = random_noise(image, var=IMAGE_NOISE)
@@ -106,7 +106,7 @@ def register_image_pair(idx, path_img_target, path_img_source, path_out):
     :param str path_img_target: path to the target image
     :param str path_img_source: path to the source image
     :param str path_out: path for exporting the output
-    :return (str, float):
+    :return tuple(str,float):
     """
     start = time.time()
     # load and denoise reference image
@@ -147,7 +147,7 @@ def measure_registration_single(path_out, nb_iter=5):
 
     :param str path_out: path to the temporary output space
     :param int nb_iter: number of experiments to be averaged
-    :return {str: float}: results
+    :return dict: dictionary of float values results
     """
     path_img_target, path_img_source = _prepare_images(path_out, IMAGE_SIZE)
     paths = [path_img_target, path_img_source]
@@ -173,7 +173,7 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_workers=NB_THREADS):
     :param str path_out: path to the temporary output space
     :param int nb_iter: number of experiments to be averaged
     :param int nb_workers: number of thread available on the computer
-    :return {str: float}: results
+    :return dict: dictionary of float values results
     """
     path_img_target, path_img_source = _prepare_images(path_out, IMAGE_SIZE)
     paths = [path_img_target, path_img_source]

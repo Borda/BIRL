@@ -72,6 +72,8 @@ extensions = [
     'sphinx.ext.coverage',
     # 'sphinx.ext.viewcode',
     'sphinx.ext.linkcode',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.napoleon',
     'recommonmark',
     # 'm2r',
     'nbsphinx',
@@ -239,7 +241,7 @@ PACKAGES = [
 def run_apidoc(_):
     for pkg in PACKAGES:
         argv = ['-e', '-o', PATH_HERE, os.path.join(PATH_HERE, PATH_ROOT, pkg),
-                '**/test_*', '--force']
+                '**/test_*', '--force', '--private', '--module-first']
         try:
             # Sphinx 1.7+
             from sphinx.ext import apidoc
@@ -313,3 +315,11 @@ def linkcode_resolve(domain, info):
     #                        universal_newlines=True).communicate()[0][:-1]
     return "https://github.com/%s/%s/blob/master/%s" \
            % (github_user, github_repo, filename)
+
+
+autodoc_member_order = 'groupwise'
+autoclass_content = 'both'
+autodoc_default_flags = [
+    'members', 'undoc-members', 'show-inheritance', 'private-members',
+    # 'special-members', 'inherited-members'
+]

@@ -192,7 +192,7 @@ def save_landmarks_pts(path_file, landmarks):
 def save_landmarks_csv(path_file, landmarks):
     """ save landmarks into a csv file
 
-    we are using simpleformat::
+    we are using simple format::
 
         ,X,Y
         0,point1-x,point1-y
@@ -269,7 +269,7 @@ def image_size(path_image, decimal=1):
 
     :param str path_image: path to the image
     :param int decimal: rounding digits
-    :return (int, int), float: image size and diagonal
+    :return tuple(int,int), float: image size and diagonal
 
     >>> img = np.random.random((50, 75, 3))
     >>> save_image('./test_image.jpg', img)

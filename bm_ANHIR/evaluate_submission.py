@@ -94,7 +94,7 @@ CMP_THREADS = ('1', 'n')
 
 def create_parser():
     """ parse the input parameters
-    :return dict: {str: any}
+    :return dict: parameters
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
@@ -125,11 +125,11 @@ def create_parser():
 def filter_landmarks(idx_row, path_output, path_dataset, path_reference):
     """ filter all relevant landmarks which were used and copy them to experiment
 
-    :param (idx, {}|Series) idx_row: experiment DataFrame
+    :param tuple(idx,dict|Series) idx_row: experiment DataFrame
     :param str path_output: path to output folder
     :param str path_dataset: path to provided landmarks
     :param str path_reference: path to the complete landmark collection
-    :return (idx, float): record index and match ratio
+    :return tuple(idx,float): record index and match ratio
     """
     idx, row = idx_row
     path_ref = update_path_(row[COL_POINTS_MOVE], path_reference)
@@ -192,7 +192,7 @@ def normalize_exec_time(df_experiments, path_experiments, path_comp_bm=None):
 def parse_landmarks(idx_row):
     """ parse the warped landmarks and reference and save them as cases
 
-    :param (int, series) idx_row: individual row
+    :param tuple(int,series) idx_row: individual row
     :return {str: float|[]}: parsed registration pair
     """
     idx, row = idx_row
@@ -233,7 +233,7 @@ def compute_scores(df_experiments, min_landmarks=1.):
     :param DF df_experiments: complete experiments
     :param float min_landmarks: required number of submitted landmarks in range (0, 1),
         match values in COL_FOUND_LNDS
-    :return {}: results
+    :return dict: results
     """
     # if the initial overlap and submitted overlap do not mach, drop results
     if 'overlap points (final)' not in df_experiments.columns:
@@ -296,7 +296,7 @@ def _filter_tre_measure_columns(df_experiments):
     """ get columns related to TRE measures
 
     :param DF df_experiments: experiment table
-    :return ([str], [str]):
+    :return tuple(list(str),list(str)):
     """
     # copy the initial to final for missing
     cols_final = [col for col in df_experiments.columns

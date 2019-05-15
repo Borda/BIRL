@@ -41,8 +41,8 @@ MAX_IMAGE_SIZE = 5000
 def detect_binary_blocks(vec_bin):
     """ detect the binary object by beginning, end and length in !d signal
 
-    :param [bool] vec_bin: binary vector with 1 for an object
-    :return [int], [int], [int]:
+    :param list(bool) vec_bin: binary vector with 1 for an object
+    :return tuple(list(int),list(int),list(int)):
 
     >>> vec = np.array([1] * 15 + [0] * 5 + [1] * 20)
     >>> detect_binary_blocks(vec)
@@ -77,10 +77,10 @@ def detect_binary_blocks(vec_bin):
 def find_split_objects(hist, nb_objects=2, threshold=TISSUE_CONTENT):
     """ find the N largest objects and set split as middle distance among them
 
-    :param [float] hist: input vector
+    :param list(float) hist: input vector
     :param int nb_objects: number of desired objects
     :param float threshold: threshold for input vector
-    :return [int]:
+    :return list(int):
 
     >>> vec = np.array([1] * 15 + [0] * 5 + [1] * 20)
     >>> find_split_objects(vec)
@@ -108,9 +108,9 @@ def find_split_objects(hist, nb_objects=2, threshold=TISSUE_CONTENT):
 def find_largest_object(hist, threshold=TISSUE_CONTENT):
     """ find the largest objects and give its beginning end end
 
-    :param [float] hist: input vector
+    :param list(float) hist: input vector
     :param float threshold: threshold for input vector
-    :return [int]:
+    :return list(int):
 
     >>> vec = np.array([1] * 15 + [0] * 5 + [1] * 20)
     >>> find_largest_object(vec)
@@ -133,7 +133,7 @@ def project_object_edge(img, dimension):
 
     :param ndarray img:
     :param int dimension: select dimension for projection
-    :return [float]:
+    :return list(float):
 
     >>> img = np.zeros((20, 10, 3))
     >>> img[2:6, 1:7, :] = 1
@@ -233,7 +233,7 @@ def generate_pairing(count, step_hide=None):
 
     :param int count: total number of samples
     :param int|None step_hide: hide every N sample
-    :return [(int, int)], [bool]: registration pairs
+    :return list((int, int)), list(bool): registration pairs
 
     >>> generate_pairing(4, None)  # doctest: +NORMALIZE_WHITESPACE
     ([(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)],
@@ -280,8 +280,8 @@ def line_angle_2d(point_begin, point_end, deg=True):
 
     the zero is horizontal in direction [1, 0]
 
-    :param [float] point_begin: starting line point
-    :param [float] point_end: ending line point
+    :param list(float) point_begin: starting line point
+    :param list(float) point_end: ending line point
     :param bool deg: return angle in degrees
     :return float:
 
@@ -320,9 +320,9 @@ def is_point_inside_perpendicular(point_begin, point_end, point_test):
 
     Note that negative response does not mean that that the point is on tight side
 
-    :param [float] point_begin: starting line point
-    :param [float] point_end: ending line point
-    :param [float] point_test: testing point
+    :param list(float) point_begin: starting line point
+    :param list(float) point_end: ending line point
+    :param list(float) point_test: testing point
     :return int: gives +1 if it is above, -1 if bellow and 0 elsewhere
 
     >>> is_point_inside_perpendicular([1, 1], [3, 1], [2, 2])
@@ -351,9 +351,9 @@ def is_point_in_quadrant_left(point_begin, point_end, point_test):
 
     Note that negative response does not mean that that the point is on tight side
 
-    :param [float] point_begin: starting line point
-    :param [float] point_end: ending line point
-    :param [float] point_test: testing point
+    :param list(float) point_begin: starting line point
+    :param list(float) point_end: ending line point
+    :param list(float) point_test: testing point
     :return int: gives +1 if it is above, -1 if bellow and 0 elsewhere
 
     >>> is_point_in_quadrant_left([1, 1], [3, 1], [2, 2])
@@ -380,9 +380,9 @@ def is_point_in_quadrant_left(point_begin, point_end, point_test):
 def is_point_above_line(point_begin, point_end, point_test):
     """ If point is left from line
 
-    :param [float] point_begin: starting line point
-    :param [float] point_end: ending line point
-    :param [float] point_test: testing point
+    :param list(float) point_begin: starting line point
+    :param list(float) point_end: ending line point
+    :param list(float) point_test: testing point
     :return bool: left from line
 
     >>> is_point_above_line([1, 1], [2, 2], [3, 4])
@@ -458,7 +458,7 @@ def get_close_diag_corners(points):
     """ finds points closes to the top left and bottom right corner
 
     :param ndarray points: set of points
-    :return (ndarray, ndarray): begin and end of imaginary diagonal
+    :return tuple(ndarray,ndarray): begin and end of imaginary diagonal
 
     >>> np.random.seed(0)
     >>> points = np.random.randint(1, 9, (20, 2))
@@ -480,7 +480,7 @@ def simplify_polygon(points, tol_degree=5):
 
     :param ndarray points: point in polygon
     :param float tol_degree: tolerance on change in orientation
-    :return [[float]]:
+    :return list(list(float)):
 
     >>> pts = [[1, 2], [2, 4], [1, 5], [2, 8], [3, 8], [5, 8], [7, 8], [8, 7],
     ...     [8, 5], [8, 3], [8, 1], [7, 1], [6, 1], [4, 1], [3, 1], [3, 2], [2, 2]]
@@ -555,8 +555,8 @@ def compute_convex_hull(landmarks):
 def inside_polygon(polygon, point):
     """ check if a point is strictly inside the polygon
 
-    :param ndarray|[] polygon: polygon contour
-    :param ()|[] point: sample point
+    :param ndarray|list polygon: polygon contour
+    :param tuple|list point: sample point
     :return bool: inside
 
     >>> poly = [[1, 1], [1, 3], [3, 3], [3, 1]]
@@ -576,7 +576,7 @@ def list_sub_folders(path_folder, name='*'):
 
     :param str path_folder: path to a particular folder
     :param str name: name pattern
-    :return [str]:
+    :return list(str):
 
     >>> from birl.utilities.data_io import update_path
     >>> paths = list_sub_folders(update_path('data_images'))
@@ -591,10 +591,10 @@ def list_sub_folders(path_folder, name='*'):
 def common_landmarks(points1, points2, threshold=0.5):
     """ find common landmarks in two sets
 
-    :param ndarray|[[float]] points1: first point set
-    :param ndarray|[[float]] points2: second point set
+    :param ndarray|list(list(float)) points1: first point set
+    :param ndarray|list(list(float)) points2: second point set
     :param float threshold: threshold for assignment
-    :return [bool]:
+    :return list(bool):
 
     >>> np.random.seed(0)
     >>> common = np.random.random((5, 2))
@@ -652,7 +652,7 @@ def args_expand_parse_images(parser, nb_workers=1, overwrite=True):
     :param obj parser: existing parser
     :param int nb_workers: number threads by default
     :param bool overwrite: allow overwrite images
-    :return {}:
+    :return dict:
     """
     parser = args_expand_images(parser, nb_workers, overwrite)
     args = vars(parser.parse_args())
@@ -663,7 +663,7 @@ def args_expand_parse_images(parser, nb_workers=1, overwrite=True):
 def estimate_scaling(images, max_size=MAX_IMAGE_SIZE):
     """ find scaling for given set of images and maximal image size
 
-    :param [ndarray] images: input images
+    :param list(ndarray) images: input images
     :param float max_size: max image size in any dimension
     :return float: scaling in range (0, 1)
 
@@ -683,9 +683,9 @@ def estimate_scaling(images, max_size=MAX_IMAGE_SIZE):
 def scale_large_images_landmarks(images, landmarks):
     """ scale images and landmarks up to maximal image size
 
-    :param [ndarray] images: list of images
-    :param [ndarray] landmarks: list of landmarks
-    :return ([ndarray], [ndarray]): lists of images and landmarks
+    :param list(ndarray) images: list of images
+    :param list(ndarray) landmarks: list of landmarks
+    :return tuple(list(ndarray),list(ndarray)): lists of images and landmarks
 
     >>> scale_large_images_landmarks([np.zeros((8000, 500, 3), dtype=np.uint8)],
     ...                              [None, None])  # doctest: +ELLIPSIS

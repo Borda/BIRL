@@ -42,7 +42,7 @@ def compute_target_regist_error_statistic(points_ref, points_est):
 
     :param ndarray points_ref: final landmarks in target image of  np.array<nb_points, dim>
     :param ndarray points_est: warped landmarks from source to target of np.array<nb_points, dim>
-    :return: (np.array<nb_points, 1>, {str: float})
+    :return: (np.array<nb_points, 1>, dict)
 
     >>> points_ref = np.array([[1, 2], [3, 4], [2, 1]])
     >>> points_est = np.array([[3, 4], [2, 1], [1, 2]])
@@ -166,10 +166,10 @@ def compute_affine_transf_diff(points_ref, points_init, points_est):
 def compute_ranking(user_cases, field, reverse=False):
     """ compute ranking over selected field
 
-    :param {str: {}} user_cases: dictionary with measures for user and case
+    :param dict(dict) user_cases: dictionary with measures for user and case
     :param str field: name of field to be ranked
     :param bool reverse: use reverse ordering
-    :return {str: {str: {}}}: extended dictionary
+    :return dict(dict(dict)): extended dictionary
 
     >>> user_cases = {
     ...     'karel': {1: {'rTRE': 0.04}, 2: {'rTRE': 0.25}, 3: {'rTRE': 0.1}},

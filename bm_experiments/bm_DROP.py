@@ -118,8 +118,8 @@ class BmDROP(ImRegBenchmark):
     def _prepare_img_registration(self, record):
         """ converting the input images to gra-scale and MHD format
 
-        :param {str: str|float} dict record: dictionary with regist. params
-        :return {str: str|float}: the same or updated registration info
+        :param dict dict record: dictionary with regist. params
+        :return dict: the same or updated registration info
         """
         logging.debug('.. converting images to MHD')
         path_im_ref, path_im_move, _, _ = self._get_paths(record)
@@ -142,8 +142,8 @@ class BmDROP(ImRegBenchmark):
     def _generate_regist_command(self, record):
         """ generate the registration command
 
-        :param {str: str|float} record: dictionary with registration params
-        :return str|[str]: the execution commands
+        :param dict record: dictionary with registration params
+        :return str|list(str): the execution commands
         """
         logging.debug('.. prepare DROP registration command')
         path_im_ref, path_im_move, _, _ = self._get_paths(record)
@@ -164,8 +164,8 @@ class BmDROP(ImRegBenchmark):
     def _extract_warped_image_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
-        :param {str: value} record: dictionary with registration params
-        :return {str: str}: paths to ...
+        :param dict record: dictionary with registration params
+        :return dict: paths to ...
         """
         path_reg_dir = self._get_path_reg_dir(record)
         _, path_im_move, path_lnds_ref, _ = self._get_paths(record)
@@ -198,8 +198,8 @@ class BmDROP(ImRegBenchmark):
     def _clear_after_registration(self, record):
         """ clean unnecessarily files after the registration
 
-        :param {str: value} record: dictionary with regist. information
-        :return {str: value}: the same or updated regist. info
+        :param dict record: dictionary with regist. information
+        :return dict: the same or updated regist. info
         """
         logging.debug('.. cleaning after registration experiment, remove `output`')
         path_reg_dir = self._get_path_reg_dir(record)

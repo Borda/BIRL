@@ -32,7 +32,7 @@ OPTIONS_COMBINE = ('first2all', 'each2all')
 def arg_parse_params():
     """ parse the input parameters
 
-    :return dict: {str: str}
+    :return dict: parameters
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--path_pattern_images', type=str,

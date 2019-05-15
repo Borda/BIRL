@@ -95,8 +95,8 @@ class BmANTsPy(ImRegBenchmark):
     def _generate_regist_command(self, record):
         """ generate the registration command(s)
 
-        :param {str: str|float} record: dictionary with registration params
-        :return str|[str]: the execution commands
+        :param dict record: dictionary with registration params
+        :return str|list(str): the execution commands
         """
         path_dir = self._get_path_reg_dir(record)
         path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(record)
@@ -115,8 +115,8 @@ class BmANTsPy(ImRegBenchmark):
     def _extract_warped_image_landmarks(self, record):
         """ get registration results - warped registered images and landmarks
 
-        :param {str: value} record: dictionary with registration params
-        :return {str: str}: paths to ...
+        :param dict record: dictionary with registration params
+        :return dict: paths to ...
         """
         path_dir = self._get_path_reg_dir(record)
         _, path_im_move, _, path_lnds_move = self._get_paths(record)
@@ -137,7 +137,7 @@ class BmANTsPy(ImRegBenchmark):
     def _extract_execution_time(self, record):
         """ if needed update the execution time
 
-        :param record: {str: value}, dictionary with registration params
+        :param dict record: dictionary with registration params
         :return float|None: time in minutes
         """
         path_dir = self._get_path_reg_dir(record)

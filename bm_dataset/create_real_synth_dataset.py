@@ -50,7 +50,7 @@ DEFORMATION_BOUNDARY_COEF = 3
 
 def arg_parse_params():
     """ parse the input parameters
-    :return dict: {str: str}
+    :return dict: parameters
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
@@ -76,7 +76,7 @@ def generate_deformation_field_gauss(shape, points, max_deform=DEFORMATION_MAX,
     """ generate deformation field as combination of positive and
     negative Galatians densities scaled in range +/- max_deform
 
-    :param (int, int) shape: tuple of size 2
+    :param tuple(int,int) shape: tuple of size 2
     :param points: <nb_points, 2> list of landmarks
     :param float max_deform: maximal deformation distance in any direction
     :param float deform_smooth: smoothing the deformation by Gaussian filter
@@ -113,7 +113,7 @@ def generate_deformation_field_rbf(shape, points, max_deform=DEFORMATION_MAX,
     """ generate deformation field as thin plate spline  deformation
     in range +/- max_deform
 
-    :param (int, int) shape: tuple of size 2
+    :param tuple(int,int) shape: tuple of size 2
     :param points: np.array<nb_points, 2> list of landmarks
     :param float max_deform: maximal deformation distance in any direction
     :param int nb_bound_points: number of fix boundary points
@@ -288,7 +288,7 @@ def get_name(path):
 def main(params):
     """ main entry point
 
-    :param dict params: {str: str}
+    :param dict params: dict
     """
     logging.info('running...')
 

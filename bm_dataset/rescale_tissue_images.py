@@ -41,7 +41,7 @@ FOLDER_TEMPLATE = 'scale-%ipc'
 
 def arg_parse_params():
     """ parse the input parameters
-    :return dict: {str: any}
+    :return dict: parameters
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
@@ -104,7 +104,7 @@ def main(path_images, scales, image_extension, overwrite, nb_workers):
     """ main entry point
 
     :param str path_images: path to input images
-    :param [float] scales: define scales in percentage, range (0, 100)
+    :param list(float) scales: define scales in percentage, range (0, 100)
     :param str image_extension: image extension used on output
     :param bool overwrite: whether overwrite existing image on output
     :param int nb_workers: nb jobs running in parallel

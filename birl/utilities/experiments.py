@@ -60,22 +60,33 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     >>> p_dir = create_experiment_folder('.', 'my_test', stamp_unique=False)
     >>> os.rmdir(p_dir)
     >>> p_dir = create_experiment_folder('.', 'my_test', stamp_unique=True)
+    >>> p_dir  # doctest: +ELLIPSIS
+    '...my_test_...-...'
     >>> os.rmdir(p_dir)
     """
     assert os.path.exists(path_out), 'missing base folder "%s"' % path_out
     date = time.gmtime()
     if isinstance(name, str) and name:
-        dir_name = '{}_{}'.format(dir_name, name)
-    path_exp = os.path.join(path_out, dir_name)
+        dir_name = '%r_%r' % (dir_name, name)
+    # if you require time stamp
     if stamp_unique:
-        path_exp += '_' + time.strftime(FORMAT_DATE_TIME, date)
+        path_stamp = time.strftime(FORMAT_DATE_TIME, date)
+        # prepare experiment path with initial timestamp - now
+        path_exp = os.path.join(path_out, '%s_%s' % (dir_name, path_stamp))
         path_created = None
         while not path_created:
+            # try to generate new time stamp
+            path_stamp_new = time.strftime(FORMAT_DATE_TIME, date)
+            # if the new one is different use it; this may over come too long stamps
+            if path_stamp != path_stamp_new:
+                path_stamp = path_stamp_new
+                path_exp = os.path.join(path_out, '%s_%s' % (dir_name, path_stamp))
             logging.warning('particular out folder already exists')
             if path_created is not None:
                 path_exp += '-' + str(np.random.randint(0, 100))
             path_created = create_folder(path_exp, ok_existing=False)
     else:
+        path_exp = os.path.join(path_out, dir_name)
         path_created = create_folder(path_exp, ok_existing=False)
     logging.info('created experiment folder "%r"', path_created)
     return path_exp
@@ -120,10 +131,10 @@ def set_experiment_logger(path_out, file_name=FILE_LOGS, reset=True):
     log.addHandler(fh)
 
 
-def string_dict(d, headline='DICTIONARY:', offset=25):
+def string_dict(ds, headline='DICTIONARY:', offset=25):
     """ format the dictionary into a string
 
-    :param dict d: {str: val} dictionary with parameters
+    :param dict ds: {str: val} dictionary with parameters
     :param str headline: headline before the printed dictionary
     :param int offset: max size of the string name
     :return str: formatted string
@@ -132,7 +143,7 @@ def string_dict(d, headline='DICTIONARY:', offset=25):
     'TEST:\\n"a":  1\\n"b":  2'
     """
     template = '{:%is} {}' % offset
-    rows = [template.format('"{}":'.format(n), d[n]) for n in sorted(d)]
+    rows = [template.format('"{}":'.format(n), ds[n]) for n in sorted(ds)]
     s = headline + '\n' + '\n'.join(rows)
     return s
 
@@ -175,11 +186,11 @@ def create_basic_parse():
 def update_paths(args, upper_dirs=None, pattern='path'):
     """ find params with not existing paths
 
-    :param {} args: dictionary with all parameters
-    :param [str] upper_dirs: list of keys in parameters
+    :param dict args: dictionary with all parameters
+    :param list(str) upper_dirs: list of keys in parameters
         with item for which only the parent folder must exist
     :param str pattern: patter specifying key with path
-    :return [str]: key of missing paths
+    :return list(str): key of missing paths
 
     >>> update_paths({'sample': 123})[1]
     []
@@ -211,9 +222,9 @@ def parse_arg_params(parser, upper_dirs=None):
     """ parse all params
 
     :param parser: object of parser
-    :param [str] upper_dirs: list of keys in parameters
+    :param list(str) upper_dirs: list of keys in parameters
         with item for which only the parent folder must exist
-    :return {str: any}:
+    :return dict:
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     args = vars(parser.parse_args())
@@ -234,7 +245,7 @@ def exec_commands(commands, path_logger=None, timeout=None):
     * https://stackoverflow.com/questions/1996518
     * https://www.quora.com/Whats-the-difference-between-os-system-and-subprocess-call-in-Python
 
-    :param [str] commands: commands to be executed
+    :param list(str) commands: commands to be executed
     :param str path_logger: path to the logger
     :param int timeout: timeout for max commands length
     :return bool: whether the commands passed
@@ -459,9 +470,9 @@ def is_iterable(var, iterable_types=ITERABLE_TYPES):
 def dict_deep_update(dict_base, dict_update):
     """ update recursively
 
-    :param {} dict_base:
-    :param {} dict_update:
-    :return {}:
+    :param dict dict_base:
+    :param dict dict_update:
+    :return dict:
 
     >>> d = {'level1': {'level2': {'levelA': 0, 'levelB': 1}}}
     >>> u = {'level1': {'level2': {'levelB': 10}}}
@@ -480,7 +491,7 @@ def dict_deep_update(dict_base, dict_update):
     for k in dict_update:
         val = dict_update[k]
         if isinstance(val, collections.Mapping):
-            dict_base[k] = dict_deep_update(dict_base.get(k, {}), val)
+            dict_base[k] = dict_deep_update(dict_base.get(k, dict), val)
         else:
             dict_base[k] = val
     return dict_base

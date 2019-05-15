@@ -70,7 +70,7 @@ def send_mail(smtp, email, row, subject=SUBJECT):
 
     :param obj smtp:
     :param str email: email address
-    :param {} row: full from participants list
+    :param dict row: full from participants list
     :param str subject:
     """
     # text = prepare_mail_invitation(row['Name'], row['Publication name'],
