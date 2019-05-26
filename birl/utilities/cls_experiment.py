@@ -63,7 +63,7 @@ class Experiment(object):
     def __init__(self, exp_params, stamp_unique=True):
         """Initialise the experiment, create experiment folder and set logger.
 
-        :param dict exp_params: {str: value}
+        :param dict exp_params: experiment configuration {str: value}
         :param bool stamp_unique: add at the end of experiment folder unique
             time stamp (actual date and time)
         """
@@ -135,13 +135,16 @@ class Experiment(object):
         check existence of all parameters dictionary which has contains words:
         'path', 'dir', 'file'
         """
-        list_names = [n for n in self.params
-                      if any(m in n.lower() for m in ['path', 'dir', 'file'])]
-        for n in list_names:
+        for n in [n for n in self.params if any(m in n.lower()
+                                                for m in ['path', 'dir', 'file'])]:
             p = os.path.abspath(os.path.expanduser(self.params[n]))
             if not os.path.exists(p):
-                raise Exception('given path "%s" does not exist!' % p)
+                raise Exception('given path/file/dir "%s" does not exist!' % p)
             self.params[n] = p
+        for n in [n for n in self.params if 'exec' in n]:
+            # in case you define executable in your home
+            if os.path.expanduser(self.params[n]) != self.params[n]:
+                self.params[n] = os.path.expanduser(self.params[n])
 
     def __create_folder(self, stamp_unique=True):
         """Create the experiment folder (iterate if necessary).

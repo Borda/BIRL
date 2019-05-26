@@ -38,12 +38,16 @@ Sample run::
         --path_config ./configs/drop.txt \
         --visual --unique
 
-.. note:: experiments was tested on Linux Ubuntu based system
+.. note:: experiments was tested on Ubuntu (Linux) based OS system
 
 .. note:: to check whether uoi have all needed libraries on Linux use `ldd dropreg2d`,
  see: https://askubuntu.com/a/709271/863070
  AND set path to the `libdroplib.so` as `export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib`,
  see: https://unix.stackexchange.com/a/67783 ; https://stackoverflow.com/a/49660575/4521646
+
+.. note:: This method is not optimized nor suitable for large images, so all used images
+ are first scaled to be 1000x1000 pixels and then the registration is performed.
+  After registration is resulting image scaled back. The landmarks are scalded accordingly.
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -54,19 +58,25 @@ import sys
 import glob
 import shutil
 import logging
+import time
 
 import numpy as np
 import SimpleITK as sitk
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (
-    convert_to_mhd, convert_from_mhd, save_landmarks, load_landmarks)
+    convert_to_mhd, convert_from_mhd, save_landmarks, load_landmarks, image_sizes)
 from birl.utilities.experiments import create_basic_parse, parse_arg_params
 from birl.cls_benchmark import (
     ImRegBenchmark, COL_IMAGE_REF, COL_IMAGE_MOVE, COL_IMAGE_EXT_TEMP,
     COL_IMAGE_MOVE_WARP, COL_POINTS_REF_WARP)
 from birl.bm_template import main
 from bm_experiments import bm_comp_perform
+
+#: maximal image size (diagonal in pixels) recommended for DROP registration
+MAX_IMAGE_DIAGONAL = int(np.sqrt(2e3 ** 2 + 2e3 ** 2))
+#: time need for image conversion and optional scaling
+COL_TIME_CONVERT = 'conversion time [s]'
 
 
 def extend_parse(a_parser):
@@ -123,12 +133,18 @@ class BmDROP(ImRegBenchmark):
         """
         logging.debug('.. converting images to MHD')
         path_im_ref, path_im_move, _, _ = self._get_paths(record)
+        path_reg_dir = self._get_path_reg_dir(record)
 
-        convert_queue = [(path_im_ref, COL_IMAGE_REF), (path_im_move, COL_IMAGE_MOVE)]
+        diags = [image_sizes(p_img)[1] for p_img in (path_im_ref, path_im_move)]
+        record['scaling'] = max(1, max(diags) / float(MAX_IMAGE_DIAGONAL))
 
-        for path_img, col in convert_queue:
+        t_start = time.time()
+        for path_img, col in [(path_im_ref, COL_IMAGE_REF),
+                              (path_im_move, COL_IMAGE_MOVE)]:
             record[col + COL_IMAGE_EXT_TEMP] = \
-                convert_to_mhd(path_img, to_gray=True, overwrite=False)
+                convert_to_mhd(path_img, path_out_dir=path_reg_dir, overwrite=False,
+                               to_gray=True, scaling=record.get('scaling', 1.))
+        record[COL_TIME_CONVERT] = time.time() - t_start
 
         # def __wrap_convert_mhd(path_img, col):
         #     path_img = convert_to_mhd(path_img, to_gray=True, overwrite=False)
@@ -170,7 +186,8 @@ class BmDROP(ImRegBenchmark):
         path_reg_dir = self._get_path_reg_dir(record)
         _, path_im_move, path_lnds_ref, _ = self._get_paths(record)
         # convert MHD image
-        path_img_ = convert_from_mhd(os.path.join(path_reg_dir, 'output.mhd'))
+        path_img_ = convert_from_mhd(os.path.join(path_reg_dir, 'output.mhd'),
+                                     scaling=record.get('scaling', 1.))
         img_name = os.path.splitext(os.path.basename(path_im_move))[0]
         ext_img = os.path.splitext(os.path.basename(path_img_))[1]
         path_img = path_img_.replace('output' + ext_img, img_name + ext_img)
@@ -183,12 +200,21 @@ class BmDROP(ImRegBenchmark):
         path_lnd = os.path.join(path_reg_dir, lnds_name)
         assert lnds_ref is not None, 'missing landmarks to be transformed "%s"' % lnds_name
 
+        # down-scale landmarks if defined
+        lnds_ref = lnds_ref / record.get('scaling', 1.)
+        # extract deformation
         path_deform_x = os.path.join(path_reg_dir, 'output_x.mhd')
         path_deform_y = os.path.join(path_reg_dir, 'output_y.mhd')
-        shift = extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds_ref)
+        try:
+            shift = extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds_ref)
+        except Exception:
+            logging.exception(path_reg_dir)
+            shift = np.zeros(lnds_ref.shape)
 
         # lnds_warp = lnds_move - shift
         lnds_warp = lnds_ref + shift
+        # upscale landmarks if defined
+        lnds_warp = lnds_warp * record.get('scaling', 1.)
         save_landmarks(path_lnd, lnds_warp)
 
         # return formatted results
@@ -203,8 +229,9 @@ class BmDROP(ImRegBenchmark):
         """
         logging.debug('.. cleaning after registration experiment, remove `output`')
         path_reg_dir = self._get_path_reg_dir(record)
-        for p_file in glob.glob(os.path.join(path_reg_dir, 'output*')):
-            os.remove(p_file)
+        for ptn in ('output*', '*.mhd', '*.raw'):
+            for p_file in glob.glob(os.path.join(path_reg_dir, ptn)):
+                os.remove(p_file)
         return record
 
 
@@ -221,6 +248,11 @@ def extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds):
         assert os.path.isfile(path_deform_), 'missing deformation: %s' % path_deform_
         deform_ = sitk.GetArrayFromImage(sitk.ReadImage(path_deform_))
         assert deform_ is not None, 'loaded deformation is Empty - %s' % path_deform_
+        for i in range(2):
+            lnds_max = max(lnds[:, 1 - i])
+            assert lnds_max < deform_.shape[i], \
+                'for axis %i landmarks of max=%f exceeded size=%i' \
+                % (i, lnds_max, deform_.shape[i])
         shift_ = deform_[lnds[:, 1], lnds[:, 0]]
         return shift_
 

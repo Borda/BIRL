@@ -85,11 +85,11 @@ def scale_image(img_path, scale, image_ext=IMAGE_EXTENSION, overwrite=False):
         interp = cv.INTER_CUBIC if sc > 1 else cv.INTER_LINEAR
         img_sc = cv.resize(img, None, fx=sc, fy=sc, interpolation=interp)
         del img
+    gc.collect()
+    time.sleep(1)
 
     logging.debug('creating >> %s', path_img_scale)
     save_large_image(path_img_scale, img_sc)
-    gc.collect()
-    time.sleep(1)
 
 
 def wrap_scale_image(img_path_scale, image_ext=IMAGE_EXTENSION, overwrite=False):

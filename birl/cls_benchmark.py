@@ -28,7 +28,7 @@ from skimage.color import rgb2gray
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (
-    update_path, create_folder, image_size, load_landmarks, load_image, save_image,
+    update_path, create_folder, image_sizes, load_landmarks, load_image, save_image,
     image_histogram_matching)
 from birl.utilities.evaluate import (
     compute_target_regist_error_statistic, compute_affine_transf_diff, compute_tre_robustness)
@@ -614,7 +614,7 @@ def _image_diag(record, path_img_ref=None):
     """
     img_diag = dict(record).get(COL_IMAGE_DIAGONAL, None)
     if not img_diag and path_img_ref and os.path.isfile(path_img_ref):
-        _, img_diag = image_size(path_img_ref)
+        _, img_diag = image_sizes(path_img_ref)
     return img_diag
 
 

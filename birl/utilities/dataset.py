@@ -283,7 +283,7 @@ def line_angle_2d(point_begin, point_end, deg=True):
     :param list(float) point_begin: starting line point
     :param list(float) point_end: ending line point
     :param bool deg: return angle in degrees
-    :return float:
+    :return float: orientation
 
     >>> [line_angle_2d([0, 0], p) for p in ((1, 0), (0, 1), (-1, 0), (0, -1))]
     [0.0, 90.0, 180.0, -90.0]
@@ -303,7 +303,7 @@ def line_angle_2d(point_begin, point_end, deg=True):
 def norm_angle(angle, deg=True):
     """ Normalise to be in range (-180, 180) degrees
 
-    :param float angle: inut angle
+    :param float angle: input angle
     :param bool deg: use degrees
     :return float: norma angle
     """
@@ -401,7 +401,7 @@ def compute_half_polygon(landmarks, idx_start=0, idx_end=-1):
     :param int idx_start: index of starting point
     :param int idx_end: index of ending point
     :param ndarray landmarks: set of points
-    :return ndarray:
+    :return ndarray: set of points
 
     >>> pts = [(-1, 1), (0, 0), (0, 2), (1, 1), (1, -0.5), (2, 0)]
     >>> compute_half_polygon(pts, idx_start=0, idx_end=-1)
@@ -480,7 +480,7 @@ def simplify_polygon(points, tol_degree=5):
 
     :param ndarray points: point in polygon
     :param float tol_degree: tolerance on change in orientation
-    :return list(list(float)):
+    :return list(list(float)): pints of polygon
 
     >>> pts = [[1, 2], [2, 4], [1, 5], [2, 8], [3, 8], [5, 8], [7, 8], [8, 7],
     ...     [8, 5], [8, 3], [8, 1], [7, 1], [6, 1], [4, 1], [3, 1], [3, 2], [2, 2]]
@@ -534,8 +534,8 @@ def compute_convex_hull(landmarks):
     * http://lagrange.univ-lyon1.fr/docs/scipy/0.17.1/generated/scipy.spatial.ConvexHull.html
     * https://stackoverflow.com/questions/21727199
 
-    :param ndarray landmarks:
-    :return ndarray:
+    :param ndarray landmarks: set of points
+    :return ndarray: pints of polygon
 
     >>> np.random.seed(0)
     >>> pts = np.random.randint(15, 30, (10, 2))
@@ -576,7 +576,7 @@ def list_sub_folders(path_folder, name='*'):
 
     :param str path_folder: path to a particular folder
     :param str name: name pattern
-    :return list(str):
+    :return list(str): folders
 
     >>> from birl.utilities.data_io import update_path
     >>> paths = list_sub_folders(update_path('data_images'))
@@ -594,7 +594,7 @@ def common_landmarks(points1, points2, threshold=0.5):
     :param ndarray|list(list(float)) points1: first point set
     :param ndarray|list(list(float)) points2: second point set
     :param float threshold: threshold for assignment
-    :return list(bool):
+    :return list(bool): flags
 
     >>> np.random.seed(0)
     >>> common = np.random.random((5, 2))

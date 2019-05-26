@@ -20,7 +20,7 @@ import logging
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import image_size
+from birl.utilities.data_io import image_sizes
 from birl.utilities.experiments import parse_arg_params
 from birl.cls_benchmark import (
     COVER_COLUMNS, COVER_COLUMNS_EXT, COL_IMAGE_REF, COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL)
@@ -73,7 +73,7 @@ def generate_pairs(path_pattern_imgs, path_pattern_lnds, mode):
     for i, j in pairs:
         rec = dict(zip(COVER_COLUMNS,
                        (list_imgs[i], list_imgs[j], list_lnds[i], list_lnds[j])))
-        img_size, img_diag = image_size(rec[COL_IMAGE_REF])
+        img_size, img_diag = image_sizes(rec[COL_IMAGE_REF])
         rec.update({
             COL_IMAGE_SIZE: img_size,
             COL_IMAGE_DIAGONAL: img_diag,

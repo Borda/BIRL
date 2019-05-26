@@ -15,7 +15,7 @@ import tqdm
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import image_size
+from birl.utilities.data_io import image_sizes
 from birl.utilities.dataset import IMAGE_EXTENSIONS, generate_pairing
 from birl.cls_benchmark import (
     COL_STATUS, COL_IMAGE_REF, COL_IMAGE_MOVE, COL_TIME, COL_POINTS_REF, COL_POINTS_MOVE,
@@ -110,7 +110,7 @@ def generate_reg_pairs(rp_imgs, rp_lnds, pairs, public, path_images=DATASET_IMAG
     """
     reg_pairs = []
     for k, (i, j) in enumerate(pairs):
-        img_size, img_diag = image_size(update_path_(rp_imgs[i], path_images))
+        img_size, img_diag = image_sizes(update_path_(rp_imgs[i], path_images))
         reg_pairs.append({
             COL_IMAGE_REF: rp_imgs[i],
             COL_IMAGE_MOVE: rp_imgs[j],

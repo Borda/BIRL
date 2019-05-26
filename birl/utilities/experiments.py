@@ -224,7 +224,7 @@ def parse_arg_params(parser, upper_dirs=None):
     :param parser: object of parser
     :param list(str) upper_dirs: list of keys in parameters
         with item for which only the parent folder must exist
-    :return dict:
+    :return dict: parameters
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     args = vars(parser.parse_args())
@@ -439,7 +439,7 @@ def try_decorator(func):
     """ costume decorator to wrap function in try/except
 
     :param func: decorated function
-    :return: output of the decor. function
+    :return func: output of the decor. function
     """
     @wraps(func)
     def wrap(*args, **kwargs):

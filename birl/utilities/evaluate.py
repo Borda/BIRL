@@ -18,9 +18,9 @@ from birl.utilities.registration import (
 def compute_tre(points_1, points_2):
     """ computing Target Registration Error for each landmark pair
 
-    :param ndarray points_1:
-    :param ndarray points_2:
-    :return ndarray:
+    :param ndarray points_1: set of points
+    :param ndarray points_2: set of points
+    :return ndarray: list of errors of size min nb of points
 
     >>> np.random.seed(0)
     >>> compute_tre(np.random.random((6, 2)),
@@ -42,7 +42,7 @@ def compute_target_regist_error_statistic(points_ref, points_est):
 
     :param ndarray points_ref: final landmarks in target image of  np.array<nb_points, dim>
     :param ndarray points_est: warped landmarks from source to target of np.array<nb_points, dim>
-    :return: (np.array<nb_points, 1>, dict)
+    :return tuple(ndarray,dict): (np.array<nb_points, 1>, dict)
 
     >>> points_ref = np.array([[1, 2], [3, 4], [2, 1]])
     >>> points_est = np.array([[3, 4], [2, 1], [1, 2]])
@@ -96,9 +96,9 @@ def compute_target_regist_error_statistic(points_ref, points_est):
 def compute_tre_robustness(points_target, points_init, points_warp):
     """ compute robustness as improvement for each TRE
 
-    :param ndarra points_target: final landmarks in target image
-    :param ndarra points_init: initial landmarks in source image
-    :param ndarra points_warp: warped landmarks from source to target
+    :param ndarray points_target: final landmarks in target image
+    :param ndarray points_init: initial landmarks in source image
+    :param ndarray points_warp: warped landmarks from source to target
     :return bool: improvement
 
     >>> np.random.seed(0)
@@ -125,7 +125,7 @@ def compute_affine_transf_diff(points_ref, points_init, points_est):
     :param points_ref: np.array<nb_points, dim>
     :param points_init: np.array<nb_points, dim>
     :param points_est: np.array<nb_points, dim>
-    :return:
+    :return ndarray: list of errors
 
     >>> points_ref = np.array([[1, 2], [3, 4], [2, 1]])
     >>> points_init = np.array([[3, 4], [1, 2], [2, 1]])
@@ -274,7 +274,7 @@ def aggregate_user_score_timeline(df, col_aggreg, col_user, col_score,
     :param bool lower_better: taking min/max of scoring value
     :param bool top_down: reversing the order according to col_aggreg
     :param bool interp: in case some scores for col_aggreg are missing, interpolate from past
-    :return DF:
+    :return DF: table
 
     >>> np.random.seed(0)
     >>> df = pd.DataFrame()

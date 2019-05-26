@@ -9,6 +9,7 @@ import logging
 import warnings
 from functools import wraps
 
+import cv2 as cv
 import numpy as np
 import pandas as pd
 import SimpleITK as sitk
@@ -33,7 +34,7 @@ def create_folder(path_folder, ok_existing=True):
     """ create a folder if it not exists
 
     :param str path_folder: path to creating folder
-    :param bool ok_existing: suppres warning for missing
+    :param bool ok_existing: suppress warning for missing
     :return str|None: path to created folder
 
     >>> p_dir = create_folder('./sample-folder', ok_existing=True)
@@ -62,7 +63,7 @@ def load_landmarks(path_file):
     """ load landmarks in csv and txt format
 
     :param str path_file: path to the input file
-    :return: np.array<np_points, dim>
+    :return ndarray: np.array<np_points, dim> of landmarks points
 
     >>> points = np.array([[1, 2], [3, 4], [5, 6]])
     >>> save_landmarks('./sample_landmarks.csv', points)
@@ -96,7 +97,7 @@ def load_landmarks_pts(path_file):
     """ load file with landmarks in txt format
 
     :param str path_file: path to the input file
-    :return: np.array<np_points, dim>
+    :return ndarray: np.array<np_points, dim> of landmarks points
 
     >>> points = np.array([[1, 2], [3, 4], [5, 6]])
     >>> save_landmarks_pts('./sample_landmarks.pts', points)
@@ -133,7 +134,7 @@ def load_landmarks_csv(path_file):
     """ load file with landmarks in cdv format
 
     :param str path_file: path to the input file
-    :return: np.array<np_points, dim>
+    :return ndarray: np.array<np_points, dim> of landmarks points
 
     >>> points = np.array([[1, 2], [3, 4], [5, 6]])
     >>> save_landmarks_csv('./sample_landmarks.csv', points)
@@ -217,7 +218,7 @@ def update_path(path_file, lim_depth=5, absolute=True):
     :param str path_file: original path
     :param int lim_depth: lax depth of going up
     :param bool absolute: return absolute path
-    :return str:
+    :return str: updated path
 
     >>> os.path.exists(update_path('./birl', absolute=False))
     True
@@ -249,7 +250,7 @@ def io_image_decorate(func):
     - DEBUG:PIL.PngImagePlugin:STREAM b'IHDR' 16 13
 
     :param func: decorated function
-    :return: output of the decor. function
+    :return func: output of the decor. function
     """
     @wraps(func)
     def wrap(*args, **kwargs):
@@ -264,7 +265,7 @@ def io_image_decorate(func):
 
 
 @io_image_decorate
-def image_size(path_image, decimal=1):
+def image_sizes(path_image, decimal=1):
     """ get image size (without loading image raster)
 
     :param str path_image: path to the image
@@ -273,7 +274,7 @@ def image_size(path_image, decimal=1):
 
     >>> img = np.random.random((50, 75, 3))
     >>> save_image('./test_image.jpg', img)
-    >>> image_size('./test_image.jpg', decimal=0)
+    >>> image_sizes('./test_image.jpg', decimal=0)
     ((50, 75), 90.0)
     >>> os.remove('./test_image.jpg')
     """
@@ -311,8 +312,8 @@ def load_image(path_image, force_rgb=True):
 def convert_ndarray2image(image):
     """ convert ndarray to PIL image if it not already
 
-    :param image: np.ndarray
-    :return: Image
+    :param ndarray image: input image
+    :return Image: output image
 
     >>> img = np.random.random((50, 50, 3))
     >>> image = convert_ndarray2image(img)
@@ -346,8 +347,45 @@ def save_image(path_image, image):
     image.save(path_image)
 
 
+def image_resize(img, scale=1., v_range=255, dtype=int):
+    """ rescale image with other optional formating
+
+    :param ndarray img: input image
+    :param float scale: the new image size is im_size * scale
+    :param int|float v_range: desired output image range 1. or 255
+    :param dtype: output image type
+    :return ndarray: image
+
+    >>> np.random.seed(0)
+    >>> img = image_resize(np.random.random((250, 300, 3)), scale=2, v_range=255)
+    >>> np.array(img.shape, dtype=int)
+    array([500, 600,   3])
+    >>> img.max()
+    255
+    """
+    if scale is None or scale == 1:
+        return img
+    # scale the image accordingly
+    interp = cv.INTER_CUBIC if scale > 1 else cv.INTER_LINEAR
+    img = cv.resize(img, None, fx=scale, fy=scale, interpolation=interp)
+
+    v_range = 255 if v_range > 1.5 else 1.
+    # if resulting image is in range to 1 and desired is in 255
+    if np.max(img) < 1.5 < v_range:
+        np.multiply(img, 255, out=img)
+        np.round(img, out=img)
+
+    # convert image datatype
+    if dtype is not None:
+        img = img.astype(dtype)
+
+    # clip image values in certain range
+    np.clip(img, a_min=0, a_max=v_range, out=img)
+    return img
+
+
 @io_image_decorate
-def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png'):
+def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png', scaling=None):
     """ convert standard image to MHD format
 
     .. ref:: https://www.programcreek.com/python/example/96382/SimpleITK.WriteImage
@@ -355,12 +393,14 @@ def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png'):
     :param str path_image: path to the input image
     :param str path_out_dir: path to output directory, if None use the input dir
     :param str img_ext: image extension like PNG or JPEG
+    :param float|None scaling: image down-scaling,
+        resulting image will be larger by this factor
     :return str: path to exported image
 
     >>> path_img = os.path.join(update_path('data_images'), 'images',
     ...                         'artificial_reference.jpg')
-    >>> path_img = convert_to_mhd(path_img)
-    >>> convert_from_mhd(path_img)  # doctest: +ELLIPSIS
+    >>> path_img = convert_to_mhd(path_img, scaling=1.5)
+    >>> convert_from_mhd(path_img, scaling=1.5)  # doctest: +ELLIPSIS
     '...artificial_reference.png'
     """
     path_image = update_path(path_image)
@@ -371,6 +411,8 @@ def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png'):
     # Convert the image to a numpy array first and then shuffle the dimensions
     # to get axis in the order z,y,x
     img = sitk.GetArrayFromImage(itk_image)
+    # Scaling image if requested
+    img = image_resize(img, scaling, v_range=255)
 
     # define output/destination path
     img_name = os.path.splitext(os.path.basename(path_image))[0]
@@ -382,7 +424,7 @@ def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png'):
 
 
 @io_image_decorate
-def convert_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True):
+def convert_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True, scaling=None):
     """ converting standard image to MHD (Nifty format)
 
     .. ref:: https://stackoverflow.com/questions/37290631
@@ -390,11 +432,13 @@ def convert_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True):
     :param str path_image: path to the input image
     :param str path_out_dir: path to output directory, if None use the input dir
     :param bool overwrite: allow overwrite existing image
+    :param float|None scaling: image up-scaling
+        resulting image will be smaller by this factor
     :return str: path to exported image
 
     >>> path_img = os.path.join(update_path('data_images'), 'images',
     ...                         'artificial_moving-affine.jpg')
-    >>> convert_to_mhd(path_img)  # doctest: +ELLIPSIS
+    >>> convert_to_mhd(path_img, scaling=2)  # doctest: +ELLIPSIS
     '...artificial_moving-affine.mhd'
     """
     path_image = update_path(path_image)
@@ -405,17 +449,20 @@ def convert_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True):
     path_image_new = os.path.join(path_out_dir, img_name + '.mhd')
     # in case the image exists and you are not allowed to overwrite it
     if os.path.isfile(path_image_new) and not overwrite:
+        logging.debug('skip converting since the image exists and no-overwrite: %s',
+                      path_image_new)
         return path_image_new
 
     img = load_image(path_image)
     # if required and RGB on input convert to gray-scale
     if to_gray and img.ndim == 3 and img.shape[2] in (3, 4):
         img = rgb2gray(img)
+    # Scaling image if requested
+    scaling = 1. / scaling
     # the MHD usually require pixel value range (0, 255)
-    if np.max(img) <= 1.5:
-        img = np.round(img * 255)
-    np.clip(img, a_min=0, a_max=255, out=img)
+    img = image_resize(img, scaling, v_range=255)
 
+    logging.debug('exporting image of size: %r', img.shape)
     image = sitk.GetImageFromArray(img.astype(np.uint8), isVector=False)
 
     # do not use text in MHD, othwerwise it crash DROP method
@@ -485,7 +532,7 @@ def image_histogram_matching(source, reference, use_color='hsv'):
 
 
 def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
-    """ Adjust the pixel values of a grayscale image such that its histogram
+    """ Adjust the pixel values of a gray-scale image such that its histogram
     matches that of a target image
 
     :param ndarray source: 2D image to be transformed, np.array<height1, width1>
