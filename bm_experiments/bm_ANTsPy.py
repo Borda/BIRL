@@ -44,8 +44,11 @@ from birl.bm_template import main
 from bm_experiments import bm_comp_perform
 
 
+#: file with exported image registration time
 NAME_IMAGE_WARPED = 'warped-image.jpg'
+#: file with warped landmarks after performed registration
 NAME_LNDS_WARPED = 'warped-landmarks.csv'
+#: file with warped image after performed registration
 NAME_TIME_EXEC = 'time.txt'
 
 
@@ -85,6 +88,7 @@ class BmANTsPy(ImRegBenchmark):
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
+    #: required experiment parameters
     REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_Python', 'path_script']
 
     def _prepare(self):

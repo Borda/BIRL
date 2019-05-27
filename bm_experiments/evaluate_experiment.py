@@ -31,9 +31,13 @@ from birl.utilities.experiments import iterate_mproc_map, parse_arg_params
 from birl.cls_benchmark import (NAME_CSV_REGISTRATION_PAIRS, export_summary_results,
                                 compute_registration_statistic, visualise_registration)
 
+#: default number of used threads
 NB_THREADS = max(1, int(mproc.cpu_count() * .75))
+#: file name of new table with registration results
 NAME_CSV_RESULTS = 'registration-results_NEW.csv'
+#: file name of new table with registration summary
 NAME_CSV_SUMMARY = 'results-summary_NEW.csv'
+#: file with formatted registration summary
 NAME_TXT_SUMMARY = 'results-summary_NEW.txt'
 
 

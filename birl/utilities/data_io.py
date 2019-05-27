@@ -9,6 +9,7 @@ import logging
 import warnings
 from functools import wraps
 
+import yaml
 import cv2 as cv
 import numpy as np
 import pandas as pd
@@ -212,13 +213,13 @@ def save_landmarks_csv(path_file, landmarks):
 
 
 def update_path(path_file, lim_depth=5, absolute=True):
-    """ bubble in the folder tree up intil it found desired file
+    """ bubble in the folder tree up until it found desired file
     otherwise return original one
 
     :param str path_file: original path
-    :param int lim_depth: lax depth of going up
-    :param bool absolute: return absolute path
-    :return str: updated path
+    :param int lim_depth: max depth of going up in the folder tree
+    :param bool absolute: format as absolute path
+    :return str: updated path if it exists otherwise the original one
 
     >>> os.path.exists(update_path('./birl', absolute=False))
     True
@@ -577,3 +578,30 @@ def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
     if out_float:
         matched = matched.astype(float) / 255.
     return matched
+
+
+def load_config_yaml(path_config):
+    """ loading the
+
+    :param str path_config:
+    :return dict:
+
+    >>> p_conf = './testing-congif.yaml'
+    >>> save_config_yaml(p_conf, {'a': 2})
+    >>> load_config_yaml(p_conf)
+    {'a': 2}
+    >>> os.remove(p_conf)
+    """
+    with open(path_config, 'r') as fp:
+        config = yaml.load(fp)
+    return config
+
+
+def save_config_yaml(path_config, config):
+    """ exporting configuration as YAML file
+
+    :param str path_config:
+    :param dict config:
+    """
+    with open(path_config, 'w') as fp:
+        yaml.dump(config, fp, default_flow_style=False)

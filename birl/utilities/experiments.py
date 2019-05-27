@@ -64,7 +64,7 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     '...my_test_...-...'
     >>> os.rmdir(p_dir)
     """
-    assert os.path.exists(path_out), 'missing base folder "%s"' % path_out
+    assert os.path.isdir(path_out), 'missing base folder "%s"' % path_out
     date = time.gmtime()
     if isinstance(name, str) and name:
         dir_name = '%r_%r' % (dir_name, name)
@@ -326,8 +326,9 @@ def exec_commands(commands, path_logger=None, timeout=None):
 def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=NB_THREADS, desc=''):
     """ create a multi-porocessing pool and execute a wrapped function in separate process
 
-    :param wrap_func: function which will be excited in the iterations
-    :param [] iterate_vals: list or iterator which will ide in iterations
+    :param func wrap_func: function which will be excited in the iterations
+    :param list iterate_vals: list or iterator which will ide in iterations,
+        if -1 then use all available threads
     :param int nb_workers: number og jobs running in parallel
     :param str|None desc: description for the bar,
         if it is set None, bar is suppressed
@@ -354,6 +355,7 @@ def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=NB_THREADS, desc=''):
     """
     iterate_vals = list(iterate_vals)
     nb_workers = 1 if not nb_workers else int(nb_workers)
+    nb_workers = NB_THREADS if nb_workers < 0 else nb_workers
 
     tqdm_bar = None
     if desc is not None:
@@ -393,8 +395,8 @@ def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=NB_THREADS, desc=''):
 #     """ run all processes in  parallel and wait until all is finished
 #
 #     :param func: the function to be executed
-#     :param [] arg_params: list or tuple of parameters
-#     :return []: list of outputs
+#     :param list arg_params: list or tuple of parameters
+#     :return list: list of outputs
 #
 #     https://sebastianraschka.com/Articles/2014_multiprocessing.html
 #

@@ -9,10 +9,10 @@ import os
 import copy
 import logging
 
-import yaml
-
+from birl.utilities.data_io import save_config_yaml, update_path
 from birl.utilities.experiments import (
-    set_experiment_logger, string_dict, create_experiment_folder, release_logger_files)
+    set_experiment_logger, string_dict, create_experiment_folder, release_logger_files,
+    FILE_LOGS)
 
 #: default output file for exporting experiment configuration
 CONFIG_YAML = 'config.yml'
@@ -20,14 +20,12 @@ CONFIG_YAML = 'config.yml'
 RESULTS_TXT = 'results.txt'
 #: default file for exporting results in table format
 RESULTS_CSV = 'results.csv'
-#: default output file for logging
-FILE_LOGS = 'logging.txt'
 
 
 class Experiment(object):
     """
-    Tha basic template for experiment running with specific initialisation
-    None, all required parameters used in future have to come in init phase
+    Tha basic template for experiment running with specific initialisation.
+    None, all required parameters used in future have to come in init phase.
 
     The workflow is following:
 
@@ -59,6 +57,8 @@ class Experiment(object):
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
+    #: required experiment parameters
+    REQUIRED_PARAMS = ['path_out']
 
     def __init__(self, exp_params, stamp_unique=True):
         """Initialise the experiment, create experiment folder and set logger.
@@ -82,10 +82,11 @@ class Experiment(object):
         logging.info('initialise experiment...')
         logging.info(string_dict(self.params, 'PARAMETERS:'))
 
-    @classmethod
     def _check_required_params(self):
         """Check some extra required parameters for this experiment."""
         logging.debug('.. check if Experiment have all required parameters')
+        for n in self.REQUIRED_PARAMS:
+            assert n in self.params, 'missing "%s" among %r' % (n, self.params.keys())
 
     def run(self):
         """Running the complete experiment.
@@ -106,6 +107,7 @@ class Experiment(object):
         self._prepare()
         self._load_data()
         self._run()
+        self._evaluate()
         self._summarise()
         return True
 
@@ -125,6 +127,11 @@ class Experiment(object):
         logging.warning('-> perform EMPTY experiment...')
 
     @classmethod
+    def _evaluate(self):
+        """Evaluate experiment - prediction & annotation."""
+        logging.warning('-> evaluate EMPTY experiment...')
+
+    @classmethod
     def _summarise(self):
         """Summarise experiment result against annotation."""
         logging.warning('-> summarise EMPTY experiment...')
@@ -135,8 +142,11 @@ class Experiment(object):
         check existence of all parameters dictionary which has contains words:
         'path', 'dir', 'file'
         """
-        for n in [n for n in self.params if any(m in n.lower()
-                                                for m in ['path', 'dir', 'file'])]:
+        assert 'path_out' in self.params, 'missing "path_out" among parameters'
+        self.params['path_out'] = update_path(self.params.get('path_out'))
+        list_names = [n for n in self.params
+                      if any(m in n.lower() for m in ['path', 'dir', 'file'])]
+        for n in list_names:
             p = os.path.abspath(os.path.expanduser(self.params[n]))
             if not os.path.exists(p):
                 raise Exception('given path/file/dir "%s" does not exist!' % p)
@@ -159,8 +169,7 @@ class Experiment(object):
             self.params.get('path_out'), self.__class__.__name__,
             self.params.get('name'), stamp_unique)
         self.params['path_exp'] = path_exp
-        with open(os.path.join(path_exp, CONFIG_YAML), 'w') as fp:
-            yaml.dump(self.params, fp, default_flow_style=False)
+        save_config_yaml(os.path.join(path_exp, CONFIG_YAML), self.params)
 
     def __del__(self):
         """Terminating experiment.

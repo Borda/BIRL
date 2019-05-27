@@ -42,7 +42,7 @@ from birl.utilities.cls_experiment import Experiment
 NB_THREADS = int(mproc.cpu_count())
 #: default number of threads used by benchmarks
 NB_THREADS_USED = max(1, int(NB_THREADS * .8))
-# some needed files
+#: some needed files
 NAME_CSV_REGISTRATION_PAIRS = 'registration-results.csv'
 #: default file for exporting results in table format
 NAME_CSV_RESULTS = 'results-summary.csv'
@@ -85,9 +85,9 @@ COL_TIME_PREPROC = 'Pre-processing time [minutes]'
 COL_IMAGE_SIZE = 'Image size [pixels]'
 #: image diagonal in pixels
 COL_IMAGE_DIAGONAL = 'Image diagonal [pixels]'
-# define train / test status
+#: define train / test status
 COL_STATUS = 'status'
-# extension to the image column name for temporary pre-process image
+#: extension to the image column name for temporary pre-process image
 COL_IMAGE_EXT_TEMP = ' TEMP'
 
 # list of columns in cover csv
@@ -156,7 +156,8 @@ class ImRegBenchmark(Experiment):
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
-    REQUIRED_PARAMS = ['path_cover', 'path_out', 'nb_workers']
+    #: required experiment parameters
+    REQUIRED_PARAMS = Experiment.REQUIRED_PARAMS + ['path_cover', 'nb_workers']
 
     def __init__(self, params):
         """ initialise benchmark
@@ -389,7 +390,7 @@ class ImRegBenchmark(Experiment):
         :param dict record: the input record
         :return dict: updated record with optionally removed temp images
         """
-        # clean only if some preprocessing was required
+        # clean only if some pre-processing was required
         if not self.params.get('preprocessing', []):
             return record
         # iterate over both - target and source images
@@ -453,9 +454,9 @@ class ImRegBenchmark(Experiment):
 
         return row
 
-    def _summarise(self):
-        """ summarise complete benchmark experiment """
-        logging.info('-> summarise experiment...')
+    def _evaluate(self):
+        """ evaluate complete benchmark experiment """
+        logging.info('-> evaluate experiment...')
         # load _df_experiments and compute stat
         _compute_landmarks_statistic = partial(
             compute_registration_statistic,
@@ -464,6 +465,9 @@ class ImRegBenchmark(Experiment):
             path_experiment=self.params.get('path_exp', None))
         self.__execute_method(_compute_landmarks_statistic, self._df_experiments,
                               desc='compute TRE', nb_workers=1)
+
+    def _summarise(self):
+        """ summarise benchmark experiment """
         # export stat to csv
         if self._df_experiments.empty:
             logging.warning('no experimental results were collected')

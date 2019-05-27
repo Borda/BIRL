@@ -53,8 +53,12 @@ from birl.cls_benchmark import ImRegBenchmark, COL_IMAGE_MOVE_WARP, COL_POINTS_M
 from birl.bm_template import main
 from bm_experiments import bm_comp_perform
 
+
+#: file with exported image registration time
 NAME_FILE_TIME = 'time.txt'
+#: file with warped landmarks after performed registration
 NAME_FILE_LANDMARKS = 'points.pts'
+#: file with warped image after performed registration
 NAME_FILE_IMAGE = 'warped.jpg'
 
 
@@ -94,6 +98,7 @@ class BmRNiftyReg(ImRegBenchmark):
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
+    #: required experiment parameters
     REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_R', 'path_R_script']
 
     def _prepare(self):

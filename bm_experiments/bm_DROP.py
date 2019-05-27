@@ -119,6 +119,7 @@ class BmDROP(ImRegBenchmark):
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
+    #: required experiment parameters
     REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_DROP', 'path_config']
 
     def _prepare(self):

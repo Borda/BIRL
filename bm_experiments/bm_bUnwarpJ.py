@@ -57,14 +57,12 @@ import sys
 import logging
 import shutil
 
-import yaml
-
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import update_path, load_landmarks, save_landmarks
-from birl.utilities.experiments import (create_basic_parse, parse_arg_params, exec_commands,
-                                        dict_deep_update)
-from birl.cls_benchmark import (ImRegBenchmark, NAME_LOG_REGISTRATION,
-                                COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP)
+from birl.utilities.data_io import update_path, load_landmarks, save_landmarks, load_config_yaml
+from birl.utilities.experiments import (
+    create_basic_parse, parse_arg_params, exec_commands, dict_deep_update)
+from birl.cls_benchmark import (
+    ImRegBenchmark, NAME_LOG_REGISTRATION, COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP)
 from birl.bm_template import main
 from bm_experiments import bm_comp_perform
 
@@ -211,8 +209,7 @@ class BmUnwarpJ(ImRegBenchmark):
         path_im_ref, path_im_move, _, _ = self._get_paths(record, prefer_pproc=True)
         path_dir = self._get_path_reg_dir(record)
         config = DEFAULT_PARAMS
-        with open(self.params['path_config'], 'r') as fp:
-            config = dict_deep_update(config, yaml.load(fp))
+        config = dict_deep_update(config, load_config_yaml(self.params['path_config']))
         assert config['bUnwarpJ']['mode'] < 2, 'Mono mode does not supports inverse transform' \
                                                ' which is need for landmarks warping.'
 

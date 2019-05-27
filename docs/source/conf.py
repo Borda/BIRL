@@ -16,6 +16,7 @@ import os
 import sys
 import glob
 import shutil
+import inspect
 
 import m2r
 
@@ -125,7 +126,10 @@ html_theme = 'nature'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+# html_theme_options = {
+#     'github_user': 'Borda',
+#     'github_repo': 'BIRL',
+# }
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -277,7 +281,7 @@ with open(os.path.join(PATH_ROOT, 'requirements.txt'), 'r') as fp:
             MOCK_MODULES.append(pkg.rstrip())
 
 # TODO: better parse from package since the import name and package name may differ
-autodoc_mock_imports = MOCK_MODULES + ['cv2', 'skimage']
+autodoc_mock_imports = MOCK_MODULES + ['cv2', 'skimage', 'yaml']
 # for mod_name in MOCK_MODULES:
 #     sys.modules[mod_name] = mock.Mock()
 
@@ -297,12 +301,18 @@ def linkcode_resolve(domain, info):
         obj = sys.modules[info['module']]
         for part in info['fullname'].split('.'):
             obj = getattr(obj, part)
-        import inspect
-        import os
-        fn = inspect.getsourcefile(obj)
-        fn = os.path.relpath(fn, start=os.path.abspath('..'))
+        fname = inspect.getsourcefile(obj)
+        # https://github.com/rtfd/readthedocs.org/issues/5735
+        if any([s in fname for s in ('readthedocs', 'checkouts')]):
+            # /home/docs/checkouts/readthedocs.org/user_builds/birl/checkouts/
+            #  devel/birl/utilities/cls_experiment.py#L26-L176
+            path_top = os.path.abspath(os.path.join('..', '..', '..'))
+            fname = os.path.relpath(fname, start=path_top)
+        else:
+            # Local build, imitate master
+            fname = 'master/' + os.path.relpath(fname, start=os.path.abspath('..'))
         source, lineno = inspect.getsourcelines(obj)
-        return fn, lineno, lineno + len(source) - 1
+        return fname, lineno, lineno + len(source) - 1
 
     if domain != 'py' or not info['module']:
         return None
@@ -313,7 +323,7 @@ def linkcode_resolve(domain, info):
     # import subprocess
     # tag = subprocess.Popen(['git', 'rev-parse', 'HEAD'], stdout=subprocess.PIPE,
     #                        universal_newlines=True).communicate()[0][:-1]
-    return "https://github.com/%s/%s/blob/master/%s" \
+    return "https://github.com/%s/%s/blob/%s" \
            % (github_user, github_repo, filename)
 
 

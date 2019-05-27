@@ -22,9 +22,9 @@ import pandas as pd
 from numpy.testing import assert_raises, assert_array_almost_equal
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import update_path
+from birl.utilities.data_io import update_path, save_config_yaml
 from birl.utilities.dataset import args_expand_parse_images
-from birl.utilities.experiments import (parse_arg_params, try_decorator)
+from birl.utilities.experiments import parse_arg_params, try_decorator
 from birl.cls_benchmark import ImRegBenchmark
 from birl.cls_benchmark import (
     NAME_CSV_RESULTS, NAME_TXT_RESULTS, NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS,
@@ -132,7 +132,7 @@ class TestBmRegistration(unittest.TestCase):
     def test_benchmark_template(self):
         """ test run in single thread """
         path_config = os.path.join(self.path_out, 'sample_config.yaml')
-        open(path_config, 'w').close()
+        save_config_yaml(path_config, {})
         params = {
             'path_cover': PATH_CSV_COVER_MIX,
             'path_out': self.path_out,
