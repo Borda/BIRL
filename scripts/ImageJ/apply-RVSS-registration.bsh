@@ -1,0 +1,79 @@
+/*
+ * Image registration via RVSS plugin
+ *
+ * EXAMPLE:
+ * >> ~/Applications/Fiji.app/ImageJ-linux64 --java-home /usr/lib/jvm/java-8-openjdk-amd64 \
+        --headless apply_RVSS.bsh ./input/ ./output/ ./transf/ \
+        null 1 2 2 1.6 3 64 1024 8 8 0.92 25 0.05 2
+ *
+ * Copyright (C) 2019 Ignacio Arganda-Carreras <ignacio.arganda@ehu.eus>
+ */
+
+import register_virtual_stack.Register_Virtual_Stack_MT;
+import ij.IJ;
+
+if( bsh.args.length < 17 )
+{
+	IJ.log( "RVSS_align.bsh" );
+	IJ.log( "USAGE: RVSS_align.bsh sourceDir targetDir transfDir referenceName shrinkingConstraint featuresModelIndex registrationModelIndex" );
+	IJ.log( "       initialSigma steps minOctaveSize maxOctaveSize fdSize fdBins rod maxEpsilon minInlierRatio modelIndex" );
+	IJ.log( "       'sourceDir' path to directory with input images" );
+	IJ.log( "       'targetDir' output path to store trasformed images" );
+	IJ.log( "       'transfDir' output path to store transformation files" );
+	IJ.log( "       'referenceName' name of the reference image (if necessary, for non-shrinkage mode, set to null)" );
+	IJ.log( "       'shrinkingConstraint' (0 to use reference image, or 1 to use shrinking constraint mode)" );
+	IJ.log( "       'featuresModelIndex' Index of the features extraction model (0=TRANSLATION, 1=RIGID, 2=SIMILARITY, 3=AFFINE)");
+	IJ.log( "       'registrationModelIndex' Index of the registration model (0=TRANSLATION, 1=RIGID, 2=SIMILARITY, 3=AFFINE, 4=ELASTIC, 5=MOVING_LEAST_SQUARES)");
+	// SIFT parameters
+ 	IJ.log( "       'initialSigma' initial Gaussian blur sigma (SIFT parameter, ex. 1.6)" );
+ 	IJ.log( "       'steps' steps per scale octave (SIFT parameter, ex. 3)" );
+ 	IJ.log( "       'minOctaveSize' minimum image size in pixels (SIFT parameter, ex. 64)" );
+ 	IJ.log( "       'maxOctaveSize' maximum image size in pixels (SIFT parameter, ex. 1024)" );
+ 	IJ.log( "       'fdSize' feature descriptor size (SIFT parameter, ex. 4)" );
+ 	IJ.log( "       'fdBins' feature descriptor orientation bins (SIFT parameter, ex. 8)" );
+ 	IJ.log( "       'rod' closest/next closest ratio (SIFT parameter, ex. 0.92)" );
+	IJ.log( "       'maxEpsilon' maximal alignment error in pixels (SIFT parameter, ex. 25)" );
+	IJ.log( "       'minInlierRatio' inlier ratio (SIFT parameter, ex. 0.05)" );
+	IJ.log( "       'modelIndex' expected transformation (SIFT parameter, 0:Translation, 1:Rigid, 2:Similarity, 3:Affine, 4:Perspective)" );
+
+	return;
+}
+
+
+// Input parameters
+sourceDir = bsh.args[ 0 ];
+IJ.log( "source dir: " + sourceDir );
+targetDir = bsh.args[ 1 ];
+IJ.log( "target dir: " + targetDir );
+transfDir = bsh.args[ 2 ];
+IJ.log( "transf dir: " + transfDir );
+referenceName = bsh.args[ 3 ];
+IJ.log( "reference file: " + referenceName );
+if( referenceName.equals("null") )
+	referenceName = null;
+	
+shrinkingConstraint = Integer.parseInt( bsh.args[ 4 ] ) == 1; // (0 or 1)
+
+// RVSS parameters
+p = new Register_Virtual_Stack_MT.Param();
+
+p.featuresModelIndex = Integer.parseInt( bsh.args[ 5 ] ); 
+p.registrationModelIndex = Integer.parseInt( bsh.args[ 6 ] );
+// SIFT
+p.sift.initialSigma = Float.parseFloat( bsh.args[ 7 ] );
+p.sift.steps = Integer.parseInt( bsh.args[ 8 ] );
+p.sift.minOctaveSize = Integer.parseInt( bsh.args[ 9 ] );
+p.sift.maxOctaveSize = Integer.parseInt( bsh.args[ 10 ] );
+p.sift.fdSize = Integer.parseInt( bsh.args[ 11 ] );
+p.sift.fdBins = Integer.parseInt( bsh.args[ 12 ] );
+
+p.rod = Float.parseFloat( bsh.args[ 13 ] );
+p.maxEpsilon = Float.parseFloat( bsh.args[ 14 ] );
+p.minInlierRatio = Float.parseFloat( bsh.args[ 15 ] );
+p.featuresModelIndex = Integer.parseInt( bsh.args[ 16 ] );
+
+//if( bsh.args.length >= 23 )
+//	fixedTransfFile = new File( bsh.args[ 23 ] );
+
+ 
+Register_Virtual_Stack_MT.exec(sourceDir, targetDir, transfDir, referenceName, p, shrinkingConstraint );

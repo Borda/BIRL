@@ -64,7 +64,7 @@ references:
         python bm_experiments/evaluate_experiment.py -d ./data_images -e ./results/BmTemplate --visual
         tree ./results/BmTemplate
 
-  run_bunwarpj: &run_bunwarpj
+  run_bUnwarpJ: &run_bUnwarpJ
     run:
       name: Experiment - bUnwarpJ
       command: |
@@ -74,6 +74,18 @@ references:
         rm -rf results && mkdir results
         python bm_experiments/bm_bUnwarpJ.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -Fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ_histol.yaml --preprocessing hist-matching --visual
         python bm_experiments/bm_bUnwarpJ.py -c ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results -Fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml --unique
+        tree -L 3 ./results
+        rm -rf ./applications/Fiji.app
+
+  run_RVSS: &run_RVSS
+    run:
+      name: Experiment - bUnwarpJ
+      command: |
+        wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip -O applications/fiji-linux64.zip --progress=bar:force:noscroll
+        unzip -q applications/fiji-linux64.zip -d applications/
+        rm applications/fiji-linux64.zip
+        rm -rf results && mkdir results
+        python bm_experiments/bm_RVSS.py -c ./data_images/pairs-imgs-lnds_mix.csv -o ./results -Fiji ./applications/Fiji.app/ImageJ-linux64 -config ./configs/ImageJ_RVSS_histol.yaml --visual
         tree -L 3 ./results
         rm -rf ./applications/Fiji.app
 
@@ -92,9 +104,12 @@ jobs:
       - *test_coverage
       # DOCUMENTATION
       - *make_docs
+      # EXPERIMENTS
       - *run_dataset
       - *run_experiment
-      - *run_bunwarpj
+      - *run_bUnwarpJ
+      - *run_RVSS
+      # RESULTS
       - store_test_results:
           path: test-reports
       - store_artifacts:

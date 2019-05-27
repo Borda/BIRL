@@ -28,7 +28,7 @@ if( bsh.args.length < 23 )
  	IJ.log( "       'initialSigma' initial Gaussian blur sigma (SIFT parameter, ex. 1.6)" );
  	IJ.log( "       'steps' steps per scale octave (SIFT parameter, ex. 3)" );
  	IJ.log( "       'minOctaveSize' minimum image size in pixels (SIFT parameter, ex. 64)" );
- 	IJ.log( "       'maxOctaveSize' AAAmaximum image size in pixels (SIFT parameter, ex. 1024)" );
+ 	IJ.log( "       'maxOctaveSize' maximum image size in pixels (SIFT parameter, ex. 1024)" );
  	IJ.log( "       'fdSize' feature descriptor size (SIFT parameter, ex. 4)" );
  	IJ.log( "       'fdBins' feature descriptor orientation bins (SIFT parameter, ex. 8)" );
  	IJ.log( "       'rod' closest/next closest ratio (SIFT parameter, ex. 0.92)" );
@@ -38,7 +38,7 @@ if( bsh.args.length < 23 )
 
 	// bUnwarpJ parameters
 	
-	IJ.log( "       'mode' 0-2 (0-Accurate, 1-Fast 2-Mono)" );
+	IJ.log( "       'mode' 0-2 (0-Accurate, 1-Fast, 2-Mono)" );
 	IJ.log( "       'subsampleFactor' 0-7 (0 = 2^0, 7 = 2^7)" );
 	IJ.log( "       'minScale' 0-3 (0-Very Coarse, 1-Coarse, 2-Fine, 3-Very Fine)" );
 	IJ.log( "       'maxScale' 0-4 (0-Very Coarse, 1-Coarse, 2-Fine, 3-Very Fine, 4-Super Fine)" );

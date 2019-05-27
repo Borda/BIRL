@@ -273,7 +273,9 @@ def exec_commands(commands, path_logger=None, timeout=None):
         try:
             # os.system(cmd)
             # NOTE: for some reason " in the command makes it crash, e.g with DROP
-            outputs += [subprocess.check_output(cmd.split(), **options)]
+            cmd_elems = cmd.split()
+            cmd_elems[0] = os.path.expanduser(cmd_elems[0])
+            outputs += [subprocess.check_output(cmd_elems, **options)]
         except subprocess.CalledProcessError as e:
             logging.exception(cmd)
             outputs += [e.output]

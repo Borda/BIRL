@@ -1,0 +1,116 @@
+/*
+ * Transform landmarks using estimated transformation
+ *
+ * EXAMPLE:
+ * >> ~/Applications/Fiji.app/ImageJ-linux64 --java-home /usr/lib/jvm/java-8-openjdk-amd64 \
+        --headless apply-RVSS-transform.bsh deformed-bridge.png bridge.png \
+        moving-landmarks.txt deformed-landmarks2.txt transf/deformed-bridge.xml corrected-bridge.png
+ *
+ * Copyright (C) 2019 Ignacio Arganda-Carreras <ignacio.arganda@ehu.eus>
+ */
+
+import ij.ImagePlus;
+import ij.gui.PointRoi;
+import ij.IJ;
+import ij.plugin.Duplicator;
+import register_virtual_stack.Transform_Virtual_Stack_MT;
+import mpicbg.trakem2.transform.TransformMesh;
+import mpicbg.trakem2.transform.TransformMeshMapping;
+
+if( bsh.args.length < 6 )
+{
+	IJ.log( "apply-RVSS-transform-to-landmarks.bsh" );
+	IJ.log( "USAGE: apply-RVSS-transform-to-landmarks.bsh movingImage fixedImage movingLandmarks deformedLandmarks landmarkTransFile deformedImagePath" );
+	IJ.log( "       'movingImage' path to moving image" );
+	IJ.log( "       'fixedImage' path to fixed image" );
+	IJ.log( "       'movingLandmarks' path to moving landmarks file (txt/TXT)" );
+	IJ.log( "       'deformedLandmarks' path to output landmarks file to be created (txt/TXT)" );
+	IJ.log( "       'landmarkTransFile' path to RVSS transform file to apply to landmarks (.xml)" );
+	IJ.log( "       'deformedImagePath' path to output image file to be created (deformed moving image)" );
+	return;
+}
+
+movingImage = new ImagePlus( bsh.args[ 0 ] );
+fixedImage = new ImagePlus( bsh.args[ 1 ] );
+movingLandmarks = new File( bsh.args[ 2 ] );
+deformedLandmarks = new File( bsh.args[ 3 ] );
+landmarkTransFile = new File( bsh.args[ 4 ] );
+deformedImagePath = new File( bsh.args[ 5 ] );
+
+br = new BufferedReader(new FileReader( movingLandmarks.getAbsolutePath() ));
+
+pointList = new ArrayList();
+
+try {
+    sb = new StringBuilder();
+    line = br.readLine(); // skip tag "points"
+    line = br.readLine(); // skip number of points
+    line = br.readLine();
+
+    while (line != null) {
+        //IJ.log( line );
+        fi = new Scanner( line );
+        point = new double[2];
+		point[0] = fi.nextDouble();
+		point[1] = fi.nextDouble();
+		pointList.add( point );
+        line = br.readLine();
+    }
+    
+} finally {
+    br.close();
+}
+
+// Read coordinate transform from file
+ct = Transform_Virtual_Stack_MT.readCoordinateTransform( landmarkTransFile.getAbsolutePath() );
+
+// Apply transform to points
+deformedPointList = new ArrayList();
+for( point : pointList )
+{
+	newPoint = ct.apply( point );
+	deformedPointList.add( newPoint );
+	IJ.log( "Moving landmark (" + point[0] + ", " + point[1] + ") => Fixed point (" + newPoint[0] + ", " + newPoint[1] +")"  );
+}
+
+try {
+	writer = new BufferedWriter(	new OutputStreamWriter(
+              new FileOutputStream( deformedLandmarks.getAbsolutePath() ), "utf-8") );
+
+	writer.write("point\n");
+	writer.write("" + deformedPointList.size() + "\n");
+	for( point : deformedPointList )
+	{
+   		writer.write("" + point[0] + " " + point[1] + "\n");
+	}
+	writer.close();
+}
+catch (IOException ex) {
+    IJ.log( ex.printStackTrace());
+} finally {
+   
+}
+
+// Apply transform to image
+mesh = new TransformMesh( ct, 32, movingImage.getWidth(), movingImage.getHeight() );
+mapping = new TransformMeshMapping( mesh );
+
+// bounding box
+bb = mesh.getBoundingBox();
+//IJ.log( "bb.x = " + bb.x + ", bb.y = " + bb.y + ", bb.width = " + bb.width + ", bb.height = " + bb.height );
+
+movingImage.getProcessor().setValue(0);
+ip = mapping.createMappedImageInterpolated( movingImage.getProcessor() ); 
+
+// crop corresponding area based on fixed image
+output = new ImagePlus( "output", ip );
+output.setRoi( -bb.x, -bb.y, fixedImage.getWidth(), fixedImage.getHeight() );
+dup = new Duplicator();
+
+output = dup.run( output, 1, output.getNChannels(), 1 ,1, 1, 1 );
+
+// adjust canvas size just in case the ROI was not long enough
+IJ.run(output, "Canvas Size...", "width="+fixedImage.getWidth()+" height="+fixedImage.getHeight()+" position=Center zero");
+
+// Save transformed file
+IJ.save( output, deformedImagePath.getAbsolutePath() );

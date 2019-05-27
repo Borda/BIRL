@@ -1,7 +1,7 @@
 """
-Benchmark for ImageJ plugin - bUnwarpJ
+Benchmark for ImageJ plugin - RVSS
 
-.. ref::  http://imagej.net/BUnwarpJ
+.. ref::  https://imagej.net/Register_Virtual_Stack_Slices
 
 Installation
 ------------
@@ -23,26 +23,14 @@ Installation
 
 Usage
 -----
-Run the basic bUnwarpJ registration with original parameters::
+Run the basic RVSS registration with original parameters::
 
-    python bm_experiments/bm_bUnwarpJ.py \
+    python bm_experiments/bm_RVSS.py \
         -c ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
-        -config ./configs/ImageJ_bUnwarpJ_histol.yaml \
-        --preprocessing hist-matching \
-        --visual --unique
-
-The bUnwarpJ is supporting SIFT and MOPS feature extraction as landmarks
-see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support ::
-
-    python bm_experiments/bm_bUnwarpJ.py \
-        -c ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
-        -o ./results \
-        -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
-        -config ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml \
+        -config ./configs/ImageJ_RVSS_histol.yaml \
         --preprocessing hist-matching \
         --visual --unique
 
@@ -60,95 +48,53 @@ import shutil
 import yaml
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import update_path, load_landmarks, save_landmarks
+from birl.utilities.data_io import load_landmarks, save_landmarks
 from birl.utilities.experiments import (create_basic_parse, parse_arg_params, exec_commands,
                                         dict_deep_update)
 from birl.cls_benchmark import (ImRegBenchmark, NAME_LOG_REGISTRATION,
                                 COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP)
 from birl.bm_template import main
 from bm_experiments import bm_comp_perform
+from bm_experiments.bm_bUnwarpJ import (
+    PATH_IJ_SCRIPTS, REQUIRED_PARAMS_SIFT, DEFAULT_PARAMS as DEFAULT_BUMWARPJ_PARAMS,
+    NAME_LANDMARKS, NAME_LANDMARKS_WARPED)
 
-PATH_IJ_SCRIPTS = os.path.join(update_path('scripts'), 'ImageJ')
 #: path/name of image registration script
-PATH_SCRIPT_REGISTRATION_BASE = os.path.join(PATH_IJ_SCRIPTS, 'apply-bUnwarpJ-registration.bsh')
-#: path/name of image registration script with features
-PATH_SCRIPT_REGISTRATION_SIFT = os.path.join(PATH_IJ_SCRIPTS, 'apply-SIFT-bUnwarpJ-registration.bsh')
+PATH_SCRIPT_REGISTRATION = os.path.join(PATH_IJ_SCRIPTS, 'apply-RVSS-registration.bsh')
 #: path/name of image/landmarks warping script
-PATH_SCRIPT_WARP_LANDMARKS = os.path.join(PATH_IJ_SCRIPTS, 'apply-bUnwarpJ-transform.bsh')
+PATH_SCRIPT_WARP_LANDMARKS = os.path.join(PATH_IJ_SCRIPTS, 'apply-RVSS-transform.bsh')
+#: internal folder name for copy input image pairs
+DIR_INPUTS = 'input'
+#: internal folder name for registration results - images and transformations
+DIR_OUTPUTS = 'output'
 # PATH_SCRIPT_HIST_MATCH_IJM = os.path.join(PATH_IJ_SCRIPTS, 'histogram-matching-for-macro.bsh')
 #: command for executing the image registration
 COMMAND_REGISTRATION = '%(exec_Fiji)s --headless %(path_bsh)s' \
-                       ' %(source)s %(target)s %(params)s' \
-                       ' %(output)s/transform-direct.txt %(output)s/transform-inverse.txt'
-#: internal name of converted landmarks for tranf. script
-NAME_LANDMARKS = 'source_landmarks.pts'
-#: name of warped moving landmarks by tranf. script
-NAME_LANDMARKS_WARPED = 'warped_source_landmarks.pts'
-#: resulting inverse transformation
-NAME_TRANSF_INVERSE = 'transform-inverse.txt'
-#: resulting direct transformation
-NAME_TRANSF_DIRECT = 'transform-direct.txt'
+                       ' %(dir_input)s/ %(dir_output)s/ %(dir_output)s/' \
+                       ' %(ref_name)s %(params)s'
 #: command for executing the warping image and landmarks
 COMMAND_WARP_LANDMARKS = '%(exec_Fiji)s --headless %(path_bsh)s' \
                          ' %(source)s %(target)s' \
                          ' %(output)s/' + NAME_LANDMARKS + \
                          ' %(output)s/' + NAME_LANDMARKS_WARPED + \
-                         ' %(transf-inv)s' \
-                         ' %(transf-dir)s' \
+                         ' %(transf)s' \
                          ' %(warp)s'
-#: required parameters in the configuration file for bUnwarpJ
-REQUIRED_PARAMS_BUNWARPJ = (
-    'mode', 'subsampleFactor', 'minScale', 'maxScale', 'divWeight', 'curlWeight',
-    'landmarkWeight', 'imageWeight', 'consistencyWeight', 'stopThreshold')
-#: required parameters in the configuration file for SIFT features
-REQUIRED_PARAMS_SIFT = (
-    'initialSigma', 'steps', 'minOctaveSize', 'maxOctaveSize', 'fdSize', 'fdBins', 'rod',
-    'maxEpsilon', 'minInlierRatio', 'modelIndex')
-#: default bUnwarpJ and SIFT parameters
+#: required parameters in the configuration file for RVSS
+REQUIRED_PARAMS_RVSS = ('shrinkingConstraint', 'featuresModelIndex', 'registrationModelIndex')
+#: default RVSS parameters
 DEFAULT_PARAMS = {
-    'bUnwarpJ': {
-        'mode': 1,  #: (0-Accurate, 1-Fast, 2-Mono)
-        'subsampleFactor': 0,  # (0 = 2^0, 7 = 2^7)
-        'minScale': 0,  # (0-Very Coarse, 1-Coarse, 2-Fine, 3-Very Fine)
-        'maxScale': 3,  # (0-Very Coarse, 1-Coarse, 2-Fine, 3-Very Fine, 4-Super Fine)
-        # weight to penalize divergence
-        'divWeight': 0.1,
-        #: weight to penalize curl
-        'curlWeight': 0.1,
-        #: weight to penalize landmark location error
-        'landmarkWeight': 0.,
-        #: weight to penalize intensity difference
-        'imageWeight': 1.,
-        #: weight to penalize consistency difference
-        'consistencyWeight': 10.,
-        #: error function stopping threshold value
-        'stopThreshold': 0.01,
+    'RVSS': {
+        'shrinkingConstraint': 1,  # (0 to use reference image,
+                                   #  or 1 to use shrinking constraint mode)
+        'featuresModelIndex': 1,  # (0=TRANSLATION, 1=RIGID, 2=SIMILARITY, 3=AFFINE)
+        #: Index of the registration model
+        'registrationModelIndex': 3  # (0=TRANSLATION, 1=RIGID, 2=SIMILARITY, 3=AFFINE,
+                                     #  4=ELASTIC, 5=MOVING_LEAST_SQUARES)
     },
-    'SIFT': {
-        # initial Gaussian blur sigma
-        'initialSigma': 1.6,
-        #: steps per scale octave
-        'steps': 3,
-        #: minimum image size in pixels
-        'minOctaveSize': 64,
-        #: maximum image size in pixels
-        'maxOctaveSize': 1024,
-        #: feature descriptor size
-        'fdSize': 8,
-        #: feature descriptor orientation bins
-        'fdBins': 8,
-        #: closest/next closest ratio
-        'rod': 0.92,
-        #: maximal alignment error in pixels
-        'maxEpsilon': 25,
-        #: inlier ratio
-        'minInlierRatio': 0.05,
-        #: expected transformation of range
-        'modelIndex': 1,  # (0:Translation, 1:Rigid, 2:Similarity, 3:Affine, 4:Perspective)
-    }
+    'SIFT': DEFAULT_BUMWARPJ_PARAMS['SIFT']
 }
-assert all(k in DEFAULT_PARAMS['bUnwarpJ'] for k in REQUIRED_PARAMS_BUNWARPJ), \
-    'default params are missing some required parameters for bUnwarpJ'
+assert all(k in DEFAULT_PARAMS['RVSS'] for k in REQUIRED_PARAMS_RVSS), \
+    'default params are missing some required parameters for RVSS'
 assert all(k in DEFAULT_PARAMS['SIFT'] for k in REQUIRED_PARAMS_SIFT), \
     'default params are missing some required parameters for SIFT'
 
@@ -162,12 +108,12 @@ def extend_parse(a_parser):
     a_parser.add_argument('-Fiji', '--exec_Fiji', type=str, required=True,
                           help='path to the Fiji executable')
     a_parser.add_argument('-config', '--path_config', required=True,
-                          type=str, help='path to the bUnwarpJ configuration')
+                          type=str, help='path to the RVSS configuration')
     return a_parser
 
 
-class BmUnwarpJ(ImRegBenchmark):
-    """ Benchmark for ImageJ plugin - bUnwarpJ
+class BmRVSS(ImRegBenchmark):
+    """ Benchmark for ImageJ plugin - RVSS
     no run test while this method requires manual installation of ImageJ
 
     For the app installation details, see module details.
@@ -184,11 +130,8 @@ class BmUnwarpJ(ImRegBenchmark):
     ...           'preprocessing': ['hist-matching'],
     ...           'nb_workers': 2,
     ...           'unique': False,
-    ...           'path_config': fn_path_conf('ImageJ_bUnwarpJ_histol.yaml')}
-    >>> benchmark = BmUnwarpJ(params)
-    >>> benchmark.run()  # doctest: +SKIP
-    >>> params['path_config'] = fn_path_conf('ImageJ_bUnwarpJ-SIFT_histol.yaml')
-    >>> benchmark = BmUnwarpJ(params)
+    ...           'path_config': fn_path_conf('ImageJ_RVSS_histol.yaml')}
+    >>> benchmark = BmRVSS(params)
     >>> benchmark.run()  # doctest: +SKIP
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
@@ -210,24 +153,31 @@ class BmUnwarpJ(ImRegBenchmark):
         """
         path_im_ref, path_im_move, _, _ = self._get_paths(record, prefer_pproc=True)
         path_dir = self._get_path_reg_dir(record)
+
+        # creating the internal folders
+        path_dir_in = os.path.join(path_dir, DIR_INPUTS)
+        path_dir_out = os.path.join(path_dir, DIR_OUTPUTS)
+        for p_dir in (path_dir_in, path_dir_out):
+            os.mkdir(p_dir)
+        # copy both images
+        name_ref = os.path.basename(path_im_ref)
+        shutil.copy(path_im_ref, os.path.join(path_dir_in, name_ref))
+        shutil.copy(path_im_move, os.path.join(path_dir_in, os.path.basename(path_im_move)))
+
         config = DEFAULT_PARAMS
         with open(self.params['path_config'], 'r') as fp:
             config = dict_deep_update(config, yaml.load(fp))
-        assert config['bUnwarpJ']['mode'] < 2, 'Mono mode does not supports inverse transform' \
-                                               ' which is need for landmarks warping.'
 
-        config_sift = [config['SIFT'][k] for k in REQUIRED_PARAMS_SIFT] \
-            if config.get('SIFT', False) else []
-        config_bunwarpj = [config['bUnwarpJ'][k] for k in REQUIRED_PARAMS_BUNWARPJ]
-        path_reg_script = PATH_SCRIPT_REGISTRATION_SIFT if config_sift else PATH_SCRIPT_REGISTRATION_BASE
+        config_rvss = [config['RVSS'][k] for k in REQUIRED_PARAMS_RVSS]
+        config_sift = [config['SIFT'][k] for k in REQUIRED_PARAMS_SIFT]
 
         cmd = COMMAND_REGISTRATION % {
             'exec_Fiji': self.params['exec_Fiji'],
-            'path_bsh': path_reg_script,
-            'target': path_im_ref,
-            'source': path_im_move,
-            'output': path_dir,
-            'params': ' '.join(map(str, config_sift + config_bunwarpj)),
+            'path_bsh': PATH_SCRIPT_REGISTRATION,
+            'dir_input': path_dir_in,
+            'dir_output': path_dir_out,
+            'ref_name': name_ref,
+            'params': ' '.join(map(str, config_rvss + config_sift)),
         }
         return cmd
 
@@ -243,6 +193,9 @@ class BmUnwarpJ(ImRegBenchmark):
         path_log = os.path.join(path_dir, NAME_LOG_REGISTRATION)
 
         # warp moving landmarks to reference frame
+        path_dir_out = os.path.join(path_dir, DIR_OUTPUTS)
+        # name_ref = os.path.splitext(os.path.basename(path_im_ref))[0]
+        name_move = os.path.splitext(os.path.basename(path_im_move))[0]
         path_regist = os.path.join(path_dir, os.path.basename(path_im_move))
         dict_params = {
             'exec_Fiji': self.params['exec_Fiji'],
@@ -250,10 +203,11 @@ class BmUnwarpJ(ImRegBenchmark):
             'source': path_im_move,
             'target': path_im_ref,
             'output': path_dir,
-            'transf-inv': os.path.join(path_dir, NAME_TRANSF_INVERSE),
-            'transf-dir': os.path.join(path_dir, NAME_TRANSF_DIRECT),
+            # 'transf': os.path.join(path_dir_out, name_ref + '.xml'),
+            'transf': os.path.join(path_dir_out, name_move + '.xml'),
             'warp': path_regist,
         }
+
         # export source points to TXT
         pts_source = load_landmarks(path_lnds_move)
         save_landmarks(os.path.join(path_dir, NAME_LANDMARKS), pts_source)
@@ -267,9 +221,19 @@ class BmUnwarpJ(ImRegBenchmark):
             save_landmarks(path_lnds, points_warp)
         else:
             path_lnds = None
+
         # return results
         return {COL_IMAGE_MOVE_WARP: path_regist,
                 COL_POINTS_MOVE_WARP: path_lnds}
+
+    def _clear_after_registration(self, record):
+        path_dir = self._get_path_reg_dir(record)
+
+        for p_dir in (os.path.join(path_dir, DIR_INPUTS),
+                      os.path.join(path_dir, DIR_OUTPUTS)):
+            shutil.rmtree(p_dir)
+
+        return record
 
 
 # RUN by given parameters
@@ -278,7 +242,7 @@ if __name__ == "__main__":
     arg_parser = create_basic_parse()
     arg_parser = extend_parse(arg_parser)
     arg_params = parse_arg_params(arg_parser)
-    path_expt = main(arg_params, BmUnwarpJ)
+    path_expt = main(arg_params, BmRVSS)
 
     if arg_params.get('run_comp_benchmark', False):
         logging.info('Running the computer benchmark.')

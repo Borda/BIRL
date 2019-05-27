@@ -20,7 +20,7 @@ if( bsh.args.length < 13 )
 	IJ.log( "USAGE: apply-bUnwarpJ-registration.bsh movingImage mode subsampleFactor minScale maxScale divWeight curlWeight landmarkWeight imageWeight consistencyWeight stopThreshold" );
 	IJ.log( "       'movingImage' path to moving image" );
 	IJ.log( "       'fixedImage' path to fixed image" );
-	IJ.log( "       'mode' 0-2 (0-Accurate, 1-Fast 2-Mono)" );
+	IJ.log( "       'mode' 0-2 (0-Accurate, 1-Fast, 2-Mono)" );
 	IJ.log( "       'subsampleFactor' 0-7 (0 = 2^0, 7 = 2^7)" );
 	IJ.log( "       'minScale' 0-3 (0-Very Coarse, 1-Coarse, 2-Fine, 3-Very Fine)" );
 	IJ.log( "       'maxScale' 0-4 (0-Very Coarse, 1-Coarse, 2-Fine, 3-Very Fine, 4-Super Fine)" );

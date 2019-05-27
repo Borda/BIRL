@@ -1,3 +1,10 @@
+RVSS:
+  shrinkingConstraint: 1  # (0 to use reference image, or 1 to use shrinking constraint mode)
+  # Index of the features extraction model
+  featuresModelIndex: 2  # (0=TRANSLATION, 1=RIGID, 2=SIMILARITY, 3=AFFINE)
+  # Index of the registration model (0=TRANSLATION, 1=RIGID, 2=SIMILARITY, 3=AFFINE, 4=ELASTIC, 5=MOVING_LEAST_SQUARES)
+  registrationModelIndex: 4
+
 SIFT:
   # initial Gaussian blur sigma (SIFT parameter, ex. 1.6)
   initialSigma: 1.6
@@ -19,21 +26,3 @@ SIFT:
   minInlierRatio: 0.05
   # expected transformation (SIFT parameter, 0:Translation, 1:Rigid, 2:Similarity, 3:Affine, 4:Perspective)
   modelIndex: 1
-
-bUnwarpJ:
-  mode: 1  # 0-2 (0-Accurate, 1-Fast, 2-Mono)
-  subsampleFactor: 2  # 0-7 (0 = 2^0, 7 = 2^7)
-  minScale: 0  # 0-3 (0-Very Coarse, 1-Coarse, 2-Fine, 3-Very Fine)
-  maxScale: 3  # 0-4 (0-Very Coarse, 1-Coarse, 2-Fine, 3-Very Fine, 4-Super Fine)
-  # weight to penalize divergence (Ex. 0.1)
-  divWeight: 0.1
-  # weight to penalize curl (Ex. 0.1)
-  curlWeight: 0.1
-  # weight to penalize landmark location error (Ex. 1.0)
-  landmarkWeight: 1.0
-  # weight to penalize intensity difference (Ex. 1.0)
-  imageWeight: 0.5
-  # weight to penalize consistency difference (Ex. 1.0)
-  consistencyWeight: 10.0
-  # error function stopping threshold value (Ex. 0.01)
-  stopThreshold: 0.01

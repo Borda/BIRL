@@ -195,6 +195,16 @@ For each benchmark experiment, the explanation about how to install and use a pa
         --preprocessing hist-matching \
         --visual --unique
     ```
+* **[Register Virtual Stack Slices (RVSS)](https://imagej.net/Register_Virtual_Stack_Slices)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for affine/elastic registration of a sequence of images.
+    ```bash
+    python bm_experiments/bm_RVSS.py \
+        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -d ./data_images \
+        -o ./results \
+        -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
+        -config ./configs/ImageJ_RVSS_histol.yaml \
+        --visual --unique
+    ```
 * **[RNiftyReg](https://github.com/jonclayden/RNiftyReg)** is an R-native interface to the [NiftyReg image registration library](http://sourceforge.net/projects/niftyreg/) which contains programs to perform rigid, affine and non-linear registration of Nifti or analyse images. _NiftyReg supports max image size 2048._
     ```bash
     python bm_experiments/bm_rNiftyReg.py \
