@@ -38,7 +38,7 @@ from birl.utilities.experiments import parse_arg_params
 from birl.utilities.data_io import LANDMARK_COORDS
 
 COLUMNS_COORD = LANDMARK_COORDS
-NB_THREADS = max(1, int(mproc.cpu_count() * .8))
+NB_WORKERS = max(1, int(mproc.cpu_count() * .8))
 NB_DEFORMATIONS = 5
 HUE_SHIFT_MIN = 20
 HUE_SHIFT_MAX = 120
@@ -64,7 +64,7 @@ def arg_parse_params():
                         help='number of deformed images', default=NB_DEFORMATIONS)
     parser.add_argument('--visual', action='store_true', required=False,
                         default=False, help='visualise the landmarks in images')
-    parser.add_argument('--nb_workers', type=int, required=False, default=NB_THREADS,
+    parser.add_argument('--nb_workers', type=int, required=False, default=NB_WORKERS,
                         help='number of processes in parallel')
     args = parse_arg_params(parser, upper_dirs=['path_out'])
     args['visual'] = bool(args['visual'])

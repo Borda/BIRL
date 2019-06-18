@@ -29,7 +29,7 @@ Run the basic R script::
 Run the RNiftyReg benchmark::
 
     python bm_experiments/bm_rNiftyReg.py \
-        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -t ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         -R Rscript \
@@ -88,7 +88,7 @@ class BmRNiftyReg(ImRegBenchmark):
     >>> fn_path_conf = lambda n: os.path.join(update_path('scripts'), 'Rscript', n)
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'path_out': path_out,
-    ...           'path_cover': path_csv,
+    ...           'path_table': path_csv,
     ...           'nb_workers': 2,
     ...           'unique': False,
     ...           'exec_R': 'Rscript',
@@ -106,14 +106,14 @@ class BmRNiftyReg(ImRegBenchmark):
 
         self._copy_config_to_expt('path_R_script')
 
-    def _generate_regist_command(self, record):
+    def _generate_regist_command(self, item):
         """ generate the registration command(s)
 
-        :param dict record: dictionary with registration params
+        :param dict item: dictionary with registration params
         :return str|list(str): the execution commands
         """
-        path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(record)
-        path_dir = self._get_path_reg_dir(record) + os.path.sep
+        path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(item)
+        path_dir = self._get_path_reg_dir(item) + os.path.sep
         cmd = ' '.join([
             self.params['exec_R'],
             self.params['path_R_script'],
@@ -124,15 +124,15 @@ class BmRNiftyReg(ImRegBenchmark):
         ])
         return cmd
 
-    def _extract_warped_image_landmarks(self, record):
+    def _extract_warped_image_landmarks(self, item):
         """ get registration results - warped registered images and landmarks
 
-        :param dict record: dictionary with registration params
+        :param dict item: dictionary with registration params
         :return tuple(str,str,str,str): paths to
         """
         logging.debug('.. warp the registered image and get landmarks')
-        path_dir = self._get_path_reg_dir(record)
-        _, path_img_move, _, path_lnds_move = self._get_paths(record)
+        path_dir = self._get_path_reg_dir(item)
+        _, path_img_move, _, path_lnds_move = self._get_paths(item)
         path_lnds_warp, path_img_warp = None, None
 
         # load warped landmarks from TXT
@@ -153,12 +153,12 @@ class BmRNiftyReg(ImRegBenchmark):
         return {COL_IMAGE_MOVE_WARP: path_img_warp,
                 COL_POINTS_MOVE_WARP: path_lnds_warp}
 
-    def _extract_execution_time(self, record):
+    def _extract_execution_time(self, item):
         """ if needed update the execution time
-        :param dict record: dictionary with registration params
+        :param dict item: dictionary with registration params
         :return float|None: time in minutes
         """
-        path_dir = self._get_path_reg_dir(record)
+        path_dir = self._get_path_reg_dir(item)
         path_time = os.path.join(path_dir, NAME_FILE_TIME)
         with open(path_time, 'r') as fp:
             t_exec = float(fp.read()) / 60.

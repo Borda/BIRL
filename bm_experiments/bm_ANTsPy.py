@@ -18,7 +18,7 @@ Usage
 Run the basic ANTs registration with original parameters::
 
     python bm_experiments/bm_ANTsPy.py \
-        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -t ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         -py python3 \
@@ -77,7 +77,7 @@ class BmANTsPy(ImRegBenchmark):
     >>> path_out = create_folder('temp_results')
     >>> fn_path_conf = lambda n: os.path.join(update_path('configs'), n)
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
-    >>> params = {'path_cover': path_csv,
+    >>> params = {'path_table': path_csv,
     ...           'path_out': path_out,
     ...           'nb_workers': 2,
     ...           'unique': False,
@@ -96,14 +96,14 @@ class BmANTsPy(ImRegBenchmark):
         logging.info('-> copy configuration...')
         self._copy_config_to_expt('path_script')
 
-    def _generate_regist_command(self, record):
+    def _generate_regist_command(self, item):
         """ generate the registration command(s)
 
-        :param dict record: dictionary with registration params
+        :param dict item: dictionary with registration params
         :return str|list(str): the execution commands
         """
-        path_dir = self._get_path_reg_dir(record)
-        path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(record)
+        path_dir = self._get_path_reg_dir(item)
+        path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(item)
 
         cmd = ' '.join([
             self.params['exec_Python'],
@@ -116,14 +116,14 @@ class BmANTsPy(ImRegBenchmark):
 
         return cmd
 
-    def _extract_warped_image_landmarks(self, record):
+    def _extract_warped_image_landmarks(self, item):
         """ get registration results - warped registered images and landmarks
 
-        :param dict record: dictionary with registration params
+        :param dict item: dictionary with registration params
         :return dict: paths to ...
         """
-        path_dir = self._get_path_reg_dir(record)
-        _, path_im_move, _, path_lnds_move = self._get_paths(record)
+        path_dir = self._get_path_reg_dir(item)
+        _, path_im_move, _, path_lnds_move = self._get_paths(item)
         path_im_warp, path_lnds_warp = None, None
 
         if os.path.isfile(os.path.join(path_dir, NAME_IMAGE_WARPED)):
@@ -138,13 +138,13 @@ class BmANTsPy(ImRegBenchmark):
         return {COL_IMAGE_MOVE_WARP: path_im_warp,
                 COL_POINTS_MOVE_WARP: path_lnds_warp}
 
-    def _extract_execution_time(self, record):
+    def _extract_execution_time(self, item):
         """ if needed update the execution time
 
-        :param dict record: dictionary with registration params
+        :param dict item: dictionary with registration params
         :return float|None: time in minutes
         """
-        path_dir = self._get_path_reg_dir(record)
+        path_dir = self._get_path_reg_dir(item)
         path_time = os.path.join(path_dir, NAME_TIME_EXEC)
         with open(path_time, 'r') as fp:
             t_exec = float(fp.read()) / 60.

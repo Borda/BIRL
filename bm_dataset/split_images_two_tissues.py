@@ -29,7 +29,7 @@ from birl.utilities.dataset import (find_split_objects, project_object_edge, loa
                                     save_large_image, args_expand_parse_images)
 from birl.utilities.experiments import iterate_mproc_map
 
-NB_THREADS = max(1, int(mproc.cpu_count() * .5))
+NB_WORKERS = max(1, int(mproc.cpu_count() * .5))
 SCALE_SIZE = 512
 CUT_DIMENSION = 0
 
@@ -42,7 +42,7 @@ def arg_parse_params():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dimension', type=int, required=False, choices=[0, 1],
                         help='cutting dimension', default=CUT_DIMENSION)
-    args = args_expand_parse_images(parser, NB_THREADS)
+    args = args_expand_parse_images(parser, NB_WORKERS)
     logging.info('ARGUMENTS: \n%r' % args)
     return args
 

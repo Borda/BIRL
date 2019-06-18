@@ -31,7 +31,7 @@ from birl.utilities.dataset import (
     args_expand_parse_images)
 from birl.utilities.experiments import iterate_mproc_map, try_decorator
 
-NB_THREADS = max(1, int(mproc.cpu_count() * .5))
+NB_WORKERS = max(1, int(mproc.cpu_count() * .5))
 SCALE_SIZE = 512
 CUT_DIMENSION = 0
 TISSUE_CONTENT = 0.01
@@ -45,7 +45,7 @@ def arg_parse_params():
     parser = argparse.ArgumentParser()
     parser.add_argument('--padding', type=float, required=False, default=0.1,
                         help='padding around the object in image percents')
-    args = args_expand_parse_images(parser, NB_THREADS, overwrite=False)
+    args = args_expand_parse_images(parser, NB_WORKERS, overwrite=False)
     logging.info('ARGUMENTS: \n%r' % args)
     return args
 

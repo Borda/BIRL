@@ -45,7 +45,7 @@ from birl.utilities.dataset import args_expand_parse_images
 DEFAULT_LEVEL = 1
 MAX_LOAD_IMAGE_SIZE = 16000
 IMAGE_EXTENSION = '.png'
-NB_THREADS = max(1, int(mproc.cpu_count() * .5))
+NB_WORKERS = max(1, int(mproc.cpu_count() * .5))
 
 
 def arg_parse_params():
@@ -56,7 +56,7 @@ def arg_parse_params():
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', '--level', type=int, required=False,
                         help='list of output scales', default=DEFAULT_LEVEL)
-    args = args_expand_parse_images(parser, NB_THREADS)
+    args = args_expand_parse_images(parser, NB_WORKERS)
     logging.info('ARGUMENTS: \n%r' % args)
     return args
 

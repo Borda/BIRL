@@ -154,12 +154,12 @@ def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out,
         pairs, pub = generate_pairing(len(rp_lnds), step_hide_lnds)
         reg_pairs += generate_reg_pairs(rp_imgs, rp_lnds, pairs, pub)
 
-    df_cover = pd.DataFrame(reg_pairs)
+    df_overview = pd.DataFrame(reg_pairs)
     for col in COLUMNS_EMPTY:
-        df_cover[col] = None
+        df_overview[col] = None
     path_csv = os.path.join(path_out, NAME_COVER_FILE % name)
     logging.info('exporting CSV: %s', path_csv)
-    df_cover.to_csv(path_csv)
+    df_overview.to_csv(path_csv)
 
 
 def main(path_images, path_landmarks, path_out, step_lnds, dataset,

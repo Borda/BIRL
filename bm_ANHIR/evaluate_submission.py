@@ -22,7 +22,7 @@ Sample usage::
 
     python evaluate_submission.py \
         -e ./results/BmUnwarpJ \
-        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -t ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -r ./data_images \
         -p ./bm_experiments/computer-performances_cmpgrid-71.json \
@@ -35,7 +35,7 @@ Running in grad-challenge.org environment::
 
     python evaluate_submission.py \
         -e /input \
-        -c /opt/evaluation/dataset.csv \
+        -t /opt/evaluation/dataset.csv \
         -d /opt/evaluation/lnds_provided \
         -r /opt/evaluation/lnds_reference \
         -p /opt/evaluation/computer-performances.json \
@@ -46,7 +46,7 @@ or run locally::
 
     python bm_ANHIR/evaluate_submission.py \
         -e bm_ANHIR/submission \
-        -c bm_ANHIR/dataset_ANHIR/dataset_medium.csv \
+        -t bm_ANHIR/dataset_ANHIR/dataset_medium.csv \
         -d bm_ANHIR/dataset_ANHIR/landmarks_user \
         -r bm_ANHIR/dataset_ANHIR/landmarks_all \
         -p bm_ANHIR/dataset_ANHIR/computer-performances_cmpgrid-71.json \
@@ -82,7 +82,7 @@ from birl.cls_benchmark import (
     COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP, COL_POINTS_REF, COL_POINTS_MOVE, COL_POINTS_MOVE_WARP,
     COL_TIME, COL_ROBUSTNESS, compute_registration_statistic, update_path_)
 
-NB_THREADS = max(1, int(mproc.cpu_count() * .9))
+NB_WORKERS = max(1, int(mproc.cpu_count() * .9))
 NAME_CSV_RESULTS = 'registration-results.csv'
 NAME_JSON_COMPUTER = 'computer-performances.json'
 NAME_JSON_RESULTS = 'metrics.json'
@@ -100,7 +100,7 @@ def create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--path_experiment', type=str, required=True,
                         help='path to the experiments', default='/input/')
-    parser.add_argument('-c', '--path_cover', type=str, required=True,
+    parser.add_argument('-t', '--path_table', type=str, required=True,
                         help='path to cover table (csv file)',
                         default='/opt/evaluation/dataset.csv')
     parser.add_argument('-d', '--path_dataset', type=str, required=True,
@@ -115,7 +115,7 @@ def create_parser():
     # required number of submitted landmarks, match values in COL_FOUND_LNDS
     parser.add_argument('--min_landmarks', type=float, required=False, default=0.5,
                         help='ration of required landmarks in submission')
-    parser.add_argument('--nb_workers', type=int, required=False, default=NB_THREADS,
+    parser.add_argument('--nb_workers', type=int, required=False, default=NB_WORKERS,
                         help='number of processes in parallel')
     parser.add_argument('--details', action='store_true', required=False,
                         default=False, help='export details for each case')
@@ -202,7 +202,7 @@ def parse_landmarks(idx_row):
     #     if isinstance(row[COL_POINTS_MOVE_WARP], str)else np.array([[]])
     path_dir = os.path.dirname(row[COL_POINTS_MOVE])
     match_lnds = np.nan_to_num(row[COL_FOUND_LNDS]) if COL_FOUND_LNDS in row else 0.
-    record = {
+    item = {
         'name-tissue': os.path.basename(os.path.dirname(path_dir)),
         'scale-tissue': parse_path_scale(os.path.basename(path_dir)),
         'type-tissue': row.get(COL_TISSUE, None),
@@ -216,13 +216,13 @@ def parse_landmarks(idx_row):
         'Status': row.get(COL_STATUS, None),
     }
     # copy all columns with rTRE, TRE and Overlap
-    record.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
-                   for col in row if '(final)' in col})
+    item.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
+                 for col in row if '(final)' in col})
     # copy all columns with Affine statistic
-    record.update({col.replace(' ', '-'): row[col] for col in row if 'diff' in col.lower()})
-    record.update({col.replace(' (elastic)', '_elastic').replace(' ', '-'): row[col]
-                   for col in row if '(elastic)' in col})
-    return idx, record
+    item.update({col.replace(' ', '-'): row[col] for col in row if 'diff' in col.lower()})
+    item.update({col.replace(' (elastic)', '_elastic').replace(' ', '-'): row[col]
+                 for col in row if '(elastic)' in col})
+    return idx, item
 
 
 def compute_scores(df_experiments, min_landmarks=1.):
@@ -388,12 +388,12 @@ def replicate_missing_warped_landmarks(df_experiments, path_dataset, path_experi
     return df_experiments
 
 
-def main(path_experiment, path_cover, path_dataset, path_output, path_reference=None,
-         path_comp_bm=None, nb_workers=NB_THREADS, min_landmarks=1., details=True):
+def main(path_experiment, path_table, path_dataset, path_output, path_reference=None,
+         path_comp_bm=None, nb_workers=NB_WORKERS, min_landmarks=1., details=True):
     """ main entry point
 
     :param str path_experiment: path to experiment folder
-    :param str path_cover: path to assignment file (requested registration pairs)
+    :param str path_table: path to assignment file (requested registration pairs)
     :param str path_dataset: path to provided landmarks
     :param str path_output: path to generated results
     :param str|None path_reference: path to the complete landmark collection,
@@ -411,14 +411,14 @@ def main(path_experiment, path_cover, path_dataset, path_output, path_reference=
     path_reference = path_dataset if not path_reference else path_reference
 
     # drop time column from Cover which should be empty
-    df_cover = pd.read_csv(path_cover).drop([COL_TIME], axis=1, errors='ignore')
+    df_overview = pd.read_csv(path_table).drop([COL_TIME], axis=1, errors='ignore')
     # drop Warp* column from Cover which should be empty
-    df_cover = df_cover.drop([col for col in df_cover.columns if 'warped' in col.lower()],
-                             axis=1, errors='ignore')
+    df_overview = df_overview.drop([col for col in df_overview.columns if 'warped' in col.lower()],
+                                   axis=1, errors='ignore')
     df_results = pd.read_csv(path_results)
     df_results = df_results[[col for col in list(COVER_COLUMNS_WRAP) + [COL_TIME]
                              if col in df_results.columns]]
-    df_experiments = pd.merge(df_cover, df_results, how='left', on=COVER_COLUMNS)
+    df_experiments = pd.merge(df_overview, df_results, how='left', on=COVER_COLUMNS)
     df_experiments.drop([COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP],
                         axis=1, errors='ignore', inplace=True)
 

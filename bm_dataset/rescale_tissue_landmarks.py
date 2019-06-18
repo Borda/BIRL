@@ -45,7 +45,7 @@ from birl.utilities.data_io import create_folder, load_landmarks_csv, save_landm
 from birl.utilities.dataset import (list_sub_folders, parse_path_scale,
                                     compute_bounding_polygon, inside_polygon)
 from birl.utilities.registration import estimate_affine_transform, transform_points
-from bm_dataset.rescale_tissue_images import NB_THREADS, DEFAULT_SCALES, FOLDER_TEMPLATE
+from bm_dataset.rescale_tissue_images import NB_WORKERS, DEFAULT_SCALES, FOLDER_TEMPLATE
 
 
 def arg_parse_params():
@@ -65,7 +65,7 @@ def arg_parse_params():
                         help='number ot ration of selected landmarks')
     parser.add_argument('--nb_total', type=int, required=False, default=None,
                         help='total number of generated landmarks')
-    parser.add_argument('--nb_workers', type=int, required=False, default=NB_THREADS,
+    parser.add_argument('--nb_workers', type=int, required=False, default=NB_WORKERS,
                         help='number of processes in parallel')
     args = parse_arg_params(parser)
     if not is_iterable(args['scales']):
@@ -209,7 +209,7 @@ def extend_landmarks(path_set, path_dataset, nb_selected=None, nb_total=None):
 
 
 def dataset_expand_landmarks(path_annots, path_dataset, nb_selected=None,
-                             nb_total=None, nb_workers=NB_THREADS):
+                             nb_total=None, nb_workers=NB_WORKERS):
     """ select and expand over whole dataset
 
     :param str path_annots: root path to original dataset
@@ -259,7 +259,7 @@ def scale_set_landmarks(path_set, scales=DEFAULT_SCALES):
     return dict_lens
 
 
-def dataset_scale_landmarks(path_dataset, scales=DEFAULT_SCALES, nb_workers=NB_THREADS):
+def dataset_scale_landmarks(path_dataset, scales=DEFAULT_SCALES, nb_workers=NB_WORKERS):
     """ generate several scales within the same dataset
 
     :param str path_dataset: path to the source/generated dataset
@@ -277,7 +277,7 @@ def dataset_scale_landmarks(path_dataset, scales=DEFAULT_SCALES, nb_workers=NB_T
 
 
 def main(path_annots, path_dataset, scales, nb_selected=None, nb_total=None,
-         nb_workers=NB_THREADS):
+         nb_workers=NB_WORKERS):
     """ main entry point
 
     :param str path_annots: root path to original dataset

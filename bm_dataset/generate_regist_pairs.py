@@ -80,8 +80,8 @@ def generate_pairs(path_pattern_imgs, path_pattern_lnds, mode):
         })
         reg_pairs.append(rec)
 
-    df_cover = pd.DataFrame(reg_pairs)
-    return df_cover
+    df_overview = pd.DataFrame(reg_pairs)
+    return df_overview
 
 
 def main(path_pattern_images, path_pattern_landmarks, path_csv, mode='all2all'):
@@ -95,17 +95,17 @@ def main(path_pattern_images, path_pattern_landmarks, path_csv, mode='all2all'):
     # if the cover file exist continue in it, otherwise create new
     if os.path.isfile(path_csv):
         logging.info('loading existing csv file: %s', path_csv)
-        df_cover = pd.read_csv(path_csv, index_col=0)
+        df_overview = pd.read_csv(path_csv, index_col=0)
     else:
         logging.info('creating new cover file')
-        df_cover = pd.DataFrame()
+        df_overview = pd.DataFrame()
 
     df_ = generate_pairs(path_pattern_images, path_pattern_landmarks, mode)
-    df_cover = pd.concat((df_cover, df_), axis=0, sort=True)
-    df_cover = df_cover[list(COVER_COLUMNS_EXT)].reset_index(drop=True)
+    df_overview = pd.concat((df_overview, df_), axis=0, sort=True)
+    df_overview = df_overview[list(COVER_COLUMNS_EXT)].reset_index(drop=True)
 
-    logging.info('saving csv file with %i records \n %s', len(df_cover), path_csv)
-    df_cover.to_csv(path_csv)
+    logging.info('saving csv file with %i records \n %s', len(df_overview), path_csv)
+    df_overview.to_csv(path_csv)
 
 
 if __name__ == '__main__':

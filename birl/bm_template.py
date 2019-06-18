@@ -10,11 +10,11 @@ Sample run::
 
     mkdir ./results
     python birl/bm_template.py \
-        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -t ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         --visual --unique \
-        -config none
+        -cfg none
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -40,7 +40,7 @@ def extend_parse(a_parser):
     <class 'argparse.ArgumentParser'>
     """
     # SEE: https://docs.python.org/3/library/argparse.html
-    a_parser.add_argument('-config', '--path_config', type=str, required=True,
+    a_parser.add_argument('-cfg', '--path_config', type=str, required=True,
                           help='some extra parameters')
     return a_parser
 
@@ -74,7 +74,7 @@ class BmTemplate(ImRegBenchmark):
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
     >>> open('sample_config.yaml', 'w').close()
-    >>> main({'path_cover': path_csv,
+    >>> main({'path_table': path_csv,
     ...       'path_out': path_out,
     ...       'nb_workers': 1,
     ...       'unique': False,
@@ -90,7 +90,7 @@ class BmTemplate(ImRegBenchmark):
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
-    >>> params = {'path_cover': path_csv,
+    >>> params = {'path_table': path_csv,
     ...           'path_out': path_out,
     ...           'nb_workers': 2,
     ...           'unique': False,
@@ -110,64 +110,64 @@ class BmTemplate(ImRegBenchmark):
 
         self._copy_config_to_expt('path_config')
 
-    def _prepare_img_registration(self, record):
+    def _prepare_img_registration(self, item):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
 
-        :param dict dict record: dictionary with regist. params
+        :param dict item: dictionary with regist. params
         :return dict: the same or updated registration info
         """
         logging.debug('.. no preparing before registration experiment')
-        return record
+        return item
 
-    def _generate_regist_command(self, record):
+    def _generate_regist_command(self, item):
         """ generate the registration command(s)
 
-        :param dict record: dictionary with registration params
+        :param dict item: dictionary with registration params
         :return str|list(str): the execution commands
         """
         logging.debug('.. simulate registration: '
                       'copy the source image and landmarks, like regist. failed')
-        _, path_im_move, _, path_lnds_move = self._get_paths(record)
-        path_reg_dir = self._get_path_reg_dir(record)
-        name_img = os.path.basename(record[COL_IMAGE_MOVE])
+        _, path_im_move, _, path_lnds_move = self._get_paths(item)
+        path_reg_dir = self._get_path_reg_dir(item)
+        name_img = os.path.basename(item[COL_IMAGE_MOVE])
         cmd_img = 'cp %s %s' % (path_im_move, os.path.join(path_reg_dir, name_img))
-        name_lnds = os.path.basename(record[COL_POINTS_MOVE])
+        name_lnds = os.path.basename(item[COL_POINTS_MOVE])
         cmd_lnds = 'cp %s %s' % (path_lnds_move, os.path.join(path_reg_dir, name_lnds))
         commands = [cmd_img, cmd_lnds]
         return commands
 
-    def _extract_warped_image_landmarks(self, record):
+    def _extract_warped_image_landmarks(self, item):
         """ get registration results - warped registered images and landmarks
 
-        :param dict record: dictionary with registration params
+        :param dict item: dictionary with registration params
         :return dict: paths to ...
         """
-        path_reg_dir = self._get_path_reg_dir(record)
+        path_reg_dir = self._get_path_reg_dir(item)
         # detect image
-        path_img = os.path.join(path_reg_dir, os.path.basename(record[COL_IMAGE_MOVE]))
+        path_img = os.path.join(path_reg_dir, os.path.basename(item[COL_IMAGE_MOVE]))
         # detect landmarks
-        path_lnd = os.path.join(path_reg_dir, os.path.basename(record[COL_POINTS_MOVE]))
+        path_lnd = os.path.join(path_reg_dir, os.path.basename(item[COL_POINTS_MOVE]))
         # return formatted results
         return {COL_IMAGE_MOVE_WARP: path_img,
                 COL_POINTS_MOVE_WARP: path_lnd}
 
-    def _extract_execution_time(self, record):
+    def _extract_execution_time(self, item):
         """ if needed update the execution time
 
-        :param dict record: dictionary with registration params
+        :param dict item: dictionary with registration params
         :return float|None: time in minutes
         """
         return 1. / 60  # running constant time 1 sec.
 
-    def _clear_after_registration(self, record):
+    def _clear_after_registration(self, item):
         """ clean unnecessarily files after the registration
 
-        :param dict record: dictionary with regist. information
+        :param dict item: dictionary with regist. information
         :return dict: the same or updated regist. info
         """
         logging.debug('.. no cleaning after registration experiment')
-        return record
+        return item
 
 
 def main(params, cls_benchmark):

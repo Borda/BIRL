@@ -31,7 +31,7 @@ Sample run::
 
     mkdir ./results
     python bm_experiments/bm_DROP.py \
-        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -t ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         -DROP ~/Applications/DROP/dropreg2d \
@@ -87,7 +87,7 @@ def extend_parse(a_parser):
     # SEE: https://docs.python.org/3/library/argparse.html
     a_parser.add_argument('-DROP', '--exec_DROP', type=str, required=True,
                           help='path to DROP executable, use `dropreg2d`')
-    a_parser.add_argument('-config', '--path_config', type=str, required=True,
+    a_parser.add_argument('-cfg', '--path_config', type=str, required=True,
                           help='parameters for DROP registration')
     return a_parser
 
@@ -106,7 +106,7 @@ class BmDROP(ImRegBenchmark):
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
-    >>> params = {'path_cover': path_csv,
+    >>> params = {'path_table': path_csv,
     ...           'path_out': path_out,
     ...           'nb_workers': 2,
     ...           'unique': False,
@@ -126,45 +126,45 @@ class BmDROP(ImRegBenchmark):
         logging.info('-> copy configuration...')
         self._copy_config_to_expt('path_config')
 
-    def _prepare_img_registration(self, record):
+    def _prepare_img_registration(self, item):
         """ converting the input images to gra-scale and MHD format
 
-        :param dict dict record: dictionary with regist. params
+        :param dict dict item: dictionary with regist. params
         :return dict: the same or updated registration info
         """
         logging.debug('.. converting images to MHD')
-        path_im_ref, path_im_move, _, _ = self._get_paths(record)
-        path_reg_dir = self._get_path_reg_dir(record)
+        path_im_ref, path_im_move, _, _ = self._get_paths(item)
+        path_reg_dir = self._get_path_reg_dir(item)
 
         diags = [image_sizes(p_img)[1] for p_img in (path_im_ref, path_im_move)]
-        record['scaling'] = max(1, max(diags) / float(MAX_IMAGE_DIAGONAL))
+        item['scaling'] = max(1, max(diags) / float(MAX_IMAGE_DIAGONAL))
 
         t_start = time.time()
         for path_img, col in [(path_im_ref, COL_IMAGE_REF),
                               (path_im_move, COL_IMAGE_MOVE)]:
-            record[col + COL_IMAGE_EXT_TEMP] = \
+            item[col + COL_IMAGE_EXT_TEMP] = \
                 convert_to_mhd(path_img, path_out_dir=path_reg_dir, overwrite=False,
-                               to_gray=True, scaling=record.get('scaling', 1.))
-        record[COL_TIME_CONVERT] = time.time() - t_start
+                               to_gray=True, scaling=item.get('scaling', 1.))
+        item[COL_TIME_CONVERT] = time.time() - t_start
 
         # def __wrap_convert_mhd(path_img, col):
         #     path_img = convert_to_mhd(path_img, to_gray=True, overwrite=False)
         #     return path_img, col
         #
         # for path_img, col in iterate_mproc_map(__wrap_convert_mhd, convert_queue):
-        #     record[col + COL_IMAGE_EXT_TEMP] = path_img
+        #     item[col + COL_IMAGE_EXT_TEMP] = path_img
 
-        return record
+        return item
 
-    def _generate_regist_command(self, record):
+    def _generate_regist_command(self, item):
         """ generate the registration command
 
-        :param dict record: dictionary with registration params
+        :param dict item: dictionary with registration params
         :return str|list(str): the execution commands
         """
         logging.debug('.. prepare DROP registration command')
-        path_im_ref, path_im_move, _, _ = self._get_paths(record)
-        path_dir = self._get_path_reg_dir(record)
+        path_im_ref, path_im_move, _, _ = self._get_paths(item)
+        path_dir = self._get_path_reg_dir(item)
 
         # NOTE: for some reason " in the command makes it crash in Run mode
         # somehow it works fine even with " in Debug mode
@@ -178,17 +178,17 @@ class BmDROP(ImRegBenchmark):
 
         return command
 
-    def _extract_warped_image_landmarks(self, record):
+    def _extract_warped_image_landmarks(self, item):
         """ get registration results - warped registered images and landmarks
 
-        :param dict record: dictionary with registration params
+        :param dict item: dictionary with registration params
         :return dict: paths to ...
         """
-        path_reg_dir = self._get_path_reg_dir(record)
-        _, path_im_move, path_lnds_ref, _ = self._get_paths(record)
+        path_reg_dir = self._get_path_reg_dir(item)
+        _, path_im_move, path_lnds_ref, _ = self._get_paths(item)
         # convert MHD image
         path_img_ = convert_from_mhd(os.path.join(path_reg_dir, 'output.mhd'),
-                                     scaling=record.get('scaling', 1.))
+                                     scaling=item.get('scaling', 1.))
         img_name = os.path.splitext(os.path.basename(path_im_move))[0]
         ext_img = os.path.splitext(os.path.basename(path_img_))[1]
         path_img = path_img_.replace('output' + ext_img, img_name + ext_img)
@@ -202,7 +202,7 @@ class BmDROP(ImRegBenchmark):
         assert lnds_ref is not None, 'missing landmarks to be transformed "%s"' % lnds_name
 
         # down-scale landmarks if defined
-        lnds_ref = lnds_ref / record.get('scaling', 1.)
+        lnds_ref = lnds_ref / item.get('scaling', 1.)
         # extract deformation
         path_deform_x = os.path.join(path_reg_dir, 'output_x.mhd')
         path_deform_y = os.path.join(path_reg_dir, 'output_y.mhd')
@@ -215,25 +215,25 @@ class BmDROP(ImRegBenchmark):
         # lnds_warp = lnds_move - shift
         lnds_warp = lnds_ref + shift
         # upscale landmarks if defined
-        lnds_warp = lnds_warp * record.get('scaling', 1.)
+        lnds_warp = lnds_warp * item.get('scaling', 1.)
         save_landmarks(path_lnd, lnds_warp)
 
         # return formatted results
         return {COL_IMAGE_MOVE_WARP: path_img,
                 COL_POINTS_REF_WARP: path_lnd}
 
-    def _clear_after_registration(self, record):
+    def _clear_after_registration(self, item):
         """ clean unnecessarily files after the registration
 
-        :param dict record: dictionary with regist. information
+        :param dict item: dictionary with regist. information
         :return dict: the same or updated regist. info
         """
         logging.debug('.. cleaning after registration experiment, remove `output`')
-        path_reg_dir = self._get_path_reg_dir(record)
+        path_reg_dir = self._get_path_reg_dir(item)
         for ptn in ('output*', '*.mhd', '*.raw'):
             for p_file in glob.glob(os.path.join(path_reg_dir, ptn)):
                 os.remove(p_file)
-        return record
+        return item
 
 
 def extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds):

@@ -57,13 +57,13 @@ class TestBmRegistration(unittest.TestCase):
     def test_benchmark_invalid_inputs(self):
         # test missing some parameters
         params = {
-            'path_cover': 'x',
+            'path_table': 'x',
             'path_out': 'x',
             'nb_workers': 0,
             'unique': False,
         }
         # try a missing params
-        for miss in ['path_cover', 'path_out', 'nb_workers', 'unique']:
+        for miss in ['path_table', 'path_out', 'nb_workers', 'unique']:
             params_miss = params.copy()
             del params_miss[miss]
             assert_raises(AssertionError, ImRegBenchmark, params_miss)
@@ -73,7 +73,7 @@ class TestBmRegistration(unittest.TestCase):
     def test_benchmark_failing(self):
         """ test run in parallel with failing experiment """
         params = {
-            'path_cover': PATH_CSV_COVER_MIX,
+            'path_table': PATH_CSV_COVER_MIX,
             'path_dataset': PATH_DATA,
             'path_out': self.path_out,
             'preprocessing': 'nothing',
@@ -93,7 +93,7 @@ class TestBmRegistration(unittest.TestCase):
         """ test run in parallel (2 threads) """
         self._remove_default_experiment(ImRegBenchmark.__name__)
         params = {
-            'path_cover': PATH_CSV_COVER_MIX,
+            'path_table': PATH_CSV_COVER_MIX,
             'path_out': self.path_out,
             'preprocessing': ['gray', 'hist-matching'],
             'nb_workers': 2,
@@ -114,7 +114,7 @@ class TestBmRegistration(unittest.TestCase):
         """ test run in sequence (1 thread) """
         self._remove_default_experiment(ImRegBenchmark.__name__)
         params = {
-            'path_cover': PATH_CSV_COVER_ANHIR,
+            'path_table': PATH_CSV_COVER_ANHIR,
             'path_dataset': PATH_DATA,
             'path_out': self.path_out,
             'preprocessing': ['hist-matching', 'gray'],
@@ -134,7 +134,7 @@ class TestBmRegistration(unittest.TestCase):
         path_config = os.path.join(self.path_out, 'sample_config.yaml')
         save_config_yaml(path_config, {})
         params = {
-            'path_cover': PATH_CSV_COVER_MIX,
+            'path_table': PATH_CSV_COVER_MIX,
             'path_out': self.path_out,
             'path_config': path_config,
             'nb_workers': 2,
@@ -166,10 +166,10 @@ class TestBmRegistration(unittest.TestCase):
         path_csv = os.path.join(path_bm, NAME_CSV_REGISTRATION_PAIRS)
         df_regist = pd.read_csv(path_csv, index_col=0)
 
-        # only two records in the benchmark
-        self.assertEqual(len(df_regist), len(benchmark._df_cover),
+        # only two items in the benchmark
+        self.assertEqual(len(df_regist), len(benchmark._df_overview),
                          msg='Found only %i records instead of %i'
-                             % (len(df_regist), len(benchmark._df_cover)))
+                             % (len(df_regist), len(benchmark._df_overview)))
 
         # test presence of particular columns
         for col in list(COVER_COLUMNS) + [COL_IMAGE_MOVE_WARP]:

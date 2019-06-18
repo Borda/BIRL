@@ -46,7 +46,7 @@ IMAGE_SIZE = (2000, 2000)
 IMAGE_NOISE = 0.01
 SKIMAGE_VERSION = (0, 14, 0)
 
-NB_THREADS = int(mproc.cpu_count())
+CPU_COUNT = int(mproc.cpu_count())
 NAME_REPORT = 'computer-performances.json'
 NAME_IMAGE_TARGET = 'temp_regist-image_target.png'
 NAME_IMAGE_SOURCE = 'temp_regist-image_source.png'
@@ -167,7 +167,7 @@ def measure_registration_single(path_out, nb_iter=5):
     return res
 
 
-def measure_registration_parallel(path_out, nb_iter=3, nb_workers=NB_THREADS):
+def measure_registration_parallel(path_out, nb_iter=3, nb_workers=CPU_COUNT):
     """ measure mean execration time for image registration running in N thread
 
     :param str path_out: path to the temporary output space

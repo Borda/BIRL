@@ -12,6 +12,7 @@ import logging
 import argparse
 import subprocess
 import collections
+import uuid
 import multiprocessing as mproc
 from pathos.multiprocessing import ProcessPool
 from functools import wraps
@@ -21,8 +22,8 @@ import numpy as np
 
 from birl.utilities.data_io import create_folder, update_path
 
-#: number of available threads on this computer
-NB_THREADS = int(mproc.cpu_count())
+#: number of available CPUs on this computer
+CPU_COUNT = int(mproc.cpu_count())
 #: default date-time format
 FORMAT_DATE_TIME = '%Y%m%d-%H%M%S'
 #: default logging tile
@@ -73,21 +74,12 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
         path_stamp = time.strftime(FORMAT_DATE_TIME, date)
         # prepare experiment path with initial timestamp - now
         path_exp = os.path.join(path_out, '%s_%s' % (dir_name, path_stamp))
-        path_created = None
-        while not path_created:
-            # try to generate new time stamp
-            path_stamp_new = time.strftime(FORMAT_DATE_TIME, date)
-            # if the new one is different use it; this may over come too long stamps
-            if path_stamp != path_stamp_new:
-                path_stamp = path_stamp_new
-                path_exp = os.path.join(path_out, '%s_%s' % (dir_name, path_stamp))
+        if os.path.isdir(path_exp):
             logging.warning('particular out folder already exists')
-            if path_created is not None:
-                path_exp += '-' + str(np.random.randint(0, 100))
-            path_created = create_folder(path_exp, ok_existing=False)
+            path_exp += '-' + str(uuid.uuid4().hex)
     else:
         path_exp = os.path.join(path_out, dir_name)
-        path_created = create_folder(path_exp, ok_existing=False)
+    path_created = create_folder(path_exp, ok_existing=False)
     logging.info('created experiment folder "%r"', path_created)
     return path_exp
 
@@ -159,12 +151,11 @@ def create_basic_parse():
     >>> parse_arg_params(parser)  # doctest: +SKIP
     """
     # SEE: https://docs.python.org/3/library/argparse.html
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--path_cover', type=str, required=True,
+    parser = argparse.ArgumentParser('Benchmark on Image Registration')
+    parser.add_argument('-t', '--path_table', type=str, required=True,
                         help='path to the csv cover file')
-    parser.add_argument('-d', '--path_dataset', type=str, required=False,
-                        help='path to the dataset location, '
-                             'if missing in cover', default=None)
+    parser.add_argument('-d', '--path_dataset', type=str, required=False, default=None,
+                        help='path to the dataset location, if missing in table')
     parser.add_argument('-o', '--path_out', type=str, required=True,
                         help='path to the output directory')
     parser.add_argument('--unique', dest='unique', action='store_true',
@@ -323,7 +314,7 @@ def exec_commands(commands, path_logger=None, timeout=None):
 #         return proc
 
 
-def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=NB_THREADS, desc=''):
+def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc=''):
     """ create a multi-porocessing pool and execute a wrapped function in separate process
 
     :param func wrap_func: function which will be excited in the iterations
@@ -355,7 +346,7 @@ def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=NB_THREADS, desc=''):
     """
     iterate_vals = list(iterate_vals)
     nb_workers = 1 if not nb_workers else int(nb_workers)
-    nb_workers = NB_THREADS if nb_workers < 0 else nb_workers
+    nb_workers = CPU_COUNT if nb_workers < 0 else nb_workers
 
     tqdm_bar = None
     if desc is not None:

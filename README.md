@@ -141,9 +141,9 @@ Sample execution of the "empty" benchmark template:
 ```bash
 mkdir results
 python birl/bm_template.py \
-    -c ./data_images/pairs-imgs-lnds_mix.csv \
+    -t ./data_images/pairs-imgs-lnds_mix.csv \
     -o ./results \
-    -config sample_config.yaml \
+    -cfg sample_config.yaml \
     --preprocessing hist-matching gray \
     --unique --visual
 ```
@@ -151,17 +151,17 @@ or with relative paths:
 ```bash
 mkdir results
 python birl/bm_template.py \
-    -c ./data_images/pairs-imgs-lnds_histol.csv \
+    -t ./data_images/pairs-imgs-lnds_histol.csv \
     -d ./data_images \
     -o ./results \
-    -config sample_config.yaml \
+    -cfg sample_config.yaml \
     --preprocessing gray hist-matching
 ```
 
 The general Image Registration benchmarks contain couple required and optional parameters which are shared among 'all' methods/benchmarks. The brief description is following...
 
 **Required** parameters:
-* `-c`/`--path_cover` path to the cover table describing image/landmarks registration pairs
+* `-t`/`--path_table` path to the cover table describing image/landmarks registration pairs
 * `-d`/`--path_dataset` path to the dataset folder with images and landmarks
 * `-o`/`--path_out` output path for saving results
 
@@ -187,28 +187,28 @@ For each benchmark experiment, the explanation about how to install and use a pa
 * **[bUnwarpJ](http://imagej.net/BUnwarpJ)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for elastic registration (optional usage of histogram matching and integration with [Feature Extraction](http://imagej.net/Feature_Extraction)).
     ```bash
     python bm_experiments/bm_bUnwarpJ.py \
-        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -t ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
-        -config ./configs/ImageJ_bUnwarpJ_histol.yaml \
+        -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml \
         --preprocessing hist-matching \
         --visual --unique
     ```
 * **[Register Virtual Stack Slices (RVSS)](https://imagej.net/Register_Virtual_Stack_Slices)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for affine/elastic registration of a sequence of images.
     ```bash
     python bm_experiments/bm_RVSS.py \
-        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -t ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
-        -config ./configs/ImageJ_RVSS_histol.yaml \
+        -cfg ./configs/ImageJ_RVSS_histol.yaml \
         --visual --unique
     ```
 * **[RNiftyReg](https://github.com/jonclayden/RNiftyReg)** is an R-native interface to the [NiftyReg image registration library](http://sourceforge.net/projects/niftyreg/) which contains programs to perform rigid, affine and non-linear registration of Nifti or analyse images. _NiftyReg supports max image size 2048._
     ```bash
     python bm_experiments/bm_rNiftyReg.py \
-        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -t ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         -R Rscript \
@@ -218,7 +218,7 @@ For each benchmark experiment, the explanation about how to install and use a pa
 * **[Advanced Normalization Tools](http://stnava.github.io/ANTs/) (ANTs)** is a medical imaging framework containing state-of-the-art medical image registration and segmentation methods. For illustration see ANTsPy [registration tutorial](https://github.com/ANTsX/ANTsPy/blob/master/tutorials/10minTutorial.ipynb).
     ```bash
     python bm_experiments/bm_ANTsPy.py \
-        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -t ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         -py python3 \
@@ -228,11 +228,11 @@ For each benchmark experiment, the explanation about how to install and use a pa
 * **[DROP](https://www.mrf-registration.net)** is image registration and motion estimation based on Markov Random Fields.
     ```bash
     python bm_experiments/bm_DROP.py \
-        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -t ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         -DROP ~/Applications/DROP/dropreg2d \
-        --path_config ./configs/drop.txt \
+        -cfg ./configs/drop.txt \
         --visual --unique
     ```
 * ...

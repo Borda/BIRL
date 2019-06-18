@@ -63,10 +63,10 @@ def main(path_dataset, path_landmarks_out, path_landmarks_in, path_csv):
     :param str path_csv: path to dataset cover table
     """
     name_csv = os.path.splitext(os.path.basename(path_csv))[0]
-    df_cover = pd.read_csv(path_csv)
+    df_overview = pd.read_csv(path_csv)
 
     # Section - IMAGES
-    images = df_cover[COL_IMAGE_REF].tolist() + df_cover[COL_IMAGE_MOVE].tolist()
+    images = df_overview[COL_IMAGE_REF].tolist() + df_overview[COL_IMAGE_MOVE].tolist()
     folders = set(os.path.dirname(p) for p in images
                   if os.path.isdir(os.path.join(path_dataset, os.path.dirname(p))))
     # Remove previous compressed images
@@ -77,8 +77,8 @@ def main(path_dataset, path_landmarks_out, path_landmarks_in, path_csv):
     _process_cmd(cmd_zip_imgs)
 
     # Section - LANDMARKS
-    lnds_ref_train = df_cover[df_cover[COL_STATUS] == VAL_STATUS_TRAIN][COL_POINTS_REF].tolist()
-    landmarks = set(df_cover[COL_POINTS_MOVE].tolist() + lnds_ref_train)
+    lnds_ref_train = df_overview[df_overview[COL_STATUS] == VAL_STATUS_TRAIN][COL_POINTS_REF].tolist()
+    landmarks = set(df_overview[COL_POINTS_MOVE].tolist() + lnds_ref_train)
     landmarks = [p for p in landmarks
                  if os.path.isfile(os.path.join(path_landmarks_in, p))]
     # compress the landmarks

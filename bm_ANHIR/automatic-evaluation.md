@@ -24,10 +24,10 @@ Run one of following sample registration experiments:
  * simulate the ideal registration, assuming having all landmarks
     ```bash
     python benchmark/bm_template.py \
-        -c ~/Medical-data/dataset_ANHIR/images/dataset_medium.csv \
+        -t ~/Medical-data/dataset_ANHIR/images/dataset_medium.csv \
         -d ~/Medical-temp/dataset_ANHIR/images \
         -o ~/Medical-temp/experiments_anhir/ \
-        -config sample_config.yaml
+        -cfg sample_config.yaml
     python bm_experiments/bm_comp_perform.py -o ~/Medical-temp/experiments_anhir/BmTemplate
     # remove all registered images
     rm ~/Medical-temp/experiments_anhir/BmTemplate/*/*.jpg \
@@ -36,12 +36,12 @@ Run one of following sample registration experiments:
  * run bUnwarpJ in ImageJ registration on the real data
     ```bash
     python bm_experiments/bm_bUnwarpJ.py \
-        -c ~/Medical-data/dataset_ANHIR/images/dataset_medium.csv \
+        -t ~/Medical-data/dataset_ANHIR/images/dataset_medium.csv \
         -d ~/Medical-temp/dataset_ANHIR/images \
         -o ~/Medical-temp/experiments_anhir/ \
         --run_comp_benchmark \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
-        -config ./configs/ImageJ_bUnwarpJ_histol-1k.txt
+        -cfg ./configs/ImageJ_bUnwarpJ_histol-1k.txt
     # remove all registered images
     rm ~/Medical-temp/experiments_anhir/BmUnwarpJ/*/*.jpg \
         ~/Medical-temp/experiments_anhir/BmUnwarpJ/*/*.png

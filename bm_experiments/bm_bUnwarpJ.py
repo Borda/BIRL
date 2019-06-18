@@ -26,11 +26,11 @@ Usage
 Run the basic bUnwarpJ registration with original parameters::
 
     python bm_experiments/bm_bUnwarpJ.py \
-        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -t ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
-        -config ./configs/ImageJ_bUnwarpJ_histol.yaml \
+        -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml \
         --preprocessing hist-matching \
         --visual --unique
 
@@ -38,11 +38,11 @@ The bUnwarpJ is supporting SIFT and MOPS feature extraction as landmarks
 see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support ::
 
     python bm_experiments/bm_bUnwarpJ.py \
-        -c ./data_images/pairs-imgs-lnds_histol.csv \
+        -t ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
-        -config ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml \
+        -cfg ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml \
         --preprocessing hist-matching \
         --visual --unique
 
@@ -75,9 +75,11 @@ PATH_SCRIPT_REGISTRATION_SIFT = os.path.join(PATH_IJ_SCRIPTS, 'apply-SIFT-bUnwar
 PATH_SCRIPT_WARP_LANDMARKS = os.path.join(PATH_IJ_SCRIPTS, 'apply-bUnwarpJ-transform.bsh')
 # PATH_SCRIPT_HIST_MATCH_IJM = os.path.join(PATH_IJ_SCRIPTS, 'histogram-matching-for-macro.bsh')
 #: command for executing the image registration
-COMMAND_REGISTRATION = '%(exec_Fiji)s --headless %(path_bsh)s' \
-                       ' %(source)s %(target)s %(params)s' \
-                       ' %(output)s/transform-direct.txt %(output)s/transform-inverse.txt'
+COMMAND_REGISTRATION = \
+    '%(exec_Fiji)s --headless %(path_bsh)s' \
+    ' %(source)s %(target)s %(params)s' \
+    ' %(output)s/transform-direct.txt' \
+    ' %(output)s/transform-inverse.txt'
 #: internal name of converted landmarks for tranf. script
 NAME_LANDMARKS = 'source_landmarks.pts'
 #: name of warped moving landmarks by tranf. script
@@ -87,13 +89,14 @@ NAME_TRANSF_INVERSE = 'transform-inverse.txt'
 #: resulting direct transformation
 NAME_TRANSF_DIRECT = 'transform-direct.txt'
 #: command for executing the warping image and landmarks
-COMMAND_WARP_LANDMARKS = '%(exec_Fiji)s --headless %(path_bsh)s' \
-                         ' %(source)s %(target)s' \
-                         ' %(output)s/' + NAME_LANDMARKS + \
-                         ' %(output)s/' + NAME_LANDMARKS_WARPED + \
-                         ' %(transf-inv)s' \
-                         ' %(transf-dir)s' \
-                         ' %(warp)s'
+COMMAND_WARP_LANDMARKS = \
+    '%(exec_Fiji)s --headless %(path_bsh)s' \
+    ' %(source)s %(target)s' \
+    ' %(output)s/' + NAME_LANDMARKS + \
+    ' %(output)s/' + NAME_LANDMARKS_WARPED + \
+    ' %(transf-inv)s' \
+    ' %(transf-dir)s' \
+    ' %(warp)s'
 #: required parameters in the configuration file for bUnwarpJ
 REQUIRED_PARAMS_BUNWARPJ = (
     'mode', 'subsampleFactor', 'minScale', 'maxScale', 'divWeight', 'curlWeight',
@@ -159,7 +162,7 @@ def extend_parse(a_parser):
     # SEE: https://docs.python.org/3/library/argparse.html
     a_parser.add_argument('-Fiji', '--exec_Fiji', type=str, required=True,
                           help='path to the Fiji executable')
-    a_parser.add_argument('-config', '--path_config', required=True,
+    a_parser.add_argument('-cfg', '--path_config', required=True,
                           type=str, help='path to the bUnwarpJ configuration')
     return a_parser
 
@@ -176,7 +179,7 @@ class BmUnwarpJ(ImRegBenchmark):
     >>> path_out = create_folder('temp_results')
     >>> fn_path_conf = lambda n: os.path.join(update_path('configs'), n)
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
-    >>> params = {'path_cover': path_csv,
+    >>> params = {'path_table': path_csv,
     ...           'path_out': path_out,
     ...           'exec_Fiji': 'ImageJ-linux64',
     ...           'preprocessing': ['hist-matching'],
@@ -200,14 +203,14 @@ class BmUnwarpJ(ImRegBenchmark):
 
         self._copy_config_to_expt('path_config')
 
-    def _generate_regist_command(self, record):
+    def _generate_regist_command(self, item):
         """ generate the registration command(s)
 
-        :param dict record: dictionary with registration params
+        :param dict item: dictionary with registration params
         :return str|list(str): the execution commands
         """
-        path_im_ref, path_im_move, _, _ = self._get_paths(record, prefer_pproc=True)
-        path_dir = self._get_path_reg_dir(record)
+        path_im_ref, path_im_move, _, _ = self._get_paths(item, prefer_pproc=True)
+        path_dir = self._get_path_reg_dir(item)
         config = DEFAULT_PARAMS
         config = dict_deep_update(config, load_config_yaml(self.params['path_config']))
         assert config['bUnwarpJ']['mode'] < 2, 'Mono mode does not supports inverse transform' \
@@ -228,15 +231,15 @@ class BmUnwarpJ(ImRegBenchmark):
         }
         return cmd
 
-    def _extract_warped_image_landmarks(self, record):
+    def _extract_warped_image_landmarks(self, item):
         """ get registration results - warped registered images and landmarks
 
-        :param dict record: dictionary with registration params
+        :param dict item: dictionary with registration params
         :return dict: paths to ...
         """
         logging.debug('.. warp the registered image and get landmarks')
-        path_dir = self._get_path_reg_dir(record)
-        path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(record, prefer_pproc=False)
+        path_dir = self._get_path_reg_dir(item)
+        path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(item, prefer_pproc=False)
         path_log = os.path.join(path_dir, NAME_LOG_REGISTRATION)
 
         # warp moving landmarks to reference frame

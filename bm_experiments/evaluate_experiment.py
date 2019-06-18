@@ -32,7 +32,7 @@ from birl.cls_benchmark import (NAME_CSV_REGISTRATION_PAIRS, export_summary_resu
                                 compute_registration_statistic, visualise_registration)
 
 #: default number of used threads
-NB_THREADS = max(1, int(mproc.cpu_count() * .75))
+NB_WORKERS = max(1, int(mproc.cpu_count() * .75))
 #: file name of new table with registration results
 NAME_CSV_RESULTS = 'registration-results_NEW.csv'
 #: file name of new table with registration summary
@@ -53,12 +53,12 @@ def create_parser():
                         help='path to dataset with provided landmarks')
     parser.add_argument('--visual', action='store_true', required=False,
                         default=False, help='visualise the landmarks in images')
-    parser.add_argument('--nb_workers', type=int, required=False, default=NB_THREADS,
+    parser.add_argument('--nb_workers', type=int, required=False, default=NB_WORKERS,
                         help='number of processes running in parallel')
     return parser
 
 
-def main(path_experiment, path_dataset, visual=False, nb_workers=NB_THREADS):
+def main(path_experiment, path_dataset, visual=False, nb_workers=NB_WORKERS):
     """ main entry points
 
     :param str path_experiment: path to the experiment folder

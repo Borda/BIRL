@@ -32,7 +32,7 @@ from birl.utilities.dataset import (load_large_image, save_large_image,
                                     parse_path_scale, args_expand_parse_images)
 from birl.utilities.data_io import create_folder
 
-NB_THREADS = max(1, int(mproc.cpu_count() * .5))
+NB_WORKERS = max(1, int(mproc.cpu_count() * .5))
 DEFAULT_SCALES = (5, 10, 15, 20, 25, 50)
 IMAGE_EXTENSION = '.jpg'
 # IMWRITE_PARAMS = (cv.IMWRITE_JPEG_QUALITY, 100)
@@ -49,7 +49,7 @@ def arg_parse_params():
                         help='list of output scales', default=DEFAULT_SCALES)
     parser.add_argument('-ext', '--image_extension', type=str, required=False,
                         help='output image extension', default=IMAGE_EXTENSION)
-    args = args_expand_parse_images(parser, NB_THREADS)
+    args = args_expand_parse_images(parser, NB_WORKERS)
     if not is_iterable(args['scales']):
         args['scales'] = [args['scales']]
     logging.info('ARGUMENTS: \n%r' % args)
