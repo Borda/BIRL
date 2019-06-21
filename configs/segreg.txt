@@ -1,0 +1,17 @@
+Superpixel edge length=15
+Regularization=10
+k=3
+Maximal shift=10
+Lab conversion=true
+k-means repetitions=30
+Minimal image size=128
+Minimal keypoints count=200
+Keypoints distance=20
+Resolve large rotation=false
+Use superpixels for keypoints=true
+Use HierarchicalDeformation=false
+Resample factor=0 1 1 1
+Level progresion=1 0 0 0
+!!!Warning deformations follow the pattern of hierarchical deformation (fine deformations first, coarse last)
+Deformation=BsplineDeformation 3 7 7
+Deformation=RigidDeformation2D

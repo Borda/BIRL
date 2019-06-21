@@ -21,10 +21,10 @@ Usage
 Run the basic R script::
 
     Rscript scripts/Rscript/RNiftyReg_linear.r \
-        data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.jpg \
-        data_images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.jpg \
-        data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.csv \
-        output/
+        ./data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.jpg \
+        ./data_images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.jpg \
+        ./data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.csv \
+        ./output/
 
 Run the RNiftyReg benchmark::
 
