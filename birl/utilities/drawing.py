@@ -465,4 +465,5 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None):
                  cbarlabel='Users')
     ax.set_ylabel('Ranking')
 
+    fig.tight_layout()
     return fig
