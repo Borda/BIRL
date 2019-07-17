@@ -25,24 +25,9 @@ import sys
 import logging
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.experiments import create_basic_parse, parse_arg_params
+from birl.utilities.experiments import create_basic_parser
 from birl.cls_benchmark import (ImRegBenchmark, COL_IMAGE_MOVE, COL_POINTS_MOVE,
                                 COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP)
-
-
-def extend_parse(a_parser):
-    """ extent the basic arg parses by some extra required parameters
-
-    :return object:
-
-    >>> parser = extend_parse(create_basic_parse())
-    >>> type(parser)
-    <class 'argparse.ArgumentParser'>
-    """
-    # SEE: https://docs.python.org/3/library/argparse.html
-    a_parser.add_argument('-cfg', '--path_config', type=str, required=True,
-                          help='some extra parameters')
-    return a_parser
 
 
 class BmTemplate(ImRegBenchmark):
@@ -74,14 +59,15 @@ class BmTemplate(ImRegBenchmark):
     >>> path_out = create_folder('temp_results')
     >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
     >>> open('sample_config.yaml', 'w').close()
-    >>> main({'path_table': path_csv,
+    >>> BmTemplate.main({
+    ...       'path_table': path_csv,
     ...       'path_out': path_out,
     ...       'nb_workers': 1,
     ...       'unique': False,
     ...       'visual': True,
-    ...       'path_config': 'sample_config.yaml'},
-    ...      BmTemplate)  # doctest: +ELLIPSIS
-    '...BmTemplate'
+    ...       'path_config': 'sample_config.yaml'
+    ... })  # doctest: +ELLIPSIS
+    ({...}, '...BmTemplate')
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     >>> os.remove('sample_config.yaml')
@@ -169,30 +155,26 @@ class BmTemplate(ImRegBenchmark):
         logging.debug('.. no cleaning after registration experiment')
         return item
 
+    @staticmethod
+    def extend_parse(arg_parser):
+        """ extent the basic arg parses by some extra required parameters
 
-def main(params, cls_benchmark):
-    """ run the Main of selected experiment
+        :return object:
 
-    :param dict params: set of input parameters
-    :param cls_benchmark: class of selected benchmark
-    """
-    logging.info('running...')
-    logging.info(__doc__)
-    benchmark = cls_benchmark(params)
-    benchmark.run()
-    path_expt = benchmark.params['path_exp']
-    del benchmark
-    logging.info('Done.')
-    return path_expt
+        >>> parser = BmTemplate.extend_parse(create_basic_parser())
+        >>> type(parser)
+        <class 'argparse.ArgumentParser'>
+        """
+        # SEE: https://docs.python.org/3/library/argparse.html
+        arg_parser.add_argument('-cfg', '--path_config', type=str, required=True,
+                                help='some extra parameters')
+        return arg_parser
 
 
 # RUN by given parameters
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    arg_parser = create_basic_parse()
-    arg_parser = extend_parse(arg_parser)
-    arg_params = parse_arg_params(arg_parser)
-    path_expt = main(arg_params, BmTemplate)
+    arg_params, path_expt = BmTemplate.main()
 
     if arg_params.get('run_comp_benchmark', False):
         # from bm_experiments import bm_comp_perform

@@ -66,30 +66,10 @@ import SimpleITK as sitk
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (
     convert_to_mhd, convert_from_mhd, save_landmarks, load_landmarks, image_sizes)
-from birl.utilities.experiments import create_basic_parse, parse_arg_params
 from birl.cls_benchmark import (
     ImRegBenchmark, COL_IMAGE_REF, COL_IMAGE_MOVE, COL_IMAGE_EXT_TEMP,
     COL_IMAGE_MOVE_WARP, COL_POINTS_REF_WARP)
-from birl.bm_template import main
 from bm_experiments import bm_comp_perform
-
-#: maximal image size (diagonal in pixels) recommended for DROP registration
-MAX_IMAGE_DIAGONAL = int(np.sqrt(2e3 ** 2 + 2e3 ** 2))
-#: time need for image conversion and optional scaling
-COL_TIME_CONVERT = 'conversion time [s]'
-
-
-def extend_parse(a_parser):
-    """ extent the basic arg parses by some extra required parameters
-
-    :return object:
-    """
-    # SEE: https://docs.python.org/3/library/argparse.html
-    a_parser.add_argument('-DROP', '--exec_DROP', type=str, required=True,
-                          help='path to DROP executable, use `dropreg2d`')
-    a_parser.add_argument('-cfg', '--path_config', type=str, required=True,
-                          help='parameters for DROP registration')
-    return a_parser
 
 
 class BmDROP(ImRegBenchmark):
@@ -121,6 +101,10 @@ class BmDROP(ImRegBenchmark):
     """
     #: required experiment parameters
     REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_DROP', 'path_config']
+    #: maximal image size (diagonal in pixels) recommended for DROP registration
+    MAX_IMAGE_DIAGONAL = int(np.sqrt(2e3 ** 2 + 2e3 ** 2))
+    #: time need for image conversion and optional scaling
+    COL_TIME_CONVERT = 'conversion time [s]'
 
     def _prepare(self):
         logging.info('-> copy configuration...')
@@ -137,7 +121,7 @@ class BmDROP(ImRegBenchmark):
         path_reg_dir = self._get_path_reg_dir(item)
 
         diags = [image_sizes(p_img)[1] for p_img in (path_im_ref, path_im_move)]
-        item['scaling'] = max(1, max(diags) / float(MAX_IMAGE_DIAGONAL))
+        item['scaling'] = max(1, max(diags) / float(self.MAX_IMAGE_DIAGONAL))
 
         t_start = time.time()
         for path_img, col in [(path_im_ref, COL_IMAGE_REF),
@@ -145,7 +129,7 @@ class BmDROP(ImRegBenchmark):
             item[col + COL_IMAGE_EXT_TEMP] = \
                 convert_to_mhd(path_img, path_out_dir=path_reg_dir, overwrite=False,
                                to_gray=True, scaling=item.get('scaling', 1.))
-        item[COL_TIME_CONVERT] = time.time() - t_start
+        item[self.COL_TIME_CONVERT] = time.time() - t_start
 
         # def __wrap_convert_mhd(path_img, col):
         #     path_img = convert_to_mhd(path_img, to_gray=True, overwrite=False)
@@ -235,6 +219,19 @@ class BmDROP(ImRegBenchmark):
                 os.remove(p_file)
         return item
 
+    @staticmethod
+    def extend_parse(arg_parser):
+        """ extent the basic arg parses by some extra required parameters
+
+        :return object:
+        """
+        # SEE: https://docs.python.org/3/library/argparse.html
+        arg_parser.add_argument('-DROP', '--exec_DROP', type=str, required=True,
+                                help='path to DROP executable, use `dropreg2d`')
+        arg_parser.add_argument('-cfg', '--path_config', type=str, required=True,
+                                help='parameters for DROP registration')
+        return arg_parser
+
 
 def extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds):
     """ given pair of deformation fields and landmark positions get shift
@@ -269,11 +266,7 @@ def extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds):
 # RUN by given parameters
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    arg_parser = create_basic_parse()
-    arg_parser = extend_parse(arg_parser)
-    arg_params = parse_arg_params(arg_parser)
-    path_expt = main(arg_params, BmDROP)
+    arg_params, path_expt = BmDROP.main()
 
     if arg_params.get('run_comp_benchmark', False):
-        logging.info('Running the computer benchmark.')
         bm_comp_perform.main(path_expt)

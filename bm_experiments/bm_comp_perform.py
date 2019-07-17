@@ -221,6 +221,7 @@ def main(path_out='', nb_runs=5):
     :param str path_out: path to export the report and save temporal images
     :param int nb_runs: number of trails to have an robust average value
     """
+    logging.info('Running the computer benchmark.')
     skimage_version = skimage.__version__.split('.')
     skimage_version = tuple(map(int, skimage_version))
     if skimage_version < SKIMAGE_VERSION:

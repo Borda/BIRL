@@ -31,7 +31,8 @@ from birl.utilities.data_io import (
     image_histogram_matching)
 from birl.utilities.evaluate import (
     compute_target_regist_error_statistic, compute_affine_transf_diff, compute_tre_robustness)
-from birl.utilities.experiments import exec_commands, string_dict, iterate_mproc_map, CPU_COUNT
+from birl.utilities.experiments import (
+    CPU_COUNT, exec_commands, string_dict, iterate_mproc_map, create_basic_parser, parse_arg_params)
 from birl.utilities.visualisation import (
     export_figure, draw_image_points, draw_images_warped_landmarks)
 from birl.utilities.registration import estimate_affine_transform
@@ -446,8 +447,10 @@ class ImRegBenchmark(Experiment):
         if self.params.get('visual', False):
             logging.debug('-> visualise results of experiment: %r', idx)
             visualise_registration(
-                (idx, row), path_dataset=self.params.get('path_dataset', None),
-                path_experiment=self.params.get('path_exp', None))
+                (idx, row),
+                path_dataset=self.params.get('path_dataset', None),
+                path_experiment=self.params.get('path_exp', None),
+            )
 
         return row
 
@@ -587,6 +590,30 @@ class ImRegBenchmark(Experiment):
         """
         logging.debug('.. no cleaning after registration experiment')
         return item
+
+    @staticmethod
+    def extend_parse(arg_parser):
+        return arg_parser
+
+    @classmethod
+    def main(cls, params=None):
+        """ run the Main of selected experiment
+
+        :param cls: class of selected benchmark
+        :param dict params: set of input parameters
+        """
+        if not params:
+            arg_parser = create_basic_parser()
+            arg_parser = cls.extend_parse(arg_parser)
+            params = parse_arg_params(arg_parser)
+
+        logging.info('running...')
+        logging.info(__doc__)
+        benchmark = cls(params)
+        benchmark.run()
+        path_expt = benchmark.params['path_exp']
+        logging.info('Done.')
+        return params, path_expt
 
 
 def update_path_(path, path_base=None):

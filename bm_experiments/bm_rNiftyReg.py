@@ -48,31 +48,8 @@ import shutil
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import load_landmarks, save_landmarks
-from birl.utilities.experiments import create_basic_parse, parse_arg_params
 from birl.cls_benchmark import ImRegBenchmark, COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP
-from birl.bm_template import main
 from bm_experiments import bm_comp_perform
-
-
-#: file with exported image registration time
-NAME_FILE_TIME = 'time.txt'
-#: file with warped landmarks after performed registration
-NAME_FILE_LANDMARKS = 'points.pts'
-#: file with warped image after performed registration
-NAME_FILE_IMAGE = 'warped.jpg'
-
-
-def extend_parse(a_parser):
-    """ extent the basic arg parses by some extra required parameters
-
-    :return object:
-    """
-    # SEE: https://docs.python.org/3/library/argparse.html
-    a_parser.add_argument('-R', '--exec_R', type=str, required=True,
-                          help='path to the Rscript executable', default='Rscript')
-    a_parser.add_argument('-script', '--path_R_script', required=True,
-                          type=str, help='path to the R script with registration')
-    return a_parser
 
 
 class BmRNiftyReg(ImRegBenchmark):
@@ -100,6 +77,12 @@ class BmRNiftyReg(ImRegBenchmark):
     """
     #: required experiment parameters
     REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_R', 'path_R_script']
+    #: file with exported image registration time
+    NAME_FILE_TIME = 'time.txt'
+    #: file with warped landmarks after performed registration
+    NAME_FILE_LANDMARKS = 'points.pts'
+    #: file with warped image after performed registration
+    NAME_FILE_IMAGE = 'warped.jpg'
 
     def _prepare(self):
         logging.info('-> copy configuration...')
@@ -136,17 +119,17 @@ class BmRNiftyReg(ImRegBenchmark):
         path_lnds_warp, path_img_warp = None, None
 
         # load warped landmarks from TXT
-        path_lnds = os.path.join(path_dir, NAME_FILE_LANDMARKS)
+        path_lnds = os.path.join(path_dir, self.NAME_FILE_LANDMARKS)
         if os.path.isfile(path_lnds):
             points_warp = load_landmarks(path_lnds)
             path_lnds_warp = os.path.join(path_dir, os.path.basename(path_lnds_move))
             save_landmarks(path_lnds_warp, points_warp)
             os.remove(path_lnds)
 
-        path_regist = os.path.join(path_dir, NAME_FILE_IMAGE)
+        path_regist = os.path.join(path_dir, self.NAME_FILE_IMAGE)
         if os.path.isfile(path_regist):
             name_img_move = os.path.splitext(os.path.basename(path_img_move))[0]
-            ext_img_warp = os.path.splitext(NAME_FILE_IMAGE)[-1]
+            ext_img_warp = os.path.splitext(self.NAME_FILE_IMAGE)[-1]
             path_img_warp = os.path.join(path_dir, name_img_move + ext_img_warp)
             os.rename(path_regist, path_img_warp)
 
@@ -159,20 +142,29 @@ class BmRNiftyReg(ImRegBenchmark):
         :return float|None: time in minutes
         """
         path_dir = self._get_path_reg_dir(item)
-        path_time = os.path.join(path_dir, NAME_FILE_TIME)
+        path_time = os.path.join(path_dir, self.NAME_FILE_TIME)
         with open(path_time, 'r') as fp:
             t_exec = float(fp.read()) / 60.
         return t_exec
+
+    @staticmethod
+    def extend_parse(arg_parser):
+        """ extent the basic arg parses by some extra required parameters
+
+        :return object:
+        """
+        # SEE: https://docs.python.org/3/library/argparse.html
+        arg_parser.add_argument('-R', '--exec_R', type=str, required=True,
+                                help='path to the Rscript executable', default='Rscript')
+        arg_parser.add_argument('-script', '--path_R_script', required=True,
+                                type=str, help='path to the R script with registration')
+        return arg_parser
 
 
 # RUN by given parameters
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    arg_parser = create_basic_parse()
-    arg_parser = extend_parse(arg_parser)
-    arg_params = parse_arg_params(arg_parser)
-    path_expt = main(arg_params, BmRNiftyReg)
+    arg_params, path_expt = BmRNiftyReg.main()
 
     if arg_params.get('run_comp_benchmark', False):
-        logging.info('Running the computer benchmark.')
         bm_comp_perform.main(path_expt)

@@ -38,31 +38,8 @@ import logging
 import shutil
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.experiments import create_basic_parse, parse_arg_params
 from birl.cls_benchmark import ImRegBenchmark, COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP
-from birl.bm_template import main
 from bm_experiments import bm_comp_perform
-
-
-#: file with exported image registration time
-NAME_IMAGE_WARPED = 'warped-image.jpg'
-#: file with warped landmarks after performed registration
-NAME_LNDS_WARPED = 'warped-landmarks.csv'
-#: file with warped image after performed registration
-NAME_TIME_EXEC = 'time.txt'
-
-
-def extend_parse(a_parser):
-    """ extent the basic arg parses by some extra required parameters
-
-    :return object:
-    """
-    # SEE: https://docs.python.org/3/library/argparse.html
-    a_parser.add_argument('-py', '--exec_Python', type=str, required=True,
-                          help='path to the Python executable with ANTsPy', default='python3')
-    a_parser.add_argument('-script', '--path_script', required=True,
-                          type=str, help='path to the image registration script')
-    return a_parser
 
 
 class BmANTsPy(ImRegBenchmark):
@@ -90,6 +67,12 @@ class BmANTsPy(ImRegBenchmark):
     """
     #: required experiment parameters
     REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_Python', 'path_script']
+    #: file with exported image registration time
+    NAME_IMAGE_WARPED = 'warped-image.jpg'
+    #: file with warped landmarks after performed registration
+    NAME_LNDS_WARPED = 'warped-landmarks.csv'
+    #: file with warped image after performed registration
+    NAME_TIME_EXEC = 'time.txt'
 
     def _prepare(self):
         """ prepare BM - copy configurations """
@@ -126,14 +109,14 @@ class BmANTsPy(ImRegBenchmark):
         _, path_im_move, _, path_lnds_move = self._get_paths(item)
         path_im_warp, path_lnds_warp = None, None
 
-        if os.path.isfile(os.path.join(path_dir, NAME_IMAGE_WARPED)):
+        if os.path.isfile(os.path.join(path_dir, self.NAME_IMAGE_WARPED)):
             name_im_move = os.path.splitext(os.path.basename(path_im_move))[0]
-            ext_img = os.path.splitext(NAME_IMAGE_WARPED)[-1]
+            ext_img = os.path.splitext(self.NAME_IMAGE_WARPED)[-1]
             path_im_warp = os.path.join(path_dir, name_im_move + ext_img)
-            os.rename(os.path.join(path_dir, NAME_IMAGE_WARPED), path_im_warp)
-        if os.path.isfile(os.path.join(path_dir, NAME_LNDS_WARPED)):
+            os.rename(os.path.join(path_dir, self.NAME_IMAGE_WARPED), path_im_warp)
+        if os.path.isfile(os.path.join(path_dir, self.NAME_LNDS_WARPED)):
             path_lnds_warp = os.path.join(path_dir, os.path.basename(path_lnds_move))
-            os.rename(os.path.join(path_dir, NAME_LNDS_WARPED), path_lnds_warp)
+            os.rename(os.path.join(path_dir, self.NAME_LNDS_WARPED), path_lnds_warp)
 
         return {COL_IMAGE_MOVE_WARP: path_im_warp,
                 COL_POINTS_MOVE_WARP: path_lnds_warp}
@@ -145,20 +128,29 @@ class BmANTsPy(ImRegBenchmark):
         :return float|None: time in minutes
         """
         path_dir = self._get_path_reg_dir(item)
-        path_time = os.path.join(path_dir, NAME_TIME_EXEC)
+        path_time = os.path.join(path_dir, self.NAME_TIME_EXEC)
         with open(path_time, 'r') as fp:
             t_exec = float(fp.read()) / 60.
         return t_exec
+
+    @staticmethod
+    def extend_parse(arg_parser):
+        """ extent the basic arg parses by some extra required parameters
+
+        :return object:
+        """
+        # SEE: https://docs.python.org/3/library/argparse.html
+        arg_parser.add_argument('-py', '--exec_Python', type=str, required=True,
+                                help='path to the Python executable with ANTsPy', default='python3')
+        arg_parser.add_argument('-script', '--path_script', required=True,
+                                type=str, help='path to the image registration script')
+        return arg_parser
 
 
 # RUN by given parameters
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    arg_parser = create_basic_parse()
-    arg_parser = extend_parse(arg_parser)
-    arg_params = parse_arg_params(arg_parser)
-    path_expt = main(arg_params, BmANTsPy)
+    arg_params, path_expt = BmANTsPy.main()
 
     if arg_params.get('run_comp_benchmark', False):
-        logging.info('Running the computer benchmark.')
         bm_comp_perform.main(path_expt)

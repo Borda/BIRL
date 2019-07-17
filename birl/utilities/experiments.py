@@ -140,12 +140,12 @@ def string_dict(ds, headline='DICTIONARY:', offset=25):
     return s
 
 
-def create_basic_parse():
+def create_basic_parser():
     """ create the basic arg parses
 
     :return object:
 
-    >>> parser = create_basic_parse()
+    >>> parser = create_basic_parser()
     >>> type(parser)
     <class 'argparse.ArgumentParser'>
     >>> parse_arg_params(parser)  # doctest: +SKIP
