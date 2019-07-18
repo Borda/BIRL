@@ -60,8 +60,7 @@ import shutil
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import update_path, load_landmarks, save_landmarks, load_config_yaml
 from birl.utilities.experiments import exec_commands, dict_deep_update
-from birl.cls_benchmark import (
-    ImRegBenchmark, NAME_LOG_REGISTRATION, COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP)
+from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
 
 # assert all(k in DEFAULT_PARAMS['bUnwarpJ'] for k in REQUIRED_PARAMS_BUNWARPJ), \
@@ -232,7 +231,7 @@ class BmUnwarpJ(ImRegBenchmark):
         logging.debug('.. warp the registered image and get landmarks')
         path_dir = self._get_path_reg_dir(item)
         path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(item, prefer_pproc=False)
-        path_log = os.path.join(path_dir, NAME_LOG_REGISTRATION)
+        path_log = os.path.join(path_dir, self.NAME_LOG_REGISTRATION)
 
         # warp moving landmarks to reference frame
         path_regist = os.path.join(path_dir, os.path.basename(path_im_move))
@@ -260,8 +259,8 @@ class BmUnwarpJ(ImRegBenchmark):
         else:
             path_lnds = None
         # return results
-        return {COL_IMAGE_MOVE_WARP: path_regist,
-                COL_POINTS_MOVE_WARP: path_lnds}
+        return {self.COL_IMAGE_MOVE_WARP: path_regist,
+                self.COL_POINTS_MOVE_WARP: path_lnds}
 
     @staticmethod
     def extend_parse(arg_parser):

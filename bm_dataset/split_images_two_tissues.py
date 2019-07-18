@@ -19,7 +19,6 @@ import time
 import gc
 import logging
 import argparse
-import multiprocessing as mproc
 from functools import partial
 
 import cv2 as cv
@@ -27,10 +26,12 @@ import cv2 as cv
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.dataset import (find_split_objects, project_object_edge, load_large_image,
                                     save_large_image, args_expand_parse_images)
-from birl.utilities.experiments import iterate_mproc_map
+from birl.utilities.experiments import iterate_mproc_map, nb_workers
 
-NB_WORKERS = max(1, int(mproc.cpu_count() * .5))
+NB_WORKERS = nb_workers(0.5)
+#: use following image size for estimating cutting line
 SCALE_SIZE = 512
+#: cut image in one dimension/axis
 CUT_DIMENSION = 0
 
 

@@ -26,8 +26,7 @@ import logging
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.experiments import create_basic_parser
-from birl.cls_benchmark import (ImRegBenchmark, COL_IMAGE_MOVE, COL_POINTS_MOVE,
-                                COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP)
+from birl.benchmark import ImRegBenchmark
 
 
 class BmTemplate(ImRegBenchmark):
@@ -116,9 +115,9 @@ class BmTemplate(ImRegBenchmark):
                       'copy the source image and landmarks, like regist. failed')
         _, path_im_move, _, path_lnds_move = self._get_paths(item)
         path_reg_dir = self._get_path_reg_dir(item)
-        name_img = os.path.basename(item[COL_IMAGE_MOVE])
+        name_img = os.path.basename(item[self.COL_IMAGE_MOVE])
         cmd_img = 'cp %s %s' % (path_im_move, os.path.join(path_reg_dir, name_img))
-        name_lnds = os.path.basename(item[COL_POINTS_MOVE])
+        name_lnds = os.path.basename(item[self.COL_POINTS_MOVE])
         cmd_lnds = 'cp %s %s' % (path_lnds_move, os.path.join(path_reg_dir, name_lnds))
         commands = [cmd_img, cmd_lnds]
         return commands
@@ -131,12 +130,12 @@ class BmTemplate(ImRegBenchmark):
         """
         path_reg_dir = self._get_path_reg_dir(item)
         # detect image
-        path_img = os.path.join(path_reg_dir, os.path.basename(item[COL_IMAGE_MOVE]))
+        path_img = os.path.join(path_reg_dir, os.path.basename(item[self.COL_IMAGE_MOVE]))
         # detect landmarks
-        path_lnd = os.path.join(path_reg_dir, os.path.basename(item[COL_POINTS_MOVE]))
+        path_lnd = os.path.join(path_reg_dir, os.path.basename(item[self.COL_POINTS_MOVE]))
         # return formatted results
-        return {COL_IMAGE_MOVE_WARP: path_img,
-                COL_POINTS_MOVE_WARP: path_lnd}
+        return {self.COL_IMAGE_MOVE_WARP: path_img,
+                self.COL_POINTS_MOVE_WARP: path_lnd}
 
     def _extract_execution_time(self, item):
         """ if needed update the execution time

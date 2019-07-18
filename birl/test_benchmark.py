@@ -25,12 +25,7 @@ sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import update_path, save_config_yaml
 from birl.utilities.dataset import args_expand_parse_images
 from birl.utilities.experiments import parse_arg_params, try_decorator
-from birl.cls_benchmark import ImRegBenchmark
-from birl.cls_benchmark import (
-    NAME_CSV_RESULTS, NAME_TXT_RESULTS, NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS,
-    COL_IMAGE_MOVE_WARP, COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP,
-    _visual_image_move_warp_lnds_move_warp, _visual_image_move_warp_lnds_ref_warp,
-    visualise_registration)
+from birl.benchmark import ImRegBenchmark
 from birl.bm_template import BmTemplate
 
 PATH_DATA = update_path('data_images')
@@ -156,14 +151,14 @@ class TestBmRegistration(unittest.TestCase):
         path_bm = os.path.join(self.path_out, bm_name)
         self.assertTrue(os.path.exists(path_bm), msg='Missing benchmark: %s' % bm_name)
         # required output files
-        for file_name in [NAME_CSV_REGISTRATION_PAIRS,
-                          NAME_CSV_RESULTS,
-                          NAME_TXT_RESULTS]:
+        for file_name in [benchmark.NAME_CSV_REGISTRATION_PAIRS,
+                          benchmark.NAME_RESULTS_CSV,
+                          benchmark.NAME_RESULTS_TXT]:
             self.assertTrue(os.path.isfile(os.path.join(path_bm, file_name)),
                             msg='Missing "%s" file in the BM experiment' % file_name)
 
         # load registration file
-        path_csv = os.path.join(path_bm, NAME_CSV_REGISTRATION_PAIRS)
+        path_csv = os.path.join(path_bm, benchmark.NAME_CSV_REGISTRATION_PAIRS)
         df_regist = pd.read_csv(path_csv, index_col=0)
 
         # only two items in the benchmark
@@ -172,17 +167,18 @@ class TestBmRegistration(unittest.TestCase):
                              % (len(df_regist), len(benchmark._df_overview)))
 
         # test presence of particular columns
-        for col in list(COVER_COLUMNS) + [COL_IMAGE_MOVE_WARP]:
+        for col in list(benchmark.COVER_COLUMNS) + [benchmark.COL_IMAGE_MOVE_WARP]:
             self.assertIn(col, df_regist.columns,
                           msg='Missing column "%s" in result table' % col)
         cols_lnds_warp = [col in df_regist.columns
-                          for col in [COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP]]
+                          for col in [benchmark.COL_POINTS_REF_WARP, benchmark.COL_POINTS_MOVE_WARP]]
         self.assertTrue(any(cols_lnds_warp), msg='Missing any column of warped landmarks')
-        col_lnds_warp = COL_POINTS_REF_WARP if cols_lnds_warp[0] else COL_POINTS_MOVE_WARP
+        col_lnds_warp = benchmark.COL_POINTS_REF_WARP if cols_lnds_warp[0] \
+            else benchmark.COL_POINTS_MOVE_WARP
         # check existence of all mentioned files
         for _, row in df_regist.iterrows():
-            self.assertTrue(os.path.isfile(os.path.join(path_bm, row[COL_IMAGE_MOVE_WARP])),
-                            msg='Missing image "%s"' % row[COL_IMAGE_MOVE_WARP])
+            self.assertTrue(os.path.isfile(os.path.join(path_bm, row[benchmark.COL_IMAGE_MOVE_WARP])),
+                            msg='Missing image "%s"' % row[benchmark.COL_IMAGE_MOVE_WARP])
             self.assertTrue(os.path.isfile(os.path.join(path_bm, row[col_lnds_warp])),
                             msg='Missing landmarks "%s"' % row[col_lnds_warp])
 
@@ -211,11 +207,13 @@ class TestBmRegistration(unittest.TestCase):
             self.assertIsInstance(args, dict)
 
     def test_fail_visual(self):
-        fig = _visual_image_move_warp_lnds_move_warp({COL_POINTS_MOVE_WARP: 'abc'})
+        fig = ImRegBenchmark._visual_image_move_warp_lnds_move_warp(
+            {ImRegBenchmark.COL_POINTS_MOVE_WARP: 'abc'})
         self.assertIsNone(fig)
-        fig = _visual_image_move_warp_lnds_ref_warp({COL_POINTS_REF_WARP: 'abc'})
+        fig = ImRegBenchmark._visual_image_move_warp_lnds_ref_warp(
+            {ImRegBenchmark.COL_POINTS_REF_WARP: 'abc'})
         self.assertIsNone(fig)
-        fig = visualise_registration((0, {}))
+        fig = ImRegBenchmark.visualise_registration((0, {}))
         self.assertIsNone(fig)
 
 

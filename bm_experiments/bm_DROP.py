@@ -66,9 +66,7 @@ import SimpleITK as sitk
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (
     convert_to_mhd, convert_from_mhd, save_landmarks, load_landmarks, image_sizes)
-from birl.cls_benchmark import (
-    ImRegBenchmark, COL_IMAGE_REF, COL_IMAGE_MOVE, COL_IMAGE_EXT_TEMP,
-    COL_IMAGE_MOVE_WARP, COL_POINTS_REF_WARP)
+from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
 
 
@@ -124,9 +122,9 @@ class BmDROP(ImRegBenchmark):
         item['scaling'] = max(1, max(diags) / float(self.MAX_IMAGE_DIAGONAL))
 
         t_start = time.time()
-        for path_img, col in [(path_im_ref, COL_IMAGE_REF),
-                              (path_im_move, COL_IMAGE_MOVE)]:
-            item[col + COL_IMAGE_EXT_TEMP] = \
+        for path_img, col in [(path_im_ref, self.COL_IMAGE_REF),
+                              (path_im_move, self.COL_IMAGE_MOVE)]:
+            item[col + self.COL_IMAGE_EXT_TEMP] = \
                 convert_to_mhd(path_img, path_out_dir=path_reg_dir, overwrite=False,
                                to_gray=True, scaling=item.get('scaling', 1.))
         item[self.COL_TIME_CONVERT] = time.time() - t_start
@@ -191,7 +189,7 @@ class BmDROP(ImRegBenchmark):
         path_deform_x = os.path.join(path_reg_dir, 'output_x.mhd')
         path_deform_y = os.path.join(path_reg_dir, 'output_y.mhd')
         try:
-            shift = extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds_ref)
+            shift = self.extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds_ref)
         except Exception:
             logging.exception(path_reg_dir)
             shift = np.zeros(lnds_ref.shape)
@@ -203,8 +201,8 @@ class BmDROP(ImRegBenchmark):
         save_landmarks(path_lnd, lnds_warp)
 
         # return formatted results
-        return {COL_IMAGE_MOVE_WARP: path_img,
-                COL_POINTS_REF_WARP: path_lnd}
+        return {self.COL_IMAGE_MOVE_WARP: path_img,
+                self.COL_POINTS_REF_WARP: path_lnd}
 
     def _clear_after_registration(self, item):
         """ clean unnecessarily files after the registration
@@ -232,35 +230,35 @@ class BmDROP(ImRegBenchmark):
                                 help='parameters for DROP registration')
         return arg_parser
 
+    @staticmethod
+    def extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds):
+        """ given pair of deformation fields and landmark positions get shift
 
-def extract_landmarks_shift_from_mhd(path_deform_x, path_deform_y, lnds):
-    """ given pair of deformation fields and landmark positions get shift
+        :param str path_deform_x: path to deformation field in X axis
+        :param str path_deform_y: path to deformation field in Y axis
+        :param ndarray lnds: landmarks
+        :return ndarray: shift for each landmarks
+        """
+        # define function for parsing particular shift from MHD
+        def __parse_shift(path_deform_, lnds):
+            assert os.path.isfile(path_deform_), 'missing deformation: %s' % path_deform_
+            deform_ = sitk.GetArrayFromImage(sitk.ReadImage(path_deform_))
+            assert deform_ is not None, 'loaded deformation is Empty - %s' % path_deform_
+            for i in range(2):
+                lnds_max = max(lnds[:, 1 - i])
+                assert lnds_max < deform_.shape[i], \
+                    'for axis %i landmarks of max=%f exceeded size=%i' \
+                    % (i, lnds_max, deform_.shape[i])
+            shift_ = deform_[lnds[:, 1], lnds[:, 0]]
+            return shift_
 
-    :param str path_deform_x: path to deformation field in X axis
-    :param str path_deform_y: path to deformation field in Y axis
-    :param ndarray lnds: landmarks
-    :return ndarray: shift for each landmarks
-    """
-    # define function for parsing particular shift from MHD
-    def __parse_shift(path_deform_, lnds):
-        assert os.path.isfile(path_deform_), 'missing deformation: %s' % path_deform_
-        deform_ = sitk.GetArrayFromImage(sitk.ReadImage(path_deform_))
-        assert deform_ is not None, 'loaded deformation is Empty - %s' % path_deform_
-        for i in range(2):
-            lnds_max = max(lnds[:, 1 - i])
-            assert lnds_max < deform_.shape[i], \
-                'for axis %i landmarks of max=%f exceeded size=%i' \
-                % (i, lnds_max, deform_.shape[i])
-        shift_ = deform_[lnds[:, 1], lnds[:, 0]]
-        return shift_
-
-    lnds = np.array(np.round(lnds), dtype=int)
-    # get shift in both axis
-    shift_x = __parse_shift(path_deform_x, lnds)
-    shift_y = __parse_shift(path_deform_y, lnds)
-    # concatenate
-    shift = np.array([shift_x, shift_y]).T
-    return shift
+        lnds = np.array(np.round(lnds), dtype=int)
+        # get shift in both axis
+        shift_x = __parse_shift(path_deform_x, lnds)
+        shift_y = __parse_shift(path_deform_y, lnds)
+        # concatenate
+        shift = np.array([shift_x, shift_y]).T
+        return shift
 
 
 # RUN by given parameters

@@ -48,7 +48,7 @@ import shutil
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import load_landmarks, save_landmarks
-from birl.cls_benchmark import ImRegBenchmark, COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP
+from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
 
 
@@ -133,8 +133,8 @@ class BmRNiftyReg(ImRegBenchmark):
             path_img_warp = os.path.join(path_dir, name_img_move + ext_img_warp)
             os.rename(path_regist, path_img_warp)
 
-        return {COL_IMAGE_MOVE_WARP: path_img_warp,
-                COL_POINTS_MOVE_WARP: path_lnds_warp}
+        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
+                self.COL_POINTS_MOVE_WARP: path_lnds_warp}
 
     def _extract_execution_time(self, item):
         """ if needed update the execution time

@@ -38,7 +38,7 @@ import logging
 import shutil
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.cls_benchmark import ImRegBenchmark, COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP
+from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
 
 
@@ -118,8 +118,8 @@ class BmANTsPy(ImRegBenchmark):
             path_lnds_warp = os.path.join(path_dir, os.path.basename(path_lnds_move))
             os.rename(os.path.join(path_dir, self.NAME_LNDS_WARPED), path_lnds_warp)
 
-        return {COL_IMAGE_MOVE_WARP: path_im_warp,
-                COL_POINTS_MOVE_WARP: path_lnds_warp}
+        return {self.COL_IMAGE_MOVE_WARP: path_im_warp,
+                self.COL_POINTS_MOVE_WARP: path_lnds_warp}
 
     def _extract_execution_time(self, item):
         """ if needed update the execution time

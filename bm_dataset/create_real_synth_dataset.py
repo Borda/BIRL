@@ -34,11 +34,11 @@ from scipy import ndimage, stats, interpolate
 import matplotlib.pyplot as plt
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.experiments import parse_arg_params
+from birl.utilities.experiments import parse_arg_params, nb_workers
 from birl.utilities.data_io import LANDMARK_COORDS
 
 COLUMNS_COORD = LANDMARK_COORDS
-NB_WORKERS = max(1, int(mproc.cpu_count() * .8))
+NB_WORKERS = nb_workers(0.8)
 NB_DEFORMATIONS = 5
 HUE_SHIFT_MIN = 20
 HUE_SHIFT_MAX = 120

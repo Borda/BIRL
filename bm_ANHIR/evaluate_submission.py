@@ -67,7 +67,6 @@ import json
 import time
 import logging
 import argparse
-import multiprocessing as mproc
 from functools import partial
 
 import numpy as np
@@ -76,13 +75,10 @@ import pandas as pd
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import create_folder, load_landmarks, save_landmarks
 from birl.utilities.dataset import common_landmarks, parse_path_scale
-from birl.utilities.experiments import iterate_mproc_map, parse_arg_params, FORMAT_DATE_TIME
-from birl.cls_benchmark import (
-    NAME_CSV_REGISTRATION_PAIRS, COVER_COLUMNS, COVER_COLUMNS_WRAP, COL_STATUS,
-    COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP, COL_POINTS_REF, COL_POINTS_MOVE, COL_POINTS_MOVE_WARP,
-    COL_TIME, COL_ROBUSTNESS, compute_registration_statistic, update_path_)
+from birl.utilities.experiments import iterate_mproc_map, parse_arg_params, FORMAT_DATE_TIME, nb_workers
+from birl.benchmark import ImRegBenchmark
 
-NB_WORKERS = max(1, int(mproc.cpu_count() * .9))
+NB_WORKERS = nb_workers(0.9)
 NAME_CSV_RESULTS = 'registration-results.csv'
 NAME_JSON_COMPUTER = 'computer-performances.json'
 NAME_JSON_RESULTS = 'metrics.json'
@@ -132,27 +128,28 @@ def filter_landmarks(idx_row, path_output, path_dataset, path_reference):
     :return tuple(idx,float): record index and match ratio
     """
     idx, row = idx_row
-    path_ref = update_path_(row[COL_POINTS_MOVE], path_reference)
-    path_load = update_path_(row[COL_POINTS_MOVE], path_dataset)
+    path_ref = ImRegBenchmark.update_path_(row[ImRegBenchmark.COL_POINTS_MOVE], path_reference)
+    path_load = ImRegBenchmark.update_path_(row[ImRegBenchmark.COL_POINTS_MOVE], path_dataset)
     pairs = common_landmarks(load_landmarks(path_ref), load_landmarks(path_load),
                              threshold=1)
     if not pairs.size:
         return idx, 0.
     pairs = sorted(pairs.tolist(), key=lambda p: p[1])
     ind_ref = np.asarray(pairs)[:, 0]
-    nb_common = min([len(load_landmarks(update_path_(row[col], path_reference)))
-                     for col in [COL_POINTS_REF, COL_POINTS_MOVE]])
+    nb_common = min([len(load_landmarks(ImRegBenchmark.update_path_(row[col], path_reference)))
+                     for col in [ImRegBenchmark.COL_POINTS_REF, ImRegBenchmark.COL_POINTS_MOVE]])
     ind_ref = ind_ref[ind_ref < nb_common]
 
     # moving and reference landmarks
-    for col in [COL_POINTS_REF, COL_POINTS_MOVE]:
-        path_in = update_path_(row[col], path_reference)
-        path_out = update_path_(row[col], path_output)
+    for col in [ImRegBenchmark.COL_POINTS_REF, ImRegBenchmark.COL_POINTS_MOVE]:
+        path_in = ImRegBenchmark.update_path_(row[col], path_reference)
+        path_out = ImRegBenchmark.update_path_(row[col], path_output)
         create_folder(os.path.dirname(path_out), ok_existing=True)
         save_landmarks(path_out, load_landmarks(path_in)[ind_ref])
 
     # save ratio of found landmarks
-    len_lnds_ref = len(load_landmarks(update_path_(row[COL_POINTS_REF], path_reference)))
+    len_lnds_ref = len(load_landmarks(ImRegBenchmark.update_path_(
+        row[ImRegBenchmark.COL_POINTS_REF], path_reference)))
     ratio_matches = len(pairs) / float(len_lnds_ref)
     return idx, ratio_matches
 
@@ -165,8 +162,8 @@ def normalize_exec_time(df_experiments, path_experiments, path_comp_bm=None):
     :param str path_comp_bm: path to reference comp. benchmark
     """
     path_comp_bm_expt = os.path.join(path_experiments, NAME_JSON_COMPUTER)
-    if COL_TIME not in df_experiments.columns:
-        logging.warning('Missing %s among result columns.', COL_TIME)
+    if ImRegBenchmark.COL_TIME not in df_experiments.columns:
+        logging.warning('Missing %s among result columns.', ImRegBenchmark.COL_TIME)
         return
     if not path_comp_bm:
         logging.warning('Reference comp. perform. not specified.')
@@ -186,7 +183,7 @@ def normalize_exec_time(df_experiments, path_experiments, path_comp_bm=None):
     time_ref = np.mean([comp_ref['registration @%s-thread' % i] for i in CMP_THREADS])
     time_exp = np.mean([comp_exp['registration @%s-thread' % i] for i in CMP_THREADS])
     coef = time_ref / time_exp
-    df_experiments[COL_NORM_TIME] = df_experiments[COL_TIME] * coef
+    df_experiments[COL_NORM_TIME] = df_experiments[ImRegBenchmark.COL_TIME] * coef
 
 
 def parse_landmarks(idx_row):
@@ -200,20 +197,20 @@ def parse_landmarks(idx_row):
     # lnds_ref = load_landmarks(update_path_(row[COL_POINTS_REF], path_experiments))
     # lnds_warp = load_landmarks(update_path_(row[COL_POINTS_MOVE_WARP], path_experiments))
     #     if isinstance(row[COL_POINTS_MOVE_WARP], str)else np.array([[]])
-    path_dir = os.path.dirname(row[COL_POINTS_MOVE])
+    path_dir = os.path.dirname(row[ImRegBenchmark.COL_POINTS_MOVE])
     match_lnds = np.nan_to_num(row[COL_FOUND_LNDS]) if COL_FOUND_LNDS in row else 0.
     item = {
         'name-tissue': os.path.basename(os.path.dirname(path_dir)),
         'scale-tissue': parse_path_scale(os.path.basename(path_dir)),
         'type-tissue': row.get(COL_TISSUE, None),
-        'name-reference': os.path.splitext(os.path.basename(row[COL_POINTS_REF]))[0],
-        'name-source': os.path.splitext(os.path.basename(row[COL_POINTS_MOVE]))[0],
+        'name-reference': os.path.splitext(os.path.basename(row[ImRegBenchmark.COL_POINTS_REF]))[0],
+        'name-source': os.path.splitext(os.path.basename(row[ImRegBenchmark.COL_POINTS_MOVE]))[0],
         # 'reference landmarks': np.round(lnds_ref, 1).tolist(),
         # 'warped landmarks': np.round(lnds_warp, 1).tolist(),
         'matched-landmarks': match_lnds,
-        'Robustness': row.get(COL_ROBUSTNESS, 0),
+        'Robustness': row.get(ImRegBenchmark.COL_ROBUSTNESS, 0),
         'Norm-Time_minutes': row.get(COL_NORM_TIME, None),
-        'Status': row.get(COL_STATUS, None),
+        'Status': row.get(ImRegBenchmark.COL_STATUS, None),
     }
     # copy all columns with rTRE, TRE and Overlap
     item.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
@@ -245,11 +242,11 @@ def compute_scores(df_experiments, min_landmarks=1.):
     if sum(mask_incomplete) > 0:
         for col_f, col_i in zip(*_filter_tre_measure_columns(df_experiments)):
             df_experiments.loc[mask_incomplete, col_f] = df_experiments.loc[mask_incomplete, col_i]
-        df_experiments.loc[mask_incomplete, COL_ROBUSTNESS] = 0.
+        df_experiments.loc[mask_incomplete, ImRegBenchmark.COL_ROBUSTNESS] = 0.
         logging.warning('There are %i cases which incomplete landmarks.',
                         sum(mask_incomplete))
 
-    df_expt_robust = df_experiments[df_experiments[COL_ROBUSTNESS] > 0.5]
+    df_expt_robust = df_experiments[df_experiments[ImRegBenchmark.COL_ROBUSTNESS] > 0.5]
     pd.set_option('expand_frame_repr', False)
 
     # pre-compute some optional metrics
@@ -257,7 +254,7 @@ def compute_scores(df_experiments, min_landmarks=1.):
         if COL_FOUND_LNDS in df_experiments.columns else 0
     # parse specific metrics
     scores = {
-        'Average-Robustness': np.mean(df_experiments[COL_ROBUSTNESS]),
+        'Average-Robustness': np.mean(df_experiments[ImRegBenchmark.COL_ROBUSTNESS]),
         'Average-Rank-Median-rTRE': np.nan,
         'Average-Rank-Max-rTRE': np.nan,
         'Average-used-landmarks': score_used_lnds,
@@ -273,7 +270,7 @@ def compute_scores(df_experiments, min_landmarks=1.):
         scores['Median-' + name + '-Robust'] = np.median(df_expt_robust[col])
 
     # filter all statuses in the experiments
-    statuses = df_experiments[COL_STATUS].unique()
+    statuses = df_experiments[ImRegBenchmark.COL_STATUS].unique()
     # parse metrics according to TEST and TRAIN case
     for name, col in [('Average-rTRE', 'rTRE Mean (final)'),
                       ('Median-rTRE', 'rTRE Median (final)'),
@@ -283,7 +280,7 @@ def compute_scores(df_experiments, min_landmarks=1.):
         for stat_name, stat_func in [('Average', np.mean),
                                      ('Median', np.median)]:
             for status in statuses:
-                df_expt_ = df_experiments[df_experiments[COL_STATUS] == status]
+                df_expt_ = df_experiments[df_experiments[ImRegBenchmark.COL_STATUS] == status]
                 scores[stat_name + '-' + name + '_' + status] = stat_func(df_expt_[col])
             # parse according to Tissue
             for tissue, df_tissue in df_experiments.groupby(COL_TISSUE):
@@ -325,7 +322,7 @@ def export_summary_json(df_experiments, path_experiments, path_output,
         tissue = cell.split(os.sep)[0]
         return tissue[:tissue.index('_')] if '_' in cell else tissue
 
-    df_experiments[COL_TISSUE] = df_experiments[COL_POINTS_REF].apply(_get_tissue)
+    df_experiments[COL_TISSUE] = df_experiments[ImRegBenchmark.COL_POINTS_REF].apply(_get_tissue)
 
     # export partial results
     cases = list(iterate_mproc_map(parse_landmarks, df_experiments.iterrows(),
@@ -369,19 +366,23 @@ def replicate_missing_warped_landmarks(df_experiments, path_dataset, path_experi
     :return DF: experiment table
     """
     # find empty warped landmarks paths
-    missing_mask = df_experiments[COL_POINTS_MOVE_WARP].isnull()
+    missing_mask = df_experiments[ImRegBenchmark.COL_POINTS_MOVE_WARP].isnull()
     # for the empty place the initial landmarks
-    df_experiments.loc[missing_mask, COL_POINTS_MOVE_WARP] = df_experiments.loc[missing_mask, COL_POINTS_MOVE]
+    df_experiments.loc[missing_mask, ImRegBenchmark.COL_POINTS_MOVE_WARP] = \
+        df_experiments.loc[missing_mask, ImRegBenchmark.COL_POINTS_MOVE]
     # for the empty place maximal execution time
-    df_experiments.loc[missing_mask, COL_TIME] = df_experiments[COL_TIME].max()
+    df_experiments.loc[missing_mask, ImRegBenchmark.COL_TIME] = \
+        df_experiments[ImRegBenchmark.COL_TIME].max()
 
     count = 0
     # iterate over whole table
     for idx, row in df_experiments.iterrows():
-        path_csv = update_path_(row[COL_POINTS_MOVE_WARP], path_experiment)
+        path_csv = ImRegBenchmark.update_path_(row[ImRegBenchmark.COL_POINTS_MOVE_WARP],
+                                               path_experiment)
         if not os.path.isfile(path_csv):
-            path_csv = update_path_(row[COL_POINTS_MOVE], path_dataset)
-            df_experiments.loc[idx, COL_POINTS_MOVE_WARP] = path_csv
+            path_csv = ImRegBenchmark.update_path_(row[ImRegBenchmark.COL_POINTS_MOVE],
+                                                   path_dataset)
+            df_experiments.loc[idx, ImRegBenchmark.COL_POINTS_MOVE_WARP] = path_csv
             count += 1
 
     logging.info('Missing warped landmarks: %i', count)
@@ -405,21 +406,21 @@ def main(path_experiment, path_table, path_dataset, path_output, path_reference=
     :param bool details: exporting case details
     """
 
-    path_results = os.path.join(path_experiment, NAME_CSV_REGISTRATION_PAIRS)
+    path_results = os.path.join(path_experiment, ImRegBenchmark.NAME_CSV_REGISTRATION_PAIRS)
     if not os.path.isfile(path_results):
         raise AttributeError('Missing experiments results: %s' % path_results)
     path_reference = path_dataset if not path_reference else path_reference
 
     # drop time column from Cover which should be empty
-    df_overview = pd.read_csv(path_table).drop([COL_TIME], axis=1, errors='ignore')
+    df_overview = pd.read_csv(path_table).drop([ImRegBenchmark.COL_TIME], axis=1, errors='ignore')
     # drop Warp* column from Cover which should be empty
     df_overview = df_overview.drop([col for col in df_overview.columns if 'warped' in col.lower()],
                                    axis=1, errors='ignore')
     df_results = pd.read_csv(path_results)
-    df_results = df_results[[col for col in list(COVER_COLUMNS_WRAP) + [COL_TIME]
+    df_results = df_results[[col for col in list(ImRegBenchmark.COVER_COLUMNS_WRAP) + [ImRegBenchmark.COL_TIME]
                              if col in df_results.columns]]
-    df_experiments = pd.merge(df_overview, df_results, how='left', on=COVER_COLUMNS)
-    df_experiments.drop([COL_IMAGE_REF_WARP, COL_POINTS_REF_WARP],
+    df_experiments = pd.merge(df_overview, df_results, how='left', on=ImRegBenchmark.COVER_COLUMNS)
+    df_experiments.drop([ImRegBenchmark.COL_IMAGE_REF_WARP, ImRegBenchmark.COL_POINTS_REF_WARP],
                         axis=1, errors='ignore', inplace=True)
 
     df_experiments = replicate_missing_warped_landmarks(df_experiments, path_dataset, path_experiment)
@@ -434,8 +435,10 @@ def main(path_experiment, path_table, path_dataset, path_output, path_reference=
         df_experiments.loc[idx, COL_FOUND_LNDS] = np.round(ratio, 2)
 
     logging.info('Compute landmarks statistic.')
-    _compute_lnds_stat = partial(compute_registration_statistic, df_experiments=df_experiments,
-                                 path_dataset=path_output, path_experiment=path_experiment)
+    _compute_lnds_stat = partial(ImRegBenchmark.compute_registration_statistic,
+                                 df_experiments=df_experiments,
+                                 path_dataset=path_output,
+                                 path_experiment=path_experiment)
     # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
     list(iterate_mproc_map(_compute_lnds_stat, df_experiments.iterrows(),
                            desc='Statistic', nb_workers=1))

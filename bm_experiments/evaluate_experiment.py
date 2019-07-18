@@ -21,18 +21,16 @@ import os
 import sys
 import logging
 import argparse
-import multiprocessing as mproc
 from functools import partial
 
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.experiments import iterate_mproc_map, parse_arg_params
-from birl.cls_benchmark import (NAME_CSV_REGISTRATION_PAIRS, export_summary_results,
-                                compute_registration_statistic, visualise_registration)
+from birl.utilities.experiments import iterate_mproc_map, parse_arg_params, nb_workers
+from birl.benchmark import ImRegBenchmark, export_summary_results
 
 #: default number of used threads
-NB_WORKERS = max(1, int(mproc.cpu_count() * .75))
+NB_WORKERS = nb_workers(0.75)
 #: file name of new table with registration results
 NAME_CSV_RESULTS = 'registration-results_NEW.csv'
 #: file name of new table with registration summary
@@ -66,13 +64,15 @@ def main(path_experiment, path_dataset, visual=False, nb_workers=NB_WORKERS):
     :param bool visual: whether visualise the registration results
     :param int nb_workers: number of parallel jobs
     """
-    path_results = os.path.join(path_experiment, NAME_CSV_REGISTRATION_PAIRS)
+    path_results = os.path.join(path_experiment, ImRegBenchmark.NAME_CSV_REGISTRATION_PAIRS)
     assert os.path.isfile(path_results)
 
     df_experiments = pd.read_csv(path_results)
     df_results = df_experiments.copy()
-    _compute_lnds_stat = partial(compute_registration_statistic, df_experiments=df_results,
-                                 path_dataset=path_dataset, path_experiment=path_experiment)
+    _compute_lnds_stat = partial(ImRegBenchmark.compute_registration_statistic,
+                                 df_experiments=df_results,
+                                 path_dataset=path_dataset,
+                                 path_experiment=path_experiment)
     # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
     list(iterate_mproc_map(_compute_lnds_stat, df_experiments.iterrows(),
                            desc='Statistic', nb_workers=1))
@@ -80,11 +80,13 @@ def main(path_experiment, path_dataset, visual=False, nb_workers=NB_WORKERS):
     path_csv = os.path.join(path_experiment, NAME_CSV_RESULTS)
     logging.debug('exporting CSV results: %s', path_csv)
     df_results.to_csv(path_csv, index=None)
-    export_summary_results(df_results, path_experiment, None, name_csv=NAME_CSV_SUMMARY,
+    export_summary_results(df_results, path_experiment, None,
+                           name_csv=NAME_CSV_SUMMARY,
                            name_txt=NAME_TXT_SUMMARY)
 
     if visual:
-        _visualise_regist = partial(visualise_registration, path_dataset=path_dataset,
+        _visualise_regist = partial(ImRegBenchmark.visualise_registration,
+                                    path_dataset=path_dataset,
                                     path_experiment=path_experiment)
         list(iterate_mproc_map(_visualise_regist, df_experiments.iterrows(),
                                desc='Visualisation', nb_workers=nb_workers))

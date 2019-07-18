@@ -14,9 +14,9 @@ import tqdm
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.cls_benchmark import COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_REF, COL_POINTS_MOVE
+from birl.benchmark import ImRegBenchmark
 from birl.utilities.dataset import parse_path_scale
-from bm_ANHIR.generate_regist_pairs import COL_STATUS, VAL_STATUS_TRAIN
+from bm_ANHIR.generate_regist_pairs import VAL_STATUS_TRAIN
 
 PATH_CSV = '/datagrid/Medical/dataset_ANHIR/images/dataset_medium.csv'
 PATH_IMAGES = '/datagrid/Medical/dataset_ANHIR/images'
@@ -39,7 +39,7 @@ def main(path_csv, path_in, path_out, col_name, train_only=True):
     """
     df = pd.read_csv(path_csv)
     if train_only:
-        df = df[df[COL_STATUS] == VAL_STATUS_TRAIN]
+        df = df[df[ImRegBenchmark.COL_STATUS] == VAL_STATUS_TRAIN]
     files = df[col_name]
 
     for p_file in tqdm.tqdm(files, desc=col_name):
@@ -67,8 +67,12 @@ def main(path_csv, path_in, path_out, col_name, train_only=True):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     logging.info('running...')
-    main(PATH_CSV, PATH_LANDMARKS_ALL, PATH_LANDMARKS, COL_POINTS_REF, train_only=True)
-    main(PATH_CSV, PATH_LANDMARKS_ALL, PATH_LANDMARKS, COL_POINTS_MOVE, train_only=False)
-    main(PATH_CSV, PATH_IMAGES_ALL, PATH_IMAGES, COL_IMAGE_REF, train_only=False)
-    main(PATH_CSV, PATH_IMAGES_ALL, PATH_IMAGES, COL_IMAGE_MOVE, train_only=False)
+    main(PATH_CSV, PATH_LANDMARKS_ALL, PATH_LANDMARKS,
+         ImRegBenchmark.COL_POINTS_REF, train_only=True)
+    main(PATH_CSV, PATH_LANDMARKS_ALL, PATH_LANDMARKS,
+         ImRegBenchmark.COL_POINTS_MOVE, train_only=False)
+    main(PATH_CSV, PATH_IMAGES_ALL, PATH_IMAGES,
+         ImRegBenchmark.COL_IMAGE_REF, train_only=False)
+    main(PATH_CSV, PATH_IMAGES_ALL, PATH_IMAGES,
+         ImRegBenchmark.COL_IMAGE_MOVE, train_only=False)
     logging.info('Done >]')

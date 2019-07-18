@@ -26,7 +26,6 @@ import logging
 import argparse
 import time
 import gc
-import multiprocessing as mproc
 from functools import partial
 
 import tqdm
@@ -39,13 +38,13 @@ except Exception:
           ' To do so, please follow instructions - https://openslides.org')
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.experiments import iterate_mproc_map
+from birl.utilities.experiments import iterate_mproc_map, nb_workers
 from birl.utilities.dataset import args_expand_parse_images
 
 DEFAULT_LEVEL = 1
 MAX_LOAD_IMAGE_SIZE = 16000
 IMAGE_EXTENSION = '.png'
-NB_WORKERS = max(1, int(mproc.cpu_count() * .5))
+NB_WORKERS = nb_workers(0.5)
 
 
 def arg_parse_params():

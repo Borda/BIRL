@@ -22,8 +22,7 @@ import pandas as pd
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import image_sizes
 from birl.utilities.experiments import parse_arg_params
-from birl.cls_benchmark import (
-    COVER_COLUMNS, COVER_COLUMNS_EXT, COL_IMAGE_REF, COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL)
+from birl.benchmark import ImRegBenchmark
 
 # list of combination options
 OPTIONS_COMBINE = ('first2all', 'each2all')
@@ -71,12 +70,12 @@ def generate_pairs(path_pattern_imgs, path_pattern_lnds, mode):
 
     reg_pairs = []
     for i, j in pairs:
-        rec = dict(zip(COVER_COLUMNS,
+        rec = dict(zip(ImRegBenchmark.COVER_COLUMNS,
                        (list_imgs[i], list_imgs[j], list_lnds[i], list_lnds[j])))
-        img_size, img_diag = image_sizes(rec[COL_IMAGE_REF])
+        img_size, img_diag = image_sizes(rec[ImRegBenchmark.COL_IMAGE_REF])
         rec.update({
-            COL_IMAGE_SIZE: img_size,
-            COL_IMAGE_DIAGONAL: img_diag,
+            ImRegBenchmark.COL_IMAGE_SIZE: img_size,
+            ImRegBenchmark.COL_IMAGE_DIAGONAL: img_diag,
         })
         reg_pairs.append(rec)
 
@@ -102,7 +101,7 @@ def main(path_pattern_images, path_pattern_landmarks, path_csv, mode='all2all'):
 
     df_ = generate_pairs(path_pattern_images, path_pattern_landmarks, mode)
     df_overview = pd.concat((df_overview, df_), axis=0, sort=True)
-    df_overview = df_overview[list(COVER_COLUMNS_EXT)].reset_index(drop=True)
+    df_overview = df_overview[list(ImRegBenchmark.COVER_COLUMNS_EXT)].reset_index(drop=True)
 
     logging.info('saving csv file with %i records \n %s', len(df_overview), path_csv)
     df_overview.to_csv(path_csv)

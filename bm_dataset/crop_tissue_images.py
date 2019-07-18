@@ -19,7 +19,6 @@ import time
 import gc
 import logging
 import argparse
-import multiprocessing as mproc
 from functools import partial
 
 import cv2 as cv
@@ -29,9 +28,9 @@ sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.dataset import (
     find_largest_object, project_object_edge, load_large_image, save_large_image,
     args_expand_parse_images)
-from birl.utilities.experiments import iterate_mproc_map, try_decorator
+from birl.utilities.experiments import iterate_mproc_map, try_decorator, nb_workers
 
-NB_WORKERS = max(1, int(mproc.cpu_count() * .5))
+NB_WORKERS = nb_workers(0.5)
 SCALE_SIZE = 512
 CUT_DIMENSION = 0
 TISSUE_CONTENT = 0.01

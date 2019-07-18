@@ -21,8 +21,8 @@ import subprocess
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.cls_benchmark import COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_MOVE, COL_POINTS_REF
-from bm_ANHIR.generate_regist_pairs import COL_STATUS, VAL_STATUS_TRAIN
+from birl.benchmark import ImRegBenchmark
+from bm_ANHIR.generate_regist_pairs import VAL_STATUS_TRAIN
 
 ZIP_COMMAND = 'cd %s && zip --split-size 2g %s.zip -r %s'
 
@@ -66,7 +66,8 @@ def main(path_dataset, path_landmarks_out, path_landmarks_in, path_csv):
     df_overview = pd.read_csv(path_csv)
 
     # Section - IMAGES
-    images = df_overview[COL_IMAGE_REF].tolist() + df_overview[COL_IMAGE_MOVE].tolist()
+    images = df_overview[ImRegBenchmark.COL_IMAGE_REF].tolist()
+    images += df_overview[ImRegBenchmark.COL_IMAGE_MOVE].tolist()
     folders = set(os.path.dirname(p) for p in images
                   if os.path.isdir(os.path.join(path_dataset, os.path.dirname(p))))
     # Remove previous compressed images
@@ -77,8 +78,9 @@ def main(path_dataset, path_landmarks_out, path_landmarks_in, path_csv):
     _process_cmd(cmd_zip_imgs)
 
     # Section - LANDMARKS
-    lnds_ref_train = df_overview[df_overview[COL_STATUS] == VAL_STATUS_TRAIN][COL_POINTS_REF].tolist()
-    landmarks = set(df_overview[COL_POINTS_MOVE].tolist() + lnds_ref_train)
+    mask = df_overview[ImRegBenchmark.COL_STATUS] == VAL_STATUS_TRAIN
+    lnds_ref_train = df_overview[mask][ImRegBenchmark.COL_POINTS_REF].tolist()
+    landmarks = set(df_overview[ImRegBenchmark.COL_POINTS_MOVE].tolist() + lnds_ref_train)
     landmarks = [p for p in landmarks
                  if os.path.isfile(os.path.join(path_landmarks_in, p))]
     # compress the landmarks

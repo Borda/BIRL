@@ -50,8 +50,7 @@ import yaml
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import load_landmarks, save_landmarks
 from birl.utilities.experiments import exec_commands, dict_deep_update
-from birl.cls_benchmark import (ImRegBenchmark, NAME_LOG_REGISTRATION,
-                                COL_IMAGE_MOVE_WARP, COL_POINTS_MOVE_WARP)
+from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
 from bm_experiments.bm_bUnwarpJ import BmUnwarpJ
 
@@ -179,7 +178,7 @@ class BmRVSS(ImRegBenchmark):
         logging.debug('.. warp the registered image and get landmarks')
         path_dir = self._get_path_reg_dir(item)
         path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(item, prefer_pproc=False)
-        path_log = os.path.join(path_dir, NAME_LOG_REGISTRATION)
+        path_log = os.path.join(path_dir, self.NAME_LOG_REGISTRATION)
 
         # warp moving landmarks to reference frame
         path_dir_out = os.path.join(path_dir, self.DIR_OUTPUTS)
@@ -212,8 +211,8 @@ class BmRVSS(ImRegBenchmark):
             path_lnds = None
 
         # return results
-        return {COL_IMAGE_MOVE_WARP: path_regist,
-                COL_POINTS_MOVE_WARP: path_lnds}
+        return {self.COL_IMAGE_MOVE_WARP: path_regist,
+                self.COL_POINTS_MOVE_WARP: path_lnds}
 
     def _clear_after_registration(self, item):
         path_dir = self._get_path_reg_dir(item)

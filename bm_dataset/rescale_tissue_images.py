@@ -21,18 +21,17 @@ import time
 import gc
 import logging
 import argparse
-import multiprocessing as mproc
 from functools import partial
 
 import cv2 as cv
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.experiments import iterate_mproc_map, is_iterable
+from birl.utilities.experiments import iterate_mproc_map, is_iterable, nb_workers
 from birl.utilities.dataset import (load_large_image, save_large_image,
                                     parse_path_scale, args_expand_parse_images)
 from birl.utilities.data_io import create_folder
 
-NB_WORKERS = max(1, int(mproc.cpu_count() * .5))
+NB_WORKERS = nb_workers(0.5)
 DEFAULT_SCALES = (5, 10, 15, 20, 25, 50)
 IMAGE_EXTENSION = '.jpg'
 # IMWRITE_PARAMS = (cv.IMWRITE_JPEG_QUALITY, 100)

@@ -32,67 +32,11 @@ from birl.utilities.data_io import (
 from birl.utilities.evaluate import (
     compute_target_regist_error_statistic, compute_affine_transf_diff, compute_tre_robustness)
 from birl.utilities.experiments import (
-    CPU_COUNT, exec_commands, string_dict, iterate_mproc_map, create_basic_parser, parse_arg_params)
+    nb_workers, exec_commands, string_dict, iterate_mproc_map, create_basic_parser,
+    parse_arg_params, Experiment)
 from birl.utilities.visualisation import (
     export_figure, draw_image_points, draw_images_warped_landmarks)
 from birl.utilities.registration import estimate_affine_transform
-from birl.utilities.cls_experiment import Experiment
-
-#: default number of threads used by benchmarks
-NB_WORKERS_USED = max(1, int(CPU_COUNT * .8))
-#: some needed files
-NAME_CSV_REGISTRATION_PAIRS = 'registration-results.csv'
-#: default file for exporting results in table format
-NAME_CSV_RESULTS = 'results-summary.csv'
-#: default file for exporting results in formatted text format
-NAME_TXT_RESULTS = 'results-summary.txt'
-#: logging file for registration experiments
-NAME_LOG_REGISTRATION = 'registration.log'
-#: output image name in experiment folder for reg. results - image and landmarks are warped
-NAME_IMAGE_MOVE_WARP_POINTS = 'image_warped_landmarks_warped.jpg'
-#: output image name in experiment folder for reg. results - warped landmarks in reference image
-NAME_IMAGE_REF_POINTS_WARP = 'image_ref_landmarks_warped.jpg'
-#: output image name in experiment folder for showing improved alignment by used registration
-NAME_IMAGE_WARPED_VISUAL = 'registration_visual_landmarks.jpg'
-# columns names in cover and also registration table
-#: reference (registration target) image
-COL_IMAGE_REF = 'Target image'
-#: moving (registration source) image
-COL_IMAGE_MOVE = 'Source image'
-#: reference image warped to the moving frame
-COL_IMAGE_REF_WARP = 'Warped target image'
-#: moving image warped to the reference frame
-COL_IMAGE_MOVE_WARP = 'Warped source image'
-#: reference (registration target) landmarks
-COL_POINTS_REF = 'Target landmarks'
-#: moving (registration source) landmarks
-COL_POINTS_MOVE = 'Source landmarks'
-#: reference landmarks warped to the moving frame
-COL_POINTS_REF_WARP = 'Warped target landmarks'
-#: moving landmarks warped to the reference frame
-COL_POINTS_MOVE_WARP = 'Warped source landmarks'
-#: registration folder for each particular experiment
-COL_REG_DIR = 'Registration folder'
-#: define robustness as improved image alignment from initial state
-COL_ROBUSTNESS = 'Robustness'
-#: measured time of image registration in minutes
-COL_TIME = 'Execution time [minutes]'
-#: measured time of image pre-processing in minutes
-COL_TIME_PREPROC = 'Pre-processing time [minutes]'
-#: tuple of image size
-COL_IMAGE_SIZE = 'Image size [pixels]'
-#: image diagonal in pixels
-COL_IMAGE_DIAGONAL = 'Image diagonal [pixels]'
-#: define train / test status
-COL_STATUS = 'status'
-#: extension to the image column name for temporary pre-process image
-COL_IMAGE_EXT_TEMP = ' TEMP'
-
-# list of columns in cover csv
-COVER_COLUMNS = (COL_IMAGE_REF, COL_IMAGE_MOVE, COL_POINTS_REF, COL_POINTS_MOVE)
-COVER_COLUMNS_EXT = tuple(list(COVER_COLUMNS) + [COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL])
-COVER_COLUMNS_WRAP = tuple(list(COVER_COLUMNS) + [COL_IMAGE_REF_WARP, COL_IMAGE_MOVE_WARP,
-                                                  COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP])
 
 
 class ImRegBenchmark(Experiment):
@@ -154,8 +98,70 @@ class ImRegBenchmark(Experiment):
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
+
+    #: default number of threads used by benchmarks
+    NB_WORKERS_USED = nb_workers(0.8)
+    #: some needed files
+    NAME_CSV_REGISTRATION_PAIRS = 'registration-results.csv'
+    #: default file for exporting results in table format
+    NAME_RESULTS_CSV = 'results-summary.csv'
+    #: default file for exporting results in formatted text format
+    NAME_RESULTS_TXT = 'results-summary.txt'
+    #: logging file for registration experiments
+    NAME_LOG_REGISTRATION = 'registration.log'
+    #: output image name in experiment folder for reg. results - image and landmarks are warped
+    NAME_IMAGE_MOVE_WARP_POINTS = 'image_warped_landmarks_warped.jpg'
+    #: output image name in experiment folder for reg. results - warped landmarks in reference image
+    NAME_IMAGE_REF_POINTS_WARP = 'image_ref_landmarks_warped.jpg'
+    #: output image name in experiment folder for showing improved alignment by used registration
+    NAME_IMAGE_WARPED_VISUAL = 'registration_visual_landmarks.jpg'
+    # columns names in cover and also registration table
+    #: reference (registration target) image
+    COL_IMAGE_REF = 'Target image'
+    #: moving (registration source) image
+    COL_IMAGE_MOVE = 'Source image'
+    #: reference image warped to the moving frame
+    COL_IMAGE_REF_WARP = 'Warped target image'
+    #: moving image warped to the reference frame
+    COL_IMAGE_MOVE_WARP = 'Warped source image'
+    #: reference (registration target) landmarks
+    COL_POINTS_REF = 'Target landmarks'
+    #: moving (registration source) landmarks
+    COL_POINTS_MOVE = 'Source landmarks'
+    #: reference landmarks warped to the moving frame
+    COL_POINTS_REF_WARP = 'Warped target landmarks'
+    #: moving landmarks warped to the reference frame
+    COL_POINTS_MOVE_WARP = 'Warped source landmarks'
+    #: registration folder for each particular experiment
+    COL_REG_DIR = 'Registration folder'
+    #: define robustness as improved image alignment from initial state
+    COL_ROBUSTNESS = 'Robustness'
+    #: measured time of image registration in minutes
+    COL_TIME = 'Execution time [minutes]'
+    #: measured time of image pre-processing in minutes
+    COL_TIME_PREPROC = 'Pre-processing time [minutes]'
+    #: tuple of image size
+    COL_IMAGE_SIZE = 'Image size [pixels]'
+    #: image diagonal in pixels
+    COL_IMAGE_DIAGONAL = 'Image diagonal [pixels]'
+    #: define train / test status
+    COL_STATUS = 'status'
+    #: extension to the image column name for temporary pre-process image
+    COL_IMAGE_EXT_TEMP = ' TEMP'
     #: required experiment parameters
     REQUIRED_PARAMS = Experiment.REQUIRED_PARAMS + ['path_table', 'nb_workers']
+
+    # list of columns in cover csv
+    COVER_COLUMNS = (COL_IMAGE_REF,
+                     COL_IMAGE_MOVE,
+                     COL_POINTS_REF,
+                     COL_POINTS_MOVE)
+    COVER_COLUMNS_EXT = tuple(list(COVER_COLUMNS) + [COL_IMAGE_SIZE,
+                                                     COL_IMAGE_DIAGONAL])
+    COVER_COLUMNS_WRAP = tuple(list(COVER_COLUMNS) + [COL_IMAGE_REF_WARP,
+                                                      COL_IMAGE_MOVE_WARP,
+                                                      COL_POINTS_REF_WARP,
+                                                      COL_POINTS_MOVE_WARP])
 
     def __init__(self, params):
         """ initialise benchmark
@@ -167,9 +173,9 @@ class ImRegBenchmark(Experiment):
         logging.info(self.__doc__)
         self._df_overview = None
         self._df_experiments = None
-        self.nb_workers = params.get('nb_workers', CPU_COUNT)
+        self.nb_workers = params.get('nb_workers', nb_workers(0.5))
         self._path_csv_regist = os.path.join(self.params['path_exp'],
-                                             NAME_CSV_REGISTRATION_PAIRS)
+                                             self.NAME_CSV_REGISTRATION_PAIRS)
 
     def _check_required_params(self):
         """ check some extra required parameters for this benchmark """
@@ -240,20 +246,20 @@ class ImRegBenchmark(Experiment):
             and reference and moving landmarks
         """
         def __path_img(col):
-            is_temp = isinstance(item.get(col + COL_IMAGE_EXT_TEMP, None), str)
+            is_temp = isinstance(item.get(col + self.COL_IMAGE_EXT_TEMP, None), str)
             if prefer_pproc and is_temp:
-                path = self._update_path(item[col + COL_IMAGE_EXT_TEMP], 'expt')
+                path = self._update_path(item[col + self.COL_IMAGE_EXT_TEMP], 'expt')
             else:
                 path = self._update_path(item[col], 'data')
             return path
 
-        paths = [__path_img(col) for col in (COL_IMAGE_REF, COL_IMAGE_MOVE)]
+        paths = [__path_img(col) for col in (self.COL_IMAGE_REF, self.COL_IMAGE_MOVE)]
         paths += [self._update_path(item[col], 'data')
-                  for col in (COL_POINTS_REF, COL_POINTS_MOVE)]
+                  for col in (self.COL_POINTS_REF, self.COL_POINTS_MOVE)]
         return paths
 
     def _get_path_reg_dir(self, item):
-        return self._update_path(str(item[COL_REG_DIR]), 'expt')
+        return self._update_path(str(item[self.COL_REG_DIR]), 'expt')
 
     def _load_data(self):
         """ loading data, the cover file with all registration pairs """
@@ -262,7 +268,7 @@ class ImRegBenchmark(Experiment):
         assert os.path.isfile(self.params['path_table']), \
             'path to csv cover is not defined - %s' % self.params['path_table']
         self._df_overview = pd.read_csv(self.params['path_table'], index_col=None)
-        assert all(col in self._df_overview.columns for col in COVER_COLUMNS), \
+        assert all(col in self._df_overview.columns for col in self.COVER_COLUMNS), \
             'Some required columns are missing in the cover file.'
 
     def _run(self):
@@ -350,7 +356,7 @@ class ImRegBenchmark(Experiment):
             return os.path.join(path_dir, img_name + '_' + pproc + img_ext)
 
         def __save_img(col, path_img_new, img):
-            col_temp = col + COL_IMAGE_EXT_TEMP
+            col_temp = col + self.COL_IMAGE_EXT_TEMP
             if isinstance(item.get(col_temp, None), str):
                 path_img = self._update_path(item[col_temp], destination='expt')
                 os.remove(path_img)
@@ -369,15 +375,15 @@ class ImRegBenchmark(Experiment):
                 path_img_new = __path_img(path_img_move, pproc)
                 img = image_histogram_matching(load_image(path_img_move),
                                                load_image(path_img_ref))
-                path_img_new, col = __save_img(COL_IMAGE_MOVE, path_img_new, img)
-                item[col + COL_IMAGE_EXT_TEMP] = path_img_new
+                path_img_new, col = __save_img(self.COL_IMAGE_MOVE, path_img_new, img)
+                item[col + self.COL_IMAGE_EXT_TEMP] = path_img_new
             elif pproc in ('gray', 'grey'):
-                argv_params = [(path_img_ref, COL_IMAGE_REF),
-                               (path_img_move, COL_IMAGE_MOVE)]
+                argv_params = [(path_img_ref, self.COL_IMAGE_REF),
+                               (path_img_move, self.COL_IMAGE_MOVE)]
                 # TODO: find a way how to convert images in parallel inside mproc pool
                 for path_img, col in iterate_mproc_map(__convert_gray, argv_params,
                                                        nb_workers=1, desc=None):
-                    item[col + COL_IMAGE_EXT_TEMP] = path_img
+                    item[col + self.COL_IMAGE_EXT_TEMP] = path_img
             else:
                 logging.warning('unrecognized pre-processing: %s', pproc)
         return item
@@ -392,9 +398,9 @@ class ImRegBenchmark(Experiment):
         if not self.params.get('preprocessing', []):
             return item
         # iterate over both - target and source images
-        for col_in, col_warp in [(COL_IMAGE_REF, COL_IMAGE_REF_WARP),
-                                 (COL_IMAGE_MOVE, COL_IMAGE_MOVE_WARP)]:
-            col_temp = col_in + COL_IMAGE_EXT_TEMP
+        for col_in, col_warp in [(self.COL_IMAGE_REF, self.COL_IMAGE_REF_WARP),
+                                 (self.COL_IMAGE_MOVE, self.COL_IMAGE_MOVE_WARP)]:
+            col_temp = col_in + self.COL_IMAGE_EXT_TEMP
             is_temp = isinstance(item.get(col_temp, None), str)
             # skip if the field is empty
             if not is_temp:
@@ -417,7 +423,7 @@ class ImRegBenchmark(Experiment):
         logging.debug('-> perform single registration #%d...', idx)
         # create folder for this particular experiment
         row['ID'] = idx
-        row[COL_REG_DIR] = str(idx)
+        row[self.COL_REG_DIR] = str(idx)
         path_dir_reg = self._get_path_reg_dir(row)
         # check whether the particular experiment already exists and have result
         if self.__check_exist_regist(idx, path_dir_reg):
@@ -427,7 +433,7 @@ class ImRegBenchmark(Experiment):
         time_start = time.time()
         # do some requested pre-processing if required
         row = self.__images_preprocessing(row)
-        row[COL_TIME_PREPROC] = (time.time() - time_start) / 60.
+        row[self.COL_TIME_PREPROC] = (time.time() - time_start) / 60.
         row = self._prepare_img_registration(row)
 
         # measure execution time
@@ -437,7 +443,7 @@ class ImRegBenchmark(Experiment):
         if not row:
             return None
         # compute the registration time in minutes
-        row[COL_TIME] = (time.time() - time_start) / 60.
+        row[self.COL_TIME] = (time.time() - time_start) / 60.
         # remove some temporary images
         row = self.__remove_pproc_images(row)
 
@@ -446,7 +452,7 @@ class ImRegBenchmark(Experiment):
 
         if self.params.get('visual', False):
             logging.debug('-> visualise results of experiment: %r', idx)
-            visualise_registration(
+            self.visualise_registration(
                 (idx, row),
                 path_dataset=self.params.get('path_dataset', None),
                 path_experiment=self.params.get('path_exp', None),
@@ -459,7 +465,7 @@ class ImRegBenchmark(Experiment):
         logging.info('-> evaluate experiment...')
         # load _df_experiments and compute stat
         _compute_landmarks_statistic = partial(
-            compute_registration_statistic,
+            self.compute_registration_statistic,
             df_experiments=self._df_experiments,
             path_dataset=self.params.get('path_dataset', None),
             path_experiment=self.params.get('path_exp', None))
@@ -501,7 +507,7 @@ class ImRegBenchmark(Experiment):
         if not (isinstance(commands, list) or isinstance(commands, tuple)):
             commands = [commands]
 
-        path_log = os.path.join(path_dir_reg, NAME_LOG_REGISTRATION)
+        path_log = os.path.join(path_dir_reg, self.NAME_LOG_REGISTRATION)
         # TODO, add lock to single thread, create pool with possible thread ids
         # (USE taskset [native], numactl [need install])
         if not (isinstance(commands, list) or isinstance(commands, tuple)):
@@ -523,9 +529,9 @@ class ImRegBenchmark(Experiment):
                       'copy the target image and landmarks, simulate ideal case')
         path_im_ref, _, _, path_lnds_move = self._get_paths(item)
         path_reg_dir = self._get_path_reg_dir(item)
-        name_img = os.path.basename(item[COL_IMAGE_MOVE])
+        name_img = os.path.basename(item[self.COL_IMAGE_MOVE])
         cmd_img = 'cp %s %s' % (path_im_ref, os.path.join(path_reg_dir, name_img))
-        name_lnds = os.path.basename(item[COL_POINTS_MOVE])
+        name_lnds = os.path.basename(item[self.COL_POINTS_MOVE])
         cmd_lnds = 'cp %s %s' % (path_lnds_move, os.path.join(path_reg_dir, name_lnds))
         commands = [cmd_img, cmd_lnds]
         return commands
@@ -538,14 +544,16 @@ class ImRegBenchmark(Experiment):
         :return dict: paths to warped images/landmarks
         """
         # detect image
-        path_img = os.path.join(item[COL_REG_DIR], os.path.basename(item[COL_IMAGE_MOVE]))
+        path_img = os.path.join(item[self.COL_REG_DIR],
+                                os.path.basename(item[self.COL_IMAGE_MOVE]))
         # detect landmarks
-        path_lnd = os.path.join(item[COL_REG_DIR], os.path.basename(item[COL_POINTS_MOVE]))
+        path_lnd = os.path.join(item[self.COL_REG_DIR],
+                                os.path.basename(item[self.COL_POINTS_MOVE]))
         # return formatted results
-        return {COL_IMAGE_REF_WARP: None,
-                COL_IMAGE_MOVE_WARP: path_img,
-                COL_POINTS_REF_WARP: path_lnd,
-                COL_POINTS_MOVE_WARP: None}
+        return {self.COL_IMAGE_REF_WARP: None,
+                self.COL_IMAGE_MOVE_WARP: path_img,
+                self.COL_POINTS_REF_WARP: path_lnd,
+                self.COL_POINTS_MOVE_WARP: None}
 
     def _extract_execution_time(self, item):
         """ if needed update the execution time
@@ -577,7 +585,7 @@ class ImRegBenchmark(Experiment):
         exec_time = self._extract_execution_time(item)
         if exec_time:
             # compute the registration time in minutes
-            item[COL_TIME] = exec_time
+            item[self.COL_TIME] = exec_time
 
         return item
 
@@ -615,243 +623,244 @@ class ImRegBenchmark(Experiment):
         logging.info('Done.')
         return params, path_expt
 
+    @staticmethod
+    def update_path_(path, path_base=None):
+        """ update the image path with possible base path
 
-def update_path_(path, path_base=None):
-    """ update the image path with possible base path
+        :param str path: the last path of the path
+        :param str|None path_base: optional base path
+        :return str: update path
+        """
+        if path_base and not str(path).startswith('/') and not str(path).startswith('~'):
+            path = os.path.join(path_base, str(path))
+        return update_path(path, absolute=True)
 
-    :param str path: the last path of the path
-    :param str|None path_base: optional base path
-    :return str: update path
-    """
-    if path_base and not str(path).startswith('/') and not str(path).startswith('~'):
-        path = os.path.join(path_base, str(path))
-    return update_path(path, absolute=True)
+    @classmethod
+    def _image_diag(cls, item, path_img_ref=None):
+        """ get the image diagonal from several sources
+            1. diagonal exists in the table
+            2. image size exist in the table
+            3. reference image exists
 
+        :param dict|DF item: one row from the table
+        :param str path_img_ref: optional path to the reference image
+        :return float|None: image diagonal
+        """
+        img_diag = dict(item).get(cls.COL_IMAGE_DIAGONAL, None)
+        if not img_diag and path_img_ref and os.path.isfile(path_img_ref):
+            _, img_diag = image_sizes(path_img_ref)
+        return img_diag
 
-def _image_diag(item, path_img_ref=None):
-    """ get the image diagonal from several sources
-        1. diagonal exists in the table
-        2. image size exist in the table
-        3. reference image exists
+    @classmethod
+    def _load_landmarks(cls, item, path_dataset):
+        path_img_ref, _, path_lnds_ref, path_lnds_move = \
+            [cls.update_path_(item[col], path_dataset) for col in cls.COVER_COLUMNS]
+        points_ref = load_landmarks(path_lnds_ref)
+        points_move = load_landmarks(path_lnds_move)
+        return points_ref, points_move, path_img_ref
 
-    :param dict|DF item: one row from the table
-    :param str path_img_ref: optional path to the reference image
-    :return float|None: image diagonal
-    """
-    img_diag = dict(item).get(COL_IMAGE_DIAGONAL, None)
-    if not img_diag and path_img_ref and os.path.isfile(path_img_ref):
-        _, img_diag = image_sizes(path_img_ref)
-    return img_diag
+    @classmethod
+    def compute_registration_statistic(cls, idx_row, df_experiments,
+                                       path_dataset=None, path_experiment=None):
+        """ after successful registration load initial nad estimated landmarks
+        afterwords compute various statistic for init, and final alignment
 
+        :param tuple(int,dict) df_row: row from iterated table
+        :param DF df_experiments: DataFrame with experiments
+        :param str|None path_dataset: path to the dataset folder
+        :param str|None path_experiment: path to the experiment folder
+        """
+        idx, row = idx_row
+        row = dict(row)  # convert even series to dictionary
+        points_ref, points_move, path_img_ref = cls._load_landmarks(row, path_dataset)
+        img_diag = cls._image_diag(row, path_img_ref)
+        df_experiments.loc[idx, cls.COL_IMAGE_DIAGONAL] = img_diag
 
-def _load_landmarks(item, path_dataset):
-    path_img_ref, _, path_lnds_ref, path_lnds_move = \
-        [update_path_(item[col], path_dataset) for col in COVER_COLUMNS]
-    points_ref = load_landmarks(path_lnds_ref)
-    points_move = load_landmarks(path_lnds_move)
-    return points_ref, points_move, path_img_ref
+        # compute landmarks statistic
+        cls.compute_registration_accuracy(df_experiments, idx, points_ref, points_move,
+                                          'init', img_diag, wo_affine=False)
 
+        # load transformed landmarks
+        if (cls.COL_POINTS_MOVE_WARP not in row) and (cls.COL_POINTS_REF_WARP not in row):
+            logging.error('Statistic: no output landmarks')
+            return
 
-def compute_registration_statistic(idx_row, df_experiments,
-                                   path_dataset=None, path_experiment=None):
-    """ after successful registration load initial nad estimated landmarks
-    afterwords compute various statistic for init, and final alignment
+        # define what is the target and init state according to the experiment results
+        is_move_warp = isinstance(row.get(cls.COL_POINTS_MOVE_WARP, None), str)
+        points_init = points_move if is_move_warp else points_ref
+        points_target = points_ref if is_move_warp else points_move
+        col_lnds_warp = cls.COL_POINTS_MOVE_WARP if is_move_warp else cls.COL_POINTS_REF_WARP
 
-    :param tuple(int,dict) df_row: row from iterated table
-    :param DF df_experiments: DataFrame with experiments
-    :param str|None path_dataset: path to the dataset folder
-    :param str|None path_experiment: path to the experiment folder
-    """
-    idx, row = idx_row
-    row = dict(row)  # convert even series to dictionary
-    points_ref, points_move, path_img_ref = _load_landmarks(row, path_dataset)
-    img_diag = _image_diag(row, path_img_ref)
-    df_experiments.loc[idx, COL_IMAGE_DIAGONAL] = img_diag
+        # check if there are reference landmarks
+        if points_target is None:
+            logging.warning('Missing landmarks in "%s"',
+                            cls.COL_POINTS_REF if is_move_warp else cls.COL_POINTS_MOVE)
+            return
+        # load warped landmarks
+        path_lnds_wapr = cls.update_path_(row[col_lnds_warp], path_experiment)
+        if path_lnds_wapr and os.path.isfile(path_lnds_wapr):
+            points_warp = load_landmarks(path_lnds_wapr)
+            points_warp = np.nan_to_num(points_warp)
+        else:
+            logging.warning('Invalid path to the landmarks: "%s" <- "%s"',
+                            path_lnds_wapr, row[col_lnds_warp])
+            return
 
-    # compute landmarks statistic
-    compute_registration_accuracy(df_experiments, idx, points_ref, points_move,
-                                  'init', img_diag, wo_affine=False)
+        # compute Affine statistic
+        affine_diff = compute_affine_transf_diff(points_init, points_target, points_warp)
+        for name in affine_diff:
+            df_experiments.loc[idx, name] = affine_diff[name]
 
-    # load transformed landmarks
-    if (COL_POINTS_MOVE_WARP not in row) and (COL_POINTS_REF_WARP not in row):
-        logging.error('Statistic: no output landmarks')
-        return
+        # compute landmarks statistic
+        cls.compute_registration_accuracy(df_experiments, idx, points_target, points_warp,
+                                          'elastic', img_diag, wo_affine=True)
+        # compute landmarks statistic
+        cls.compute_registration_accuracy(df_experiments, idx, points_target, points_warp,
+                                          'final', img_diag, wo_affine=False)
+        row_ = dict(df_experiments.loc[idx])
+        # compute the robustness
+        if 'TRE Mean (final)' in row_:
+            df_experiments.loc[idx, cls.COL_ROBUSTNESS] = \
+                compute_tre_robustness(points_target, points_init, points_warp)
 
-    # define what is the target and init state according to the experiment results
-    is_move_warp = isinstance(row.get(COL_POINTS_MOVE_WARP, None), str)
-    points_init = points_move if is_move_warp else points_ref
-    points_target = points_ref if is_move_warp else points_move
-    col_lnds_warp = COL_POINTS_MOVE_WARP if is_move_warp else COL_POINTS_REF_WARP
+    @classmethod
+    def compute_registration_accuracy(cls, df_experiments, idx, points1, points2,
+                                      state='', img_diag=None, wo_affine=False):
+        """ compute statistic on two points sets
 
-    # check if there are reference landmarks
-    if points_target is None:
-        logging.warning('Missing landmarks in "%s"',
-                        COL_POINTS_REF if is_move_warp else COL_POINTS_MOVE)
-        return
-    # load warped landmarks
-    path_lnds_wapr = update_path_(row[col_lnds_warp], path_experiment)
-    if path_lnds_wapr and os.path.isfile(path_lnds_wapr):
-        points_warp = load_landmarks(path_lnds_wapr)
-        points_warp = np.nan_to_num(points_warp)
-    else:
-        logging.warning('Invalid path to the landmarks: "%s" <- "%s"',
-                        path_lnds_wapr, row[col_lnds_warp])
-        return
+        :param DF df_experiments: DataFrame with experiments
+        :param int idx: index of tha particular record
+        :param points1: np.array<nb_points, dim>
+        :param points2: np.array<nb_points, dim>
+        :param str state: whether it was before of after registration
+        :param float img_diag: target image diagonal
+        :param bool wo_affine: without affine transform, assume only local/elastic deformation
+        """
+        if wo_affine and points1 is not None and points2 is not None:
+            # removing the affine transform and assume only local/elastic deformation
+            _, _, points1, _ = estimate_affine_transform(points1, points2)
 
-    # compute Affine statistic
-    affine_diff = compute_affine_transf_diff(points_init, points_target, points_warp)
-    for name in affine_diff:
-        df_experiments.loc[idx, name] = affine_diff[name]
-
-    # compute landmarks statistic
-    compute_registration_accuracy(df_experiments, idx, points_target, points_warp,
-                                  'elastic', img_diag, wo_affine=True)
-    # compute landmarks statistic
-    compute_registration_accuracy(df_experiments, idx, points_target, points_warp,
-                                  'final', img_diag, wo_affine=False)
-    row_ = dict(df_experiments.loc[idx])
-    # compute the robustness
-    if 'TRE Mean (final)' in row_:
-        df_experiments.loc[idx, COL_ROBUSTNESS] = \
-            compute_tre_robustness(points_target, points_init, points_warp)
-
-
-def compute_registration_accuracy(df_experiments, idx, points1, points2,
-                                  state='', img_diag=None, wo_affine=False):
-    """ compute statistic on two points sets
-
-    :param DF df_experiments: DataFrame with experiments
-    :param int idx: index of tha particular record
-    :param points1: np.array<nb_points, dim>
-    :param points2: np.array<nb_points, dim>
-    :param str state: whether it was before of after registration
-    :param float img_diag: target image diagonal
-    :param bool wo_affine: without affine transform, assume only local/elastic deformation
-    """
-    if wo_affine and points1 is not None and points2 is not None:
-        # removing the affine transform and assume only local/elastic deformation
-        _, _, points1, _ = estimate_affine_transform(points1, points2)
-
-    _, stat = compute_target_regist_error_statistic(points1, points2)
-    if img_diag is not None:
-        df_experiments.at[idx, COL_IMAGE_DIAGONAL] = img_diag
-    # update particular idx
-    for name in (n for n in stat if n not in ['overlap points']):
+        _, stat = compute_target_regist_error_statistic(points1, points2)
         if img_diag is not None:
-            df_experiments.at[idx, 'rTRE %s (%s)' % (name, state)] = stat[name] / img_diag
-        df_experiments.at[idx, 'TRE %s (%s)' % (name, state)] = stat[name]
-    for name in ['overlap points']:
-        df_experiments.at[idx, '%s (%s)' % (name, state)] = stat[name]
+            df_experiments.at[idx, cls.COL_IMAGE_DIAGONAL] = img_diag
+        # update particular idx
+        for name in (n for n in stat if n not in ['overlap points']):
+            if img_diag is not None:
+                df_experiments.at[idx, 'rTRE %s (%s)' % (name, state)] = stat[name] / img_diag
+            df_experiments.at[idx, 'TRE %s (%s)' % (name, state)] = stat[name]
+        for name in ['overlap points']:
+            df_experiments.at[idx, '%s (%s)' % (name, state)] = stat[name]
 
+    @classmethod
+    def _visual_image_move_warp_lnds_move_warp(cls, item, path_dataset=None,
+                                               path_experiment=None):
+        """ visualise the case with warped moving image and landmarks
+        to the reference frame so they are simple to overlap
 
-def _visual_image_move_warp_lnds_move_warp(item, path_dataset=None,
-                                           path_experiment=None):
-    """ visualise the case with warped moving image and landmarks
-    to the reference frame so they are simple to overlap
+        :param dict item: row with the experiment
+        :param str|None path_dataset: path to the dataset folder
+        :param str|None path_experiment: path to the experiment folder
+        :return obj|None:
+        """
+        assert isinstance(item.get(cls.COL_POINTS_MOVE_WARP, None), str), \
+            'Missing registered points in "%s"' % cls.COL_POINTS_MOVE_WARP
+        path_points_warp = cls.update_path_(item[cls.COL_POINTS_MOVE_WARP], path_experiment)
+        if not os.path.isfile(path_points_warp):
+            logging.warning('missing warped landmarks for: %r', dict(item))
+            return
 
-    :param dict item: row with the experiment
-    :param str|None path_dataset: path to the dataset folder
-    :param str|None path_experiment: path to the experiment folder
-    :return obj|None:
-    """
-    assert isinstance(item.get(COL_POINTS_MOVE_WARP, None), str), \
-        'Missing registered points in "%s"' % COL_POINTS_MOVE_WARP
-    path_points_warp = update_path_(item[COL_POINTS_MOVE_WARP], path_experiment)
-    if not os.path.isfile(path_points_warp):
-        logging.warning('missing warped landmarks for: %r', dict(item))
-        return
+        points_ref, points_move, path_img_ref = cls._load_landmarks(item, path_dataset)
 
-    points_ref, points_move, path_img_ref = _load_landmarks(item, path_dataset)
+        if not isinstance(item.get(cls.COL_IMAGE_MOVE_WARP, None), str):
+            logging.warning('Missing registered image in "%s"', cls.COL_IMAGE_MOVE_WARP)
+            image_warp = None
+        else:
+            path_image_warp = cls.update_path_(item[cls.COL_IMAGE_MOVE_WARP], path_experiment)
+            image_warp = load_image(path_image_warp)
 
-    if not isinstance(item.get(COL_IMAGE_MOVE_WARP, None), str):
-        logging.warning('Missing registered image in "%s"', COL_IMAGE_MOVE_WARP)
-        image_warp = None
-    else:
-        path_image_warp = update_path_(item[COL_IMAGE_MOVE_WARP], path_experiment)
-        image_warp = load_image(path_image_warp)
+        points_warp = load_landmarks(path_points_warp)
+        if not list(points_warp):
+            return
+        # draw image with landmarks
+        image = draw_image_points(image_warp, points_warp)
+        save_image(os.path.join(cls.update_path_(item[cls.COL_REG_DIR], path_experiment),
+                                cls.NAME_IMAGE_MOVE_WARP_POINTS), image)
+        del image
 
-    points_warp = load_landmarks(path_points_warp)
-    if not list(points_warp):
-        return
-    # draw image with landmarks
-    image = draw_image_points(image_warp, points_warp)
-    save_image(os.path.join(update_path_(item[COL_REG_DIR], path_experiment),
-                            NAME_IMAGE_MOVE_WARP_POINTS), image)
-    del image
+        # visualise the landmarks move during registration
+        image_ref = load_image(path_img_ref)
+        fig = draw_images_warped_landmarks(image_ref, image_warp, points_move,
+                                           points_ref, points_warp)
+        del image_ref, image_warp
+        return fig
 
-    # visualise the landmarks move during registration
-    image_ref = load_image(path_img_ref)
-    fig = draw_images_warped_landmarks(image_ref, image_warp, points_move,
-                                       points_ref, points_warp)
-    del image_ref, image_warp
-    return fig
+    @classmethod
+    def _visual_image_move_warp_lnds_ref_warp(cls, item, path_dataset=None, path_experiment=None):
+        """ visualise the case with warped reference landmarks to the move frame
 
+        :param dict item: row with the experiment
+        :param str|None path_dataset: path to the dataset folder
+        :param str|None path_experiment: path to the experiment folder
+        :return obj|None:
+        """
+        assert isinstance(item.get(cls.COL_POINTS_REF_WARP, None), str), \
+            'Missing registered points in "%s"' % cls.COL_POINTS_REF_WARP
+        path_points_warp = cls.update_path_(item[cls.COL_POINTS_REF_WARP], path_experiment)
+        if not os.path.isfile(path_points_warp):
+            logging.warning('missing warped landmarks for: %r', dict(item))
+            return
 
-def _visual_image_move_warp_lnds_ref_warp(item, path_dataset=None, path_experiment=None):
-    """ visualise the case with warped reference landmarks to the move frame
+        points_ref, points_move, path_img_ref = cls._load_landmarks(item, path_dataset)
 
-    :param dict item: row with the experiment
-    :param str|None path_dataset: path to the dataset folder
-    :param str|None path_experiment: path to the experiment folder
-    :return obj|None:
-    """
-    assert isinstance(item.get(COL_POINTS_REF_WARP, None), str), \
-        'Missing registered points in "%s"' % COL_POINTS_REF_WARP
-    path_points_warp = update_path_(item[COL_POINTS_REF_WARP], path_experiment)
-    if not os.path.isfile(path_points_warp):
-        logging.warning('missing warped landmarks for: %r', dict(item))
-        return
+        points_warp = load_landmarks(path_points_warp)
+        if not list(points_warp):
+            return
+        # draw image with landmarks
+        image_move = load_image(cls.update_path_(item[cls.COL_IMAGE_MOVE], path_dataset))
+        # image_warp = tl_io.load_image(row['Moving image, Transf.'])
+        image = draw_image_points(image_move, points_warp)
+        save_image(os.path.join(cls.update_path_(item[cls.COL_REG_DIR], path_experiment),
+                                cls.NAME_IMAGE_REF_POINTS_WARP), image)
+        del image
 
-    points_ref, points_move, path_img_ref = _load_landmarks(item, path_dataset)
+        # visualise the landmarks move during registration
+        image_ref = load_image(path_img_ref)
+        fig = draw_images_warped_landmarks(image_ref, image_move, points_ref,
+                                           points_move, points_warp)
+        del image_ref, image_move
+        return fig
 
-    points_warp = load_landmarks(path_points_warp)
-    if not list(points_warp):
-        return
-    # draw image with landmarks
-    image_move = load_image(update_path_(item[COL_IMAGE_MOVE], path_dataset))
-    # image_warp = tl_io.load_image(row['Moving image, Transf.'])
-    image = draw_image_points(image_move, points_warp)
-    save_image(os.path.join(update_path_(item[COL_REG_DIR], path_experiment),
-                            NAME_IMAGE_REF_POINTS_WARP), image)
-    del image
+    @classmethod
+    def visualise_registration(cls, idx_row, path_dataset=None, path_experiment=None):
+        """ visualise the registration results according what landmarks were
+        estimated - in registration or moving frame
 
-    # visualise the landmarks move during registration
-    image_ref = load_image(path_img_ref)
-    fig = draw_images_warped_landmarks(image_ref, image_move, points_ref,
-                                       points_move, points_warp)
-    del image_ref, image_move
-    return fig
+        :param tuple(int,dict) df_row: row from iterated table
+        :param str path_dataset: path to the dataset folder
+        :param str path_experiment: path to the experiment folder
+        """
+        _, row = idx_row
+        row = dict(row)  # convert even series to dictionary
+        fig, path_fig = None, None
+        # visualise particular experiment by idx
+        if isinstance(row.get(cls.COL_POINTS_MOVE_WARP, None), str):
+            fig = cls._visual_image_move_warp_lnds_move_warp(row, path_dataset, path_experiment)
+        elif isinstance(row.get(cls.COL_POINTS_REF_WARP, None), str):
+            fig = cls._visual_image_move_warp_lnds_ref_warp(row, path_dataset, path_experiment)
+        else:
+            logging.error('Visualisation: no output image or landmarks')
 
+        if fig is not None:
+            path_fig = os.path.join(cls.update_path_(row[cls.COL_REG_DIR], path_experiment),
+                                    cls.NAME_IMAGE_WARPED_VISUAL)
+            export_figure(path_fig, fig)
 
-def visualise_registration(idx_row, path_dataset=None, path_experiment=None):
-    """ visualise the registration results according what landmarks were
-    estimated - in registration or moving frame
-
-    :param tuple(int,dict) df_row: row from iterated table
-    :param str path_dataset: path to the dataset folder
-    :param str path_experiment: path to the experiment folder
-    """
-    _, row = idx_row
-    row = dict(row)  # convert even series to dictionary
-    fig, path_fig = None, None
-    # visualise particular experiment by idx
-    if isinstance(row.get(COL_POINTS_MOVE_WARP, None), str):
-        fig = _visual_image_move_warp_lnds_move_warp(row, path_dataset, path_experiment)
-    elif isinstance(row.get(COL_POINTS_REF_WARP, None), str):
-        fig = _visual_image_move_warp_lnds_ref_warp(row, path_dataset, path_experiment)
-    else:
-        logging.error('Visualisation: no output image or landmarks')
-
-    if fig is not None:
-        path_fig = os.path.join(update_path_(row[COL_REG_DIR], path_experiment),
-                                NAME_IMAGE_WARPED_VISUAL)
-        export_figure(path_fig, fig)
-
-    return path_fig
+        return path_fig
 
 
 def export_summary_results(df_experiments, path_out, params=None,
-                           name_txt=NAME_TXT_RESULTS, name_csv=NAME_CSV_RESULTS):
+                           name_txt=ImRegBenchmark.NAME_RESULTS_TXT,
+                           name_csv=ImRegBenchmark.NAME_RESULTS_CSV):
     """ export the summary as CSV and TXT
 
     :param DF df_experiments: DataFrame with experiments

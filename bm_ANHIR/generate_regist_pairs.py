@@ -17,9 +17,7 @@ import pandas as pd
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import image_sizes
 from birl.utilities.dataset import IMAGE_EXTENSIONS, generate_pairing
-from birl.cls_benchmark import (
-    COL_STATUS, COL_IMAGE_REF, COL_IMAGE_MOVE, COL_TIME, COL_POINTS_REF, COL_POINTS_MOVE,
-    COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP, COL_IMAGE_SIZE, COL_IMAGE_DIAGONAL, update_path_)
+from birl.benchmark import ImRegBenchmark
 
 DATASET_IMAGES = '/datagrid/Medical/dataset_ANHIR/images_private'
 DATASET_LANDMARKS = '/datagrid/Medical/dataset_ANHIR/landmarks_all'
@@ -53,7 +51,9 @@ DATASET_TISSUE_SCALE.update(DATASET_TISSUE_SCALE_PARTIAL)
 # each N sample in test will be considers as test case
 HIDE_TEST_TISSUE_STEP = 3
 # requires empty columns in the dataset cover
-COLUMNS_EMPTY = (COL_POINTS_REF_WARP, COL_POINTS_MOVE_WARP, COL_TIME)
+COLUMNS_EMPTY = (ImRegBenchmark.COL_POINTS_REF_WARP,
+                 ImRegBenchmark.COL_POINTS_MOVE_WARP,
+                 ImRegBenchmark.COL_TIME)
 # define train / test status
 VAL_STATUS_TRAIN = 'training'
 VAL_STATUS_TEST = 'evaluation'
@@ -110,15 +110,15 @@ def generate_reg_pairs(rp_imgs, rp_lnds, pairs, public, path_images=DATASET_IMAG
     """
     reg_pairs = []
     for k, (i, j) in enumerate(pairs):
-        img_size, img_diag = image_sizes(update_path_(rp_imgs[i], path_images))
+        img_size, img_diag = image_sizes(ImRegBenchmark.update_path_(rp_imgs[i], path_images))
         reg_pairs.append({
-            COL_IMAGE_REF: rp_imgs[i],
-            COL_IMAGE_MOVE: rp_imgs[j],
-            COL_POINTS_REF: rp_lnds[i],
-            COL_POINTS_MOVE: rp_lnds[j],
-            COL_STATUS: VAL_STATUS_TRAIN if public[k] else VAL_STATUS_TEST,
-            COL_IMAGE_SIZE: img_size,
-            COL_IMAGE_DIAGONAL: img_diag,
+            ImRegBenchmark.COL_IMAGE_REF: rp_imgs[i],
+            ImRegBenchmark.COL_IMAGE_MOVE: rp_imgs[j],
+            ImRegBenchmark.COL_POINTS_REF: rp_lnds[i],
+            ImRegBenchmark.COL_POINTS_MOVE: rp_lnds[j],
+            ImRegBenchmark.COL_STATUS: VAL_STATUS_TRAIN if public[k] else VAL_STATUS_TEST,
+            ImRegBenchmark.COL_IMAGE_SIZE: img_size,
+            ImRegBenchmark.COL_IMAGE_DIAGONAL: img_diag,
         })
     return reg_pairs
 
