@@ -63,11 +63,6 @@ from birl.utilities.experiments import exec_commands, dict_deep_update
 from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
 
-# assert all(k in DEFAULT_PARAMS['bUnwarpJ'] for k in REQUIRED_PARAMS_BUNWARPJ), \
-#     'default params are missing some required parameters for bUnwarpJ'
-# assert all(k in DEFAULT_PARAMS['SIFT'] for k in REQUIRED_PARAMS_SIFT), \
-#     'default params are missing some required parameters for SIFT'
-
 
 class BmUnwarpJ(ImRegBenchmark):
     """ Benchmark for ImageJ plugin - bUnwarpJ
@@ -186,6 +181,11 @@ class BmUnwarpJ(ImRegBenchmark):
             'modelIndex': 1,  # (0:Translation, 1:Rigid, 2:Similarity, 3:Affine, 4:Perspective)
         }
     }
+
+    # assert all(k in DEFAULT_PARAMS['bUnwarpJ'] for k in REQUIRED_PARAMS_BUNWARPJ), \
+    #     'default params are missing some required parameters for bUnwarpJ'
+    # assert all(k in DEFAULT_PARAMS['SIFT'] for k in REQUIRED_PARAMS_SIFT), \
+    #     'default params are missing some required parameters for SIFT'
 
     def _prepare(self):
         """ prepare Benchmark - copy configurations """

@@ -1,13 +1,14 @@
 """
-Developed a new approach for image registration and motion estimation based
-on Markov Random Fields.
+Benchmark for DROP.
+
+DROP is a approach for image registration and motion estimation based on Markov Random Fields.
 
 .. ref:: https://www.mrf-registration.net
 
-Related Publication
+Related Publication:
 Deformable Medical Image Registration: Setting the State of the Art with Discrete Methods
-Authors: Ben Glocker, Aristeidis Sotiras, Nikos Komodakis, Nikos Paragios
-Published in: Annual Review of Biomedical Engineering, Vol. 12, 2011, pp. 219-244
+ Authors: Ben Glocker, Aristeidis Sotiras, Nikos Komodakis, Nikos Paragios
+ Published in: Annual Review of Biomedical Engineering, Vol. 12, 2011, pp. 219-244
 
 
 Installation for Linux

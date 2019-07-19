@@ -54,11 +54,6 @@ from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
 from bm_experiments.bm_bUnwarpJ import BmUnwarpJ
 
-# assert all(k in DEFAULT_PARAMS['RVSS'] for k in REQUIRED_PARAMS_RVSS), \
-#     'default params are missing some required parameters for RVSS'
-# assert all(k in DEFAULT_PARAMS['SIFT'] for k in REQUIRED_PARAMS_SIFT), \
-#     'default params are missing some required parameters for SIFT'
-
 
 class BmRVSS(ImRegBenchmark):
     """ Benchmark for ImageJ plugin - RVSS
@@ -126,6 +121,11 @@ class BmRVSS(ImRegBenchmark):
         },
         'SIFT': BmUnwarpJ.DEFAULT_PARAMS['SIFT']
     }
+
+    # assert all(k in DEFAULT_PARAMS['RVSS'] for k in REQUIRED_PARAMS_RVSS), \
+    #     'default params are missing some required parameters for RVSS'
+    # assert all(k in DEFAULT_PARAMS['SIFT'] for k in REQUIRED_PARAMS_SIFT), \
+    #     'default params are missing some required parameters for SIFT'
 
     def _prepare(self):
         """ prepare Benchmark - copy configurations """

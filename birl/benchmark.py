@@ -99,6 +99,8 @@ class ImRegBenchmark(Experiment):
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
 
+    #: timeout for executing single image registration (default = 1 hour)
+    EXECUTE_TIMEOUT = 60 * 60
     #: default number of threads used by benchmarks
     NB_WORKERS_USED = nb_workers(0.8)
     #: some needed files
@@ -515,7 +517,7 @@ class ImRegBenchmark(Experiment):
         if not (isinstance(commands, list) or isinstance(commands, tuple)):
             commands = [commands]
         # measure execution time
-        cmd_result = exec_commands(commands, path_log)
+        cmd_result = exec_commands(commands, path_log, timeout=self.EXECUTE_TIMEOUT)
         # if the experiment failed, return back None
         if not cmd_result:
             return None
@@ -613,12 +615,12 @@ class ImRegBenchmark(Experiment):
         :param dict params: set of input parameters
         """
         if not params:
-            arg_parser = create_basic_parser()
+            arg_parser = create_basic_parser(cls.__name__)
             arg_parser = cls.extend_parse(arg_parser)
             params = parse_arg_params(arg_parser)
 
         logging.info('running...')
-        logging.info(__doc__)
+        logging.info(cls.__doc__)
         benchmark = cls(params)
         benchmark.run()
         path_expt = benchmark.params['path_exp']

@@ -312,9 +312,10 @@ def string_dict(ds, headline='DICTIONARY:', offset=25):
     return s
 
 
-def create_basic_parser():
+def create_basic_parser(name=''):
     """ create the basic arg parses
 
+    :param str name: name of the methods
     :return object:
 
     >>> parser = create_basic_parser()
@@ -323,7 +324,7 @@ def create_basic_parser():
     >>> parse_arg_params(parser)  # doctest: +SKIP
     """
     # SEE: https://docs.python.org/3/library/argparse.html
-    parser = argparse.ArgumentParser('Benchmark on Image Registration')
+    parser = argparse.ArgumentParser('Benchmark on Image Registration - %s' % name)
     parser.add_argument('-t', '--path_table', type=str, required=True,
                         help='path to the csv cover file')
     parser.add_argument('-d', '--path_dataset', type=str, required=False, default=None,
@@ -439,9 +440,9 @@ def exec_commands(commands, path_logger=None, timeout=None):
             cmd_elems = cmd.split()
             cmd_elems[0] = os.path.expanduser(cmd_elems[0])
             outputs += [subprocess.check_output(cmd_elems, **options)]
-        except subprocess.CalledProcessError as e:
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as ex:
             logging.exception(cmd)
-            outputs += [e.output]
+            outputs += [ex.output]
             success = False
     # export the output if path exists
     if path_logger is not None and outputs:
