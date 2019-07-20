@@ -409,6 +409,8 @@ def exec_commands(commands, path_logger=None, timeout=None):
     * https://stackoverflow.com/questions/1996518
     * https://www.quora.com/Whats-the-difference-between-os-system-and-subprocess-call-in-Python
 
+    .. note:: Timeout in check_output is not supported by Python 2.x
+
     :param list(str) commands: commands to be executed
     :param str path_logger: path to the logger
     :param int timeout: timeout for max commands length
@@ -440,18 +442,31 @@ def exec_commands(commands, path_logger=None, timeout=None):
             cmd_elems = cmd.split()
             cmd_elems[0] = os.path.expanduser(cmd_elems[0])
             outputs += [subprocess.check_output(cmd_elems, **options)]
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as ex:
-            logging.exception(cmd)
+        # except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as ex:
+        except subprocess.CalledProcessError as ex:
+            logging.exception(ex)
             outputs += [ex.output]
+            success = False
+        # assume to be subprocess.TimeoutExpired
+        except Exception as ex:
+            # catching this exception directly is not possible because Py2 does not know it
+            if hasattr(ex, 'timeout'):
+                logging.warning('subprocess.TimeoutExpired:'
+                                ' Command "%s" timed out after %i seconds', cmd, ex.timeout)
+                outputs += [ex.output]
+            else:
+                logging.exception(ex)
             success = False
     # export the output if path exists
     if path_logger is not None and outputs:
-        if isinstance(outputs[0], bytes):
-            outputs = [out.decode() for out in outputs]
-        elif isinstance(outputs[0], str):
-            outputs = [out.decode().encode('utf-8') for out in outputs]
+        outputs_str = []
+        for out in outputs:
+            # convert output to string
+            out = out.decode("utf-8") if isinstance(outputs[0], bytes) \
+                else out.decode().encode('utf-8')
+            outputs_str.append(out)
         with open(path_logger, 'a') as fp:
-            fp.write('\n'.join(outputs))
+            fp.write('\n\n'.join(outputs_str))
     return success
 
 

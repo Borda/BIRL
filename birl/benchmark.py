@@ -99,8 +99,8 @@ class ImRegBenchmark(Experiment):
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
 
-    #: timeout for executing single image registration (default = 1 hour)
-    EXECUTE_TIMEOUT = 60 * 60
+    #: timeout for executing single image registration, NOTE: does not work for Py2
+    EXECUTE_TIMEOUT = 60 * 60  # default = 1 hour
     #: default number of threads used by benchmarks
     NB_WORKERS_USED = nb_workers(0.8)
     #: some needed files
