@@ -721,10 +721,10 @@ class ImRegBenchmark(Experiment):
                                           'elastic', img_diag, wo_affine=True)
         # compute landmarks statistic
         cls.compute_registration_accuracy(df_experiments, idx, points_target, points_warp,
-                                          'final', img_diag, wo_affine=False)
+                                          'target', img_diag, wo_affine=False)
         row_ = dict(df_experiments.loc[idx])
         # compute the robustness
-        if 'TRE Mean (final)' in row_:
+        if 'TRE Mean' in row_:
             df_experiments.loc[idx, cls.COL_ROBUSTNESS] = \
                 compute_tre_robustness(points_target, points_init, points_warp)
 
@@ -732,6 +732,9 @@ class ImRegBenchmark(Experiment):
     def compute_registration_accuracy(cls, df_experiments, idx, points1, points2,
                                       state='', img_diag=None, wo_affine=False):
         """ compute statistic on two points sets
+
+        IRE - Initial Registration Error
+        TRE - Target Registration Error
 
         :param DF df_experiments: DataFrame with experiments
         :param int idx: index of tha particular record
@@ -745,16 +748,22 @@ class ImRegBenchmark(Experiment):
             # removing the affine transform and assume only local/elastic deformation
             _, _, points1, _ = estimate_affine_transform(points1, points2)
 
-        _, stat = compute_target_regist_error_statistic(points1, points2)
+        _, stats = compute_target_regist_error_statistic(points1, points2)
         if img_diag is not None:
             df_experiments.at[idx, cls.COL_IMAGE_DIAGONAL] = img_diag
         # update particular idx
-        for name in (n for n in stat if n not in ['overlap points']):
+        for n_stat in (n for n in stats if n not in ['overlap points']):
+            # if it not one of the simplified names
+            if state and state not in ('init', 'final', 'target'):
+                name = 'TRE %s (%s)' % (n_stat, state)
+            else:
+                # for initial ise IRE, else TRE
+                name = '%s %s' % ('IRE' if state == 'init' else 'TRE', n_stat)
             if img_diag is not None:
-                df_experiments.at[idx, 'rTRE %s (%s)' % (name, state)] = stat[name] / img_diag
-            df_experiments.at[idx, 'TRE %s (%s)' % (name, state)] = stat[name]
-        for name in ['overlap points']:
-            df_experiments.at[idx, '%s (%s)' % (name, state)] = stat[name]
+                df_experiments.at[idx, 'r%s' % name] = stats[n_stat] / img_diag
+            df_experiments.at[idx, name] = stats[n_stat]
+        for n_stat in ['overlap points']:
+            df_experiments.at[idx, '%s (%s)' % (n_stat, state)] = stats[n_stat]
 
     @classmethod
     def _load_warped_image(cls, item, path_experiment=None):
@@ -904,8 +913,8 @@ def export_summary_results(df_experiments, path_out, params=None,
         df_experiments.set_index('ID', inplace=True)
     df_summary = df_experiments.describe(percentiles=costume_percentiles).T
     df_summary['median'] = df_experiments.median()
-    nb_missing = np.sum(df_experiments['TRE Mean (init)'].isnull())\
-        if 'TRE Mean (init)' in df_experiments.columns else len(df_experiments)
+    nb_missing = np.sum(df_experiments['IRE Mean'].isnull())\
+        if 'IRE Mean' in df_experiments.columns else len(df_experiments)
     df_summary['missing'] = nb_missing / float(len(df_experiments))
     df_summary.sort_index(inplace=True)
     path_csv = os.path.join(path_out, name_csv)

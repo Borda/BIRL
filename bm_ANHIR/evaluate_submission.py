@@ -212,13 +212,13 @@ def parse_landmarks(idx_row):
         'Norm-Time_minutes': row.get(COL_NORM_TIME, None),
         'Status': row.get(ImRegBenchmark.COL_STATUS, None),
     }
-    # copy all columns with rTRE, TRE and Overlap
-    item.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
-                 for col in row if '(final)' in col})
     # copy all columns with Affine statistic
-    item.update({col.replace(' ', '-'): row[col] for col in row if 'diff' in col.lower()})
+    item.update({col.replace(' ', '-'): row[col] for col in row if 'affine' in col.lower()})
+    # copy all columns with rTRE, TRE and Overlap
+    # item.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
+    #              for col in row if '(final)' in col})
     item.update({col.replace(' (elastic)', '_elastic').replace(' ', '-'): row[col]
-                 for col in row if '(elastic)' in col})
+                 for col in row if 'TRE' in col})
     return idx, item
 
 
@@ -260,9 +260,9 @@ def compute_scores(df_experiments, min_landmarks=1.):
         'Average-used-landmarks': score_used_lnds,
     }
     # parse Mean & median specific measures
-    for name, col in [('Median-rTRE', 'rTRE Median (final)'),
-                      ('Max-rTRE', 'rTRE Max (final)'),
-                      ('Average-rTRE', 'rTRE Mean (final)'),
+    for name, col in [('Median-rTRE', 'rTRE Median'),
+                      ('Max-rTRE', 'rTRE Max'),
+                      ('Average-rTRE', 'rTRE Mean'),
                       ('Norm-Time', COL_NORM_TIME)]:
         scores['Average-' + name] = np.mean(df_experiments[col])
         scores['Average-' + name + '-Robust'] = np.mean(df_expt_robust[col])
@@ -272,9 +272,9 @@ def compute_scores(df_experiments, min_landmarks=1.):
     # filter all statuses in the experiments
     statuses = df_experiments[ImRegBenchmark.COL_STATUS].unique()
     # parse metrics according to TEST and TRAIN case
-    for name, col in [('Average-rTRE', 'rTRE Mean (final)'),
-                      ('Median-rTRE', 'rTRE Median (final)'),
-                      ('Max-rTRE', 'rTRE Max (final)'),
+    for name, col in [('Average-rTRE', 'rTRE Mean'),
+                      ('Median-rTRE', 'rTRE Median'),
+                      ('Max-rTRE', 'rTRE Max'),
                       ('Robustness', 'Robustness')]:
         # iterate over common measures
         for stat_name, stat_func in [('Average', np.mean),
@@ -296,9 +296,8 @@ def _filter_tre_measure_columns(df_experiments):
     :return tuple(list(str),list(str)):
     """
     # copy the initial to final for missing
-    cols_final = [col for col in df_experiments.columns
-                  if re.match(r'(r)?TRE \w+ .final.', col)]
-    cols_init = [col.replace('final', 'init') for col in cols_final]
+    cols_final = [col for col in df_experiments.columns if re.match(r'(r)?TRE', col)]
+    cols_init = [col.replace('TRE', 'IRE') for col in cols_final]
     return cols_final, cols_init
 
 

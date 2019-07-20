@@ -188,9 +188,9 @@ class TestBmRegistration(unittest.TestCase):
                             msg='Missing statistics "%s"' % stat_name)
 
         # test specific results
-        assert_array_almost_equal(sorted(df_regist['TRE Mean (final)'].values),
+        assert_array_almost_equal(sorted(df_regist['TRE Mean'].values),
                                   np.array(final_means), decimal=0)
-        assert_array_almost_equal(sorted(df_regist['TRE STD (final)'].values),
+        assert_array_almost_equal(sorted(df_regist['TRE STD'].values),
                                   np.array(final_stds), decimal=0)
 
     def test_try_wrap(self):
