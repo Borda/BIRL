@@ -20,6 +20,7 @@ from functools import wraps
 
 import tqdm
 import numpy as np
+from pathos.helpers import mp
 
 from birl.utilities.data_io import create_folder, save_config_yaml, update_path
 
@@ -335,7 +336,7 @@ def create_basic_parser(name=''):
                         help='whether each experiment have unique time stamp')
     parser.add_argument('--visual', dest='visual', action='store_true',
                         help='whether visualise partial results')
-    parser.add_argument('--preprocessing', type=str, required=False, nargs='+',
+    parser.add_argument('-pproc', '--preprocessing', type=str, required=False, nargs='+',
                         help='use some image pre-processing, the other matter',
                         choices=['gray', 'hist-matching'])
     # parser.add_argument('--lock_expt', dest='lock_thread', action='store_true',
@@ -470,36 +471,35 @@ def exec_commands(commands, path_logger=None, timeout=None):
     return success
 
 
-# class NonDaemonPool(ProcessPool):
-#     """ We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
-#     because the latter is only a wrapper function, not a proper class.
-#
-#     See: https://github.com/nipy/nipype/pull/2754
-#
-#     Examples:
-#     `PicklingError: Can't pickle <class 'birl.utilities.experiments.NonDaemonProcess'>:
-#      it's not found as birl.utilities.experiments.NonDaemonProcess`
-#     `PicklingError: Can't pickle <function _wrap_func at 0x03152EF0>:
-#      it's not found as birl.utilities.experiments._wrap_func`
-#
-#     >>> NonDaemonPool(1).map(sum, [(1, )] * 5)
-#     [1, 1, 1, 1, 1]
-#     """
-#     def Process(self, *args, **kwds):
-#         proc = super(NonDaemonPool, self).Process(*args, **kwds)
-#
-#         class NonDaemonProcess(proc.__class__):
-#             """Monkey-patch process to ensure it is never daemonized"""
-#             @property
-#             def daemon(self):
-#                 return False
-#
-#             @daemon.setter
-#             def daemon(self, val):
-#                 pass
-#
-#         proc.__class__ = NonDaemonProcess
-#         return proc
+class NoDaemonProcess(mp.Process):
+    """ `pathos` pools are wrappers around multiprocess pools.
+    That's the raw `multiprocess.Pool` object without the pathos interface wrapper.
+
+    See: https://github.com/uqfoundation/pathos/issues/169
+    """
+    # make 'daemon' attribute always return False
+    def _get_daemon(self):
+        return False
+
+    def _set_daemon(self, value):
+        pass
+
+    daemon = property(_get_daemon, _set_daemon)
+
+
+class NoDaemonProcessPool(ProcessPool):
+    """ The raw `multiprocess.Pool` object without the pathos interface wrapper.
+
+    See: https://github.com/uqfoundation/pathos/issues/169
+
+    >>> NoDaemonProcessPool(2).map(sum, [(1, )] * 5)
+    [1, 1, 1, 1, 1]
+    >>> list(NoDaemonProcessPool(1).imap(lambda x: x ** 2, range(5)))
+    [0, 1, 4, 9, 16]
+    >>> NoDaemonProcessPool(2).map(sum, NoDaemonProcessPool(2).imap(lambda x: x, [range(3)] * 5))
+    [3, 3, 3, 3, 3]
+    """
+    Process = NoDaemonProcess
 
 
 def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc=''):

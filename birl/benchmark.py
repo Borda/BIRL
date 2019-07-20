@@ -385,6 +385,7 @@ class ImRegBenchmark(Experiment):
                 argv_params = [(path_img_ref, self.COL_IMAGE_REF),
                                (path_img_move, self.COL_IMAGE_MOVE)]
                 # TODO: find a way how to convert images in parallel inside mproc pool
+                #  problem is in calling class method inside the pool which is ot static
                 for path_img, col in iterate_mproc_map(__convert_gray, argv_params,
                                                        nb_workers=1, desc=None):
                     item[col + self.COL_IMAGE_EXT_TEMP] = path_img
@@ -487,7 +488,7 @@ class ImRegBenchmark(Experiment):
         export_summary_results(self._df_experiments, self.params['path_exp'], self.params)
 
     @classmethod
-    def _prepare_img_registration(self, item):
+    def _prepare_img_registration(cls, item):
         """ prepare the experiment folder if it is required,
         eq. copy some extra files
 
