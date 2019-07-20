@@ -28,6 +28,7 @@ from birl.utilities.experiments import parse_arg_params, try_decorator
 from birl.benchmark import ImRegBenchmark
 from birl.bm_template import BmTemplate
 
+PATH_ROOT = os.path.dirname(update_path('birl'))
 PATH_DATA = update_path('data_images')
 PATH_CSV_COVER_MIX = os.path.join(PATH_DATA, 'pairs-imgs-lnds_mix.csv')
 PATH_CSV_COVER_ANHIR = os.path.join(PATH_DATA, 'pairs-imgs-lnds_histol.csv')
@@ -39,8 +40,7 @@ class TestBmRegistration(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         logging.basicConfig(level=logging.INFO)
-        path_base = os.path.dirname(update_path('requirements.txt'))
-        cls.path_out = os.path.join(path_base, 'output-test')
+        cls.path_out = os.path.join(PATH_ROOT, 'output-testing')
         shutil.rmtree(cls.path_out, ignore_errors=True)
         os.mkdir(cls.path_out)
 

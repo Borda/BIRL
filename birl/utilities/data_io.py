@@ -478,7 +478,7 @@ def convert_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True, 
     return path_image_new
 
 
-def image_histogram_matching(source, reference, use_color='hsv'):
+def image_histogram_matching(source, reference, use_color='hsv', norm_img_size=2048):
     """ adjust image histogram between two images
 
     Optionally transform the image to more continues color space.
@@ -493,6 +493,8 @@ def image_histogram_matching(source, reference, use_color='hsv'):
 
     :param ndarray source: 2D image to be transformed
     :param ndarray reference: reference 2D image
+    :param str use_color: using color space for hist matching
+    :param int norm_img_size: subsample image to this max size
     :return ndarray: transformed image
 
     >>> path_imgs = os.path.join(update_path('data_images'), 'rat-kidney_', 'scale-5pc')
@@ -519,7 +521,7 @@ def image_histogram_matching(source, reference, use_color='hsv'):
     assert source.ndim == reference.ndim, 'the image dimensionality has to be equal'
 
     if source.ndim == 2:
-        matched = histogram_match_cumulative_cdf(source, reference)
+        matched = histogram_match_cumulative_cdf(source, reference, norm_img_size=norm_img_size)
     elif source.ndim == 3:
         matched = np.empty(source.shape, dtype=source.dtype)
 
@@ -528,8 +530,8 @@ def image_histogram_matching(source, reference, use_color='hsv'):
             source = conv_from_rgb(source)
             reference = conv_from_rgb(reference)
         for ch in range(source.shape[-1]):
-            matched[..., ch] = histogram_match_cumulative_cdf(source[..., ch],
-                                                              reference[..., ch])
+            matched[..., ch] = histogram_match_cumulative_cdf(
+                source[..., ch], reference[..., ch], norm_img_size=norm_img_size)
         if conv_to_rgb:
             matched = conv_to_rgb(matched)
     else:
@@ -548,39 +550,60 @@ def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
     :return ndarray: transformed image, np.array<height1, width1>
 
     >>> np.random.seed(0)
-    >>> img = histogram_match_cumulative_cdf(np.random.randint(0, 18, (10, 12)),
-    ...                                      np.random.randint(128, 145, (15, 13)))
-    >>> img.astype(int)
-    array([[139, 142, 128, 131, 131, 135, 136, 133, 134, 139, 129, 134],
-           [135, 140, 144, 134, 139, 135, 136, 143, 134, 142, 142, 128],
-           [131, 144, 140, 135, 128, 129, 136, 128, 138, 131, 138, 130],
-           [128, 128, 133, 134, 134, 135, 144, 142, 133, 136, 138, 129],
-           [129, 135, 136, 131, 134, 138, 140, 128, 140, 131, 139, 138],
-           [138, 133, 134, 133, 142, 131, 139, 133, 135, 140, 142, 131],
-           [142, 139, 143, 144, 134, 136, 131, 128, 134, 128, 144, 133],
-           [130, 143, 131, 130, 138, 139, 143, 135, 136, 128, 138, 138],
-           [130, 130, 131, 131, 140, 131, 144, 140, 136, 129, 133, 138],
-           [138, 135, 138, 130, 143, 128, 128, 134, 140, 138, 135, 139]])
+    >>> img = histogram_match_cumulative_cdf(np.random.randint(128, 145, (150, 200)),
+    ...                                      np.random.randint(0, 18, (200, 180)))
+    >>> img  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    array([[13, 16,  0, ..., 12,  2,  5],
+           [17,  9,  1, ..., 16,  9,  0],
+           [11, 12, 14, ...,  8,  5,  4],
+           ...,
+           [12,  6,  3, ..., 15,  0,  3],
+           [11, 17,  2, ..., 12, 12,  5],
+           [ 6, 12,  3, ...,  8,  0,  1]]...)
+    >>> np.bincount(img.ravel()).tolist()  # doctest: +NORMALIZE_WHITESPACE
+    [1705, 1706, 1728, 1842, 1794, 1866, 1771, 0, 1717, 1752, 1757, 1723, 1823,
+     1833, 1749, 1718, 1769, 1747]
+    >>> img_source = np.random.randint(50, 245, (2500, 3000)).astype(float)
+    >>> img_source[-1, -1] = 255
+    >>> histogram_match_cumulative_cdf(img_source / 255., img).shape
+    (2500, 3000)
     """
-    source = np.round(source * 255) if source.max() < 1.5 else source
-    source = source.astype(int)
-    out_float = reference.max() < 1.5
-    reference = np.round(reference * 255) if reference.max() < 1.5 else reference
-    reference = reference.astype(int)
-
     # use smaller image
-    step = int(np.max(np.array([source.shape, reference.shape])) / norm_img_size)
-    step = max(1, step)
-    src_counts = np.bincount(source[::step, ::step].ravel())
+    step_src = max(1, int(np.max(source.shape) / norm_img_size))
+    step_ref = max(1, int(np.max(reference.shape) / norm_img_size))
+
+    # determine if we need remember that output should be float valued
+    out_float = source.max() < 1.5
+    # if the image is flout in range (0, 1) extend it
+    source = np.round(source * 255) if source.max() < 1.5 else source
+    # here we need convert to int values
+    source = source.astype(np.int16)
+    # work with just a small image
+    src_small = source[::step_src, ::step_src]
+
+    # here we need work with just a small image
+    ref_small = reference[::step_ref, ::step_ref]
+    # if the image is flout in range (0, 1) extend it
+    ref_small = np.round(ref_small * 255) if reference.max() < 1.5 else ref_small
+    # here we need convert to int values
+    ref_small = ref_small.astype(np.int16)
+
+    src_counts = np.bincount(src_small.ravel())
     # src_values = np.arange(0, len(src_counts))
-    ref_counts = np.bincount(reference[::step, ::step].ravel())
+    ref_counts = np.bincount(ref_small.ravel())
     ref_values = np.arange(0, len(ref_counts))
     # calculate normalized quantiles for each array
     src_quantiles = np.cumsum(src_counts) / float(source.size)
     ref_quantiles = np.cumsum(ref_counts) / float(reference.size)
 
-    interp_a_values = np.interp(src_quantiles, ref_quantiles, ref_values)
-    matched = np.floor(interp_a_values)[source]
+    interp_values = np.round(np.interp(src_quantiles, ref_quantiles, ref_values))
+    # in case that it overflows, due to sampling step may skip some high values
+    if source.max() >= len(interp_values):
+        logging.warning('source image max value %i overflow generated LUT of size %i',
+                        source.max(), len(interp_values))
+        # then clip the source image values to fit ot the range
+        source[source >= len(interp_values)] = len(interp_values) - 1
+    matched = np.round(interp_values)[source].astype(np.int16)
 
     if out_float:
         matched = matched.astype(float) / 255.
