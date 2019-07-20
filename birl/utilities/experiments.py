@@ -20,7 +20,6 @@ from functools import wraps
 
 import tqdm
 import numpy as np
-from pathos.helpers import mp
 
 from birl.utilities.data_io import create_folder, save_config_yaml, update_path
 
@@ -471,35 +470,37 @@ def exec_commands(commands, path_logger=None, timeout=None):
     return success
 
 
-class NoDaemonProcess(mp.Process):
-    """ `pathos` pools are wrappers around multiprocess pools.
-    That's the raw `multiprocess.Pool` object without the pathos interface wrapper.
-
-    See: https://github.com/uqfoundation/pathos/issues/169
-    """
-    # make 'daemon' attribute always return False
-    def _get_daemon(self):
-        return False
-
-    def _set_daemon(self, value):
-        pass
-
-    daemon = property(_get_daemon, _set_daemon)
-
-
-class NoDaemonProcessPool(ProcessPool):
-    """ The raw `multiprocess.Pool` object without the pathos interface wrapper.
-
-    See: https://github.com/uqfoundation/pathos/issues/169
-
-    >>> NoDaemonProcessPool(2).map(sum, [(1, )] * 5)
-    [1, 1, 1, 1, 1]
-    >>> list(NoDaemonProcessPool(1).imap(lambda x: x ** 2, range(5)))
-    [0, 1, 4, 9, 16]
-    >>> NoDaemonProcessPool(2).map(sum, NoDaemonProcessPool(2).imap(lambda x: x, [range(3)] * 5))
-    [3, 3, 3, 3, 3]
-    """
-    Process = NoDaemonProcess
+# class NoDaemonProcess(mp.Process):
+#     """ `pathos` pools are wrappers around multiprocess pools.
+#     That's the raw `multiprocess.Pool` object without the pathos interface wrapper.
+#
+#     See: https://github.com/uqfoundation/pathos/issues/169
+#     """
+#     # make 'daemon' attribute always return False
+#     def _get_daemon(self):
+#         return False
+#
+#     def _set_daemon(self, value):
+#         pass
+#
+#     daemon = property(_get_daemon, _set_daemon)
+#
+#
+# class NoDaemonProcessPool(ProcessPool):
+#     """ The raw `multiprocess.Pool` object without the pathos interface wrapper.
+#
+#     See: https://github.com/uqfoundation/pathos/issues/169
+#
+#     Crashing in CI
+#
+#     >>> NoDaemonProcessPool(2).map(sum, [(1, )] * 5)
+#     [1, 1, 1, 1, 1]
+#     >>> list(NoDaemonProcessPool(1).imap(lambda x: x ** 2, range(5)))
+#     [0, 1, 4, 9, 16]
+#     >>> NoDaemonProcessPool(2).map(sum, NoDaemonProcessPool(2).imap(lambda x: x, [range(3)] * 5))
+#     [3, 3, 3, 3, 3]
+#     """
+#     Process = NoDaemonProcess
 
 
 def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc=''):
