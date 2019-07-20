@@ -16,7 +16,7 @@ references:
       command: |
         sudo pip install -U backports.functools_lru_cache  # required for matplotlib @py2
         pip install -r requirements.txt --user
-        sudo pip install -r requirements-dev.txt
+        sudo pip install -r ./tests/requirements.txt
         python --version ; pwd ; ls -l
         pip --version ; pip list
 
@@ -26,7 +26,7 @@ references:
       command: |
         unset DISPLAY
         mkdir test-reports && mkdir results
-        coverage run --source birl -m py.test birl bm_dataset bm_experiments bm_ANHIR -v --doctest-modules --junitxml=test-reports/pytest_junit.xml
+        coverage run --source birl -m py.test birl tests bm_dataset bm_experiments bm_ANHIR -v --doctest-modules --junitxml=test-reports/pytest_junit.xml
         coverage report && coverage xml -o test-reports/coverage.xml
         flake8 . --max-line-length=100
         codecov
