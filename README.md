@@ -67,6 +67,20 @@ The project contains the following folders:
 * `docs` - extra documentation and references
 * `scripts_IJ` - macros for ImageJ 
 
+
+## Installation
+
+This package can be simply install using pip running
+```bash
+pip install https://github.com/Borda/BIRL/archive/master.zip
+```
+or via `setuptools` running from a local folder
+```bash
+python setup.py install
+```
+For installing some particular version/releases use following links
+_https://github.com/Borda/BIRL/archive/v0.2.3.zip_ where the numbers match desired version. 
+
 ---
 
 ## Before benchmarks (pre-processing) 
