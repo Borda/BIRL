@@ -647,8 +647,7 @@ def is_iterable(var, iterable_types=ITERABLE_TYPES):
     >>> is_iterable((1, ))
     True
     """
-    is_iter = any(isinstance(var, cls) for cls in iterable_types)
-    return is_iter
+    return isinstance(var, iterable_types)
 
 
 def dict_deep_update(dict_base, dict_update):

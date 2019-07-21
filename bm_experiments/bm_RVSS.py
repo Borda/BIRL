@@ -45,10 +45,8 @@ import sys
 import logging
 import shutil
 
-import yaml
-
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import load_landmarks, save_landmarks
+from birl.utilities.data_io import load_landmarks, save_landmarks, load_config_yaml
 from birl.utilities.experiments import exec_commands, dict_deep_update
 from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
@@ -153,8 +151,7 @@ class BmRVSS(ImRegBenchmark):
         shutil.copy(path_im_move, os.path.join(path_dir_in, os.path.basename(path_im_move)))
 
         config = self.DEFAULT_PARAMS
-        with open(self.params['path_config'], 'r') as fp:
-            config = dict_deep_update(config, yaml.load(fp))
+        config = dict_deep_update(config, load_config_yaml(self.params['path_config']))
 
         config_rvss = [config['RVSS'][k] for k in self.REQUIRED_PARAMS_RVSS]
         config_sift = [config['SIFT'][k] for k in BmUnwarpJ.REQUIRED_PARAMS_SIFT]

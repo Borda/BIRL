@@ -82,7 +82,7 @@ or via `setuptools` running from a local folder
 python setup.py install
 ```
 For installing some particular version/releases use following links
-`https://github.com/Borda/BIRL/archive/v0.2.3.zip`
+_https://github.com/Borda/BIRL/archive/v0.2.3.zip_
 where the numbers match desired version
 (see package [releases](https://github.com/Borda/BIRL/releases)). 
 

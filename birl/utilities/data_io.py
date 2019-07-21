@@ -552,21 +552,22 @@ def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
     >>> np.random.seed(0)
     >>> img = histogram_match_cumulative_cdf(np.random.randint(128, 145, (150, 200)),
     ...                                      np.random.randint(0, 18, (200, 180)))
-    >>> img  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    >>> img.astype(int)  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     array([[13, 16,  0, ..., 12,  2,  5],
            [17,  9,  1, ..., 16,  9,  0],
            [11, 12, 14, ...,  8,  5,  4],
            ...,
            [12,  6,  3, ..., 15,  0,  3],
            [11, 17,  2, ..., 12, 12,  5],
-           [ 6, 12,  3, ...,  8,  0,  1]]...)
-    >>> np.bincount(img.ravel()).tolist()  # doctest: +NORMALIZE_WHITESPACE
-    [1705, 1706, 1728, 1842, 1794, 1866, 1771, 0, 1717, 1752, 1757, 1723, 1823,
-     1833, 1749, 1718, 1769, 1747]
+           [ 6, 12,  3, ...,  8,  0,  1]])
+    >>> np.bincount(img.ravel()).astype(int)  # doctest: +NORMALIZE_WHITESPACE
+    array([1705, 1706, 1728, 1842, 1794, 1866, 1771,    0, 1717, 1752, 1757,
+           1723, 1823, 1833, 1749, 1718, 1769, 1747])
     >>> img_source = np.random.randint(50, 245, (2500, 3000)).astype(float)
     >>> img_source[-1, -1] = 255
-    >>> histogram_match_cumulative_cdf(img_source / 255., img).shape
-    (2500, 3000)
+    >>> img = histogram_match_cumulative_cdf(img_source / 255., img)
+    >>> np.array(img.shape, dtype=int)
+    array([2500, 3000])
     """
     # use smaller image
     step_src = max(1, int(np.max(source.shape) / norm_img_size))
@@ -623,7 +624,7 @@ def load_config_yaml(path_config):
     >>> os.remove(p_conf)
     """
     with open(path_config, 'r') as fp:
-        config = yaml.load(fp)
+        config = yaml.safe_load(fp)
     return config
 
 

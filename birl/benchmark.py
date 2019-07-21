@@ -216,17 +216,19 @@ class ImRegBenchmark(Experiment):
         base_path = self.params['path_exp']
         base_dir = os.path.basename(base_path)
         path_split = path.split(os.sep)
+
         if base_dir not in path_split:
             logging.debug('Missing requested folder "%s" in source path: %s',
                           base_dir, path_split)
             return path
         path_split = path_split[path_split.index(base_dir) + 1:]
         path_rltv = os.sep.join(path_split)
+
         if os.path.exists(os.path.join(self.params[destination], path_rltv)):
-            return path_rltv
+            path = path_rltv
         else:
             logging.debug('Not existing relative path: %s', path)
-            return path
+        return path
 
     def _copy_config_to_expt(self, field_path):
         """ copy particular configuration to the experiment folder
@@ -509,7 +511,7 @@ class ImRegBenchmark(Experiment):
 
         commands = self._generate_regist_command(item)
         # in case it is just one command
-        if not (isinstance(commands, list) or isinstance(commands, tuple)):
+        if not isinstance(commands, (list, tuple)):
             commands = [commands]
 
         path_log = os.path.join(path_dir_reg, self.NAME_LOG_REGISTRATION)
