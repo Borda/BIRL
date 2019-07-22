@@ -174,14 +174,14 @@ class BmDROP(ImRegBenchmark):
                                      scaling=item.get('scaling', 1.))
         img_name = os.path.splitext(os.path.basename(path_im_move))[0]
         ext_img = os.path.splitext(os.path.basename(path_img_))[1]
-        path_img = path_img_.replace('output' + ext_img, img_name + ext_img)
-        shutil.move(path_img_, path_img)
+        path_img_warp = path_img_.replace('output' + ext_img, img_name + ext_img)
+        shutil.move(path_img_, path_img_warp)
 
         # load transform and warp landmarks
         # lnds_move = load_landmarks(path_lnds_move)
         lnds_ref = load_landmarks(path_lnds_ref)
         lnds_name = os.path.basename(path_lnds_ref)
-        path_lnd = os.path.join(path_reg_dir, lnds_name)
+        path_lnds_warp = os.path.join(path_reg_dir, lnds_name)
         assert lnds_ref is not None, 'missing landmarks to be transformed "%s"' % lnds_name
 
         # down-scale landmarks if defined
@@ -199,11 +199,11 @@ class BmDROP(ImRegBenchmark):
         lnds_warp = lnds_ref + shift
         # upscale landmarks if defined
         lnds_warp = lnds_warp * item.get('scaling', 1.)
-        save_landmarks(path_lnd, lnds_warp)
+        save_landmarks(path_lnds_warp, lnds_warp)
 
         # return formatted results
-        return {self.COL_IMAGE_MOVE_WARP: path_img,
-                self.COL_POINTS_REF_WARP: path_lnd}
+        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
+                self.COL_POINTS_REF_WARP: path_lnds_warp}
 
     def _clear_after_registration(self, item):
         """ clean unnecessarily files after the registration

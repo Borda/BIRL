@@ -160,6 +160,7 @@ class BmElastix(ImRegBenchmark):
         path_dir = self._get_path_reg_dir(item)
         path_img_ref, path_img_move, path_lnds_ref, path_lnds_move = self._get_paths(item)
         path_img_warp, path_lnds_warp = None, None
+        path_log = os.path.join(path_dir, self.NAME_LOG_REGISTRATION)
 
         name_lnds = os.path.basename(path_lnds_ref)
         path_lnds_local = save_landmarks_pts(os.path.join(path_dir, name_lnds),
@@ -172,7 +173,7 @@ class BmElastix(ImRegBenchmark):
             'output': path_dir,
             'landmarks': path_lnds_local,
         }
-        exec_commands(cmd)
+        exec_commands(cmd, path_logger=path_log, timeout=self.EXECUTE_TIMEOUT)
 
         # if there is an output image copy it
         path_im_out = glob.glob(os.path.join(path_dir, self.NAME_IMAGE_WARPED))

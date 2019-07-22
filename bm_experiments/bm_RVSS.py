@@ -181,7 +181,7 @@ class BmRVSS(ImRegBenchmark):
         path_dir_out = os.path.join(path_dir, self.DIR_OUTPUTS)
         # name_ref = os.path.splitext(os.path.basename(path_im_ref))[0]
         name_move = os.path.splitext(os.path.basename(path_im_move))[0]
-        path_regist = os.path.join(path_dir, os.path.basename(path_im_move))
+        path_img_warp = os.path.join(path_dir, os.path.basename(path_im_move))
         dict_params = {
             'exec_Fiji': self.params['exec_Fiji'],
             'path_bsh': self.PATH_SCRIPT_WARP_LANDMARKS,
@@ -190,26 +190,27 @@ class BmRVSS(ImRegBenchmark):
             'output': path_dir,
             # 'transf': os.path.join(path_dir_out, name_ref + '.xml'),
             'transf': os.path.join(path_dir_out, name_move + '.xml'),
-            'warp': path_regist,
+            'warp': path_img_warp,
         }
 
         # export source points to TXT
         pts_source = load_landmarks(path_lnds_move)
         save_landmarks(os.path.join(path_dir, BmUnwarpJ.NAME_LANDMARKS), pts_source)
         # execute transformation
-        exec_commands(self.COMMAND_WARP_LANDMARKS % dict_params, path_logger=path_log)
+        exec_commands(self.COMMAND_WARP_LANDMARKS % dict_params, path_logger=path_log,
+                      timeout=self.EXECUTE_TIMEOUT)
         # load warped landmarks from TXT
-        path_lnds = os.path.join(path_dir, BmUnwarpJ.NAME_LANDMARKS_WARPED)
-        if os.path.isfile(path_lnds):
-            points_warp = load_landmarks(path_lnds)
-            path_lnds = os.path.join(path_dir, os.path.basename(path_lnds_move))
-            save_landmarks(path_lnds, points_warp)
+        path_lnds_warp = os.path.join(path_dir, BmUnwarpJ.NAME_LANDMARKS_WARPED)
+        if os.path.isfile(path_lnds_warp):
+            points_warp = load_landmarks(path_lnds_warp)
+            path_lnds_warp = os.path.join(path_dir, os.path.basename(path_lnds_move))
+            save_landmarks(path_lnds_warp, points_warp)
         else:
-            path_lnds = None
+            path_lnds_warp = None
 
         # return results
-        return {self.COL_IMAGE_MOVE_WARP: path_regist,
-                self.COL_POINTS_MOVE_WARP: path_lnds}
+        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
+                self.COL_POINTS_MOVE_WARP: path_lnds_warp}
 
     def _clear_after_registration(self, item):
         path_dir = self._get_path_reg_dir(item)

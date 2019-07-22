@@ -478,7 +478,7 @@ def convert_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True, 
     return path_image_new
 
 
-def image_histogram_matching(source, reference, use_color='hsv', norm_img_size=2048):
+def image_histogram_matching(source, reference, use_color='hsv', norm_img_size=4096):
     """ adjust image histogram between two images
 
     Optionally transform the image to more continues color space.
