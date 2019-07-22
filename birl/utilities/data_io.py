@@ -219,11 +219,11 @@ def save_landmarks_csv(path_file, landmarks):
     return path_file
 
 
-def update_path(path_, pre_path=None, lim_depth=5, absolute=True):
+def update_path(a_path, pre_path=None, lim_depth=5, absolute=True):
     """ bubble in the folder tree up until it found desired file
     otherwise return original one
 
-    :param str soma_path: original path
+    :param str a_path: original path
     :param str|None base_path: special case when you want to add something before
     :param int lim_depth: max depth of going up in the folder tree
     :param bool absolute: format as absolute path
@@ -236,13 +236,14 @@ def update_path(path_, pre_path=None, lim_depth=5, absolute=True):
     >>> os.path.exists(update_path('~', absolute=False))
     True
     """
+    path_ = str(a_path)
     if path_.startswith('/'):
         return path_
     elif path_.startswith('~'):
         path_ = os.path.expanduser(path_)
     # special case when you want to add something before
     elif pre_path:
-        path_ = os.path.join(pre_path, str(path_))
+        path_ = os.path.join(pre_path, path_)
 
     tmp_path = path_[2:] if path_.startswith('./') else path_
     for _ in range(lim_depth):

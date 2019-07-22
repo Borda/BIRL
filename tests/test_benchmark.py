@@ -58,7 +58,7 @@ class TestBmRegistration(unittest.TestCase):
             'unique': False,
         }
         # try a missing params
-        for miss in ['path_table', 'path_out', 'nb_workers', 'unique']:
+        for miss in ['path_table', 'path_out', 'unique']:
             params_miss = params.copy()
             del params_miss[miss]
             assert_raises(AssertionError, ImRegBenchmark, params_miss)

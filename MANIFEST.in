@@ -12,9 +12,10 @@ include LICENSE
 # Include the visualisations
 recursive-include figures *.jpg
 
-# Include the util scripts
+# Include the util scripts and experiments
 recursive-include bm_dataset *.py
 recursive-include bm_experiments *.py
+recursive-exclude bm_experiments *.sh
 
 # exclude challenge scripts
 recursive-exclude bm_ANHIR *
