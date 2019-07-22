@@ -170,7 +170,7 @@ class BmRVSS(ImRegBenchmark):
         """ get registration results - warped registered images and landmarks
 
         :param dict item: dictionary with registration params
-        :return dict: paths to ...
+        :return dict: paths to warped images/landmarks
         """
         logging.debug('.. warp the registered image and get landmarks')
         path_dir = self._get_path_reg_dir(item)

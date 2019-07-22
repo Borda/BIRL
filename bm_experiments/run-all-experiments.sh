@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export DISPLAY=""
+# DEFINE GLOBAL PARAMS
 jobs=3
 table="~/Medical-data/dataset_ANHIR/images/dataset_medium.csv"
 # this filder has to contain bland of images and landmarks
@@ -46,7 +48,7 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -DROP ./bin/dropreg2d \
+         -DROP /usr/local/bin/dropreg2d \
          -cfg ./configs/drop.txt \
          $pproc \
          --visual --unique --nb_workers $jobs

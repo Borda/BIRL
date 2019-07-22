@@ -153,7 +153,7 @@ class ImRegBenchmark(Experiment):
     #: extension to the image column name for temporary pre-process image
     COL_IMAGE_EXT_TEMP = ' TEMP'
     #: required experiment parameters
-    REQUIRED_PARAMS = Experiment.REQUIRED_PARAMS + ['path_table', 'nb_workers']
+    REQUIRED_PARAMS = Experiment.REQUIRED_PARAMS + ['path_table']
 
     # list of columns in cover csv
     COVER_COLUMNS = (COL_IMAGE_REF,
@@ -177,7 +177,7 @@ class ImRegBenchmark(Experiment):
         logging.info(self.__doc__)
         self._df_overview = None
         self._df_experiments = None
-        self.nb_workers = params.get('nb_workers', nb_workers(0.5))
+        self.nb_workers = params.get('nb_workers', nb_workers(0.25))
         self._path_csv_regist = os.path.join(self.params['path_exp'],
                                              self.NAME_CSV_REGISTRATION_PAIRS)
 

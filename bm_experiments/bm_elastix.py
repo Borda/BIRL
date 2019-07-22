@@ -216,7 +216,8 @@ class BmElastix(ImRegBenchmark):
         """
         # SEE: https://docs.python.org/3/library/argparse.html
         arg_parser.add_argument('-elastix', '--path_elastix', type=str, required=False,
-                                help='path to folder with elastix executables')
+                                help='path to folder with elastix executables,'
+                                     ' otherwise call executables from standard system path')
         arg_parser.add_argument('-cfg', '--path_config', required=True,
                                 type=str, help='path to the elastic configuration')
         return arg_parser

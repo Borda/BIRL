@@ -9,12 +9,13 @@ INSTALLATION:
 Sample run::
 
     mkdir ./results
+    touch sample-config.yaml
     python birl/bm_template.py \
         -t ./data_images/pairs-imgs-lnds_histol.csv \
         -d ./data_images \
         -o ./results \
         --visual --unique \
-        -cfg none
+        -cfg ./sample-config.yaml
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -126,7 +127,7 @@ class BmTemplate(ImRegBenchmark):
         """ get registration results - warped registered images and landmarks
 
         :param dict item: dictionary with registration params
-        :return dict: paths to ...
+        :return dict: paths to warped images/landmarks
         """
         path_reg_dir = self._get_path_reg_dir(item)
         # detect image

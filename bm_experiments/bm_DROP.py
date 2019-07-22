@@ -165,7 +165,7 @@ class BmDROP(ImRegBenchmark):
         """ get registration results - warped registered images and landmarks
 
         :param dict item: dictionary with registration params
-        :return dict: paths to ...
+        :return dict: paths to warped images/landmarks
         """
         path_reg_dir = self._get_path_reg_dir(item)
         _, path_im_move, path_lnds_ref, _ = self._get_paths(item)
