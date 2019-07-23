@@ -66,7 +66,7 @@ import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (
-    load_landmarks, save_landmarks, convert_image2nifti_gray, convert_nifti2image)
+    load_landmarks, save_landmarks, convert_image_to_nifti_gray, convert_image_from_nifti)
 from birl.utilities.experiments import exec_commands
 from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
@@ -165,8 +165,8 @@ class BmANTs(ImRegBenchmark):
         path_im_ref, path_im_move, _, _ = self._get_paths(item)
 
         # Convert images to Nifty
-        item[self.COL_IMAGE_REF_NII] = convert_image2nifti_gray(path_im_ref, path_dir)
-        item[self.COL_IMAGE_MOVE_NII] = convert_image2nifti_gray(path_im_move, path_dir)
+        item[self.COL_IMAGE_REF_NII] = convert_image_to_nifti_gray(path_im_ref, path_dir)
+        item[self.COL_IMAGE_MOVE_NII] = convert_image_to_nifti_gray(path_im_move, path_dir)
 
         return item
 
@@ -237,7 +237,7 @@ class BmANTs(ImRegBenchmark):
 
         path_im_nii = os.path.join(path_dir, name_im_move + '.nii')
         if os.path.isfile(path_im_nii):
-            path_img_warp = convert_nifti2image(path_im_nii, path_dir)
+            path_img_warp = convert_image_from_nifti(path_im_nii, path_dir)
         else:
             path_img_warp = None
 

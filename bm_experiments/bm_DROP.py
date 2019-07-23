@@ -66,7 +66,7 @@ import SimpleITK as sitk
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (
-    convert_to_mhd, convert_from_mhd, save_landmarks, load_landmarks, image_sizes)
+    convert_image_to_mhd, convert_image_from_mhd, save_landmarks, load_landmarks, image_sizes)
 from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
 
@@ -126,12 +126,12 @@ class BmDROP(ImRegBenchmark):
         for path_img, col in [(path_im_ref, self.COL_IMAGE_REF),
                               (path_im_move, self.COL_IMAGE_MOVE)]:
             item[col + self.COL_IMAGE_EXT_TEMP] = \
-                convert_to_mhd(path_img, path_out_dir=path_reg_dir, overwrite=False,
-                               to_gray=True, scaling=item.get('scaling', 1.))
+                convert_image_to_mhd(path_img, path_out_dir=path_reg_dir, overwrite=False,
+                                     to_gray=True, scaling=item.get('scaling', 1.))
         item[self.COL_TIME_CONVERT] = time.time() - t_start
 
         # def __wrap_convert_mhd(path_img, col):
-        #     path_img = convert_to_mhd(path_img, to_gray=True, overwrite=False)
+        #     path_img = convert_image_to_mhd(path_img, to_gray=True, overwrite=False)
         #     return path_img, col
         #
         # for path_img, col in iterate_mproc_map(__wrap_convert_mhd, convert_queue):
@@ -170,8 +170,8 @@ class BmDROP(ImRegBenchmark):
         path_reg_dir = self._get_path_reg_dir(item)
         _, path_im_move, path_lnds_ref, _ = self._get_paths(item)
         # convert MHD image
-        path_img_ = convert_from_mhd(os.path.join(path_reg_dir, 'output.mhd'),
-                                     scaling=item.get('scaling', 1.))
+        path_img_ = convert_image_from_mhd(os.path.join(path_reg_dir, 'output.mhd'),
+                                           scaling=item.get('scaling', 1.))
         img_name = os.path.splitext(os.path.basename(path_im_move))[0]
         ext_img = os.path.splitext(os.path.basename(path_img_))[1]
         path_img_warp = path_img_.replace('output' + ext_img, img_name + ext_img)

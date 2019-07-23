@@ -362,7 +362,8 @@ def save_image(path_image, image):
     image.save(path_image)
 
 
-def convert_image2nifti(path_image, path_out):
+@io_image_decorate
+def convert_image_to_nifti(path_image, path_out):
     """ converting normal image to Nifty Image
 
     :param str path_image: input image
@@ -371,10 +372,10 @@ def convert_image2nifti(path_image, path_out):
 
     >>> path_img = './sample-image.png'
     >>> save_image(path_img, np.zeros((100, 200, 3)))
-    >>> path_img2 = convert_image2nifti(path_img, '.')
+    >>> path_img2 = convert_image_to_nifti(path_img, '.')
     >>> os.path.isfile(path_img2)
     True
-    >>> path_img3 = convert_nifti2image(path_img2, '.')
+    >>> path_img3 = convert_image_from_nifti(path_img2, '.')
     >>> os.path.isfile(path_img3)
     True
     >>> list(map(os.remove, [path_img, path_img2, path_img3]))  # doctest: +ELLIPSIS
@@ -393,7 +394,7 @@ def convert_image2nifti(path_image, path_out):
     return path_img_out
 
 
-def convert_image2nifti_gray(path_image, path_out):
+def convert_image_to_nifti_gray(path_image, path_out):
     """ converting normal image to Nifty Image
 
     :param str path_image: input image
@@ -402,10 +403,10 @@ def convert_image2nifti_gray(path_image, path_out):
 
     >>> path_img = './sample-image.png'
     >>> save_image(path_img, np.zeros((100, 200, 3)))
-    >>> path_img2 = convert_image2nifti_gray(path_img, '.')
+    >>> path_img2 = convert_image_to_nifti_gray(path_img, '.')
     >>> os.path.isfile(path_img2)
     True
-    >>> path_img3 = convert_nifti2image(path_img2, '.')
+    >>> path_img3 = convert_image_from_nifti(path_img2, '.')
     >>> os.path.isfile(path_img3)
     True
     >>> list(map(os.remove, [path_img, path_img2, path_img3]))  # doctest: +ELLIPSIS
@@ -424,7 +425,8 @@ def convert_image2nifti_gray(path_image, path_out):
     return path_img_out
 
 
-def convert_nifti2image(path_image, path_out):
+@io_image_decorate
+def convert_image_from_nifti(path_image, path_out):
     """ converting Nifti to standard image
 
     :param str path_image: path to input image
@@ -486,7 +488,7 @@ def image_resize(img, scale=1., v_range=255, dtype=int):
 
 
 @io_image_decorate
-def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png', scaling=None):
+def convert_image_from_mhd(path_image, path_out_dir=None, img_ext='.png', scaling=None):
     """ convert standard image to MHD format
 
     .. ref:: https://www.programcreek.com/python/example/96382/SimpleITK.WriteImage
@@ -500,8 +502,8 @@ def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png', scaling=None
 
     >>> path_img = os.path.join(update_path('data_images'), 'images',
     ...                         'artificial_reference.jpg')
-    >>> path_img = convert_to_mhd(path_img, scaling=1.5)
-    >>> convert_from_mhd(path_img, scaling=1.5)  # doctest: +ELLIPSIS
+    >>> path_img = convert_image_to_mhd(path_img, scaling=1.5)
+    >>> convert_image_from_mhd(path_img, scaling=1.5)  # doctest: +ELLIPSIS
     '...artificial_reference.png'
     """
     path_image = update_path(path_image)
@@ -525,7 +527,7 @@ def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png', scaling=None
 
 
 @io_image_decorate
-def convert_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True, scaling=None):
+def convert_image_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True, scaling=None):
     """ converting standard image to MHD (Nifty format)
 
     .. ref:: https://stackoverflow.com/questions/37290631
@@ -539,7 +541,7 @@ def convert_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True, 
 
     >>> path_img = os.path.join(update_path('data_images'), 'images',
     ...                         'artificial_moving-affine.jpg')
-    >>> convert_to_mhd(path_img, scaling=2)  # doctest: +ELLIPSIS
+    >>> convert_image_to_mhd(path_img, scaling=2)  # doctest: +ELLIPSIS
     '...artificial_moving-affine.mhd'
     """
     path_image = update_path(path_image)

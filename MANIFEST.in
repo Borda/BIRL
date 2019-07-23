@@ -21,6 +21,10 @@ recursive-exclude bm_experiments *.sh
 recursive-exclude bm_ANHIR *
 exclude bm_ANHIR
 
+# exclude tests from package
+recursive-exclude tests *
+exclude tests
+
 # Exclude Jupyter notebooks
 recursive-exclude notebooks *.ipynb
 exclude notebooks
