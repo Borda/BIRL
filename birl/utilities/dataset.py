@@ -710,7 +710,7 @@ def convert_landmarks_to_itk(lnds, image_size):
     .. ref:: https://github.com/SuperElastix/elastix/issues/156#issuecomment-511712784
 
     :param ndarray lnds: landmarks
-    :param (int,int) image_size: image height, width
+    :param (int,int) image_size: image size - height, width
     :return ndarray: landmarks
 
     >>> convert_landmarks_to_itk([[5, 20], [100, 150], [0, 100]], (150, 200))

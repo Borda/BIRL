@@ -11,6 +11,7 @@ from functools import wraps
 
 import yaml
 import cv2 as cv
+import nibabel
 import numpy as np
 import pandas as pd
 import SimpleITK as sitk
@@ -166,9 +167,10 @@ def save_landmarks(path_file, landmarks):
     """
     assert os.path.isdir(os.path.dirname(path_file)), \
         'missing folder "%s"' % os.path.dirname(path_file)
-    # path_file = os.path.splitext(path_file)[0] + '.extension'
-    save_landmarks_csv(path_file, landmarks)
-    save_landmarks_pts(path_file, landmarks)
+    path_file = os.path.splitext(path_file)[0]
+    landmarks = landmarks.values if isinstance(landmarks, pd.DataFrame) else landmarks
+    save_landmarks_csv(path_file + '.csv', landmarks)
+    save_landmarks_pts(path_file + '.pts', landmarks)
 
 
 def save_landmarks_pts(path_file, landmarks):
@@ -283,7 +285,7 @@ def image_sizes(path_image, decimal=1):
 
     :param str path_image: path to the image
     :param int decimal: rounding digits
-    :return tuple(tuple(int,int),float): image size and diagonal
+    :return tuple(tuple(int,int),float): image size (height, width) and diagonal
 
     >>> img = np.random.random((50, 75, 3))
     >>> save_image('./test_image.jpg', img)
@@ -292,9 +294,9 @@ def image_sizes(path_image, decimal=1):
     >>> os.remove('./test_image.jpg')
     """
     assert os.path.isfile(path_image), 'missing image: %s' % path_image
-    img_size = Image.open(path_image).size[::-1]
-    img_diag = np.sqrt(np.sum(np.array(img_size) ** 2))
-    return img_size, np.round(img_diag, decimal)
+    width, height = Image.open(path_image).size
+    img_diag = np.sqrt(np.sum(np.array([height, width]) ** 2))
+    return (height, width), np.round(img_diag, decimal)
 
 
 @io_image_decorate
@@ -358,6 +360,92 @@ def save_image(path_image, image):
         return False
     image = convert_ndarray2image(image)
     image.save(path_image)
+
+
+def convert_image2nifti(path_image, path_out):
+    """ converting normal image to Nifty Image
+
+    :param str path_image: input image
+    :param str path_out: path to output folder
+    :return str: resulted image
+
+    >>> path_img = './sample-image.png'
+    >>> save_image(path_img, np.zeros((100, 200, 3)))
+    >>> path_img2 = convert_image2nifti(path_img, '.')
+    >>> os.path.isfile(path_img2)
+    True
+    >>> path_img3 = convert_nifti2image(path_img2, '.')
+    >>> os.path.isfile(path_img3)
+    True
+    >>> list(map(os.remove, [path_img, path_img2, path_img3]))  # doctest: +ELLIPSIS
+    [...]
+    """
+    img_name = os.path.splitext(os.path.basename(path_image))[0]
+    path_img_out = os.path.join(path_out, img_name + '.nii')
+    logging.debug('Convert image to Nifti format "%s" ->  "%s"', path_image, path_img_out)
+
+    # img = Image.open(path_image).convert('LA')
+    img = load_image(path_image)
+    nim = nibabel.Nifti1Pair(img, np.eye(4))
+    del img
+    nibabel.save(nim, path_img_out)
+
+    return path_img_out
+
+
+def convert_image2nifti_gray(path_image, path_out):
+    """ converting normal image to Nifty Image
+
+    :param str path_image: input image
+    :param str path_out: path to output folder
+    :return str: resulted image
+
+    >>> path_img = './sample-image.png'
+    >>> save_image(path_img, np.zeros((100, 200, 3)))
+    >>> path_img2 = convert_image2nifti_gray(path_img, '.')
+    >>> os.path.isfile(path_img2)
+    True
+    >>> path_img3 = convert_nifti2image(path_img2, '.')
+    >>> os.path.isfile(path_img3)
+    True
+    >>> list(map(os.remove, [path_img, path_img2, path_img3]))  # doctest: +ELLIPSIS
+    [...]
+    """
+    img_name = os.path.splitext(os.path.basename(path_image))[0]
+    path_img_out = os.path.join(path_out, img_name + '.nii')
+    logging.debug('Convert image to Nifti format "%s" ->  "%s"', path_image, path_img_out)
+
+    # img = Image.open(path_image).convert('LA')
+    img = rgb2gray(load_image(path_image))
+    nim = nibabel.Nifti1Pair(np.swapaxes(img, 1, 0), np.eye(4))
+    del img
+    nibabel.save(nim, path_img_out)
+
+    return path_img_out
+
+
+def convert_nifti2image(path_image, path_out):
+    """ converting Nifti to standard image
+
+    :param str path_image: path to input image
+    :param str path_out: destination directory
+    :return str: path to new image
+    """
+    img_name = os.path.splitext(os.path.basename(path_image))[0]
+    path_img_out = os.path.join(path_out, img_name + '.jpg')
+    logging.debug('Convert Nifti to image format "%s" ->  "%s"', path_image, path_img_out)
+    nim = nibabel.load(path_image)
+
+    if len(nim.get_data().shape) > 2:  # colour
+        img = nim.get_data()
+    else:  # gray
+        img = np.swapaxes(nim.get_data(), 1, 0)
+
+    if img.max() > 1.5:
+        img = img / 255.
+
+    save_image(path_img_out, img)
+    return path_img_out
 
 
 def image_resize(img, scale=1., v_range=255, dtype=int):
