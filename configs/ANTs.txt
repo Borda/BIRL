@@ -9,4 +9,7 @@
     --transform SyN[ .1, 3, 0.0 ]
     --convergence [ 50x50x0,0,5 ]
     --smoothing-sigmas 1x0.5x0mm
-    --shrink-factors 4x2x1 -l 1 -u 1 -z 1
+    --shrink-factors 4x2x1
+    -l 1
+    -u 1
+    -z 1

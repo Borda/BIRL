@@ -9,14 +9,17 @@ INSTALLATION:
 See: https://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/
 
 * Do NOT download the binary code, there is an issue:
+
     - https://sourceforge.net/projects/advants/files/ANTS/ANTS_Latest
     - https://github.com/ANTsX/ANTs/issues/733
-* Compile from source:
-    > git clone git://github.com/stnava/ANTs.git
-    > mkdir antsbin
-    > cd antsbin
-    > ccmake ../ANTs
-    > make -j 4
+
+* Compile from source::
+
+    git clone git://github.com/stnava/ANTs.git
+    mkdir antsbin
+    cd antsbin
+    ccmake ../ANTs
+    make -j$(nproc)
 
 Discussion
 ----------
@@ -26,17 +29,30 @@ I. converts the kidney images to 8-bit and then .NII.GZ and the whole pipeline w
 1) Convert images to 8-bit using Fiji (this is only because I didn't see any ITK format to store RGB images).
 2) Convert the 8-bit images to .nii.gz (using ANTs script `ConvertImagePixelType`)::
 
-    ConvertImagePixelType Rat_Kidney_PanCytokeratin-8bit.png Rat_Kidney_PanCytokeratin.nii.gz 1
+    ConvertImagePixelType \
+        Rat_Kidney_PanCytokeratin-8bit.png \
+        Rat_Kidney_PanCytokeratin.nii.gz \
+        1
 
 3) Register images using `antsRegistrationSyN.sh`::
 
-    antsRegistrationSyN.sh -d 2 -m Rat_Kidney_PanCytokeratin.nii.gz -f Rat_Kidney_HE.nii.gz \
-     -j 1 -t s -o output > stdout-reg.txt 2> stderr-reg.txt
+    antsRegistrationSyN.sh \
+        -d 2 \
+        -m Rat_Kidney_PanCytokeratin.nii.gz \
+        -f Rat_Kidney_HE.nii.gz \
+        -j 1 \
+        -t s \
+        -o output \
+        > stdout-reg.txt 2> stderr-reg.txt
 
 4) Apply transform to points::
 
-    antsApplyTransformsToPoints -d 2 -i Rat_Kidney_PanCytokeratin.csv -o testPointsHE.csv \
-     -t [ output0GenericAffine.mat, 1 ] -t output1InverseWarp.nii.gz
+    antsApplyTransformsToPoints \
+        -d 2 \
+        -i Rat_Kidney_PanCytokeratin.csv \
+        -o testPointsHE.csv \
+        -t [ output0GenericAffine.mat, 1 ] \
+        -t output1InverseWarp.nii.gz
 
 Usage
 -----

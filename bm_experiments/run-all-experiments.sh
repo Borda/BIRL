@@ -13,6 +13,16 @@ preprocessings=("" "--preprocessing hist-matching" "--preprocessing gray hist-ma
 for pproc in "${preprocessings[@]}"
 do
 
+    python bm_experiments/bm_ANTs.py \
+         -t $table \
+         -d $dataset \
+         -o $results \
+         --run_comp_benchmark \
+         -ANTs ~/TEMP/Applications/antsbin/bin \
+         -cfg ./configs/ANTs.txt \
+         $pproc \
+         --visual --unique --nb_workers $jobs
+
     python bm_experiments/bm_ANTsPy.py \
          -t $table \
          -d $dataset \

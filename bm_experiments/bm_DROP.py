@@ -36,7 +36,7 @@ Sample run::
         -d ./data_images \
         -o ./results \
         -DROP ~/Applications/DROP/dropreg2d \
-        --path_config ./configs/drop.txt \
+        --path_config ./configs/DROP.txt \
         --visual --unique
 
 .. note:: experiments was tested on Ubuntu (Linux) based OS system
@@ -91,7 +91,7 @@ class BmDROP(ImRegBenchmark):
     ...           'unique': False,
     ...           'visual': True,
     ...           'exec_DROP': 'dropreg2d',
-    ...           'path_config': os.path.join(update_path('configs'), 'drop.txt')}
+    ...           'path_config': os.path.join(update_path('configs'), 'DROP.txt')}
     >>> benchmark = BmDROP(params)
     >>> benchmark.run()  # doctest: +SKIP
     >>> del benchmark
