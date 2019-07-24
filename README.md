@@ -39,6 +39,8 @@ The dataset is defined by a CSV file containing paths to target and sensed image
 
 ## Features
 
+List of the main/key features of this package:
+
 * **automatic** execution of image registration of a sequence of image pairs
 * integrated **evaluation** of registration performances using Target Registration Error (TRE)
 * integrated **visualization** of performed registration
@@ -64,8 +66,25 @@ The project contains the following folders:
     * `landmarks` - related landmarks to images in previous folder
     * `lesions_` - samples of histology tissue with annotation
     * `rat-kidney_` - samples of histology tissue with annotation
-* `docs` - extra documentation and references
-* `scripts_IJ` - macros for ImageJ 
+* `docs` - sphinx documentation and references
+* `scripts` - scripts and macros (ImageJ/Python/Rscript) for registration and work around
+* `tests` - package testing and test requirements
+
+
+## Installation
+
+This package can be simply install using pip running
+```bash
+pip install https://github.com/Borda/BIRL/archive/master.zip
+```
+or via `setuptools` running from a local folder
+```bash
+python setup.py install
+```
+For installing some particular version/releases use following links
+_https://github.com/Borda/BIRL/archive/v0.2.3.zip_
+where the numbers match desired version
+(see package [releases](https://github.com/Borda/BIRL/releases)). 
 
 ---
 
@@ -139,7 +158,6 @@ For each registration method, different experiments can be performed independent
 
 Sample execution of the "empty" benchmark template:
 ```bash
-mkdir results
 python birl/bm_template.py \
     -t ./data_images/pairs-imgs-lnds_mix.csv \
     -o ./results \
@@ -149,7 +167,6 @@ python birl/bm_template.py \
 ```
 or with relative paths:
 ```bash
-mkdir results
 python birl/bm_template.py \
     -t ./data_images/pairs-imgs-lnds_histol.csv \
     -d ./data_images \
@@ -266,8 +283,9 @@ The only limitation of adding costume image registration methods that it has to 
 The benchmark workflow is the following:
 1. `self._prepare()` prepare the experiment, e.g. create experiment folder, copy configurations, etc.
 2. `self._load_data()` the load required data - the experiment cover file
-3. `self._run()` perform the sequence of experiments (optionally in parallel) and save experimental results (registration outputs and partial statistic) to common table
-4. `self._summarise()` summarize the statistic over all experiments and run optional visualisation of performed experiments.
+3. `self._run()` perform the sequence of experiments (optionally in parallel) and save experimental results (registration outputs and partial statistic) to common table and optionally do particular visualisation of performed experiments
+4. `self._evaluate()` evaluate results of all performed experiments
+4. `self._summarise()` summarize and export results from complete benchmark.
 
 General methods that should be overwritten:
  * `_check_required_params(...)` verify that all required input parameters are given _[on the beginning of benchmark]_

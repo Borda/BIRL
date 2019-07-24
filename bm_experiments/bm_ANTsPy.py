@@ -103,22 +103,22 @@ class BmANTsPy(ImRegBenchmark):
         """ get registration results - warped registered images and landmarks
 
         :param dict item: dictionary with registration params
-        :return dict: paths to ...
+        :return dict: paths to warped images/landmarks
         """
         path_dir = self._get_path_reg_dir(item)
         _, path_im_move, _, path_lnds_move = self._get_paths(item)
-        path_im_warp, path_lnds_warp = None, None
+        path_img_warp, path_lnds_warp = None, None
 
         if os.path.isfile(os.path.join(path_dir, self.NAME_IMAGE_WARPED)):
             name_im_move = os.path.splitext(os.path.basename(path_im_move))[0]
             ext_img = os.path.splitext(self.NAME_IMAGE_WARPED)[-1]
-            path_im_warp = os.path.join(path_dir, name_im_move + ext_img)
-            os.rename(os.path.join(path_dir, self.NAME_IMAGE_WARPED), path_im_warp)
+            path_img_warp = os.path.join(path_dir, name_im_move + ext_img)
+            os.rename(os.path.join(path_dir, self.NAME_IMAGE_WARPED), path_img_warp)
         if os.path.isfile(os.path.join(path_dir, self.NAME_LNDS_WARPED)):
             path_lnds_warp = os.path.join(path_dir, os.path.basename(path_lnds_move))
             os.rename(os.path.join(path_dir, self.NAME_LNDS_WARPED), path_lnds_warp)
 
-        return {self.COL_IMAGE_MOVE_WARP: path_im_warp,
+        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
                 self.COL_POINTS_MOVE_WARP: path_lnds_warp}
 
     def _extract_execution_time(self, item):

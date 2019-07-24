@@ -1,13 +1,14 @@
 """
-Developed a new approach for image registration and motion estimation based
-on Markov Random Fields.
+Benchmark for DROP.
+
+DROP is a approach for image registration and motion estimation based on Markov Random Fields.
 
 .. ref:: https://www.mrf-registration.net
 
-Related Publication
+Related Publication:
 Deformable Medical Image Registration: Setting the State of the Art with Discrete Methods
-Authors: Ben Glocker, Aristeidis Sotiras, Nikos Komodakis, Nikos Paragios
-Published in: Annual Review of Biomedical Engineering, Vol. 12, 2011, pp. 219-244
+ Authors: Ben Glocker, Aristeidis Sotiras, Nikos Komodakis, Nikos Paragios
+ Published in: Annual Review of Biomedical Engineering, Vol. 12, 2011, pp. 219-244
 
 
 Installation for Linux
@@ -35,7 +36,7 @@ Sample run::
         -d ./data_images \
         -o ./results \
         -DROP ~/Applications/DROP/dropreg2d \
-        --path_config ./configs/drop.txt \
+        --path_config ./configs/DROP.txt \
         --visual --unique
 
 .. note:: experiments was tested on Ubuntu (Linux) based OS system
@@ -65,7 +66,7 @@ import SimpleITK as sitk
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (
-    convert_to_mhd, convert_from_mhd, save_landmarks, load_landmarks, image_sizes)
+    convert_image_to_mhd, convert_image_from_mhd, save_landmarks, load_landmarks, image_sizes)
 from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
 
@@ -90,7 +91,7 @@ class BmDROP(ImRegBenchmark):
     ...           'unique': False,
     ...           'visual': True,
     ...           'exec_DROP': 'dropreg2d',
-    ...           'path_config': os.path.join(update_path('configs'), 'drop.txt')}
+    ...           'path_config': os.path.join(update_path('configs'), 'DROP.txt')}
     >>> benchmark = BmDROP(params)
     >>> benchmark.run()  # doctest: +SKIP
     >>> del benchmark
@@ -125,12 +126,12 @@ class BmDROP(ImRegBenchmark):
         for path_img, col in [(path_im_ref, self.COL_IMAGE_REF),
                               (path_im_move, self.COL_IMAGE_MOVE)]:
             item[col + self.COL_IMAGE_EXT_TEMP] = \
-                convert_to_mhd(path_img, path_out_dir=path_reg_dir, overwrite=False,
-                               to_gray=True, scaling=item.get('scaling', 1.))
+                convert_image_to_mhd(path_img, path_out_dir=path_reg_dir, overwrite=False,
+                                     to_gray=True, scaling=item.get('scaling', 1.))
         item[self.COL_TIME_CONVERT] = time.time() - t_start
 
         # def __wrap_convert_mhd(path_img, col):
-        #     path_img = convert_to_mhd(path_img, to_gray=True, overwrite=False)
+        #     path_img = convert_image_to_mhd(path_img, to_gray=True, overwrite=False)
         #     return path_img, col
         #
         # for path_img, col in iterate_mproc_map(__wrap_convert_mhd, convert_queue):
@@ -164,23 +165,23 @@ class BmDROP(ImRegBenchmark):
         """ get registration results - warped registered images and landmarks
 
         :param dict item: dictionary with registration params
-        :return dict: paths to ...
+        :return dict: paths to warped images/landmarks
         """
         path_reg_dir = self._get_path_reg_dir(item)
         _, path_im_move, path_lnds_ref, _ = self._get_paths(item)
         # convert MHD image
-        path_img_ = convert_from_mhd(os.path.join(path_reg_dir, 'output.mhd'),
-                                     scaling=item.get('scaling', 1.))
+        path_img_ = convert_image_from_mhd(os.path.join(path_reg_dir, 'output.mhd'),
+                                           scaling=item.get('scaling', 1.))
         img_name = os.path.splitext(os.path.basename(path_im_move))[0]
         ext_img = os.path.splitext(os.path.basename(path_img_))[1]
-        path_img = path_img_.replace('output' + ext_img, img_name + ext_img)
-        shutil.move(path_img_, path_img)
+        path_img_warp = path_img_.replace('output' + ext_img, img_name + ext_img)
+        shutil.move(path_img_, path_img_warp)
 
         # load transform and warp landmarks
         # lnds_move = load_landmarks(path_lnds_move)
         lnds_ref = load_landmarks(path_lnds_ref)
         lnds_name = os.path.basename(path_lnds_ref)
-        path_lnd = os.path.join(path_reg_dir, lnds_name)
+        path_lnds_warp = os.path.join(path_reg_dir, lnds_name)
         assert lnds_ref is not None, 'missing landmarks to be transformed "%s"' % lnds_name
 
         # down-scale landmarks if defined
@@ -198,11 +199,11 @@ class BmDROP(ImRegBenchmark):
         lnds_warp = lnds_ref + shift
         # upscale landmarks if defined
         lnds_warp = lnds_warp * item.get('scaling', 1.)
-        save_landmarks(path_lnd, lnds_warp)
+        save_landmarks(path_lnds_warp, lnds_warp)
 
         # return formatted results
-        return {self.COL_IMAGE_MOVE_WARP: path_img,
-                self.COL_POINTS_REF_WARP: path_lnd}
+        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
+                self.COL_POINTS_REF_WARP: path_lnds_warp}
 
     def _clear_after_registration(self, item):
         """ clean unnecessarily files after the registration

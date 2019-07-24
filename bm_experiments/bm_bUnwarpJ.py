@@ -63,11 +63,6 @@ from birl.utilities.experiments import exec_commands, dict_deep_update
 from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
 
-# assert all(k in DEFAULT_PARAMS['bUnwarpJ'] for k in REQUIRED_PARAMS_BUNWARPJ), \
-#     'default params are missing some required parameters for bUnwarpJ'
-# assert all(k in DEFAULT_PARAMS['SIFT'] for k in REQUIRED_PARAMS_SIFT), \
-#     'default params are missing some required parameters for SIFT'
-
 
 class BmUnwarpJ(ImRegBenchmark):
     """ Benchmark for ImageJ plugin - bUnwarpJ
@@ -187,6 +182,11 @@ class BmUnwarpJ(ImRegBenchmark):
         }
     }
 
+    # assert all(k in DEFAULT_PARAMS['bUnwarpJ'] for k in REQUIRED_PARAMS_BUNWARPJ), \
+    #     'default params are missing some required parameters for bUnwarpJ'
+    # assert all(k in DEFAULT_PARAMS['SIFT'] for k in REQUIRED_PARAMS_SIFT), \
+    #     'default params are missing some required parameters for SIFT'
+
     def _prepare(self):
         """ prepare Benchmark - copy configurations """
         logging.info('-> copy configuration...')
@@ -226,7 +226,7 @@ class BmUnwarpJ(ImRegBenchmark):
         """ get registration results - warped registered images and landmarks
 
         :param dict item: dictionary with registration params
-        :return dict: paths to ...
+        :return dict: paths to warped images/landmarks
         """
         logging.debug('.. warp the registered image and get landmarks')
         path_dir = self._get_path_reg_dir(item)
@@ -234,7 +234,7 @@ class BmUnwarpJ(ImRegBenchmark):
         path_log = os.path.join(path_dir, self.NAME_LOG_REGISTRATION)
 
         # warp moving landmarks to reference frame
-        path_regist = os.path.join(path_dir, os.path.basename(path_im_move))
+        path_img_warp = os.path.join(path_dir, os.path.basename(path_im_move))
         dict_params = {
             'exec_Fiji': self.params['exec_Fiji'],
             'path_bsh': self.PATH_SCRIPT_WARP_LANDMARKS,
@@ -243,24 +243,25 @@ class BmUnwarpJ(ImRegBenchmark):
             'output': path_dir,
             'transf-inv': os.path.join(path_dir, self.NAME_TRANSF_INVERSE),
             'transf-dir': os.path.join(path_dir, self.NAME_TRANSF_DIRECT),
-            'warp': path_regist,
+            'warp': path_img_warp,
         }
         # export source points to TXT
         pts_source = load_landmarks(path_lnds_move)
         save_landmarks(os.path.join(path_dir, self.NAME_LANDMARKS), pts_source)
         # execute transformation
-        exec_commands(self.COMMAND_WARP_LANDMARKS % dict_params, path_logger=path_log)
+        exec_commands(self.COMMAND_WARP_LANDMARKS % dict_params, path_logger=path_log,
+                      timeout=self.EXECUTE_TIMEOUT)
         # load warped landmarks from TXT
-        path_lnds = os.path.join(path_dir, self.NAME_LANDMARKS_WARPED)
-        if os.path.isfile(path_lnds):
-            points_warp = load_landmarks(path_lnds)
-            path_lnds = os.path.join(path_dir, os.path.basename(path_lnds_move))
-            save_landmarks(path_lnds, points_warp)
+        path_lnds_warp = os.path.join(path_dir, self.NAME_LANDMARKS_WARPED)
+        if os.path.isfile(path_lnds_warp):
+            points_warp = load_landmarks(path_lnds_warp)
+            path_lnds_warp = os.path.join(path_dir, os.path.basename(path_lnds_move))
+            save_landmarks(path_lnds_warp, points_warp)
         else:
-            path_lnds = None
+            path_lnds_warp = None
         # return results
-        return {self.COL_IMAGE_MOVE_WARP: path_regist,
-                self.COL_POINTS_MOVE_WARP: path_lnds}
+        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
+                self.COL_POINTS_MOVE_WARP: path_lnds_warp}
 
     @staticmethod
     def extend_parse(arg_parser):

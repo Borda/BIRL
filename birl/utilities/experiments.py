@@ -312,9 +312,10 @@ def string_dict(ds, headline='DICTIONARY:', offset=25):
     return s
 
 
-def create_basic_parser():
+def create_basic_parser(name=''):
     """ create the basic arg parses
 
+    :param str name: name of the methods
     :return object:
 
     >>> parser = create_basic_parser()
@@ -323,7 +324,7 @@ def create_basic_parser():
     >>> parse_arg_params(parser)  # doctest: +SKIP
     """
     # SEE: https://docs.python.org/3/library/argparse.html
-    parser = argparse.ArgumentParser('Benchmark on Image Registration')
+    parser = argparse.ArgumentParser('Benchmark on Image Registration - %s' % name)
     parser.add_argument('-t', '--path_table', type=str, required=True,
                         help='path to the csv cover file')
     parser.add_argument('-d', '--path_dataset', type=str, required=False, default=None,
@@ -334,7 +335,7 @@ def create_basic_parser():
                         help='whether each experiment have unique time stamp')
     parser.add_argument('--visual', dest='visual', action='store_true',
                         help='whether visualise partial results')
-    parser.add_argument('--preprocessing', type=str, required=False, nargs='+',
+    parser.add_argument('-pproc', '--preprocessing', type=str, required=False, nargs='+',
                         help='use some image pre-processing, the other matter',
                         choices=['gray', 'hist-matching'])
     # parser.add_argument('--lock_expt', dest='lock_thread', action='store_true',
@@ -408,6 +409,8 @@ def exec_commands(commands, path_logger=None, timeout=None):
     * https://stackoverflow.com/questions/1996518
     * https://www.quora.com/Whats-the-difference-between-os-system-and-subprocess-call-in-Python
 
+    .. note:: Timeout in check_output is not supported by Python 2.x
+
     :param list(str) commands: commands to be executed
     :param str path_logger: path to the logger
     :param int timeout: timeout for max commands length
@@ -439,51 +442,65 @@ def exec_commands(commands, path_logger=None, timeout=None):
             cmd_elems = cmd.split()
             cmd_elems[0] = os.path.expanduser(cmd_elems[0])
             outputs += [subprocess.check_output(cmd_elems, **options)]
-        except subprocess.CalledProcessError as e:
-            logging.exception(cmd)
-            outputs += [e.output]
+        # except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as ex:
+        except subprocess.CalledProcessError as ex:
+            logging.exception(ex)
+            outputs += [ex.output]
+            success = False
+        # assume to be subprocess.TimeoutExpired
+        except Exception as ex:
+            # catching this exception directly is not possible because Py2 does not know it
+            if hasattr(ex, 'timeout'):
+                logging.warning('subprocess.TimeoutExpired:'
+                                ' Command "%s" timed out after %i seconds', cmd, ex.timeout)
+                outputs += [ex.output]
+            else:
+                logging.exception(ex)
             success = False
     # export the output if path exists
     if path_logger is not None and outputs:
-        if isinstance(outputs[0], bytes):
-            outputs = [out.decode() for out in outputs]
-        elif isinstance(outputs[0], str):
-            outputs = [out.decode().encode('utf-8') for out in outputs]
+        outputs_str = []
+        for out in outputs:
+            # convert output to string
+            out = out.decode("utf-8") if isinstance(outputs[0], bytes) \
+                else out.decode().encode('utf-8')
+            outputs_str.append(out)
         with open(path_logger, 'a') as fp:
-            fp.write('\n'.join(outputs))
+            fp.write('\n\n'.join(outputs_str))
     return success
 
 
-# class NonDaemonPool(ProcessPool):
-#     """ We sub-class multiprocessing.pool.Pool instead of multiprocessing.Pool
-#     because the latter is only a wrapper function, not a proper class.
+# class NoDaemonProcess(mp.Process):
+#     """ `pathos` pools are wrappers around multiprocess pools.
+#     That's the raw `multiprocess.Pool` object without the pathos interface wrapper.
 #
-#     See: https://github.com/nipy/nipype/pull/2754
-#
-#     Examples:
-#     `PicklingError: Can't pickle <class 'birl.utilities.experiments.NonDaemonProcess'>:
-#      it's not found as birl.utilities.experiments.NonDaemonProcess`
-#     `PicklingError: Can't pickle <function _wrap_func at 0x03152EF0>:
-#      it's not found as birl.utilities.experiments._wrap_func`
-#
-#     >>> NonDaemonPool(1).map(sum, [(1, )] * 5)
-#     [1, 1, 1, 1, 1]
+#     See: https://github.com/uqfoundation/pathos/issues/169
 #     """
-#     def Process(self, *args, **kwds):
-#         proc = super(NonDaemonPool, self).Process(*args, **kwds)
+#     # make 'daemon' attribute always return False
+#     def _get_daemon(self):
+#         return False
 #
-#         class NonDaemonProcess(proc.__class__):
-#             """Monkey-patch process to ensure it is never daemonized"""
-#             @property
-#             def daemon(self):
-#                 return False
+#     def _set_daemon(self, value):
+#         pass
 #
-#             @daemon.setter
-#             def daemon(self, val):
-#                 pass
+#     daemon = property(_get_daemon, _set_daemon)
 #
-#         proc.__class__ = NonDaemonProcess
-#         return proc
+#
+# class NoDaemonProcessPool(ProcessPool):
+#     """ The raw `multiprocess.Pool` object without the pathos interface wrapper.
+#
+#     See: https://github.com/uqfoundation/pathos/issues/169
+#
+#     Crashing in CI
+#
+#     >>> NoDaemonProcessPool(2).map(sum, [(1, )] * 5)
+#     [1, 1, 1, 1, 1]
+#     >>> list(NoDaemonProcessPool(1).imap(lambda x: x ** 2, range(5)))
+#     [0, 1, 4, 9, 16]
+#     >>> NoDaemonProcessPool(2).map(sum, NoDaemonProcessPool(2).imap(lambda x: x, [range(3)] * 5))
+#     [3, 3, 3, 3, 3]
+#     """
+#     Process = NoDaemonProcess
 
 
 def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc=''):
@@ -630,8 +647,7 @@ def is_iterable(var, iterable_types=ITERABLE_TYPES):
     >>> is_iterable((1, ))
     True
     """
-    is_iter = any(isinstance(var, cls) for cls in iterable_types)
-    return is_iter
+    return isinstance(var, iterable_types)
 
 
 def dict_deep_update(dict_base, dict_update):

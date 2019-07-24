@@ -73,7 +73,7 @@ import numpy as np
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import create_folder, load_landmarks, save_landmarks
+from birl.utilities.data_io import create_folder, load_landmarks, save_landmarks, update_path
 from birl.utilities.dataset import common_landmarks, parse_path_scale
 from birl.utilities.experiments import iterate_mproc_map, parse_arg_params, FORMAT_DATE_TIME, nb_workers
 from birl.benchmark import ImRegBenchmark
@@ -128,28 +128,28 @@ def filter_landmarks(idx_row, path_output, path_dataset, path_reference):
     :return tuple(idx,float): record index and match ratio
     """
     idx, row = idx_row
-    path_ref = ImRegBenchmark.update_path_(row[ImRegBenchmark.COL_POINTS_MOVE], path_reference)
-    path_load = ImRegBenchmark.update_path_(row[ImRegBenchmark.COL_POINTS_MOVE], path_dataset)
+    path_ref = update_path(row[ImRegBenchmark.COL_POINTS_MOVE], pre_path=path_reference)
+    path_load = update_path(row[ImRegBenchmark.COL_POINTS_MOVE], pre_path=path_dataset)
     pairs = common_landmarks(load_landmarks(path_ref), load_landmarks(path_load),
                              threshold=1)
     if not pairs.size:
         return idx, 0.
     pairs = sorted(pairs.tolist(), key=lambda p: p[1])
     ind_ref = np.asarray(pairs)[:, 0]
-    nb_common = min([len(load_landmarks(ImRegBenchmark.update_path_(row[col], path_reference)))
+    nb_common = min([len(load_landmarks(update_path(row[col], pre_path=path_reference)))
                      for col in [ImRegBenchmark.COL_POINTS_REF, ImRegBenchmark.COL_POINTS_MOVE]])
     ind_ref = ind_ref[ind_ref < nb_common]
 
     # moving and reference landmarks
     for col in [ImRegBenchmark.COL_POINTS_REF, ImRegBenchmark.COL_POINTS_MOVE]:
-        path_in = ImRegBenchmark.update_path_(row[col], path_reference)
-        path_out = ImRegBenchmark.update_path_(row[col], path_output)
+        path_in = update_path(row[col], pre_path=path_reference)
+        path_out = update_path(row[col], pre_path=path_output)
         create_folder(os.path.dirname(path_out), ok_existing=True)
         save_landmarks(path_out, load_landmarks(path_in)[ind_ref])
 
     # save ratio of found landmarks
-    len_lnds_ref = len(load_landmarks(ImRegBenchmark.update_path_(
-        row[ImRegBenchmark.COL_POINTS_REF], path_reference)))
+    len_lnds_ref = len(load_landmarks(update_path(row[ImRegBenchmark.COL_POINTS_REF],
+                                                  pre_path=path_reference)))
     ratio_matches = len(pairs) / float(len_lnds_ref)
     return idx, ratio_matches
 
@@ -212,13 +212,13 @@ def parse_landmarks(idx_row):
         'Norm-Time_minutes': row.get(COL_NORM_TIME, None),
         'Status': row.get(ImRegBenchmark.COL_STATUS, None),
     }
-    # copy all columns with rTRE, TRE and Overlap
-    item.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
-                 for col in row if '(final)' in col})
     # copy all columns with Affine statistic
-    item.update({col.replace(' ', '-'): row[col] for col in row if 'diff' in col.lower()})
+    item.update({col.replace(' ', '-'): row[col] for col in row if 'affine' in col.lower()})
+    # copy all columns with rTRE, TRE and Overlap
+    # item.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
+    #              for col in row if '(final)' in col})
     item.update({col.replace(' (elastic)', '_elastic').replace(' ', '-'): row[col]
-                 for col in row if '(elastic)' in col})
+                 for col in row if 'TRE' in col})
     return idx, item
 
 
@@ -260,9 +260,9 @@ def compute_scores(df_experiments, min_landmarks=1.):
         'Average-used-landmarks': score_used_lnds,
     }
     # parse Mean & median specific measures
-    for name, col in [('Median-rTRE', 'rTRE Median (final)'),
-                      ('Max-rTRE', 'rTRE Max (final)'),
-                      ('Average-rTRE', 'rTRE Mean (final)'),
+    for name, col in [('Median-rTRE', 'rTRE Median'),
+                      ('Max-rTRE', 'rTRE Max'),
+                      ('Average-rTRE', 'rTRE Mean'),
                       ('Norm-Time', COL_NORM_TIME)]:
         scores['Average-' + name] = np.mean(df_experiments[col])
         scores['Average-' + name + '-Robust'] = np.mean(df_expt_robust[col])
@@ -272,9 +272,9 @@ def compute_scores(df_experiments, min_landmarks=1.):
     # filter all statuses in the experiments
     statuses = df_experiments[ImRegBenchmark.COL_STATUS].unique()
     # parse metrics according to TEST and TRAIN case
-    for name, col in [('Average-rTRE', 'rTRE Mean (final)'),
-                      ('Median-rTRE', 'rTRE Median (final)'),
-                      ('Max-rTRE', 'rTRE Max (final)'),
+    for name, col in [('Average-rTRE', 'rTRE Mean'),
+                      ('Median-rTRE', 'rTRE Median'),
+                      ('Max-rTRE', 'rTRE Max'),
                       ('Robustness', 'Robustness')]:
         # iterate over common measures
         for stat_name, stat_func in [('Average', np.mean),
@@ -296,9 +296,8 @@ def _filter_tre_measure_columns(df_experiments):
     :return tuple(list(str),list(str)):
     """
     # copy the initial to final for missing
-    cols_final = [col for col in df_experiments.columns
-                  if re.match(r'(r)?TRE \w+ .final.', col)]
-    cols_init = [col.replace('final', 'init') for col in cols_final]
+    cols_final = [col for col in df_experiments.columns if re.match(r'(r)?TRE', col)]
+    cols_init = [col.replace('TRE', 'IRE') for col in cols_final]
     return cols_final, cols_init
 
 
@@ -377,11 +376,9 @@ def replicate_missing_warped_landmarks(df_experiments, path_dataset, path_experi
     count = 0
     # iterate over whole table
     for idx, row in df_experiments.iterrows():
-        path_csv = ImRegBenchmark.update_path_(row[ImRegBenchmark.COL_POINTS_MOVE_WARP],
-                                               path_experiment)
+        path_csv = update_path(row[ImRegBenchmark.COL_POINTS_MOVE_WARP], pre_path=path_experiment)
         if not os.path.isfile(path_csv):
-            path_csv = ImRegBenchmark.update_path_(row[ImRegBenchmark.COL_POINTS_MOVE],
-                                                   path_dataset)
+            path_csv = update_path(row[ImRegBenchmark.COL_POINTS_MOVE], pre_path=path_dataset)
             df_experiments.loc[idx, ImRegBenchmark.COL_POINTS_MOVE_WARP] = path_csv
             count += 1
 

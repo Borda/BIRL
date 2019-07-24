@@ -221,11 +221,12 @@ def save_landmarks_csv(path_file, landmarks):
     return path_file
 
 
-def update_path(some_path, lim_depth=5, absolute=True):
+def update_path(a_path, pre_path=None, lim_depth=5, absolute=True):
     """ bubble in the folder tree up until it found desired file
     otherwise return original one
 
-    :param str soma_path: original path
+    :param str a_path: original path
+    :param str|None base_path: special case when you want to add something before
     :param int lim_depth: max depth of going up in the folder tree
     :param bool absolute: format as absolute path
     :return str: updated path if it exists otherwise the original one
@@ -237,21 +238,25 @@ def update_path(some_path, lim_depth=5, absolute=True):
     >>> os.path.exists(update_path('~', absolute=False))
     True
     """
-    if some_path.startswith('/'):
-        return some_path
-    elif some_path.startswith('~'):
-        some_path = os.path.expanduser(some_path)
+    path_ = str(a_path)
+    if path_.startswith('/'):
+        return path_
+    elif path_.startswith('~'):
+        path_ = os.path.expanduser(path_)
+    # special case when you want to add something before
+    elif pre_path:
+        path_ = os.path.join(pre_path, path_)
 
-    tmp_path = some_path[2:] if some_path.startswith('./') else some_path
+    tmp_path = path_[2:] if path_.startswith('./') else path_
     for _ in range(lim_depth):
         if os.path.exists(tmp_path):
-            some_path = tmp_path
+            path_ = tmp_path
             break
         tmp_path = os.path.join('..', tmp_path)
 
     if absolute:
-        some_path = os.path.abspath(some_path)
-    return some_path
+        path_ = os.path.abspath(path_)
+    return path_
 
 
 def io_image_decorate(func):
@@ -357,7 +362,8 @@ def save_image(path_image, image):
     image.save(path_image)
 
 
-def convert_image2nifti(path_image, path_out):
+@io_image_decorate
+def convert_image_to_nifti(path_image, path_out):
     """ converting normal image to Nifty Image
 
     :param str path_image: input image
@@ -366,10 +372,10 @@ def convert_image2nifti(path_image, path_out):
 
     >>> path_img = './sample-image.png'
     >>> save_image(path_img, np.zeros((100, 200, 3)))
-    >>> path_img2 = convert_image2nifti(path_img, '.')
+    >>> path_img2 = convert_image_to_nifti(path_img, '.')
     >>> os.path.isfile(path_img2)
     True
-    >>> path_img3 = convert_nifti2image(path_img2, '.')
+    >>> path_img3 = convert_image_from_nifti(path_img2, '.')
     >>> os.path.isfile(path_img3)
     True
     >>> list(map(os.remove, [path_img, path_img2, path_img3]))  # doctest: +ELLIPSIS
@@ -388,7 +394,7 @@ def convert_image2nifti(path_image, path_out):
     return path_img_out
 
 
-def convert_image2nifti_gray(path_image, path_out):
+def convert_image_to_nifti_gray(path_image, path_out):
     """ converting normal image to Nifty Image
 
     :param str path_image: input image
@@ -397,10 +403,10 @@ def convert_image2nifti_gray(path_image, path_out):
 
     >>> path_img = './sample-image.png'
     >>> save_image(path_img, np.zeros((100, 200, 3)))
-    >>> path_img2 = convert_image2nifti_gray(path_img, '.')
+    >>> path_img2 = convert_image_to_nifti_gray(path_img, '.')
     >>> os.path.isfile(path_img2)
     True
-    >>> path_img3 = convert_nifti2image(path_img2, '.')
+    >>> path_img3 = convert_image_from_nifti(path_img2, '.')
     >>> os.path.isfile(path_img3)
     True
     >>> list(map(os.remove, [path_img, path_img2, path_img3]))  # doctest: +ELLIPSIS
@@ -419,7 +425,8 @@ def convert_image2nifti_gray(path_image, path_out):
     return path_img_out
 
 
-def convert_nifti2image(path_image, path_out):
+@io_image_decorate
+def convert_image_from_nifti(path_image, path_out):
     """ converting Nifti to standard image
 
     :param str path_image: path to input image
@@ -481,7 +488,7 @@ def image_resize(img, scale=1., v_range=255, dtype=int):
 
 
 @io_image_decorate
-def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png', scaling=None):
+def convert_image_from_mhd(path_image, path_out_dir=None, img_ext='.png', scaling=None):
     """ convert standard image to MHD format
 
     .. ref:: https://www.programcreek.com/python/example/96382/SimpleITK.WriteImage
@@ -495,8 +502,8 @@ def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png', scaling=None
 
     >>> path_img = os.path.join(update_path('data_images'), 'images',
     ...                         'artificial_reference.jpg')
-    >>> path_img = convert_to_mhd(path_img, scaling=1.5)
-    >>> convert_from_mhd(path_img, scaling=1.5)  # doctest: +ELLIPSIS
+    >>> path_img = convert_image_to_mhd(path_img, scaling=1.5)
+    >>> convert_image_from_mhd(path_img, scaling=1.5)  # doctest: +ELLIPSIS
     '...artificial_reference.png'
     """
     path_image = update_path(path_image)
@@ -520,7 +527,7 @@ def convert_from_mhd(path_image, path_out_dir=None, img_ext='.png', scaling=None
 
 
 @io_image_decorate
-def convert_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True, scaling=None):
+def convert_image_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True, scaling=None):
     """ converting standard image to MHD (Nifty format)
 
     .. ref:: https://stackoverflow.com/questions/37290631
@@ -534,7 +541,7 @@ def convert_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True, 
 
     >>> path_img = os.path.join(update_path('data_images'), 'images',
     ...                         'artificial_moving-affine.jpg')
-    >>> convert_to_mhd(path_img, scaling=2)  # doctest: +ELLIPSIS
+    >>> convert_image_to_mhd(path_img, scaling=2)  # doctest: +ELLIPSIS
     '...artificial_moving-affine.mhd'
     """
     path_image = update_path(path_image)
@@ -566,7 +573,7 @@ def convert_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True, 
     return path_image_new
 
 
-def image_histogram_matching(source, reference, use_color='hsv'):
+def image_histogram_matching(source, reference, use_color='hsv', norm_img_size=4096):
     """ adjust image histogram between two images
 
     Optionally transform the image to more continues color space.
@@ -581,6 +588,8 @@ def image_histogram_matching(source, reference, use_color='hsv'):
 
     :param ndarray source: 2D image to be transformed
     :param ndarray reference: reference 2D image
+    :param str use_color: using color space for hist matching
+    :param int norm_img_size: subsample image to this max size
     :return ndarray: transformed image
 
     >>> path_imgs = os.path.join(update_path('data_images'), 'rat-kidney_', 'scale-5pc')
@@ -607,7 +616,7 @@ def image_histogram_matching(source, reference, use_color='hsv'):
     assert source.ndim == reference.ndim, 'the image dimensionality has to be equal'
 
     if source.ndim == 2:
-        matched = histogram_match_cumulative_cdf(source, reference)
+        matched = histogram_match_cumulative_cdf(source, reference, norm_img_size=norm_img_size)
     elif source.ndim == 3:
         matched = np.empty(source.shape, dtype=source.dtype)
 
@@ -616,8 +625,8 @@ def image_histogram_matching(source, reference, use_color='hsv'):
             source = conv_from_rgb(source)
             reference = conv_from_rgb(reference)
         for ch in range(source.shape[-1]):
-            matched[..., ch] = histogram_match_cumulative_cdf(source[..., ch],
-                                                              reference[..., ch])
+            matched[..., ch] = histogram_match_cumulative_cdf(
+                source[..., ch], reference[..., ch], norm_img_size=norm_img_size)
         if conv_to_rgb:
             matched = conv_to_rgb(matched)
     else:
@@ -636,39 +645,61 @@ def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
     :return ndarray: transformed image, np.array<height1, width1>
 
     >>> np.random.seed(0)
-    >>> img = histogram_match_cumulative_cdf(np.random.randint(0, 18, (10, 12)),
-    ...                                      np.random.randint(128, 145, (15, 13)))
-    >>> img.astype(int)
-    array([[139, 142, 129, 132, 132, 135, 137, 133, 135, 139, 130, 135],
-           [135, 141, 144, 134, 140, 136, 137, 143, 134, 142, 142, 129],
-           [132, 144, 141, 135, 129, 130, 137, 129, 138, 132, 139, 130],
-           [129, 129, 133, 134, 135, 136, 144, 142, 133, 137, 138, 130],
-           [130, 135, 137, 132, 135, 139, 141, 129, 141, 132, 139, 138],
-           [139, 133, 135, 133, 142, 132, 139, 133, 136, 141, 142, 132],
-           [142, 140, 143, 144, 134, 137, 132, 129, 134, 129, 144, 133],
-           [130, 143, 132, 130, 138, 140, 143, 135, 137, 129, 138, 139],
-           [130, 130, 132, 132, 141, 132, 144, 141, 137, 130, 133, 138],
-           [139, 136, 139, 130, 143, 129, 129, 135, 141, 138, 136, 140]])
+    >>> img = histogram_match_cumulative_cdf(np.random.randint(128, 145, (150, 200)),
+    ...                                      np.random.randint(0, 18, (200, 180)))
+    >>> img.astype(int)  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    array([[13, 16,  0, ..., 12,  2,  5],
+           [17,  9,  1, ..., 16,  9,  0],
+           [11, 12, 14, ...,  8,  5,  4],
+           ...,
+           [12,  6,  3, ..., 15,  0,  3],
+           [11, 17,  2, ..., 12, 12,  5],
+           [ 6, 12,  3, ...,  8,  0,  1]])
+    >>> np.bincount(img.ravel()).astype(int)  # doctest: +NORMALIZE_WHITESPACE
+    array([1705, 1706, 1728, 1842, 1794, 1866, 1771,    0, 1717, 1752, 1757,
+           1723, 1823, 1833, 1749, 1718, 1769, 1747])
+    >>> img_source = np.random.randint(50, 245, (2500, 3000)).astype(float)
+    >>> img_source[-1, -1] = 255
+    >>> img = histogram_match_cumulative_cdf(img_source / 255., img)
+    >>> np.array(img.shape, dtype=int)
+    array([2500, 3000])
     """
-    source = np.round(source * 255) if source.max() < 1.5 else source
-    source = source.astype(int)
-    out_float = reference.max() < 1.5
-    reference = np.round(reference * 255) if reference.max() < 1.5 else reference
-    reference = reference.astype(int)
-
     # use smaller image
-    step = int(np.max(np.array([source.shape, reference.shape])) / norm_img_size)
-    step = max(1, step)
-    src_counts = np.bincount(source[::step, ::step].ravel())
+    step_src = max(1, int(np.max(source.shape) / norm_img_size))
+    step_ref = max(1, int(np.max(reference.shape) / norm_img_size))
+
+    # determine if we need remember that output should be float valued
+    out_float = source.max() < 1.5
+    # if the image is flout in range (0, 1) extend it
+    source = np.round(source * 255) if source.max() < 1.5 else source
+    # here we need convert to int values
+    source = source.astype(np.int16)
+    # work with just a small image
+    src_small = source[::step_src, ::step_src]
+
+    # here we need work with just a small image
+    ref_small = reference[::step_ref, ::step_ref]
+    # if the image is flout in range (0, 1) extend it
+    ref_small = np.round(ref_small * 255) if reference.max() < 1.5 else ref_small
+    # here we need convert to int values
+    ref_small = ref_small.astype(np.int16)
+
+    src_counts = np.bincount(src_small.ravel())
     # src_values = np.arange(0, len(src_counts))
-    ref_counts = np.bincount(reference[::step, ::step].ravel())
+    ref_counts = np.bincount(ref_small.ravel())
     ref_values = np.arange(0, len(ref_counts))
     # calculate normalized quantiles for each array
     src_quantiles = np.cumsum(src_counts) / float(source.size)
     ref_quantiles = np.cumsum(ref_counts) / float(reference.size)
 
-    interp_a_values = np.interp(src_quantiles, ref_quantiles, ref_values)
-    matched = np.round(interp_a_values)[source]
+    interp_values = np.round(np.interp(src_quantiles, ref_quantiles, ref_values))
+    # in case that it overflows, due to sampling step may skip some high values
+    if source.max() >= len(interp_values):
+        logging.warning('source image max value %i overflow generated LUT of size %i',
+                        source.max(), len(interp_values))
+        # then clip the source image values to fit ot the range
+        source[source >= len(interp_values)] = len(interp_values) - 1
+    matched = np.round(interp_values)[source].astype(np.int16)
 
     if out_float:
         matched = matched.astype(float) / 255.
@@ -688,7 +719,7 @@ def load_config_yaml(path_config):
     >>> os.remove(p_conf)
     """
     with open(path_config, 'r') as fp:
-        config = yaml.load(fp)
+        config = yaml.safe_load(fp)
     return config
 
 
