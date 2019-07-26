@@ -695,7 +695,7 @@ def scale_large_images_landmarks(images, landmarks):
         return images, landmarks
     scale = estimate_scaling(images)
     if scale < 1.:
-        logging.debug('One or more images ra larger then recommended size for visualisation,'
+        logging.debug('One or more images are larger then recommended size for visualisation,'
                       ' an resize with factor %f will be applied', scale)
     # using float16 as image raise TypeError: src data type = 23 is not supported
     images = [cv.resize(img, None, fx=scale, fy=scale, interpolation=cv.INTER_LINEAR)

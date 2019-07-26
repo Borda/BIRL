@@ -394,6 +394,7 @@ def convert_image_to_nifti(path_image, path_out):
     return path_img_out
 
 
+@io_image_decorate
 def convert_image_to_nifti_gray(path_image, path_out):
     """ converting normal image to Nifty Image
 

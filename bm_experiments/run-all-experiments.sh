@@ -59,7 +59,7 @@ do
          -o $results \
          --run_comp_benchmark \
          -DROP /usr/local/bin/dropreg2d \
-         -cfg ./configs/drop.txt \
+         -cfg ./configs/DROP.txt \
          $pproc \
          --visual --unique --nb_workers $jobs
 

@@ -107,6 +107,7 @@ class Experiment(object):
                 lh.setLevel(logging.INFO)
         logging.info('initialise experiment...')
         logging.info(string_dict(self.params, 'PARAMETERS:'))
+        logging.info('COMPUTER: %r', os.uname())
 
     def _check_required_params(self):
         """Check some extra required parameters for this experiment."""

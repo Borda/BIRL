@@ -239,7 +239,7 @@ class ImRegBenchmark(Experiment):
         """
         path_source = self.params.get(field_path, '')
         path_config = os.path.join(self.params['path_exp'], os.path.basename(path_source))
-        if os.path.isfile(path_source):
+        if path_source and os.path.isfile(path_source):
             shutil.copy(path_source, path_config)
             self.params[field_path] = path_config
         else:
