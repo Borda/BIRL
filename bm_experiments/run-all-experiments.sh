@@ -8,7 +8,11 @@ table="~/Medical-data/dataset_ANHIR/images/dataset_medium.csv"
 dataset="~/Medical-data/microscopy/TEMPORARY/borovec/dataset_ANHIR/images"
 results="~/Medical-data/microscopy/TEMPORARY/borovec/experiments_ANHIR/"
 
-preprocessings=("" "--preprocessing hist-matching" "--preprocessing gray hist-matching ")
+preprocessings=("" \
+                "--preprocessing gray" \
+                "--preprocessing matching-rgb" \
+                "--preprocessing gray matching-rgb" \
+                "--preprocessing matching-rgb gray")
 
 for pproc in "${preprocessings[@]}"
 do

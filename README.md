@@ -162,7 +162,7 @@ python birl/bm_template.py \
     -t ./data_images/pairs-imgs-lnds_mix.csv \
     -o ./results \
     -cfg sample_config.yaml \
-    --preprocessing hist-matching gray \
+    --preprocessing matching-rgb gray \
     --unique --visual
 ```
 or with relative paths:
@@ -172,7 +172,7 @@ python birl/bm_template.py \
     -d ./data_images \
     -o ./results \
     -cfg sample_config.yaml \
-    --preprocessing gray hist-matching
+    --preprocessing gray matching-rgb
 ```
 
 The general Image Registration benchmarks contain couple required and optional parameters which are shared among 'all' methods/benchmarks. The brief description is following...
@@ -183,7 +183,7 @@ The general Image Registration benchmarks contain couple required and optional p
 * `-o`/`--path_out` output path for saving results
 
 **Optional** parameters:
-* `--preprocessing` offer some image pre-processing before image registration starts, the order defines order of performed operations; the options are `hist-matching` equalise source to target image and `gray` converting both images to gray-scale
+* `--preprocessing` offer some image pre-processing before image registration starts, the order defines order of performed operations; the options are `matching-<color-space>` (where `<color-space>` is for example `rgb` or `hsv`) equalise source to target image and `gray` converting both images to gray-scale
 * `--unique` each experiment has creation stamp included in its name (prevent overwriting experiments with the same method)
 * `--visual` generate a simple visualisation of particular image registrations
 
@@ -209,7 +209,7 @@ For each benchmark experiment, the explanation about how to install and use a pa
         -o ./results \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml \
-        --preprocessing hist-matching \
+        --preprocessing matching-rgb \
         --visual --unique
     ```
 * **[Register Virtual Stack Slices (RVSS)](https://imagej.net/Register_Virtual_Stack_Slices)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for affine/elastic registration of a sequence of images.

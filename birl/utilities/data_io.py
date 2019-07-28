@@ -25,6 +25,7 @@ LANDMARK_COORDS = ['X', 'Y']
 # SEE: https://gitlab.mister-muffin.de/josch/img2pdf/issues/42
 Image.MAX_IMAGE_PIXELS = None
 CONVERT_RGB = {
+    'rgb': (lambda img: img, lambda img: img),
     'hsv': (rgb2hsv, hsv2rgb),
     'lab': (rgb2lab, lab2rgb),
     'lch': (lambda img: lab2lch(rgb2lab(img)),

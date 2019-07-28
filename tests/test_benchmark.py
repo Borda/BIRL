@@ -90,7 +90,7 @@ class TestBmRegistration(unittest.TestCase):
         params = {
             'path_table': PATH_CSV_COVER_MIX,
             'path_out': self.path_out,
-            'preprocessing': ['gray', 'hist-matching'],
+            'preprocessing': ['gray', 'matching-rgb'],
             'nb_workers': 2,
             'visual': True,
             'unique': False,
@@ -112,7 +112,7 @@ class TestBmRegistration(unittest.TestCase):
             'path_table': PATH_CSV_COVER_ANHIR,
             'path_dataset': PATH_DATA,
             'path_out': self.path_out,
-            'preprocessing': ['hist-matching', 'gray'],
+            'preprocessing': ['matching-hsv', 'gray'],
             'nb_workers': 1,
             'visual': True,
             'unique': False,

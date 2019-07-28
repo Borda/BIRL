@@ -379,10 +379,12 @@ class ImRegBenchmark(Experiment):
 
         for pproc in self.params.get('preprocessing', []):
             path_img_ref, path_img_move, _, _ = self._get_paths(item, prefer_pproc=True)
-            if pproc == 'hist-matching':
+            if pproc.startswith('matching'):
+                color_space = pproc.split('-')[-1].lower()
                 path_img_new = __path_img(path_img_move, pproc)
                 img = image_histogram_matching(load_image(path_img_move),
-                                               load_image(path_img_ref))
+                                               load_image(path_img_ref),
+                                               use_color=color_space)
                 path_img_new, col = __save_img(self.COL_IMAGE_MOVE, path_img_new, img)
                 item[col + self.COL_IMAGE_EXT_TEMP] = path_img_new
             elif pproc in ('gray', 'grey'):

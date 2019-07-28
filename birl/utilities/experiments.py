@@ -21,7 +21,7 @@ from functools import wraps
 import tqdm
 import numpy as np
 
-from birl.utilities.data_io import create_folder, save_config_yaml, update_path
+from birl.utilities.data_io import create_folder, save_config_yaml, update_path, CONVERT_RGB
 
 #: number of available CPUs on this computer
 CPU_COUNT = int(mproc.cpu_count())
@@ -338,7 +338,7 @@ def create_basic_parser(name=''):
                         help='whether visualise partial results')
     parser.add_argument('-pproc', '--preprocessing', type=str, required=False, nargs='+',
                         help='use some image pre-processing, the other matter',
-                        choices=['gray', 'hist-matching'])
+                        choices=['gray'] + ['matching-%s' % clr for clr in CONVERT_RGB])
     # parser.add_argument('--lock_expt', dest='lock_thread', action='store_true',
     #                     help='whether lock to run experiment in single thread')
     parser.add_argument('--run_comp_benchmark', action='store_true',

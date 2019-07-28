@@ -31,7 +31,6 @@ Run the basic RVSS registration with original parameters::
         -o ./results \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_RVSS_histol.yaml \
-        --preprocessing hist-matching \
         --visual --unique
 
 .. note:: tested for version ImageJ 1.52i & 2.35
@@ -68,7 +67,6 @@ class BmRVSS(ImRegBenchmark):
     >>> params = {'path_table': path_csv,
     ...           'path_out': path_out,
     ...           'exec_Fiji': 'ImageJ-linux64',
-    ...           'preprocessing': ['hist-matching'],
     ...           'nb_workers': 2,
     ...           'unique': False,
     ...           'path_config': fn_path_conf('ImageJ_RVSS_histol.yaml')}
