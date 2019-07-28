@@ -17,7 +17,8 @@ from scipy import spatial, optimize
 from matplotlib.path import Path
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
-from skimage.color import rgb2hsv, hsv2rgb, rgb2lab, lab2rgb, lch2lab, lab2lch
+from skimage.color import (
+    rgb2hsv, hsv2rgb, rgb2lab, lab2rgb, lch2lab, lab2lch, rgb2hed, hed2rgb, rgb2luv, luv2rgb)
 from cv2 import (IMWRITE_JPEG_QUALITY, IMWRITE_PNG_COMPRESSION, GaussianBlur,
                  cvtColor, COLOR_RGBA2RGB, COLOR_RGB2BGR, imwrite)
 
@@ -42,6 +43,8 @@ CONVERT_RGB = {
     'rgb': (lambda img: img, lambda img: img),
     'hsv': (rgb2hsv, hsv2rgb),
     'lab': (rgb2lab, lab2rgb),
+    'luv': (rgb2luv, luv2rgb),
+    'hed': (rgb2hed, hed2rgb),
     'lch': (lambda img: lab2lch(rgb2lab(img)),
             lambda img: lab2rgb(lch2lab(img))),
 }
@@ -589,8 +592,8 @@ def list_sub_folders(path_folder, name='*'):
 
     >>> from birl.utilities.data_io import update_path
     >>> paths = list_sub_folders(update_path('data_images'))
-    >>> list(map(os.path.basename, paths))
-    ['images', 'landmarks', 'lesions_', 'rat-kidney_']
+    >>> list(map(os.path.basename, paths))  # doctest: +ELLIPSIS
+    ['images', 'landmarks', 'lesions_', 'rat-kidney_'...]
     """
     sub_dirs = sorted([p for p in glob.glob(os.path.join(path_folder, name))
                        if os.path.isdir(p)])
@@ -781,6 +784,7 @@ def image_histogram_matching(source, reference, use_color='hsv', norm_img_size=4
     :param int norm_img_size: subsample image to this max size
     :return ndarray: transformed image
 
+    >>> from birl.utilities.data_io import update_path, load_image
     >>> path_imgs = os.path.join(update_path('data_images'), 'rat-kidney_', 'scale-5pc')
     >>> img1 = load_image(os.path.join(path_imgs, 'Rat-Kidney_HE.jpg'))
     >>> img2 = load_image(os.path.join(path_imgs, 'Rat-Kidney_PanCytokeratin.jpg'))
@@ -808,7 +812,7 @@ def image_histogram_matching(source, reference, use_color='hsv', norm_img_size=4
     if source.ndim == 2:
         matched = histogram_match_cumulative_cdf(source, reference, norm_img_size=norm_img_size)
     elif source.ndim == 3:
-        conv_from_rgb, conv_to_rgb = CONVERT_RGB.get(use_color, (None, None))
+        conv_from_rgb, conv_to_rgb = CONVERT_RGB.get(use_color.lower(), (None, None))
         if conv_from_rgb:
             source = conv_from_rgb(source[:, :, :3])
             reference = conv_from_rgb(reference[:, :, :3])
@@ -892,7 +896,7 @@ def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
                         source.max(), len(interp_values))
         # then clip the source image values to fit ot the range
         source[source >= len(interp_values)] = len(interp_values) - 1
-    matched = np.round(interp_values)[source].astype(np.int16) + offset
+    matched = np.round(interp_values)[source - offset].astype(np.int16) + offset
 
     if out_float:
         matched = matched.astype(float) / 255.
