@@ -21,7 +21,8 @@ from functools import wraps
 import tqdm
 import numpy as np
 
-from birl.utilities.data_io import create_folder, save_config_yaml, update_path, CONVERT_RGB
+from birl.utilities.data_io import create_folder, save_config_yaml, update_path
+from birl.utilities.dataset import CONVERT_RGB
 
 #: number of available CPUs on this computer
 CPU_COUNT = int(mproc.cpu_count())
