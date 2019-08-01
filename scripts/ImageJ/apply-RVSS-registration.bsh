@@ -3,7 +3,7 @@
  *
  * EXAMPLE:
  * >> ~/Applications/Fiji.app/ImageJ-linux64 --java-home /usr/lib/jvm/java-8-openjdk-amd64 \
-        --headless apply_RVSS.bsh ./input/ ./output/ ./transf/ \
+        --headless apply-RVSS-registration.bsh ./input/ ./output/ ./transf/ \
         null 1 2 2 1.6 3 64 1024 8 8 0.92 25 0.05 2
  *
  * Copyright (C) 2019 Ignacio Arganda-Carreras <ignacio.arganda@ehu.eus>
@@ -14,7 +14,7 @@ import ij.IJ;
 
 if( bsh.args.length < 17 )
 {
-	IJ.log( "RVSS_align.bsh" );
+	IJ.log( "apply-RVSS-registration.bsh" );
 	IJ.log( "USAGE: RVSS_align.bsh sourceDir targetDir transfDir referenceName shrinkingConstraint featuresModelIndex registrationModelIndex" );
 	IJ.log( "       initialSigma steps minOctaveSize maxOctaveSize fdSize fdBins rod maxEpsilon minInlierRatio modelIndex" );
 	IJ.log( "       'sourceDir' path to directory with input images" );

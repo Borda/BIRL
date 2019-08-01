@@ -3,7 +3,7 @@ RVSS:
   # Index of the features extraction model
   featuresModelIndex: 2  # (0=TRANSLATION, 1=RIGID, 2=SIMILARITY, 3=AFFINE)
   # Index of the registration model (0=TRANSLATION, 1=RIGID, 2=SIMILARITY, 3=AFFINE, 4=ELASTIC, 5=MOVING_LEAST_SQUARES)
-  registrationModelIndex: 4
+  registrationModelIndex: 3
 
 SIFT:
   # initial Gaussian blur sigma (SIFT parameter, ex. 1.6)

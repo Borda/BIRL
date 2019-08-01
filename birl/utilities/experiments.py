@@ -1,5 +1,5 @@
 """
-General experiments methods
+General experiments methods.
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -13,13 +13,14 @@ import logging
 import argparse
 import subprocess
 import collections
+import platform
 import uuid
 import multiprocessing as mproc
-from pathos.multiprocessing import ProcessPool
 from functools import wraps
 
 import tqdm
 import numpy as np
+from pathos.multiprocessing import ProcessPool
 
 from birl.utilities.data_io import create_folder, save_config_yaml, update_path
 from birl.utilities.dataset import CONVERT_RGB
@@ -108,7 +109,7 @@ class Experiment(object):
                 lh.setLevel(logging.INFO)
         logging.info('initialise experiment...')
         logging.info(string_dict(self.params, 'PARAMETERS:'))
-        logging.info('COMPUTER: %r', os.uname())
+        logging.info('COMPUTER: %r', computer_info())
 
     def _check_required_params(self):
         """Check some extra required parameters for this experiment."""
@@ -680,3 +681,38 @@ def dict_deep_update(dict_base, dict_update):
         else:
             dict_base[k] = val
     return dict_base
+
+
+def _get_ram():
+    """ get the RAM of the computer
+
+    :return int: RAM value in GB
+    """
+    try:
+        from psutil import virtual_memory
+        ram = virtual_memory().total / 1024. ** 3
+    except Exception:
+        logging.exception('Retrieving info about RAM memory failed.')
+        ram = np.nan
+    return ram
+
+
+def computer_info():
+    """cet basic computer information.
+
+    :return dict:
+
+    >>> len(computer_info())
+    9
+    """
+    return {
+        'system': platform.system(),
+        'architecture': platform.architecture(),
+        'node': platform.node(),
+        'release': platform.release(),
+        'version': platform.version(),
+        'machine': platform.machine(),
+        'processor': platform.processor(),
+        'virtual CPUs': mproc.cpu_count(),
+        'total RAM': _get_ram(),
+    }
