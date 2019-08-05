@@ -3,6 +3,7 @@ General experiments methods.
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
+from __future__ import absolute_import
 
 import os
 import sys
@@ -22,8 +23,8 @@ import tqdm
 import numpy as np
 from pathos.multiprocessing import ProcessPool
 
-from birl.utilities.data_io import create_folder, save_config_yaml, update_path
-from birl.utilities.dataset import CONVERT_RGB
+from .data_io import create_folder, save_config_yaml, update_path
+from .dataset import CONVERT_RGB
 
 #: number of available CPUs on this computer
 CPU_COUNT = int(mproc.cpu_count())

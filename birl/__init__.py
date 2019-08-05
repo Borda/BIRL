@@ -5,8 +5,8 @@ before satisfying install requirements
 """
 
 try:
-    import birl.utilities
-    birl.utilities
+    from . import utilities
+    utilities
 except ImportError:
     import traceback
     traceback.print_exc()

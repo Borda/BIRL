@@ -3,6 +3,7 @@ Function for drawing and visualisations
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
+from __future__ import absolute_import
 
 import os
 import logging
@@ -12,9 +13,10 @@ import matplotlib.pylab as plt
 from PIL import ImageDraw
 from matplotlib import colors as plt_colors, ticker as plt_ticker
 
-from birl.utilities.data_io import convert_ndarray2image
-from birl.utilities.dataset import scale_large_images_landmarks
-from birl.utilities.evaluate import compute_matrix_user_ranking
+from .data_io import convert_ndarray2image
+from .dataset import scale_large_images_landmarks
+from .evaluate import compute_matrix_user_ranking
+
 #: default figure size for visualisations
 MAX_FIGURE_SIZE = 18  # inches
 

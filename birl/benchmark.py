@@ -26,17 +26,17 @@ import pandas as pd
 from skimage.color import rgb2gray
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import (
+from .utilities.data_io import (
     update_path, create_folder, image_sizes, load_landmarks, load_image, save_image)
-from birl.utilities.dataset import image_histogram_matching
-from birl.utilities.evaluate import (
+from .utilities.dataset import image_histogram_matching
+from .utilities.evaluate import (
     compute_target_regist_error_statistic, compute_affine_transf_diff, compute_tre_robustness)
-from birl.utilities.experiments import (
+from .utilities.experiments import (
     nb_workers, exec_commands, string_dict, iterate_mproc_map, create_basic_parser,
     parse_arg_params, Experiment)
-from birl.utilities.drawing import (
+from .utilities.drawing import (
     export_figure, draw_image_points, draw_images_warped_landmarks, overlap_two_images)
-from birl.utilities.registration import estimate_affine_transform
+from .utilities.registration import estimate_affine_transform
 
 
 class ImRegBenchmark(Experiment):
