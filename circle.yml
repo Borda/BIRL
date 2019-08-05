@@ -109,6 +109,13 @@ jobs:
       - *run_experiment
       - *run_bUnwarpJ
       - *run_RVSS
+
+      # PASSING
+      - run:
+          name: Finalise
+          command: |
+            python setup.py install --user
+            coverage report && coverage xml -o test-reports/coverage.xml
       # RESULTS
       - store_test_results:
           path: test-reports
