@@ -27,7 +27,6 @@ references:
         unset DISPLAY
         mkdir test-reports && mkdir results
         coverage run --source birl -m py.test birl tests bm_dataset bm_experiments bm_ANHIR -v --doctest-modules --junitxml=test-reports/pytest_junit.xml
-        coverage report && coverage xml -o test-reports/coverage.xml
         flake8 . --max-line-length=100
         codecov
         rm -rf results
