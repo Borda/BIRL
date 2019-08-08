@@ -3,6 +3,7 @@ Evaluate experiments
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
+from __future__ import absolute_import
 
 from itertools import chain
 from collections import Counter
@@ -11,8 +12,7 @@ import numpy as np
 import pandas as pd
 from scipy.spatial import distance
 
-from birl.utilities.registration import (
-    estimate_affine_transform, get_affine_components, norm_angle)
+from .registration import estimate_affine_transform, get_affine_components, norm_angle
 
 
 def compute_tre(points_1, points_2):

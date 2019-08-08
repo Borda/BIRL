@@ -26,17 +26,17 @@ import pandas as pd
 from skimage.color import rgb2gray
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import (
-    update_path, create_folder, image_sizes, load_landmarks, load_image, save_image,
-    image_histogram_matching)
-from birl.utilities.evaluate import (
+from .utilities.data_io import (
+    update_path, create_folder, image_sizes, load_landmarks, load_image, save_image)
+from .utilities.dataset import image_histogram_matching
+from .utilities.evaluate import (
     compute_target_regist_error_statistic, compute_affine_transf_diff, compute_tre_robustness)
-from birl.utilities.experiments import (
+from .utilities.experiments import (
     nb_workers, exec_commands, string_dict, iterate_mproc_map, create_basic_parser,
     parse_arg_params, Experiment)
-from birl.utilities.visualisation import (
+from .utilities.drawing import (
     export_figure, draw_image_points, draw_images_warped_landmarks, overlap_two_images)
-from birl.utilities.registration import estimate_affine_transform
+from .utilities.registration import estimate_affine_transform
 
 
 class ImRegBenchmark(Experiment):
@@ -239,7 +239,7 @@ class ImRegBenchmark(Experiment):
         """
         path_source = self.params.get(field_path, '')
         path_config = os.path.join(self.params['path_exp'], os.path.basename(path_source))
-        if os.path.isfile(path_source):
+        if path_source and os.path.isfile(path_source):
             shutil.copy(path_source, path_config)
             self.params[field_path] = path_config
         else:
@@ -379,10 +379,12 @@ class ImRegBenchmark(Experiment):
 
         for pproc in self.params.get('preprocessing', []):
             path_img_ref, path_img_move, _, _ = self._get_paths(item, prefer_pproc=True)
-            if pproc == 'hist-matching':
+            if pproc.startswith('match'):
+                color_space = pproc.split('-')[-1]
                 path_img_new = __path_img(path_img_move, pproc)
                 img = image_histogram_matching(load_image(path_img_move),
-                                               load_image(path_img_ref))
+                                               load_image(path_img_ref),
+                                               use_color=color_space)
                 path_img_new, col = __save_img(self.COL_IMAGE_MOVE, path_img_new, img)
                 item[col + self.COL_IMAGE_EXT_TEMP] = path_img_new
             elif pproc in ('gray', 'grey'):

@@ -10,7 +10,7 @@ Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 
 # Always prefer setuptools over distutils
 from os import path
-from setuptools import setup, find_packages
+from setuptools import setup
 # io.open is needed for projects that support Python 2.7
 # It ensures open() defaults to text mode with universal newlines,
 # and accepts an argument to specify the text encoding
@@ -43,7 +43,7 @@ setup(
     long_description=birl.__doc__,
     long_description_content_type='text/markdown',
 
-    packages=find_packages(exclude=['docs', 'notebooks', 'scripts*', 'bm_*']),
+    packages=['birl'],
 
     keywords='benchmark image registration landmarks',
     install_requires=requirements,

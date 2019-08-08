@@ -17,6 +17,8 @@ from scipy import spatial, optimize
 from matplotlib.path import Path
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
+from skimage.color import (
+    rgb2hsv, hsv2rgb, rgb2lab, lab2rgb, lch2lab, lab2lch, rgb2hed, hed2rgb, rgb2luv, luv2rgb)
 from cv2 import (IMWRITE_JPEG_QUALITY, IMWRITE_PNG_COMPRESSION, GaussianBlur,
                  cvtColor, COLOR_RGBA2RGB, COLOR_RGB2BGR, imwrite)
 
@@ -36,6 +38,16 @@ REEXP_FOLDER_SCALE = r'\S*scale-(\d+)pc'
 Image.MAX_IMAGE_PIXELS = None
 #: maximal image size for visualisations, larger images will be downscaled
 MAX_IMAGE_SIZE = 5000
+#: define pair of forward and backward color space conversion
+CONVERT_RGB = {
+    'rgb': (lambda img: img, lambda img: img),
+    'hsv': (rgb2hsv, hsv2rgb),
+    'lab': (rgb2lab, lab2rgb),
+    'luv': (rgb2luv, luv2rgb),
+    'hed': (rgb2hed, hed2rgb),
+    'lch': (lambda img: lab2lch(rgb2lab(img)),
+            lambda img: lab2rgb(lch2lab(img))),
+}
 
 
 def detect_binary_blocks(vec_bin):
@@ -580,8 +592,8 @@ def list_sub_folders(path_folder, name='*'):
 
     >>> from birl.utilities.data_io import update_path
     >>> paths = list_sub_folders(update_path('data_images'))
-    >>> list(map(os.path.basename, paths))
-    ['images', 'landmarks', 'lesions_', 'rat-kidney_']
+    >>> list(map(os.path.basename, paths))  # doctest: +ELLIPSIS
+    ['images', 'landmarks', 'lesions_', 'rat-kidney_'...]
     """
     sub_dirs = sorted([p for p in glob.glob(os.path.join(path_folder, name))
                        if os.path.isdir(p)])
@@ -695,7 +707,7 @@ def scale_large_images_landmarks(images, landmarks):
         return images, landmarks
     scale = estimate_scaling(images)
     if scale < 1.:
-        logging.debug('One or more images ra larger then recommended size for visualisation,'
+        logging.debug('One or more images are larger then recommended size for visualisation,'
                       ' an resize with factor %f will be applied', scale)
     # using float16 as image raise TypeError: src data type = 23 is not supported
     images = [cv.resize(img, None, fx=scale, fy=scale, interpolation=cv.INTER_LINEAR)
@@ -751,3 +763,141 @@ def convert_landmarks_from_itk(lnds, image_size):
     # revert the Y by height
     lnds[:, 0] = height - lnds[:, 0]
     return lnds
+
+
+def image_histogram_matching(source, reference, use_color='hsv', norm_img_size=4096):
+    """ adjust image histogram between two images
+
+    Optionally transform the image to more continues color space.
+    The source and target image does not need to be the same size, but RGB/gray.
+
+    See cor related information:
+
+    * https://www.researchgate.net/post/Histogram_matching_for_color_images
+    * https://github.com/scikit-image/scikit-image/blob/master/skimage/transform/histogram_matching.py
+    * https://stackoverflow.com/questions/32655686/histogram-matching-of-two-images-in-python-2-x
+    * https://github.com/mapbox/rio-hist/issues/3
+
+    :param ndarray source: 2D image to be transformed
+    :param ndarray reference: reference 2D image
+    :param str use_color: using color space for hist matching
+    :param int norm_img_size: subsample image to this max size
+    :return ndarray: transformed image
+
+    >>> from birl.utilities.data_io import update_path, load_image
+    >>> path_imgs = os.path.join(update_path('data_images'), 'rat-kidney_', 'scale-5pc')
+    >>> img1 = load_image(os.path.join(path_imgs, 'Rat-Kidney_HE.jpg'))
+    >>> img2 = load_image(os.path.join(path_imgs, 'Rat-Kidney_PanCytokeratin.jpg'))
+    >>> image_histogram_matching(img1, img2).shape == img1.shape
+    True
+    >>> img = image_histogram_matching(img1[..., 0], np.expand_dims(img2[..., 0], 2))
+    >>> img.shape == img1.shape[:2]
+    True
+    >>> # this should return unchanged source image
+    >>> image_histogram_matching(np.random.random((10, 20, 30, 5)),
+    ...                          np.random.random((30, 10, 20, 5))).ndim
+    4
+    """
+    # in case gray images normalise dimensionality
+    def _normalise_image(img):
+        # normalise gray-scale images
+        if img.ndim == 3 and img.shape[-1] == 1:
+            img = img[..., 0]
+        return img
+
+    source = _normalise_image(source)
+    reference = _normalise_image(reference)
+    assert source.ndim == reference.ndim, 'the image dimensionality has to be equal'
+
+    if source.ndim == 2:
+        matched = histogram_match_cumulative_cdf(source, reference, norm_img_size=norm_img_size)
+    elif source.ndim == 3:
+        conv_from_rgb, conv_to_rgb = CONVERT_RGB.get(use_color.lower(), (None, None))
+        if conv_from_rgb:
+            source = conv_from_rgb(source[:, :, :3])
+            reference = conv_from_rgb(reference[:, :, :3])
+        matched = np.empty(source.shape, dtype=source.dtype)
+        for ch in range(source.shape[-1]):
+            matched[..., ch] = histogram_match_cumulative_cdf(source[..., ch],
+                                                              reference[..., ch],
+                                                              norm_img_size=norm_img_size)
+        if conv_to_rgb:
+            matched = conv_to_rgb(matched)
+    else:
+        logging.warning('unsupported image dimensions: %r', source.shape)
+        matched = source
+
+    return matched
+
+
+def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
+    """ Adjust the pixel values of a gray-scale image such that its histogram
+    matches that of a target image
+
+    :param ndarray source: 2D image to be transformed, np.array<height1, width1>
+    :param ndarray reference: reference 2D image, np.array<height2, width2>
+    :return ndarray: transformed image, np.array<height1, width1>
+
+    >>> np.random.seed(0)
+    >>> img = histogram_match_cumulative_cdf(np.random.randint(128, 145, (150, 200)),
+    ...                                      np.random.randint(0, 18, (200, 180)))
+    >>> img.astype(int)  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    array([[13, 16,  0, ..., 12,  2,  5],
+           [17,  9,  1, ..., 16,  9,  0],
+           [11, 12, 14, ...,  8,  5,  4],
+           ...,
+           [12,  6,  3, ..., 15,  0,  3],
+           [11, 17,  2, ..., 12, 12,  5],
+           [ 6, 12,  3, ...,  8,  0,  1]])
+    >>> np.bincount(img.ravel()).astype(int)  # doctest: +NORMALIZE_WHITESPACE
+    array([1705, 1706, 1728, 1842, 1794, 1866, 1771,    0, 1717, 1752, 1757,
+           1723, 1823, 1833, 1749, 1718, 1769, 1747])
+    >>> img_source = np.random.randint(50, 245, (2500, 3000)).astype(float)
+    >>> img_source[-1, -1] = 255
+    >>> img = histogram_match_cumulative_cdf(img_source / 255., img)
+    >>> np.array(img.shape, dtype=int)
+    array([2500, 3000])
+    """
+    # use smaller image
+    step_src = max(1, int(np.max(source.shape) / norm_img_size))
+    step_ref = max(1, int(np.max(reference.shape) / norm_img_size))
+
+    # determine if we need remember that output should be float valued
+    out_float = source.max() < 1.5
+    # if the image is flout in range (0, 1) extend it
+    source = np.round(source * 255) if source.max() < 1.5 else source
+    # here we need convert to int values
+    source = source.astype(np.int16)
+    # work with just a small image
+    src_small = source[::step_src, ::step_src]
+
+    # here we need work with just a small image
+    ref_small = reference[::step_ref, ::step_ref]
+    # if the image is flout in range (0, 1) extend it
+    ref_small = np.round(ref_small * 255) if reference.max() < 1.5 else ref_small
+    # here we need convert to int values
+    ref_small = ref_small.astype(np.int16)
+
+    # some color spaces have also negative values, then shisfting to zero is needed
+    offset = min(0, src_small.min(), ref_small.min())
+    # get value histograms
+    src_counts = np.bincount(src_small.ravel() - offset)
+    # src_values = np.arange(0, len(src_counts))
+    ref_counts = np.bincount(ref_small.ravel() - offset)
+    ref_values = np.arange(0, len(ref_counts))
+    # calculate normalized quantiles for each array
+    src_quantiles = np.cumsum(src_counts) / float(source.size)
+    ref_quantiles = np.cumsum(ref_counts) / float(reference.size)
+
+    interp_values = np.round(np.interp(src_quantiles, ref_quantiles, ref_values))
+    # in case that it overflows, due to sampling step may skip some high values
+    if source.max() >= len(interp_values):
+        logging.warning('source image max value %i overflow generated LUT of size %i',
+                        source.max(), len(interp_values))
+        # then clip the source image values to fit ot the range
+        source[source >= len(interp_values)] = len(interp_values) - 1
+    matched = np.round(interp_values)[source - offset].astype(np.int16) + offset
+
+    if out_float:
+        matched = matched.astype(float) / 255.
+    return matched

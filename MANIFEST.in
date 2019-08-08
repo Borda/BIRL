@@ -1,6 +1,7 @@
 # Manifest syntax https://docs.python.org/2/distutils/sourcedist.html
 graft wheelhouse
 
+recursive-include birl *.py
 recursive-exclude __pycache__  *.pyc *.pyo *.orig
 
 # Include the README
@@ -26,7 +27,7 @@ recursive-exclude tests *
 exclude tests
 
 # Exclude Jupyter notebooks
-recursive-exclude notebooks *.ipynb
+recursive-exclude notebooks *.ipynb *.txt
 exclude notebooks
 
 # Include the data files
@@ -44,13 +45,12 @@ recursive-include scripts *.r *.ijm *.bsh *.py
 
 # Include the Requirements
 include requirements.txt
-exclude requirements-*.txt
 
 # Exclude build configs
 exclude *.yml
 
 prune .git
 prune .github
-prune venv
+prune notebook*
 prune temp*
 prune test*

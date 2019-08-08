@@ -14,13 +14,14 @@ The tested image registration scenario is as following
 
 Example run::
 
-    pip install --user tqdm numpy scikit-image
-    python bm_comp_perform.py -o ../output
+    pip install --user tqdm numpy scikit-image https://github.com/Borda/BIRL/archive/master.zip
+    python bm_comp_perform.py -o ../output -n 3
 
 Copyright (C) 2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 import os
+import sys
 import time
 import json
 import argparse
@@ -41,6 +42,9 @@ from skimage.measure import ransac
 from skimage.util import random_noise
 from skimage.restoration import denoise_bilateral, denoise_wavelet
 from skimage.feature import ORB, match_descriptors
+
+sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
+from birl.utilities.experiments import computer_info
 
 IMAGE_SIZE = (2000, 2000)
 IMAGE_NOISE = 0.01
@@ -81,7 +85,8 @@ def _prepare_images(path_out, im_size=IMAGE_SIZE):
     io.imsave(path_img_target, img_target)
 
     # warp synthetic image
-    tform = AffineTransform(scale=(0.9, 0.9), rotation=0.2,
+    tform = AffineTransform(scale=(0.9, 0.9),
+                            rotation=0.2,
                             translation=(200, -50))
     img_source = warp(image, tform.inverse, output_shape=im_size)
     img_source = random_noise(img_source, var=IMAGE_NOISE)
@@ -201,20 +206,6 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_workers=CPU_COUNT):
     return res
 
 
-def _get_ram():
-    """ get the RAM of the computer
-
-    :return int: RAM value in GB
-    """
-    try:
-        from psutil import virtual_memory
-        ram = virtual_memory().total / 1024. ** 3
-    except Exception:
-        logging.exception('Retrieving info about RAM memory failed.')
-        ram = np.nan
-    return ram
-
-
 def main(path_out='', nb_runs=5):
     """ the main entry point
 
@@ -232,17 +223,7 @@ def main(path_out='', nb_runs=5):
     hasher = hashlib.sha256()
     hasher.update(open(__file__, 'rb').read())
     report = {
-        'computer': {
-            'system': platform.system(),
-            'architecture': platform.architecture(),
-            'node': platform.node(),
-            'release': platform.release(),
-            'version': platform.version(),
-            'machine': platform.machine(),
-            'processor': platform.processor(),
-            'virtual CPUs': mproc.cpu_count(),
-            'total RAM': _get_ram(),
-        },
+        'computer': computer_info(),
         'created': str(datetime.datetime.now()),
         'file': hasher.hexdigest(),
         'number runs': nb_runs,

@@ -6,3 +6,4 @@ pytest-cov
 flake8
 check-manifest
 codacy-coverage
+parameterized

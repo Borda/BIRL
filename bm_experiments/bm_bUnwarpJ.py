@@ -31,7 +31,6 @@ Run the basic bUnwarpJ registration with original parameters::
         -o ./results \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml \
-        --preprocessing hist-matching \
         --visual --unique
 
 The bUnwarpJ is supporting SIFT and MOPS feature extraction as landmarks
@@ -43,7 +42,6 @@ see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support ::
         -o ./results \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml \
-        --preprocessing hist-matching \
         --visual --unique
 
 .. note:: tested for version ImageJ 1.52i & 2.35
@@ -79,7 +77,6 @@ class BmUnwarpJ(ImRegBenchmark):
     >>> params = {'path_table': path_csv,
     ...           'path_out': path_out,
     ...           'exec_Fiji': 'ImageJ-linux64',
-    ...           'preprocessing': ['hist-matching'],
     ...           'nb_workers': 2,
     ...           'unique': False,
     ...           'path_config': fn_path_conf('ImageJ_bUnwarpJ_histol.yaml')}
