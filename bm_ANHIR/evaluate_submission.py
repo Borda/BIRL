@@ -233,10 +233,10 @@ def compute_scores(df_experiments, min_landmarks=1.):
     :return dict: results
     """
     # if the initial overlap and submitted overlap do not mach, drop results
-    if 'overlap points (final)' not in df_experiments.columns:
-        raise ValueError('Missing `overlap points (final)` column,'
+    if 'overlap points (target)' not in df_experiments.columns:
+        raise ValueError('Missing `overlap points (target)` column,'
                          ' because there are probably missing wrap landmarks.')
-    hold_overlap = df_experiments['overlap points (init)'] == df_experiments['overlap points (final)']
+    hold_overlap = df_experiments['overlap points (init)'] == df_experiments['overlap points (target)']
     mask_incomplete = ~hold_overlap | (df_experiments[COL_FOUND_LNDS] < min_landmarks)
     # rewrite incomplete cases by initial stat
     if sum(mask_incomplete) > 0:
@@ -296,8 +296,9 @@ def _filter_tre_measure_columns(df_experiments):
     :return tuple(list(str),list(str)):
     """
     # copy the initial to final for missing
-    cols_final = [col for col in df_experiments.columns if re.match(r'(r)?TRE', col)]
-    cols_init = [col.replace('TRE', 'IRE') for col in cols_final]
+    cols_init = [col for col in df_experiments.columns if re.match(r'(r)?IRE', col)]
+    cols_final = [col.replace('IRE', 'TRE') for col in cols_init]
+    assert len(cols_final) == len(cols_init), 'columns do not match for future zip'
     return cols_final, cols_init
 
 
@@ -386,8 +387,37 @@ def replicate_missing_warped_landmarks(df_experiments, path_dataset, path_experi
     return df_experiments
 
 
+def swap_inverse_experiment(df_results, allow_inverse):
+    """ optional swap of registration results from using warped moving to warped reference
+
+    :param DF df_results: experiment table
+    :param bool allow_inverse: allw swap from using warped moving to warped reference
+    :return DF: updated rexperiment table
+    """
+    if not allow_inverse:
+        return df_results
+    if ImRegBenchmark.COL_POINTS_MOVE_WARP in df_results.columns:
+        filled = df_results[ImRegBenchmark.COL_POINTS_MOVE_WARP].dropna()
+        if len(filled) > 0:
+            # everything seems to be fine...
+            return df_results
+    logging.warning('Missing target column "%s"', ImRegBenchmark.COL_POINTS_MOVE_WARP)
+    if ImRegBenchmark.COL_POINTS_REF_WARP not in df_results.columns:
+        raise ValueError('Missing target column "%s" to swap to'
+                         % ImRegBenchmark.COL_POINTS_REF_WARP)
+    # swapping columns
+    col_ref = df_results[ImRegBenchmark.COL_POINTS_REF]
+    col_move = df_results[ImRegBenchmark.COL_POINTS_MOVE]
+    col_ref_warp = df_results[ImRegBenchmark.COL_POINTS_REF_WARP]
+    df_results[ImRegBenchmark.COL_POINTS_REF] = col_move
+    df_results[ImRegBenchmark.COL_POINTS_MOVE] = col_ref
+    df_results[ImRegBenchmark.COL_POINTS_MOVE_WARP] = col_ref_warp
+    return df_results
+
+
 def main(path_experiment, path_table, path_dataset, path_output, path_reference=None,
-         path_comp_bm=None, nb_workers=NB_WORKERS, min_landmarks=1., details=True):
+         path_comp_bm=None, nb_workers=NB_WORKERS, min_landmarks=1., details=True,
+         allow_inverse=False):
     """ main entry point
 
     :param str path_experiment: path to experiment folder
@@ -401,6 +431,8 @@ def main(path_experiment, path_table, path_dataset, path_output, path_reference=
     :param float min_landmarks: required number of submitted landmarks in range (0, 1),
         match values in COL_FOUND_LNDS
     :param bool details: exporting case details
+    :param bool allow_inverse: allow evaluate also inverse transformation,
+        warped landmarks from ref to move image
     """
 
     path_results = os.path.join(path_experiment, ImRegBenchmark.NAME_CSV_REGISTRATION_PAIRS)
@@ -414,6 +446,7 @@ def main(path_experiment, path_table, path_dataset, path_output, path_reference=
     df_overview = df_overview.drop([col for col in df_overview.columns if 'warped' in col.lower()],
                                    axis=1, errors='ignore')
     df_results = pd.read_csv(path_results)
+    df_results = swap_inverse_experiment(df_results, allow_inverse)
     df_results = df_results[[col for col in list(ImRegBenchmark.COVER_COLUMNS_WRAP) + [ImRegBenchmark.COL_TIME]
                              if col in df_results.columns]]
     df_experiments = pd.merge(df_overview, df_results, how='left', on=ImRegBenchmark.COVER_COLUMNS)
