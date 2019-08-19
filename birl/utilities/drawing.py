@@ -3,7 +3,7 @@ Function for drawing and visualisations
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
-from __future__ import absolute_import
+# from __future__ import absolute_import
 
 import os
 import logging
@@ -184,8 +184,10 @@ def draw_images_warped_landmarks(image_target, image_source,
     >>> fig = draw_images_warped_landmarks(None, None, points, points + 1, points - 1)
     >>> isinstance(fig, plt.Figure)
     True
-    >>> _ = draw_images_warped_landmarks(image, None, points, points + 1, points - 1)
-    >>> _ = draw_images_warped_landmarks(None, image, points, points + 1, points - 1)
+    >>> draw_images_warped_landmarks(image, None, points, points + 1, points - 1)  # doctest: +ELLIPSIS
+    <...>
+    >>> draw_images_warped_landmarks(None, image, points, points + 1, points - 1)  # doctest: +ELLIPSIS
+    <...>
     """
     # down-scale images and landmarks if they are too large
     (image_target, image_source), (points_init, points_target, points_warped) = \
@@ -275,7 +277,8 @@ class RadarChart(object):
 
     >>> import pandas as pd
     >>> df = pd.DataFrame(np.random.random((5, 3)), columns=list('abc'))
-    >>> fig = RadarChart(df)
+    >>> RadarChart(df)  # doctest: +ELLIPSIS
+    <...>
     """
 
     def __init__(self, df, steps=5, fig=None, rect=None, fill_alpha=0.05, cmap='nipy_spectral',
@@ -455,7 +458,8 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None, cmap='nipy_
 
     >>> import pandas as pd
     >>> df = pd.DataFrame(np.random.random((5, 3)), columns=list('abc'))
-    >>> fig = draw_matrix_user_ranking(df)
+    >>> draw_matrix_user_ranking(df)  # doctest: +ELLIPSIS
+    <...>
     """
     ranking = compute_matrix_user_ranking(df_stat, higher_better)
 
@@ -474,3 +478,72 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None, cmap='nipy_
 
     fig.tight_layout()
     return fig
+
+
+def draw_scatter_double_scale(df, cmap=None,
+                              ax_decs={'name1': ['col1', 'col2'], 'name2': ['col3']},
+                              idx_markers=('o', 'd'),
+                              xlabel='', figsize=None):
+    """Draw a scatter with double scales on left and right
+
+    :param DF df: dataframe
+    :param func cmap: color mapping
+    :param dict ax_decs: dictionary with names of left and right axis
+    :param tuple idx_markers:
+    :param str xlabel: title of x axis
+    :param tuple(float,float) figsize:
+    :return tuple: figure and both axis
+
+    >>> import pandas as pd
+    >>> df = pd.DataFrame(np.random.random((10, 3)), columns=['col1', 'col2', 'col3'])
+    >>> fig, axs = draw_scatter_double_scale(df, ax_decs={'name': None}, xlabel='X')
+    >>> axs  # doctest: +ELLIPSIS
+    (<...>, None)
+    >>> fig, axs = draw_scatter_double_scale(df, ax_decs={'name1': ['col1', 'col2'], 'name2': None})
+    >>> fig  # doctest: +ELLIPSIS
+    <...>
+    """
+    # https://matplotlib.org/gallery/api/two_scales.html
+    fig, ax1 = plt.subplots(figsize=figsize)
+    ax_names = list(ax_decs.keys())
+    idx_names = list(df.index)
+
+    if not cmap:
+        cmap = plt.cm.jet
+
+    tab_colors = ('tab:red', 'tab:green') if len(ax_names) > 1 else ('black', )
+    ax1.set_ylabel(ax_names[0], color=tab_colors[0])
+    ax1.grid(True, linestyle='-.', color=tab_colors[0])
+    ax1.tick_params(axis='y', labelcolor=tab_colors[0])
+    # automatically fill missing names in the other collections
+    if not ax_decs[ax_names[0]]:
+        # if it is just one add all columns else just supplement
+        ax_decs[ax_names[0]] = [c for c in df.columns if c not in ax_decs[ax_names[1]]] \
+            if len(ax_names) > 1 and ax_decs.get(ax_names[1]) else list(df.columns)
+    if len(ax_names) == 2:
+        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+        ax2.set_ylabel(ax_names[1], color=tab_colors[1])  # we already handled the x-label with ax1
+        ax2.grid(True, linestyle='-.', color=tab_colors[1])
+        ax2.tick_params(axis='y', labelcolor=tab_colors[1])
+        # automatically fill missing names in the other collections
+        if not ax_decs[ax_names[1]] and ax_decs[ax_names[0]]:
+            ax_decs[ax_names[1]] = [c for c in df.columns if c not in ax_decs[ax_names[0]]]
+    else:
+        ax2 = None
+
+    for i, col in enumerate(df.columns):
+        ax = ax1 if col in ax_decs[ax_names[0]] else ax2
+        for j, idx in enumerate(idx_names):
+            # print (idx, col, i, df.loc[idx, col])
+            offset = j % len(idx_markers)
+            x_off = (offset / float(len(idx_markers)) - 0.5) * 0.3
+            ax.plot(i + x_off, df.loc[idx, col], idx_markers[offset], color=cmap(j), label=idx)
+
+    if xlabel:
+        ax1.set_xlabel(xlabel)
+    # X label ticks - https://stackoverflow.com/questions/43152502
+    ax1.set_xticks(range(len(df.columns)))
+    ax1.set_xticklabels(df.columns, rotation=45, ha="right")
+    # legend - https://matplotlib.org/3.1.1/gallery/text_labels_and_annotations/custom_legends.html
+    ax1.legend(idx_names, loc='upper center', bbox_to_anchor=(1.25, 1.0), ncol=1)
+    return fig, (ax1, ax2)
