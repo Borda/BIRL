@@ -264,8 +264,8 @@ def compute_scores(df_experiments, min_landmarks=1.):
                       ('Max-rTRE', 'rTRE Max'),
                       ('Average-rTRE', 'rTRE Mean'),
                       ('Norm-Time', COL_NORM_TIME)]:
-        scores['Average-' + name] = np.mean(df_experiments[col])
-        scores['Average-' + name + '-Robust'] = np.mean(df_expt_robust[col])
+        scores['Average-' + name] = np.nanmean(df_experiments[col])
+        scores['Average-' + name + '-Robust'] = np.nanmean(df_expt_robust[col])
         scores['Median-' + name] = np.median(df_experiments[col])
         scores['Median-' + name + '-Robust'] = np.median(df_expt_robust[col])
 
@@ -387,37 +387,36 @@ def replicate_missing_warped_landmarks(df_experiments, path_dataset, path_experi
     return df_experiments
 
 
-def swap_inverse_experiment(df_results, allow_inverse):
+def swap_inverse_experiment(table, allow_inverse):
     """ optional swap of registration results from using warped moving to warped reference
 
-    :param DF df_results: experiment table
+    :param DF table: experiment table
     :param bool allow_inverse: allw swap from using warped moving to warped reference
-    :return DF: updated rexperiment table
+    :return DF: updated experiment table
     """
     if not allow_inverse:
-        return df_results
-    if ImRegBenchmark.COL_POINTS_MOVE_WARP in df_results.columns:
-        filled = df_results[ImRegBenchmark.COL_POINTS_MOVE_WARP].dropna()
+        return table
+    if ImRegBenchmark.COL_POINTS_MOVE_WARP in table.columns:
+        filled = table[ImRegBenchmark.COL_POINTS_MOVE_WARP].dropna()
         if len(filled) > 0:
             # everything seems to be fine...
-            return df_results
+            return table
     logging.warning('Missing target column "%s"', ImRegBenchmark.COL_POINTS_MOVE_WARP)
-    if ImRegBenchmark.COL_POINTS_REF_WARP not in df_results.columns:
+    if ImRegBenchmark.COL_POINTS_REF_WARP not in table.columns:
         raise ValueError('Missing target column "%s" to swap to'
                          % ImRegBenchmark.COL_POINTS_REF_WARP)
     # swapping columns
-    col_ref = df_results[ImRegBenchmark.COL_POINTS_REF]
-    col_move = df_results[ImRegBenchmark.COL_POINTS_MOVE]
-    col_ref_warp = df_results[ImRegBenchmark.COL_POINTS_REF_WARP]
-    df_results[ImRegBenchmark.COL_POINTS_REF] = col_move
-    df_results[ImRegBenchmark.COL_POINTS_MOVE] = col_ref
-    df_results[ImRegBenchmark.COL_POINTS_MOVE_WARP] = col_ref_warp
-    return df_results
+    col_ref = table[ImRegBenchmark.COL_POINTS_REF].values.tolist()
+    col_move = table[ImRegBenchmark.COL_POINTS_MOVE].values.tolist()
+    table[ImRegBenchmark.COL_POINTS_REF] = col_move
+    table[ImRegBenchmark.COL_POINTS_MOVE] = col_ref
+    table[ImRegBenchmark.COL_POINTS_MOVE_WARP] = table[ImRegBenchmark.COL_POINTS_REF_WARP]
+    return table
 
 
 def main(path_experiment, path_table, path_dataset, path_output, path_reference=None,
          path_comp_bm=None, nb_workers=NB_WORKERS, min_landmarks=1., details=True,
-         allow_inverse=False):
+         allow_inverse=True):
     """ main entry point
 
     :param str path_experiment: path to experiment folder
@@ -446,10 +445,11 @@ def main(path_experiment, path_table, path_dataset, path_output, path_reference=
     df_overview = df_overview.drop([col for col in df_overview.columns if 'warped' in col.lower()],
                                    axis=1, errors='ignore')
     df_results = pd.read_csv(path_results)
-    df_results = swap_inverse_experiment(df_results, allow_inverse)
+    # df_results.drop(filter(lambda c: 'Unnamed' in c, df_results.columns), axis=1, inplace=True)
     df_results = df_results[[col for col in list(ImRegBenchmark.COVER_COLUMNS_WRAP) + [ImRegBenchmark.COL_TIME]
                              if col in df_results.columns]]
     df_experiments = pd.merge(df_overview, df_results, how='left', on=ImRegBenchmark.COVER_COLUMNS)
+    df_experiments = swap_inverse_experiment(df_experiments, allow_inverse)
     df_experiments.drop([ImRegBenchmark.COL_IMAGE_REF_WARP, ImRegBenchmark.COL_POINTS_REF_WARP],
                         axis=1, errors='ignore', inplace=True)
 
@@ -473,7 +473,8 @@ def main(path_experiment, path_table, path_dataset, path_output, path_reference=
     list(iterate_mproc_map(_compute_lnds_stat, df_experiments.iterrows(),
                            desc='Statistic', nb_workers=1))
 
-    path_results = os.path.join(path_output, os.path.basename(path_results))
+    name_results = os.path.splitext(os.path.basename(path_results))[0]
+    path_results = os.path.join(path_output, name_results + '_NEW.csv')
     logging.debug('exporting CSV results: %s', path_results)
     df_experiments.to_csv(path_results)
 

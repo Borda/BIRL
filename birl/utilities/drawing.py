@@ -462,7 +462,7 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None):
     draw_heatmap(ranking, np.arange(1, len(df_stat) + 1), df_stat.columns, ax=ax,
                  cmap=plt.get_cmap('nipy_spectral', len(df_stat)), norm=norm,
                  cbar_kw=dict(ticks=range(len(df_stat)), format=fmt),
-                 cbarlabel='Users')
+                 cbarlabel='Methods')
     ax.set_ylabel('Ranking')
 
     fig.tight_layout()

@@ -527,7 +527,7 @@ class ImRegBenchmark(Experiment):
         cmd_result = exec_commands(commands, path_log, timeout=self.EXECUTE_TIMEOUT)
         # if the experiment failed, return back None
         if not cmd_result:
-            return None
+            item = None
         return item
 
     def _generate_regist_command(self, item):
