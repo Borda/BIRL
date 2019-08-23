@@ -278,7 +278,8 @@ class RadarChart(object):
     >>> fig = RadarChart(df)
     """
 
-    def __init__(self, df, steps=5, fig=None, rect=None, fill_alpha=0.05, *args, **kw):
+    def __init__(self, df, steps=5, fig=None, rect=None, fill_alpha=0.05, cmap='nipy_spectral',
+                 *args, **kwargs):
         """ draw a dataFrame with scaled axis
 
         :param df: data
@@ -286,8 +287,9 @@ class RadarChart(object):
         :param obj|None fig: Figure or None for a new one
         :param tuple(float,float,float,float) rect: rectangle inside figure
         :param float fill_alpha: transparency of filled region
+        :param str cmap: used color map
         :param args: optional arguments
-        :param kw: optional key arguments
+        :param kwargs: optional key arguments
         """
         if fig is None:
             fig = plt.figure()
@@ -312,8 +314,9 @@ class RadarChart(object):
             self.__draw_labels(ax, angle, title)
 
         self.maxs = np.array([self.data[title].max() for title in self.titles])
-        for idx, row in self.data.iterrows():
-            self.__draw_curve(idx, row, fill_alpha, *args, **kw)
+        colors = plt.get_cmap(cmap, len(self.data))
+        for i, (idx, row) in enumerate(self.data.iterrows()):
+            self.__draw_curve(idx, row, fill_alpha, color=colors(i), *args, **kwargs)
 
         for ax in self.axes:
             for theta, label in zip(ax.get_xticks(), ax.get_xticklabels()):
@@ -349,9 +352,11 @@ class RadarChart(object):
         :param args: optional arguments
         :param kw: optional key arguments
         """
-        vals = row.values / self.maxs * self.nb_steps + 1
-        self.ax.plot(np.deg2rad(self.angles), vals, label=idx, *args, **kw)
-        self.ax.fill(np.deg2rad(self.angles), vals, alpha=fill_alpha)
+        vals = (row.values / self.maxs * self.nb_steps + 1).tolist()
+        vals.append(vals[0])
+        angs = self.angles.tolist() + [self.angles[0]]
+        self.ax.plot(np.deg2rad(angs), vals, label=idx, *args, **kw)
+        self.ax.fill(np.deg2rad(angs), vals, alpha=fill_alpha)
 
     @classmethod
     def __realign_polar_xtick(self, ax, theta, label):
@@ -439,11 +444,13 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
     return im, cbar
 
 
-def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None):
+def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None, cmap='nipy_spectral'):
     """ show matrix as image, sorted per column and unique colour per user
 
     :param DF df_stat: table where index are users and columns are scoring
     :param bool higher_better: ranking such that larger value is better
+    :param fig: optional figure
+    :param str cmap: color map
     :return Figure:
 
     >>> import pandas as pd
@@ -460,7 +467,7 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None):
     fmt = plt_ticker.FuncFormatter(lambda x, pos: df_stat.index[x])
 
     draw_heatmap(ranking, np.arange(1, len(df_stat) + 1), df_stat.columns, ax=ax,
-                 cmap=plt.get_cmap('nipy_spectral', len(df_stat)), norm=norm,
+                 cmap=plt.get_cmap(cmap, len(df_stat)), norm=norm,
                  cbar_kw=dict(ticks=range(len(df_stat)), format=fmt),
                  cbarlabel='Methods')
     ax.set_ylabel('Ranking')

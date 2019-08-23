@@ -416,7 +416,7 @@ def swap_inverse_experiment(table, allow_inverse):
 
 def main(path_experiment, path_table, path_dataset, path_output, path_reference=None,
          path_comp_bm=None, nb_workers=NB_WORKERS, min_landmarks=1., details=True,
-         allow_inverse=True):
+         allow_inverse=False):
     """ main entry point
 
     :param str path_experiment: path to experiment folder
@@ -452,6 +452,7 @@ def main(path_experiment, path_table, path_dataset, path_output, path_reference=
     df_experiments = swap_inverse_experiment(df_experiments, allow_inverse)
     df_experiments.drop([ImRegBenchmark.COL_IMAGE_REF_WARP, ImRegBenchmark.COL_POINTS_REF_WARP],
                         axis=1, errors='ignore', inplace=True)
+    df_experiments.drop(filter(lambda c: 'Unnamed' in c, df_results.columns), axis=1, inplace=True)
 
     df_experiments = replicate_missing_warped_landmarks(df_experiments, path_dataset, path_experiment)
 
