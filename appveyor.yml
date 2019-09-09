@@ -78,7 +78,7 @@ test_script:
   - tox -v --sitepackages --parallel auto
   - mkdir results && touch configs/sample_config.yaml
   - python bm_experiments/bm_comp_perform.py -o ./results -n 1
-  - python birl/bm_template.py -t ./data_images/pairs-imgs-lnds_mix.csv -o ./results --preprocessing matching-rgb gray --unique --visual -cfg configs/sample_config.yaml
+  - python birl/bm_template.py -n anhir -t ./data_images/pairs-imgs-lnds_mix.csv -o ./results --preprocessing matching-rgb gray --unique --visual -cfg configs/sample_config.yaml
 
 on_success:
   - coverage report

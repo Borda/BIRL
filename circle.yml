@@ -60,8 +60,8 @@ references:
         # python bm_experiments/bm_comp_perform.py  -o ./results -n 1 # reach time-out while running in 36 threads
         python birl/bm_template.py -t ./data_images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique -cfg configs/sample_config.yaml
         rm ./data_images/*_/*/*_HE.csv  # remove target landmarks from histol. tissue
-        python birl/bm_template.py -t ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results --preprocessing matching-rgb gray -cfg configs/sample_config.yaml
-        python bm_experiments/evaluate_experiment.py -d ./data_images -e ./results/BmTemplate --visual
+        python birl/bm_template.py -n anhir -t ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results --preprocessing matching-rgb gray -cfg configs/sample_config.yaml
+        python bm_experiments/evaluate_experiment.py -d ./data_images -e ./results/BmTemplate_anhir --visual
         tree ./results/BmTemplate
 
   run_bUnwarpJ: &run_bUnwarpJ
@@ -72,8 +72,8 @@ references:
         unzip -q applications/fiji-linux64.zip -d applications/
         rm applications/fiji-linux64.zip
         rm -rf results && mkdir results
-        python bm_experiments/bm_bUnwarpJ.py -t ./data_images/pairs-imgs-lnds_mix.csv -o ./results -Fiji ./applications/Fiji.app/ImageJ-linux64 -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml --preprocessing matching-rgb --visual
-        python bm_experiments/bm_bUnwarpJ.py -t ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results -Fiji ./applications/Fiji.app/ImageJ-linux64 -cfg ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml --unique
+        python bm_experiments/bm_bUnwarpJ.py -n mix -t ./data_images/pairs-imgs-lnds_mix.csv -o ./results -Fiji ./applications/Fiji.app/ImageJ-linux64 -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml --preprocessing matching-rgb --visual
+        python bm_experiments/bm_bUnwarpJ.py -n anhir -t ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results -Fiji ./applications/Fiji.app/ImageJ-linux64 -cfg ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml --unique
         tree -L 3 ./results
         rm -rf ./applications/Fiji.app
 
