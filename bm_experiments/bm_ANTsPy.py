@@ -151,6 +151,7 @@ class BmANTsPy(ImRegBenchmark):
 # RUN by given parameters
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
+    logging.info(__doc__)
     arg_params, path_expt = BmANTsPy.main()
 
     if arg_params.get('run_comp_benchmark', False):
