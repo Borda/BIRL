@@ -53,6 +53,13 @@ Run the basic ANTs registration with original parameters::
 .. note:: The origin of VTK coordinate system is in left bottom corner of the image.
  Also the first dimension is horizontal (swapped to matplotlib)
 
+.. note:: For proper confirmation see list of Elastix parameters:
+ http://elastix.isi.uu.nl/doxygen/parameter.html
+
+Klein, Stefan, et al. "Elastix: a toolbox for intensity-based medical image registration."
+ IEEE transactions on medical imaging 29.1 (2009): 196-205.
+ http://elastix.isi.uu.nl/marius/downloads/2010_j_TMI.pdf
+
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import

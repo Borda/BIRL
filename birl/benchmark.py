@@ -627,7 +627,6 @@ class ImRegBenchmark(Experiment):
             params = parse_arg_params(arg_parser)
 
         logging.info('running...')
-        logging.info(cls.__doc__)
         benchmark = cls(params)
         benchmark.run()
         path_expt = benchmark.params['path_exp']
