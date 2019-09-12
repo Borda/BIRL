@@ -43,9 +43,13 @@
 // quite ok in general. The Transform and Metric are important
 // and need to be chosen careful for each application. See manual.
 (Optimizer "AdaptiveStochasticGradientDescent")
+//(Optimizer "CMAEvolutionStrategy")
+//(Optimizer "ConjugateGradientFRPR")
+//(Optimizer "FullSearch")
+//(Optimizer "QuasiNewtonLBFGS")
 (Transform "AffineTransform")
-(Metric "AdvancedMattesMutualInformation")
-//(Metric "AdvancedNormalizedCorrelation")
+//(Metric "AdvancedMattesMutualInformation")
+(Metric "AdvancedNormalizedCorrelation")
 
 // ***************** Transformation **************************
 
