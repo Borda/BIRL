@@ -3,7 +3,7 @@ Benchmark for ANTs
 see:
 * http://stnava.github.io/ANTs
 * https://sourceforge.net/projects/advants/
-* https://github.com/ANTsX/ANTsPy
+* https://github.com/stnava/ANTsDoc/issues/1
 
 INSTALLATION:
 See: https://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/
@@ -25,6 +25,8 @@ Discussion
 ----------
 I. believes he found the "problem" and indeed it has to do with the file format we use (JPEG).
 I. converts the kidney images to 8-bit and then .NII.GZ and the whole pipeline works fine.
+
+.. note:: For showing parameter/options setting run `antsRegistration --help`
 
 1) Convert images to 8-bit using Fiji (this is only because I didn't see any ITK format to store RGB images).
 2) Convert the 8-bit images to .nii.gz (using ANTs script `ConvertImagePixelType`)::
@@ -63,7 +65,7 @@ Run the basic ANT registration with original parameters::
         -d ./data_images \
         -o ./results \
         --path_ANTs ~/Applications/antsbin/bin \
-        --path_config ./configs/ANTs.txt
+        --path_config ./configs/ANTs_SyN.txt
 
 
 .. note:: it was needed to use own compiled version
@@ -82,7 +84,8 @@ import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (
-    load_landmarks, save_landmarks, convert_image_to_nifti_gray, convert_image_from_nifti)
+    load_landmarks, save_landmarks, load_config_args,
+    convert_image_to_nifti_gray, convert_image_from_nifti)
 from birl.utilities.experiments import exec_commands
 from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
@@ -105,10 +108,14 @@ class BmANTs(ImRegBenchmark):
     ...           'path_ANTs': '.',
     ...           'path_config': '.'}
     >>> benchmark = BmANTs(params)
+    >>> benchmark.EXECUTE_TIMEOUT
+    10800
     >>> benchmark.run()  # doctest: +SKIP
     >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
+    #: timeout for executing single image registration
+    EXECUTE_TIMEOUT = 3 * 60 * 60  # default = 3 hour
     #: required experiment parameters
     REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['path_config']
     #: executable for performing image registration
@@ -193,10 +200,9 @@ class BmANTs(ImRegBenchmark):
         :return str|list(str): the execution commands
         """
         path_dir = self._get_path_reg_dir(item)
-        with open(self.params['path_config'], 'r') as fp:
-            config = [l.rstrip().replace('\\', '') for l in fp.readlines()]
 
-        config = ' '.join(config) % {
+        config = load_config_args(self.params['path_config'])
+        config = config % {
             'target-image': item[self.COL_IMAGE_REF_NII],
             'source-image': item[self.COL_IMAGE_MOVE_NII]
         }

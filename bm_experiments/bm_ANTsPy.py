@@ -6,6 +6,7 @@ See references:
 * http://stnava.github.io/ANTs
 * https://sourceforge.net/projects/advants/
 * https://github.com/ANTsX/ANTsPy
+* https://github.com/ANTsX/ANTsPy/issues/85
 
 Installation
 ------------

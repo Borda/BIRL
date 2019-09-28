@@ -2,6 +2,8 @@
 Execute Image registration with ANTsPy
 https://github.com/ANTsX/ANTsPy/blob/master/tutorials/10minTutorial.ipynb
 
+For performance and parameters discussion see https://github.com/ANTsX/ANTsPy/issues/85
+
 >> python ./scripts/Python/run_ANTsPy.py \
     ./data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.jpg \
     ./data_images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.jpg \
@@ -45,10 +47,18 @@ lnds = pd.read_csv(paths['lnds'])[['X', 'Y']]
 lnds.columns = ['y', 'x']
 
 # perform image registration
-mytx = ants.registration(fixed=fixed,
-                         moving=moving,
-                         initial_transform='AffineFast',
-                         type_of_transform='ElasticSyN')
+mytx = ants.registration(
+    fixed=fixed,
+    moving=moving,
+    initial_transform='AffineFast',
+    type_of_transform='ElasticSyN',
+    grad_step=5,
+    aff_metric='mattes',
+    aff_sampling=32,
+    syn_metric='mattes',
+    syn_sampling=32,
+    reg_iterations=(40, 20, 10),
+)
 print('Transform: %r' % mytx)
 t_elapsed = time.time() - t_start
 print('Time: %r seconds' % t_elapsed)

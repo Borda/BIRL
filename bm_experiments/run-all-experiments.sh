@@ -23,7 +23,7 @@ do
          -o $results \
          --run_comp_benchmark \
          -ANTs ~/TEMP/Applications/antsbin/bin \
-         -cfg ./configs/ANTs.txt \
+         -cfg ./configs/ANTs_SyN.txt \
          $pproc \
          --visual --unique --nb_workers $jobs
 

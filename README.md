@@ -249,7 +249,7 @@ For each benchmark experiment, the explanation about how to install and use a pa
         -d ./data_images \
         -o ./results \
         -ANTs ~/Applications/antsbin/bin \
-        -cfg ./configs/ANTs.txt
+        -cfg ./configs/ANTs_SyN.txt
     ```
     For illustration see ANTsPy [registration tutorial](https://github.com/ANTsX/ANTsPy/blob/master/tutorials/10minTutorial.ipynb).
     ```bash

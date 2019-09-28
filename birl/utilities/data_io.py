@@ -567,6 +567,36 @@ def convert_image_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=
     return path_image_new
 
 
+def load_config_args(path_config, comment='#'):
+    """load config arguments from file with dropping comments
+
+    :param str path_config: configuration file
+    :param str comment: character defining comments
+    :return str: concat arguments
+
+    >>> p_conf = './sample-arg-config.txt'
+    >>> with open(p_conf, 'w') as fp:
+    ...     fp.writelines(os.linesep.join(['# comment', '', ' -a 1  ', ' --b c#d']))
+    >>> load_config_args(p_conf)
+    '-a 1 --b c'
+    >>> os.remove(p_conf)
+    """
+    assert os.path.isfile(path_config), 'missing file: %s' % path_config
+    lines = []
+    with open(path_config, 'r') as fp:
+        for ln in fp.readlines():
+            # drop comments
+            if comment in ln:
+                ln = ln[:ln.index(comment)]
+            # remove spaces from beinning and end
+            ln = ln.strip()
+            # skip empty lines
+            if ln:
+                lines.append(ln)
+    config = ' '.join(lines)
+    return config
+
+
 def load_config_yaml(path_config):
     """ loading the
 
