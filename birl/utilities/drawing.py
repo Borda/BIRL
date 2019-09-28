@@ -483,7 +483,8 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None, cmap='nipy_
 def draw_scatter_double_scale(df, cmap=None,
                               ax_decs={'name1': ['col1', 'col2'], 'name2': ['col3']},
                               idx_markers=('o', 'd'),
-                              xlabel='', figsize=None):
+                              xlabel='', figsize=None,
+                              legend_style=None):
     """Draw a scatter with double scales on left and right
 
     :param DF df: dataframe
@@ -492,6 +493,7 @@ def draw_scatter_double_scale(df, cmap=None,
     :param tuple idx_markers:
     :param str xlabel: title of x axis
     :param tuple(float,float) figsize:
+    :param dict legend_style: legend configuration
     :return tuple: figure and both axis
 
     >>> import pandas as pd
@@ -544,6 +546,9 @@ def draw_scatter_double_scale(df, cmap=None,
     # X label ticks - https://stackoverflow.com/questions/43152502
     ax1.set_xticks(range(len(df.columns)))
     ax1.set_xticklabels(df.columns, rotation=45, ha="right")
+
     # legend - https://matplotlib.org/3.1.1/gallery/text_labels_and_annotations/custom_legends.html
-    ax1.legend(idx_names, loc='upper center', bbox_to_anchor=(1.25, 1.0), ncol=1)
+    if legend_style is None:
+        legend_style = dict(loc='upper center', bbox_to_anchor=(1.25, 1.0), ncol=1)
+    ax1.legend(idx_names, **legend_style)
     return fig, (ax1, ax2)

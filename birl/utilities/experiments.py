@@ -713,7 +713,7 @@ def computer_info():
     return {
         'system': platform.system(),
         'architecture': platform.architecture(),
-        'node': platform.node(),
+        'name': platform.node(),
         'release': platform.release(),
         'version': platform.version(),
         'machine': platform.machine(),
