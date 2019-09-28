@@ -125,13 +125,13 @@ class BmElastix(ImRegBenchmark):
         logging.info('-> copy configuration...')
         self._copy_config_to_expt('path_config')
 
-        p_elatix = self.params.get('path_elastix', '')
-        if p_elatix and os.path.isdir(p_elatix):
-            logging.info('using local executions from: %s', p_elatix)
-
         def _exec_update(executable):
             is_path = p_elatix and os.path.isdir(p_elatix)
             return os.path.join(p_elatix, executable) if is_path else executable
+
+        p_elatix = self.params.get('path_elastix', '')
+        if p_elatix and os.path.isdir(p_elatix):
+            logging.info('using local executions from: %s', p_elatix)
 
         self.exec_elastix = _exec_update(self.EXEC_ELASTIX)
         self.exec_transformix = _exec_update(self.EXEC_TRANSFX)

@@ -259,7 +259,7 @@ class BmANTs(ImRegBenchmark):
 
         path_im_nii = os.path.join(path_dir, name_im_move + '.nii')
         if os.path.isfile(path_im_nii):
-            path_img_warp = convert_image_from_nifti(path_im_nii, path_dir)
+            path_img_warp = convert_image_from_nifti(path_im_nii)
         else:
             path_img_warp = None
 

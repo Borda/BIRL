@@ -41,7 +41,7 @@ Sample run::
 
 .. note:: experiments was tested on Ubuntu (Linux) based OS system
 
-.. note:: to check whether uoi have all needed libraries on Linux use `ldd dropreg2d`,
+.. note:: to check whether you have all needed libraries on Linux use `ldd dropreg2d`,
  see: https://askubuntu.com/a/709271/863070
  AND set path to the `libdroplib.so` as `export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib`,
  see: https://unix.stackexchange.com/a/67783 ; https://stackoverflow.com/a/49660575/4521646
@@ -112,7 +112,7 @@ class BmDROP(ImRegBenchmark):
     def _prepare_img_registration(self, item):
         """ converting the input images to gra-scale and MHD format
 
-        :param dict dict item: dictionary with regist. params
+        :param dict item: dictionary with registration params
         :return dict: the same or updated registration info
         """
         logging.debug('.. converting images to MHD')
@@ -129,14 +129,6 @@ class BmDROP(ImRegBenchmark):
                 convert_image_to_mhd(path_img, path_out_dir=path_reg_dir, overwrite=False,
                                      to_gray=True, scaling=item.get('scaling', 1.))
         item[self.COL_TIME_CONVERT] = time.time() - t_start
-
-        # def __wrap_convert_mhd(path_img, col):
-        #     path_img = convert_image_to_mhd(path_img, to_gray=True, overwrite=False)
-        #     return path_img, col
-        #
-        # for path_img, col in iterate_mproc_map(__wrap_convert_mhd, convert_queue):
-        #     item[col + COL_IMAGE_EXT_TEMP] = path_img
-
         return item
 
     def _generate_regist_command(self, item):
@@ -158,7 +150,6 @@ class BmDROP(ImRegBenchmark):
             os.path.join(path_dir, 'output'),
             self.params['path_config'],
         ])
-
         return command
 
     def _extract_warped_image_landmarks(self, item):
@@ -173,8 +164,8 @@ class BmDROP(ImRegBenchmark):
         path_img_ = convert_image_from_mhd(os.path.join(path_reg_dir, 'output.mhd'),
                                            scaling=item.get('scaling', 1.))
         img_name = os.path.splitext(os.path.basename(path_im_move))[0]
-        ext_img = os.path.splitext(os.path.basename(path_img_))[1]
-        path_img_warp = path_img_.replace('output' + ext_img, img_name + ext_img)
+        img_ext = os.path.splitext(os.path.basename(path_img_))[1]
+        path_img_warp = path_img_.replace('output' + img_ext, img_name + img_ext)
         shutil.move(path_img_, path_img_warp)
 
         # load transform and warp landmarks
@@ -205,15 +196,16 @@ class BmDROP(ImRegBenchmark):
         return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
                 self.COL_POINTS_REF_WARP: path_lnds_warp}
 
-    def _clear_after_registration(self, item):
+    def _clear_after_registration(self, item, patterns=('output*', '*.mhd', '*.raw')):
         """ clean unnecessarily files after the registration
 
-        :param dict item: dictionary with regist. information
-        :return dict: the same or updated regist. info
+        :param dict item: dictionary with registration information
+        :param list(str) patterns: string patterns of file names
+        :return dict: the same or updated registration info
         """
         logging.debug('.. cleaning after registration experiment, remove `output`')
         path_reg_dir = self._get_path_reg_dir(item)
-        for ptn in ('output*', '*.mhd', '*.raw'):
+        for ptn in patterns:
             for p_file in glob.glob(os.path.join(path_reg_dir, ptn)):
                 os.remove(p_file)
         return item
@@ -245,11 +237,10 @@ class BmDROP(ImRegBenchmark):
             assert os.path.isfile(path_deform_), 'missing deformation: %s' % path_deform_
             deform_ = sitk.GetArrayFromImage(sitk.ReadImage(path_deform_))
             assert deform_ is not None, 'loaded deformation is Empty - %s' % path_deform_
-            for i in range(2):
-                lnds_max = max(lnds[:, 1 - i])
-                assert lnds_max < deform_.shape[i], \
-                    'for axis %i landmarks of max=%f exceeded size=%i' \
-                    % (i, lnds_max, deform_.shape[i])
+            lnds_max = np.max(lnds, axis=0)[::-1]
+            assert all(ln < dim for ln, dim in zip(lnds_max, deform_.shape)), \
+                'landmarks max %s is larger then (exceeded) deformation shape %s' \
+                % (lnds_max.tolist(), deform_.shape)
             shift_ = deform_[lnds[:, 1], lnds[:, 0]]
             return shift_
 

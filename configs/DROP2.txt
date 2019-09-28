@@ -1,0 +1,11 @@
+-l
+--ltype 0
+--lsim 1
+--llevels 32 32 32 16 16 16
+--lsampling 0.2
+-n
+--nffd 1000
+--nsim 1
+--nlevels 16 16 16 8 8 8
+--nlambda 0.5
+--npin

@@ -332,6 +332,8 @@ def convert_ndarray2image(image):
         if np.max(image) <= 1.5:
             image = image * 255
         np.clip(image, a_min=0, a_max=255, out=image)
+        if image.ndim == 3 and image.shape[-1] < 3:
+            image = image[:, :, 0]
         image = Image.fromarray(image.astype(np.uint8))
     return image
 
@@ -356,29 +358,31 @@ def save_image(path_image, image):
 
 
 @io_image_decorate
-def convert_image_to_nifti(path_image, path_out):
+def convert_image_to_nifti(path_image, path_out_dir=None):
     """ converting normal image to Nifty Image
 
     :param str path_image: input image
-    :param str path_out: path to output folder
+    :param str path_out_dir: path to output folder
     :return str: resulted image
 
-    >>> path_img = './sample-image.png'
-    >>> save_image(path_img, np.zeros((100, 200, 3)))
+    >>> path_img = os.path.join(update_path('data_images'), 'images',
+    ...                         'artificial_moving-affine.jpg')
     >>> path_img2 = convert_image_to_nifti(path_img, '.')
+    >>> path_img2  # doctest: +ELLIPSIS
+    '...artificial_moving-affine.nii'
     >>> os.path.isfile(path_img2)
     True
-    >>> path_img3 = convert_image_from_nifti(path_img2, '.')
+    >>> path_img3 = convert_image_from_nifti(path_img2)
     >>> os.path.isfile(path_img3)
     True
-    >>> list(map(os.remove, [path_img, path_img2, path_img3]))  # doctest: +ELLIPSIS
+    >>> list(map(os.remove, [path_img2, path_img3]))  # doctest: +ELLIPSIS
     [...]
     """
-    img_name = os.path.splitext(os.path.basename(path_image))[0]
-    path_img_out = os.path.join(path_out, img_name + '.nii')
+    path_image = update_path(path_image)
+    path_img_out = _gene_out_path(path_image, '.nii', path_out_dir)
     logging.debug('Convert image to Nifti format "%s" ->  "%s"', path_image, path_img_out)
 
-    # img = Image.open(path_image).convert('LA')
+    # img = Image.open(path_file).convert('LA')
     img = load_image(path_image)
     nim = nibabel.Nifti1Pair(img, np.eye(4))
     del img
@@ -388,16 +392,16 @@ def convert_image_to_nifti(path_image, path_out):
 
 
 @io_image_decorate
-def convert_image_to_nifti_gray(path_image, path_out):
+def convert_image_to_nifti_gray(path_image, path_out_dir=None):
     """ converting normal image to Nifty Image
 
     :param str path_image: input image
-    :param str path_out: path to output folder
+    :param str path_out_dir: path to output folder
     :return str: resulted image
 
     >>> path_img = './sample-image.png'
     >>> save_image(path_img, np.zeros((100, 200, 3)))
-    >>> path_img2 = convert_image_to_nifti_gray(path_img, '.')
+    >>> path_img2 = convert_image_to_nifti_gray(path_img)
     >>> os.path.isfile(path_img2)
     True
     >>> path_img3 = convert_image_from_nifti(path_img2, '.')
@@ -406,11 +410,11 @@ def convert_image_to_nifti_gray(path_image, path_out):
     >>> list(map(os.remove, [path_img, path_img2, path_img3]))  # doctest: +ELLIPSIS
     [...]
     """
-    img_name = os.path.splitext(os.path.basename(path_image))[0]
-    path_img_out = os.path.join(path_out, img_name + '.nii')
+    path_image = update_path(path_image)
+    path_img_out = _gene_out_path(path_image, '.nii', path_out_dir)
     logging.debug('Convert image to Nifti format "%s" ->  "%s"', path_image, path_img_out)
 
-    # img = Image.open(path_image).convert('LA')
+    # img = Image.open(path_file).convert('LA')
     img = rgb2gray(load_image(path_image))
     nim = nibabel.Nifti1Pair(np.swapaxes(img, 1, 0), np.eye(4))
     del img
@@ -419,16 +423,31 @@ def convert_image_to_nifti_gray(path_image, path_out):
     return path_img_out
 
 
+def _gene_out_path(path_file, file_ext, path_out_dir=None):
+    """ generate new path with the same file name just changed extension (and folder)
+
+    :param str path_file: path of source file (image)
+    :param str file_ext: file extension of desired file
+    :param str path_out_dir: destination folder, if NOne use the input dir
+    :return str: desired file
+    """
+    if not path_out_dir:
+        path_out_dir = os.path.dirname(path_file)
+    img_name = os.path.splitext(os.path.basename(path_file))[0]
+    path_out = os.path.join(path_out_dir, img_name + file_ext)
+    return path_out
+
+
 @io_image_decorate
-def convert_image_from_nifti(path_image, path_out):
+def convert_image_from_nifti(path_image, path_out_dir=None):
     """ converting Nifti to standard image
 
     :param str path_image: path to input image
-    :param str path_out: destination directory
+    :param str path_out_dir: destination directory, if Nne use the same folder
     :return str: path to new image
     """
-    img_name = os.path.splitext(os.path.basename(path_image))[0]
-    path_img_out = os.path.join(path_out, img_name + '.jpg')
+    path_image = update_path(path_image)
+    path_img_out = _gene_out_path(path_image, '.jpg', path_out_dir)
     logging.debug('Convert Nifti to image format "%s" ->  "%s"', path_image, path_img_out)
     nim = nibabel.load(path_image)
 
@@ -512,10 +531,7 @@ def convert_image_from_mhd(path_image, path_out_dir=None, img_ext='.png', scalin
     img = image_resize(img, scaling, v_range=255)
 
     # define output/destination path
-    img_name = os.path.splitext(os.path.basename(path_image))[0]
-    if not path_out_dir:
-        path_out_dir = os.path.dirname(path_image)
-    path_image = os.path.join(path_out_dir, img_name + img_ext)
+    path_image = _gene_out_path(path_image, img_ext, path_out_dir)
     save_image(path_image, img)
     return path_image
 
@@ -539,11 +555,7 @@ def convert_image_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=
     '...artificial_moving-affine.mhd'
     """
     path_image = update_path(path_image)
-    # define output/destination path
-    img_name = os.path.splitext(os.path.basename(path_image))[0]
-    if not path_out_dir:
-        path_out_dir = os.path.dirname(path_image)
-    path_image_new = os.path.join(path_out_dir, img_name + '.mhd')
+    path_image_new = _gene_out_path(path_image, '.mhd', path_out_dir)
     # in case the image exists and you are not allowed to overwrite it
     if os.path.isfile(path_image_new) and not overwrite:
         logging.debug('skip converting since the image exists and no-overwrite: %s',
