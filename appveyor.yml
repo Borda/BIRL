@@ -55,10 +55,13 @@ install:
   # The AppVeyor 'rollout builds' option is supposed to serve the same
   # purpose but it is problematic because it tends to cancel builds pushed
   # directly to master instead of just PR builds (or the converse).
-  - choco upgrade chocolatey
-  - choco install -y opencv
-  - SET PATH=%PYTHON%;%PYTHON%\\Scripts;%path%
-  - pip install -U --user pip
+  #- choco upgrade chocolatey
+  #- choco install -y opencv
+  # Prepend newly installed Python to the PATH of this build (this cannot be
+  # done from inside the powershell script as it would require to restart
+  # the parent CMD process).
+  - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - python -m pip install --upgrade pip
   - pip install -r requirements.txt
   - pip install -r ./tests/requirements.txt
   - pip install tox
@@ -72,7 +75,7 @@ before_test:
 
 # to run your custom scripts instead of automatic tests
 test_script:
-  - tox --sitepackages --parallel auto
+  - tox -v --sitepackages --parallel auto
   - mkdir results && touch configs/sample_config.yaml
   - python bm_experiments/bm_comp_perform.py -o ./results -n 1
   - python birl/bm_template.py -t ./data_images/pairs-imgs-lnds_mix.csv -o ./results --preprocessing matching-rgb gray --unique --visual -cfg configs/sample_config.yaml

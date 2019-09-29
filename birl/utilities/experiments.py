@@ -19,7 +19,7 @@ import uuid
 import multiprocessing as mproc
 from functools import wraps
 
-import tqdm
+import enlighten
 import numpy as np
 from pathos.multiprocessing import ProcessPool
 
@@ -541,10 +541,12 @@ def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc=''):
     nb_workers = 1 if not nb_workers else int(nb_workers)
     nb_workers = CPU_COUNT if nb_workers < 0 else nb_workers
 
-    tqdm_bar = None
     if desc is not None:
-        desc = '%r @%i-threads' % (desc, nb_workers)
-        tqdm_bar = tqdm.tqdm(total=len(iterate_vals), desc=desc)
+        pbar = enlighten.Counter(total=len(iterate_vals),
+                                 desc=str('%r @%i-threads' % (desc, nb_workers)),
+                                 stream=sys.stderr)
+    else:
+        pbar = None
 
     if nb_workers > 1:
         logging.debug('perform parallel in %i threads', nb_workers)
@@ -563,7 +565,7 @@ def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc=''):
         mapping = map
 
     for out in mapping(wrap_func, iterate_vals):
-        tqdm_bar.update() if tqdm_bar is not None else None
+        pbar.update() if pbar else None
         yield out
 
     if pool:
@@ -571,7 +573,7 @@ def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc=''):
         pool.join()
         pool.clear()
 
-    tqdm_bar.close() if tqdm_bar is not None else None
+    pbar.close() if pbar else None
 
 
 # from pathos.helpers import mp

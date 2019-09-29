@@ -8,7 +8,7 @@ references:
       command: |
         sudo apt-get update
         sudo apt-get install tk-dev pkg-config python-dev python-tk tree
-        sudo apt-get install python-opencv openslide-tools
+        sudo apt-get install openslide-tools
 
   install_pips: &install_pips
     run:

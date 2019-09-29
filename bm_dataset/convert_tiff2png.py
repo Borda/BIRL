@@ -34,8 +34,8 @@ import numpy as np
 try:
     from openslide import OpenSlide
 except Exception:
-    print('It seems that you do not have installed OpenSlides on your computer.'
-          ' To do so, please follow instructions - https://openslides.org')
+    print('It seems that you do not have installed OpenSlide on your computer.'
+          ' To do so, please follow instructions - https://openslide.org/')
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.experiments import iterate_mproc_map, nb_workers

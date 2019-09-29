@@ -14,3 +14,4 @@ SimpleITK
 mock
 psutil
 pathos
+enlighten>=1.3.3  # fix for Windows
