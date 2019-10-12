@@ -110,7 +110,7 @@ jobs:
       - run:
           name: Finalise
           command: |
-            python setup.py install --user
+            python setup.py install --dry-run --user
             coverage report && coverage xml -o test-reports/coverage.xml
       # RESULTS
       - store_test_results:
