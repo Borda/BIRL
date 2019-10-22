@@ -6,7 +6,8 @@ references:
     run:
       name: Install Packages
       command: |
-        sudo apt-get update
+        sudo apt-get update -qq
+        # sudo apt-get install git-lfs
         sudo apt-get install tk-dev pkg-config python-dev python-tk tree
         sudo apt-get install openslide-tools
 
@@ -91,23 +92,19 @@ references:
 
 jobs:
 
-  Py2:
+  Py3-Tests:
     docker:
-      - image: circleci/python:2.7
-    steps: &steps
+      - image: circleci/python:3.6
+    steps: &steps_tests
       - checkout
       # INSTALLATION
       - *install_deps
+      #- run: git lfs pull
       - *install_pips
       # TESTING
       - *test_coverage
       # DOCUMENTATION
       - *make_docs
-      # EXPERIMENTS
-      - *run_dataset
-      - *run_experiment
-      - *run_bUnwarpJ
-      - *run_RVSS
 
       # PASSING
       - run:
@@ -121,15 +118,37 @@ jobs:
       - store_artifacts:
           path: test-reports
 
-  Py3:
+  Py3-Experiments:
     docker:
       - image: circleci/python:3.6
-    steps: *steps
+    steps: &steps_expts
+      - checkout
+      # INSTALLATION
+      - *install_deps
+      #- run: git lfs pull
+      - *install_pips
+      # EXPERIMENTS
+      - *run_dataset
+      - *run_experiment
+      - *run_bUnwarpJ
+      - *run_RVSS
+
+  Py2-Tests:
+    docker:
+      - image: circleci/python:2.7
+    steps: *steps_tests
+
+  Py2-Experiments:
+    docker:
+      - image: circleci/python:2.7
+    steps: *steps_expts
 
 
 workflows:
   version: 2
   build:
     jobs:
-      - Py2
-      - Py3
+      - Py2-Tests
+      - Py3-Tests
+      - Py2-Experiments
+      - Py3-Experiments
