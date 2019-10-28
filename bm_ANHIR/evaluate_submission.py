@@ -134,10 +134,11 @@ def filter_landmarks(idx_row, path_output, path_dataset, path_reference):
                              threshold=1)
     if not pairs.size:
         return idx, 0.
+
     pairs = sorted(pairs.tolist(), key=lambda p: p[1])
     ind_ref = np.asarray(pairs)[:, 0]
     nb_common = min([len(load_landmarks(update_path(row[col], pre_path=path_reference)))
-                     for col in [ImRegBenchmark.COL_POINTS_REF, ImRegBenchmark.COL_POINTS_MOVE]])
+                     for col in (ImRegBenchmark.COL_POINTS_REF, ImRegBenchmark.COL_POINTS_MOVE)])
     ind_ref = ind_ref[ind_ref < nb_common]
 
     # moving and reference landmarks
@@ -147,10 +148,8 @@ def filter_landmarks(idx_row, path_output, path_dataset, path_reference):
         create_folder(os.path.dirname(path_out), ok_existing=True)
         save_landmarks(path_out, load_landmarks(path_in)[ind_ref])
 
+    ratio_matches = len(pairs) / float(nb_common)
     # save ratio of found landmarks
-    len_lnds_ref = len(load_landmarks(update_path(row[ImRegBenchmark.COL_POINTS_REF],
-                                                  pre_path=path_reference)))
-    ratio_matches = len(pairs) / float(len_lnds_ref)
     return idx, ratio_matches
 
 

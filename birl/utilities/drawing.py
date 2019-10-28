@@ -513,19 +513,24 @@ def draw_scatter_double_scale(df, cmap=None,
     if not cmap:
         cmap = plt.cm.jet
 
-    tab_colors = ('tab:red', 'tab:green') if len(ax_names) > 1 else ('black', )
+    # https://matplotlib.org/3.1.0/gallery/lines_bars_and_markers/linestyles.html
+    # https://matplotlib.org/3.1.1/_modules/matplotlib/colors.html
+    tab_colors = ('tab:brown', 'tab:gray') if len(ax_names) > 1 else ('black', )
+
     ax1.set_ylabel(ax_names[0], color=tab_colors[0])
-    ax1.grid(True, linestyle='-.', color=tab_colors[0])
+    ax1.grid(True, linestyle='dashed', color=tab_colors[0])
     ax1.tick_params(axis='y', labelcolor=tab_colors[0])
     # automatically fill missing names in the other collections
     if not ax_decs[ax_names[0]]:
         # if it is just one add all columns else just supplement
         ax_decs[ax_names[0]] = [c for c in df.columns if c not in ax_decs[ax_names[1]]] \
             if len(ax_names) > 1 and ax_decs.get(ax_names[1]) else list(df.columns)
+
+    # add second y-axes
     if len(ax_names) == 2:
         ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
         ax2.set_ylabel(ax_names[1], color=tab_colors[1])  # we already handled the x-label with ax1
-        ax2.grid(True, linestyle='-.', color=tab_colors[1])
+        ax2.grid(True, linestyle='dotted', color=tab_colors[1])
         ax2.tick_params(axis='y', labelcolor=tab_colors[1])
         # automatically fill missing names in the other collections
         if not ax_decs[ax_names[1]] and ax_decs[ax_names[0]]:

@@ -612,13 +612,14 @@ def common_landmarks(points1, points2, threshold=0.5):
     >>> common = np.random.random((5, 2))
     >>> pts1 = np.vstack([common, np.random.random((10, 2))])
     >>> pts2 = np.vstack([common, np.random.random((15, 2))])
+    >>> np.random.shuffle(pts2)
     >>> common_landmarks(pts1, pts2, threshold=0.1)
-    array([[ 0,  0],
-           [ 1,  1],
-           [ 2,  2],
-           [ 3,  3],
-           [ 4,  4],
-           [14, 15]])
+    array([[ 0, 13],
+           [ 1, 10],
+           [ 2,  9],
+           [ 3, 14],
+           [ 4,  8],
+           [14, 19]])
     """
     points1 = np.asarray(points1)
     points2 = np.asarray(points2)
