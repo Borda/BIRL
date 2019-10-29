@@ -1,7 +1,7 @@
 #see https://github.com/codecov/support/wiki/Codecov-Yaml
-codecov:
-  notify:
-    require_ci_to_pass: yes
+#codecov:
+#  notify:
+#    require_ci_to_pass: yes
 
 coverage:
   precision: 0  # 2 = xx.xx%, 0 = xx%
