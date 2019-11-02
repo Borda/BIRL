@@ -222,8 +222,8 @@ class BmANTs(ImRegBenchmark):
         """
         path_dir = self._get_path_reg_dir(item)
         path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(item)
-        name_im_move = os.path.splitext(os.path.basename(path_lnds_move))[0]
-        name_lnds_move = os.path.splitext(os.path.basename(path_lnds_move))[0]
+        name_im_move, _ = os.path.splitext(os.path.basename(path_lnds_move))
+        name_lnds_move, _ = os.path.splitext(os.path.basename(path_lnds_move))
 
         # simplified version of landmarks
         lnds = load_landmarks(path_lnds_move)

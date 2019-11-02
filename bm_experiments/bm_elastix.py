@@ -189,8 +189,8 @@ class BmElastix(ImRegBenchmark):
         path_im_out = glob.glob(os.path.join(path_dir, self.NAME_IMAGE_WARPED))
         if path_im_out:
             path_im_out = sorted(path_im_out)[0]
-            ext_img = os.path.splitext(path_im_out)[-1]
-            name_img = os.path.splitext(os.path.basename(path_img_move))[0]
+            _, ext_img = os.path.splitext(path_im_out)
+            name_img, _ = os.path.splitext(os.path.basename(path_img_move))
             path_img_warp = os.path.join(path_dir, name_img + ext_img)
             os.rename(path_im_out, path_img_warp)
 

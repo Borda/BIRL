@@ -111,8 +111,8 @@ class BmANTsPy(ImRegBenchmark):
         path_img_warp, path_lnds_warp = None, None
 
         if os.path.isfile(os.path.join(path_dir, self.NAME_IMAGE_WARPED)):
-            name_im_move = os.path.splitext(os.path.basename(path_im_move))[0]
-            ext_img = os.path.splitext(self.NAME_IMAGE_WARPED)[-1]
+            name_im_move, _ = os.path.splitext(os.path.basename(path_im_move))
+            _, ext_img = os.path.splitext(self.NAME_IMAGE_WARPED)
             path_img_warp = os.path.join(path_dir, name_im_move + ext_img)
             os.rename(os.path.join(path_dir, self.NAME_IMAGE_WARPED), path_img_warp)
         if os.path.isfile(os.path.join(path_dir, self.NAME_LNDS_WARPED)):

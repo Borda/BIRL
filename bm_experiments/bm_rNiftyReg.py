@@ -128,8 +128,8 @@ class BmRNiftyReg(ImRegBenchmark):
 
         path_regist = os.path.join(path_dir, self.NAME_FILE_IMAGE)
         if os.path.isfile(path_regist):
-            name_img_move = os.path.splitext(os.path.basename(path_img_move))[0]
-            ext_img_warp = os.path.splitext(self.NAME_FILE_IMAGE)[-1]
+            name_img_move, _ = os.path.splitext(os.path.basename(path_img_move))
+            _, ext_img_warp = os.path.splitext(self.NAME_FILE_IMAGE)
             path_img_warp = os.path.join(path_dir, name_img_move + ext_img_warp)
             os.rename(path_regist, path_img_warp)
 

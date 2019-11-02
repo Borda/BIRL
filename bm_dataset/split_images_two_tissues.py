@@ -57,8 +57,7 @@ def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
     :param bool overwrite: allow overwrite exiting output images
     :param int cut_dim: define splitting dimension
     """
-    name = os.path.splitext(os.path.basename(img_path))[0]
-    ext = os.path.splitext(os.path.basename(img_path))[-1]
+    name, ext = os.path.splitext(os.path.basename(img_path))
     folder = os.path.dirname(img_path)
     obj_names = name.split('_')
     paths_img = [os.path.join(folder, obj_name + ext) for obj_name in obj_names]

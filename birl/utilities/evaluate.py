@@ -122,9 +122,9 @@ def compute_tre_robustness(points_target, points_init, points_warp):
 def compute_affine_transf_diff(points_ref, points_init, points_est):
     """ compute differences between initial state and estimated results
 
-    :param points_ref: np.array<nb_points, dim>
-    :param points_init: np.array<nb_points, dim>
-    :param points_est: np.array<nb_points, dim>
+    :param ndarray points_ref: np.array<nb_points, dim>
+    :param ndarray points_init: np.array<nb_points, dim>
+    :param ndarray points_est: np.array<nb_points, dim>
     :return ndarray: list of errors
 
     >>> points_ref = np.array([[1, 2], [3, 4], [2, 1]])
@@ -235,7 +235,7 @@ def compute_matrix_user_ranking(df_stat, higher_better=False):
 def grouping_cumulative(df, col_index, col_column):
     """ compute histogram statistic over selected column and in addition group this histograms
 
-    :param df: rich table
+    :param DataFrame df: rich table
     :param str col_index: column which will be used s index in resulting table
     :param str col_column: column used for computing a histogram
     :return DF:

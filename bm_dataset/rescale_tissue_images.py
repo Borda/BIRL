@@ -64,7 +64,7 @@ def scale_image(img_path, scale, image_ext=IMAGE_EXTENSION, overwrite=False):
     :param bool overwrite: whether overwrite existing image on output
     """
     base = os.path.dirname(os.path.dirname(img_path))
-    name = os.path.splitext(os.path.basename(img_path))[0]
+    name, _ = os.path.splitext(os.path.basename(img_path))
     base_scale = parse_path_scale(os.path.dirname(img_path))
 
     path_dir = os.path.join(base, FOLDER_TEMPLATE % scale)

@@ -8,6 +8,7 @@ import os
 import re
 import glob
 import logging
+from functools import lru_cache
 
 import numpy as np
 import cv2 as cv
@@ -600,26 +601,33 @@ def list_sub_folders(path_folder, name='*'):
     return sub_dirs
 
 
-def common_landmarks(points1, points2, threshold=0.5):
+
+@lru_cache
+def common_landmarks(points1, points2, threshold=1.5):
     """ find common landmarks in two sets
 
     :param ndarray|list(list(float)) points1: first point set
     :param ndarray|list(list(float)) points2: second point set
-    :param float threshold: threshold for assignment
+    :param float threshold: threshold for assignment (for landmarks in pixels)
     :return list(bool): flags
 
     >>> np.random.seed(0)
     >>> common = np.random.random((5, 2))
     >>> pts1 = np.vstack([common, np.random.random((10, 2))])
     >>> pts2 = np.vstack([common, np.random.random((15, 2))])
+    >>> common_landmarks(pts1, pts2, threshold=1e-3)
+    array([[0, 0],
+           [1, 1],
+           [2, 2],
+           [3, 3],
+           [4, 4]])
     >>> np.random.shuffle(pts2)
-    >>> common_landmarks(pts1, pts2, threshold=0.1)
+    >>> common_landmarks(pts1, pts2, threshold=1e-3)
     array([[ 0, 13],
            [ 1, 10],
            [ 2,  9],
            [ 3, 14],
-           [ 4,  8],
-           [14, 19]])
+           [ 4,  8]])
     """
     points1 = np.asarray(points1)
     points2 = np.asarray(points2)
@@ -628,6 +636,7 @@ def common_landmarks(points1, points2, threshold=0.5):
     dist_sel = dist[ind_row, ind_col]
     pairs = [(i, j) for (i, j, d) in zip(ind_row, ind_col, dist_sel)
              if d < threshold]
+    assert len(pairs) <= min([len(points1), len(points2)])
     return np.array(pairs, dtype=int)
 
 

@@ -25,10 +25,11 @@ import numpy as np
 import pandas as pd
 from skimage.color import rgb2gray
 
+# this is used while calling this file as a script
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from .utilities.data_io import (
     update_path, create_folder, image_sizes, load_landmarks, load_image, save_image)
-from .utilities.dataset import image_histogram_matching
+from .utilities.dataset import image_histogram_matching, common_landmarks
 from .utilities.evaluate import (
     compute_target_regist_error_statistic, compute_affine_transf_diff, compute_tre_robustness)
 from .utilities.experiments import (
@@ -37,6 +38,9 @@ from .utilities.experiments import (
 from .utilities.drawing import (
     export_figure, draw_image_points, draw_images_warped_landmarks, overlap_two_images)
 from .utilities.registration import estimate_affine_transform
+
+#: In case provided dataset and complete (true) dataset differ
+COL_PAIRED_LANDMARKS = 'Ration matched landmarks'
 
 
 class ImRegBenchmark(Experiment):
@@ -276,6 +280,7 @@ class ImRegBenchmark(Experiment):
         assert os.path.isfile(self.params['path_table']), \
             'path to csv cover is not defined - %s' % self.params['path_table']
         self._df_overview = pd.read_csv(self.params['path_table'], index_col=None)
+        self._df_overview = _df_drop_unnamed(self._df_overview)
         assert all(col in self._df_overview.columns for col in self.COVER_COLUMNS), \
             'Some required columns are missing in the cover file.'
 
@@ -286,8 +291,8 @@ class ImRegBenchmark(Experiment):
         # load existing result of create new entity
         if os.path.isfile(self._path_csv_regist):
             logging.info('loading existing csv: "%s"', self._path_csv_regist)
-            self._df_experiments = pd.read_csv(self._path_csv_regist,
-                                               index_col=None)
+            self._df_experiments = pd.read_csv(self._path_csv_regist, index_col=None)
+            self._df_experiments = _df_drop_unnamed(self._df_experiments)
             if 'ID' in self._df_experiments.columns:
                 self._df_experiments.set_index('ID', inplace=True)
         else:
@@ -659,17 +664,19 @@ class ImRegBenchmark(Experiment):
 
     @classmethod
     def compute_registration_statistic(cls, idx_row, df_experiments,
-                                       path_dataset=None, path_experiment=None):
+                                       path_dataset=None, path_experiment=None, path_reference=None):
         """ after successful registration load initial nad estimated landmarks
         afterwords compute various statistic for init, and final alignment
 
         :param tuple(int,dict) df_row: row from iterated table
         :param DF df_experiments: DataFrame with experiments
-        :param str|None path_dataset: path to the dataset folder
+        :param str|None path_dataset: path to the provided dataset folder
+        :param str|None path_reference: path to the complete landmark collection folder
         :param str|None path_experiment: path to the experiment folder
         """
         idx, row = idx_row
         row = dict(row)  # convert even series to dictionary
+        # load common landmarks and image size
         points_ref, points_move, path_img_ref = cls._load_landmarks(row, path_dataset)
         img_diag = cls._image_diag(row, path_img_ref)
         df_experiments.loc[idx, cls.COL_IMAGE_DIAGONAL] = img_diag
@@ -678,30 +685,41 @@ class ImRegBenchmark(Experiment):
         cls.compute_registration_accuracy(df_experiments, idx, points_ref, points_move,
                                           'init', img_diag, wo_affine=False)
 
+        # define what is the target and init state according to the experiment results
+        use_move_warp = isinstance(row.get(cls.COL_POINTS_MOVE_WARP, None), str)
+        if use_move_warp:
+            points_init, points_target = points_move, points_ref
+            col_source, col_target = cls.COL_POINTS_MOVE, cls.COL_POINTS_REF
+            col_lnds_warp = cls.COL_POINTS_MOVE_WARP
+        else:
+            points_init, points_target = points_ref, points_move
+            col_lnds_warp = cls.COL_POINTS_REF_WARP
+            col_source, col_target = cls.COL_POINTS_REF, cls.COL_POINTS_MOVE
+
+        # optional filtering
+        if path_reference:
+            ratio, points_target, points_source = \
+                filter_paired_landmarks(row, path_dataset, path_reference, col_source, col_target)
+            df_experiments.loc[idx, COL_PAIRED_LANDMARKS] = np.round(ratio, 2)
+
         # load transformed landmarks
         if (cls.COL_POINTS_MOVE_WARP not in row) and (cls.COL_POINTS_REF_WARP not in row):
             logging.error('Statistic: no output landmarks')
             return
 
-        # define what is the target and init state according to the experiment results
-        is_move_warp = isinstance(row.get(cls.COL_POINTS_MOVE_WARP, None), str)
-        points_init = points_move if is_move_warp else points_ref
-        points_target = points_ref if is_move_warp else points_move
-        col_lnds_warp = cls.COL_POINTS_MOVE_WARP if is_move_warp else cls.COL_POINTS_REF_WARP
-
         # check if there are reference landmarks
         if points_target is None:
             logging.warning('Missing landmarks in "%s"',
-                            cls.COL_POINTS_REF if is_move_warp else cls.COL_POINTS_MOVE)
+                            cls.COL_POINTS_REF if use_move_warp else cls.COL_POINTS_MOVE)
             return
         # load warped landmarks
-        path_lnds_wapr = update_path(row[col_lnds_warp], pre_path=path_experiment)
-        if path_lnds_wapr and os.path.isfile(path_lnds_wapr):
-            points_warp = load_landmarks(path_lnds_wapr)
+        path_lnds_warp = update_path(row[col_lnds_warp], pre_path=path_experiment)
+        if path_lnds_warp and os.path.isfile(path_lnds_warp):
+            points_warp = load_landmarks(path_lnds_warp)
             points_warp = np.nan_to_num(points_warp)
         else:
             logging.warning('Invalid path to the landmarks: "%s" <- "%s"',
-                            path_lnds_wapr, row[col_lnds_warp])
+                            path_lnds_warp, row[col_lnds_warp])
             return
 
         # compute Affine statistic
@@ -731,8 +749,8 @@ class ImRegBenchmark(Experiment):
 
         :param DF df_experiments: DataFrame with experiments
         :param int idx: index of tha particular record
-        :param points1: np.array<nb_points, dim>
-        :param points2: np.array<nb_points, dim>
+        :param ndarray points1: np.array<nb_points, dim>
+        :param ndarray points2: np.array<nb_points, dim>
         :param str state: whether it was before of after registration
         :param float img_diag: target image diagonal
         :param bool wo_affine: without affine transform, assume only local/elastic deformation
@@ -883,6 +901,63 @@ class ImRegBenchmark(Experiment):
             export_figure(path_fig, fig)
 
         return path_fig
+
+
+def _df_drop_unnamed(df):
+    """Drop columns was index without name and was loaded as `Unnamed: 0.`"""
+    df = df[list(filter(lambda c: not c.startswith('Unnamed:'), df.columns))]
+    return df
+
+
+def filter_paired_landmarks(item, path_dataset, path_reference, col_source, col_target):
+    """ filter all relevant landmarks which were used and copy them to experiment
+
+    The case is that in certain challenge stage users had provided just a subset
+     of all image landmarks which could be laos shuffled. The idea is to filter identify
+     all user used (provided in dataset) landmarks and filter them from temporary
+     reference dataset.
+
+    :param dict|Series item: experiment DataFrame
+    :param str path_dataset: path to provided landmarks
+    :param str path_reference: path to the complete landmark collection
+    :param str col_source: column name of landmarks to be transformed
+    :param str col_target: column name of landmarks to be compared
+    :return tuple(float,ndarray,ndarray): match ratio, filtered ref and move landmarks
+
+    >>> p_data = update_path('data_images')
+    >>> p_csv = os.path.join(p_data, 'pairs-imgs-lnds_histol.csv')
+    >>> df = pd.read_csv(p_csv)
+    >>> ratio, lnds_ref, lnds_move = filter_paired_landmarks(dict(df.iloc[0]), p_data, p_data,
+    ...     ImRegBenchmark.COL_POINTS_MOVE, ImRegBenchmark.COL_POINTS_REF)
+    >>> ratio
+    1.0
+    >>> lnds_ref.shape, lnds_move.shape
+    ((69, 2), (69, 2))
+    """
+    path_ref = update_path(item[col_source], pre_path=path_reference)
+    assert os.path.isfile(path_ref), 'missing landmarks: %s' % path_ref
+    path_load = update_path(item[col_source], pre_path=path_dataset)
+    assert os.path.isfile(path_load), 'missing landmarks: %s' % path_load
+    pairs = common_landmarks(load_landmarks(path_ref), load_landmarks(path_load), threshold=1)
+    if not pairs.size:
+        logging.warning('there is not pairing between landmarks or dataset and user reference')
+        return 0., np.empty([0]), np.empty([0])
+
+    pairs = sorted(pairs.tolist(), key=lambda p: p[1])
+    ind_ref = np.asarray(pairs)[:, 0]
+    nb_common = min([len(load_landmarks(update_path(item[col], pre_path=path_reference)))
+                     for col in (col_target, col_source)])
+    ind_ref = ind_ref[ind_ref < nb_common]
+
+    path_lnd_ref = update_path(item[col_target], pre_path=path_reference)
+    lnds_filter_ref = load_landmarks(path_lnd_ref)[ind_ref]
+    path_lnd_move = update_path(item[col_source], pre_path=path_reference)
+    lnds_filter_move = load_landmarks(path_lnd_move)[ind_ref]
+
+    ratio_matches = len(ind_ref) / float(nb_common)
+    assert ratio_matches <= 1, 'suspicious ratio for %i paired and %i common landmarks' \
+                               % (len(pairs), nb_common)
+    return ratio_matches, lnds_filter_ref, lnds_filter_move
 
 
 def export_summary_results(df_experiments, path_out, params=None,

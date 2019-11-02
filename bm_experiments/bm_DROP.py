@@ -167,8 +167,8 @@ class BmDROP(ImRegBenchmark):
         # convert MHD image
         path_img_ = convert_image_from_mhd(os.path.join(path_reg_dir, 'output.mhd'),
                                            scaling=item.get('scaling', 1.))
-        img_name = os.path.splitext(os.path.basename(path_im_move))[0]
-        img_ext = os.path.splitext(os.path.basename(path_img_))[1]
+        img_name, _ = os.path.splitext(os.path.basename(path_im_move))
+        _, img_ext = os.path.splitext(os.path.basename(path_img_))
         path_img_warp = path_img_.replace('output' + img_ext, img_name + img_ext)
         shutil.move(path_img_, path_img_warp)
 

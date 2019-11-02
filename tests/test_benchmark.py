@@ -79,7 +79,7 @@ class TestBmRegistration(unittest.TestCase):
         benchmark = ImRegBenchmark(params)
         benchmark.run()
         # no landmarks was copy and also no experiment results was produced
-        list_csv = [len([csv for csv in files if os.path.splitext(csv)[1] == '.csv'])
+        list_csv = [len([csv for csv in files if os.path.splitext(csv)[-1] == '.csv'])
                     for _, _, files in os.walk(benchmark.params['path_exp'])]
         self.assertEqual(sum(list_csv), 0)
         del benchmark
