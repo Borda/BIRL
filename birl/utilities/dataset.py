@@ -8,7 +8,6 @@ import os
 import re
 import glob
 import logging
-from functools import lru_cache
 
 import numpy as np
 import cv2 as cv
@@ -601,8 +600,6 @@ def list_sub_folders(path_folder, name='*'):
     return sub_dirs
 
 
-
-@lru_cache
 def common_landmarks(points1, points2, threshold=1.5):
     """ find common landmarks in two sets
 

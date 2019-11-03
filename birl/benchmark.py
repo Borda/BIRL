@@ -931,8 +931,8 @@ def filter_paired_landmarks(item, path_dataset, path_reference, col_source, col_
     ...     ImRegBenchmark.COL_POINTS_MOVE, ImRegBenchmark.COL_POINTS_REF)
     >>> ratio
     1.0
-    >>> lnds_ref.shape, lnds_move.shape
-    ((69, 2), (69, 2))
+    >>> lnds_ref.shape == lnds_move.shape
+    True
     """
     path_ref = update_path(item[col_source], pre_path=path_reference)
     assert os.path.isfile(path_ref), 'missing landmarks: %s' % path_ref
