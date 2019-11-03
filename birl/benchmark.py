@@ -156,6 +156,10 @@ class ImRegBenchmark(Experiment):
     COL_STATUS = 'status'
     #: extension to the image column name for temporary pre-process image
     COL_IMAGE_EXT_TEMP = ' TEMP'
+    #: number of landmarks in dataset (min of moving and reference)
+    COL_NB_LANDMARKS_INPUT = 'nb. dataset landmarks'
+    #: number of warped landmarks
+    COL_NB_LANDMARKS_WARP = 'nb. warped landmarks'
     #: required experiment parameters
     REQUIRED_PARAMS = Experiment.REQUIRED_PARAMS + ['path_table']
 
@@ -721,6 +725,8 @@ class ImRegBenchmark(Experiment):
             logging.warning('Invalid path to the landmarks: "%s" <- "%s"',
                             path_lnds_warp, row[col_lnds_warp])
             return
+        df_experiments.loc[idx, cls.COL_NB_LANDMARKS_INPUT] = min(len(points_ref), len(points_ref))
+        df_experiments.loc[idx, cls.COL_NB_LANDMARKS_WARP] = len(points_warp)
 
         # compute Affine statistic
         affine_diff = compute_affine_transf_diff(points_init, points_target, points_warp)

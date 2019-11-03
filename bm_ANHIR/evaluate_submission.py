@@ -84,8 +84,11 @@ NAME_JSON_COMPUTER = 'computer-performances.json'
 NAME_JSON_RESULTS = 'metrics.json'
 COL_NORM_TIME = 'Norm. execution time [minutes]'
 COL_TISSUE = 'Tissue kind'
-CMP_THREADS = ('1', 'n')
 # FOLDER_FILTER_DATASET = 'filtered dataset'
+CMP_THREADS = ('1', 'n')
+#: Require having initial overlap as the warped is tricky as some image pairs do not
+#   have the same nb points, so recommend to set it as False
+REQUIRE_OVERLAP_INIT_TARGET = False
 
 
 def create_parser():
@@ -234,17 +237,19 @@ def compute_scores(df_experiments, min_landmarks=1.):
     if 'overlap points (target)' not in df_experiments.columns:
         raise ValueError('Missing `overlap points (target)` column,'
                          ' because there are probably missing wrap landmarks.')
-    # hold_overlap = df_experiments['overlap points (init)'] == df_experiments['overlap points (target)']
-    mask_unpaired = (df_experiments[COL_PAIRED_LANDMARKS] < min_landmarks)
+    unpaired = df_experiments[COL_PAIRED_LANDMARKS] < min_landmarks
+    hold_overlap = df_experiments['overlap points (init)'] == df_experiments['overlap points (target)']
+    mask_incomplete = unpaired.copy()
+    if REQUIRE_OVERLAP_INIT_TARGET:
+        mask_incomplete |= ~hold_overlap
     # rewrite incomplete cases by initial stat
-    if sum(mask_unpaired) > 0:
+    if sum(mask_incomplete) > 0:
         for col_f, col_i in zip(*_filter_tre_measure_columns(df_experiments)):
-            df_experiments.loc[mask_unpaired, col_f] = df_experiments.loc[mask_unpaired, col_i]
-        # df_experiments.loc[mask_unpaired, ImRegBenchmark.COL_ROBUSTNESS] = 0.
-        logging.warning('There are %i cases with incomplete landmarks', sum(mask_unpaired))
-        # logging.warning('There are %i cases which incomplete landmarks'
-        #                 ' - missed overlap %i & unpaired %i.',
-        #                 sum(mask_incomplete), sum(~hold_overlap), sum(unpaired))
+            df_experiments.loc[mask_incomplete, col_f] = df_experiments.loc[mask_incomplete, col_i]
+        df_experiments.loc[mask_incomplete, ImRegBenchmark.COL_ROBUSTNESS] = 0.
+        logging.warning('There are %i cases which incomplete landmarks'
+                        ' - unpaired %i & missed overlap %i.',
+                        sum(mask_incomplete), sum(unpaired), sum(~hold_overlap))
 
     df_expt_robust = df_experiments[df_experiments[ImRegBenchmark.COL_ROBUSTNESS] > 0.5]
     pd.set_option('expand_frame_repr', False)
