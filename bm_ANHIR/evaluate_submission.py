@@ -260,6 +260,7 @@ def compute_scores(df_experiments, min_landmarks=1.):
     # parse specific metrics
     scores = {
         'Average-Robustness': np.mean(df_experiments[ImRegBenchmark.COL_ROBUSTNESS]),
+        'Median-Robustness': np.median(df_experiments[ImRegBenchmark.COL_ROBUSTNESS]),
         'Average-Rank-Median-rTRE': np.nan,
         'Average-Rank-Max-rTRE': np.nan,
         'Average-used-landmarks': score_used_lnds,
@@ -419,7 +420,7 @@ def swap_inverse_experiment(table, allow_inverse):
     if ImRegBenchmark.COL_POINTS_REF_WARP not in table.columns:
         raise ValueError('Missing target column "%s" to swap to'
                          % ImRegBenchmark.COL_POINTS_REF_WARP)
-    # swapping columns
+    logging.info('Swapping columns of Moving and Reference landmarks for both - source and warped.')
     col_ref = table[ImRegBenchmark.COL_POINTS_REF].values.tolist()
     col_move = table[ImRegBenchmark.COL_POINTS_MOVE].values.tolist()
     table[ImRegBenchmark.COL_POINTS_REF] = col_move
