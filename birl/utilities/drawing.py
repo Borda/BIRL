@@ -484,7 +484,8 @@ def draw_scatter_double_scale(df, cmap=None,
                               ax_decs={'name1': ['col1', 'col2'], 'name2': ['col3']},
                               idx_markers=('o', 'd'),
                               xlabel='', figsize=None,
-                              legend_style=None):
+                              legend_style=None,
+                              plot_style=None):
     """Draw a scatter with double scales on left and right
 
     :param DF df: dataframe
@@ -494,6 +495,7 @@ def draw_scatter_double_scale(df, cmap=None,
     :param str xlabel: title of x axis
     :param tuple(float,float) figsize:
     :param dict legend_style: legend configuration
+    :param dict plot_style: extra plot configuration
     :return tuple: figure and both axis
 
     >>> import pandas as pd
@@ -538,13 +540,16 @@ def draw_scatter_double_scale(df, cmap=None,
     else:
         ax2 = None
 
+    plot_style = plot_style if plot_style else {}
+
     for i, col in enumerate(df.columns):
         ax = ax1 if col in ax_decs[ax_names[0]] else ax2
         for j, idx in enumerate(idx_names):
             # print (idx, col, i, df.loc[idx, col])
             offset = j % len(idx_markers)
             x_off = (offset / float(len(idx_markers)) - 0.5) * 0.3
-            ax.plot(i + x_off, df.loc[idx, col], idx_markers[offset], color=cmap(j), label=idx)
+            ax.plot(i + x_off, df.loc[idx, col], idx_markers[offset],
+                    color=cmap(j), label=idx, **plot_style)
 
     if xlabel:
         ax1.set_xlabel(xlabel)
