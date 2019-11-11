@@ -7,6 +7,7 @@ Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 
 import os
 import logging
+import collections
 
 import numpy as np
 import matplotlib.pylab as plt
@@ -281,7 +282,7 @@ class RadarChart(object):
     <...>
     """
 
-    def __init__(self, df, steps=5, fig=None, rect=None, fill_alpha=0.05, cmap='nipy_spectral',
+    def __init__(self, df, steps=5, fig=None, rect=None, fill_alpha=0.05, colors='nipy_spectral',
                  *args, **kwargs):
         """ draw a dataFrame with scaled axis
 
@@ -317,9 +318,12 @@ class RadarChart(object):
             self.__draw_labels(ax, angle, title)
 
         self.maxs = np.array([self.data[title].max() for title in self.titles])
-        colors = plt.get_cmap(cmap, len(self.data))
+
+        # uf just color space is given, sample colors
+        colors = _list_colors(colors, len(self.data))
+
         for i, (idx, row) in enumerate(self.data.iterrows()):
-            self.__draw_curve(idx, row, fill_alpha, color=colors(i), *args, **kwargs)
+            self.__draw_curve(idx, row, fill_alpha, color=colors[i], *args, **kwargs)
 
         for ax in self.axes:
             for theta, label in zip(ax.get_xticks(), ax.get_xticklabels()):
@@ -383,8 +387,31 @@ class RadarChart(object):
             label.set_verticalalignment('top')
 
 
+def _list_colors(colors, nb):
+    """ sample color space
+
+    :param str|list colors:
+    :param int nb:
+    :return list:
+
+    >>> _list_colors('jet', 2)
+    [(0.0, 0.0, 0.5, 1.0), (0.5, 0.0, 0.0, 1.0)]
+    >>> _list_colors(plt.cm.jet, 3)  # doctest: +ELLIPSIS
+    [(0.0, 0.0, 0.5, 1.0), (0.0, 0.0, 0.5..., 1.0), (0.0, 0.0, 0.5..., 1.0)]
+    >>> _list_colors([(255, 0, 0), (0, 255, 0)], 1)
+    [(255, 0, 0), (0, 255, 0)]
+    """
+    # uf just color space is given, sample colors
+    if isinstance(colors, str):
+        colors = plt.get_cmap(colors, nb)
+    # assume case that the color is callable plt.cm.jet
+    if isinstance(colors, collections.Callable):
+        colors = [colors(i) for i in range(nb)]
+    return colors
+
+
 def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
-                 cbar_kw=None, cbarlabel="", **kwargs):
+                 cbar_kw=None, cbar_label="", **kwargs):
     """
     Create a draw_heatmap from a numpy array and two lists of labels.
 
@@ -402,7 +429,7 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
                      create a new one.
         cbar_kw    : A dictionary with arguments to
                      :meth:`matplotlib.Figure.colorbar`.
-        cbarlabel  : The label for the colorbar
+        cbar_label  : The label for the colorbar
     All other arguments are directly passed on to the imshow call.
     """
     cbar_kw = {} if cbar_kw is None else cbar_kw
@@ -412,7 +439,7 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
 
     # Create colorbar
     cbar = ax.figure.colorbar(im, ax=ax, **cbar_kw)
-    cbar.ax.set_ylabel(cbarlabel, rotation=-90, va='bottom')
+    cbar.ax.set_ylabel(cbar_label, rotation=-90, va='bottom')
 
     # We want to show all ticks and label them with the respective list entries.
     if col_labels is not None:
@@ -447,7 +474,7 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
     return im, cbar
 
 
-def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None, cmap='nipy_spectral'):
+def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None, cmap='tab20'):
     """ show matrix as image, sorted per column and unique colour per user
 
     :param DF df_stat: table where index are users and columns are scoring
@@ -473,14 +500,14 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None, cmap='nipy_
     draw_heatmap(ranking, np.arange(1, len(df_stat) + 1), df_stat.columns, ax=ax,
                  cmap=plt.get_cmap(cmap, len(df_stat)), norm=norm,
                  cbar_kw=dict(ticks=range(len(df_stat)), format=fmt),
-                 cbarlabel='Methods')
+                 cbar_label='Methods')
     ax.set_ylabel('Ranking')
 
     fig.tight_layout()
     return fig
 
 
-def draw_scatter_double_scale(df, cmap=None,
+def draw_scatter_double_scale(df, colors='nipy_spectral',
                               ax_decs={'name1': ['col1', 'col2'], 'name2': ['col3']},
                               idx_markers=('o', 'd'),
                               xlabel='', figsize=None,
@@ -512,8 +539,8 @@ def draw_scatter_double_scale(df, cmap=None,
     ax_names = list(ax_decs.keys())
     idx_names = list(df.index)
 
-    if not cmap:
-        cmap = plt.cm.jet
+    # uf just color space is given, sample colors
+    colors = _list_colors(colors, len(idx_names))
 
     # https://matplotlib.org/3.1.0/gallery/lines_bars_and_markers/linestyles.html
     # https://matplotlib.org/3.1.1/_modules/matplotlib/colors.html
@@ -549,7 +576,7 @@ def draw_scatter_double_scale(df, cmap=None,
             offset = j % len(idx_markers)
             x_off = (offset / float(len(idx_markers)) - 0.5) * 0.3
             ax.plot(i + x_off, df.loc[idx, col], idx_markers[offset],
-                    color=cmap(j), label=idx, **plot_style)
+                    color=colors[j], label=idx, **plot_style)
 
     if xlabel:
         ax1.set_xlabel(xlabel)
