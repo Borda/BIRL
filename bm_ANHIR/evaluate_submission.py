@@ -258,12 +258,22 @@ def compute_scores(df_experiments, min_landmarks=1.):
     score_used_lnds = np.mean(df_expt_robust[COL_PAIRED_LANDMARKS]) \
         if COL_PAIRED_LANDMARKS in df_experiments.columns else 0
     # parse specific metrics
+    scores = {'Average-used-landmarks': score_used_lnds}
+
+    scores.update(_compute_scores_general(df_experiments, df_expt_robust))
+
+    scores.update(_compute_scores_state_tissue(df_experiments))
+
+    return scores
+
+
+def _compute_scores_general(df_experiments, df_expt_robust):
+    # parse specific metrics
     scores = {
         'Average-Robustness': np.mean(df_experiments[ImRegBenchmark.COL_ROBUSTNESS]),
         'Median-Robustness': np.median(df_experiments[ImRegBenchmark.COL_ROBUSTNESS]),
         'Average-Rank-Median-rTRE': np.nan,
         'Average-Rank-Max-rTRE': np.nan,
-        'Average-used-landmarks': score_used_lnds,
     }
     # parse Mean & median specific measures
     for name, col in [('Median-rTRE', 'rTRE Median'),
@@ -274,7 +284,11 @@ def compute_scores(df_experiments, min_landmarks=1.):
         scores['Average-' + name + '-Robust'] = np.nanmean(df_expt_robust[col])
         scores['Median-' + name] = np.median(df_experiments[col])
         scores['Median-' + name + '-Robust'] = np.median(df_expt_robust[col])
+    return scores
 
+
+def _compute_scores_state_tissue(df_experiments):
+    scores = {}
     # filter all statuses in the experiments
     statuses = df_experiments[ImRegBenchmark.COL_STATUS].unique()
     # parse metrics according to TEST and TRAIN case
@@ -285,13 +299,18 @@ def compute_scores(df_experiments, min_landmarks=1.):
         # iterate over common measures
         for stat_name, stat_func in [('Average', np.mean),
                                      ('Median', np.median)]:
+            _sname = stat_name + '-' + name
             for status in statuses:
                 df_expt_ = df_experiments[df_experiments[ImRegBenchmark.COL_STATUS] == status]
-                scores[stat_name + '-' + name + '_' + status] = stat_func(df_expt_[col])
+                scores[_sname + '_' + status] = stat_func(df_expt_[col])
             # parse according to Tissue
-            for tissue, df_tissue in df_experiments.groupby(COL_TISSUE):
-                scores[stat_name + '-' + name + '_tissue_' + tissue] = stat_func(df_tissue[col])
-
+            for tissue, dfg_tissue in df_experiments.groupby(COL_TISSUE):
+                scores[_sname + '_tissue_' + tissue] = stat_func(dfg_tissue[col])
+                # also per state in tissue
+                for status in statuses:
+                    df_tiss_st_ = dfg_tissue[dfg_tissue[ImRegBenchmark.COL_STATUS] == status]
+                    stat = stat_func(df_tiss_st_[col]) if not df_tiss_st_.empty else np.nan
+                    scores[_sname + '_' + status + '_tissue_' + tissue] = stat
     return scores
 
 
