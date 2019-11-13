@@ -17,8 +17,9 @@ __author__ = 'Jiri Borovec'
 __author_email__ = 'jiri.borovec@fel.cvut.cz'
 __license__ = 'BSD 3-clause'
 __homepage__ = 'https://borda.github.io/BIRL',
-__copyright__ = 'Copyright (c) 2014-2019, Jiri Borovec.'
-__doc__ = """# BIRL: Benchmark on Image Registration methods with Landmark validation
+__copyright__ = 'Copyright (c) 2014-2019, %s.' % __author__
+__doc__ = 'BIRL: Benchmark on Image Registration methods with Landmark validation'
+__long_doc__ = "# %s" % __doc__ + """
 
 The project aims at automatic evaluation of state-of-the-art image registration
  methods based on landmark annotation for given image dataset. In particular,

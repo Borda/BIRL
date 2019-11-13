@@ -30,7 +30,7 @@ import birl  # noqa: E402
 
 # export the documentation
 with open('intro.rst', 'w') as fp:
-    intro = birl.__doc__.replace(os.linesep + ' ', '')
+    intro = birl.__long_doc__.replace(os.linesep + ' ', '')
     fp.write(m2r.convert(intro))
     # fp.write(birl.__doc__)
 
