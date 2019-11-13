@@ -510,9 +510,11 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None, cmap='tab20
 def draw_scatter_double_scale(df, colors='nipy_spectral',
                               ax_decs={'name1': ['col1', 'col2'], 'name2': ['col3']},
                               idx_markers=('o', 'd'),
-                              xlabel='', figsize=None,
+                              xlabel='',
+                              figsize=None,
                               legend_style=None,
-                              plot_style=None):
+                              plot_style=None,
+                              x_spread=(0.3, 5)):
     """Draw a scatter with double scales on left and right
 
     :param DF df: dataframe
@@ -523,6 +525,7 @@ def draw_scatter_double_scale(df, colors='nipy_spectral',
     :param tuple(float,float) figsize:
     :param dict legend_style: legend configuration
     :param dict plot_style: extra plot configuration
+    :param tuple(float,int) x_spread: range of spreads and number of samples
     :return tuple: figure and both axis
 
     >>> import pandas as pd
@@ -568,14 +571,19 @@ def draw_scatter_double_scale(df, colors='nipy_spectral',
         ax2 = None
 
     plot_style = plot_style if plot_style else {}
+    # is some spread over x around zero is define
+    if x_spread:
+        x_offsets = np.linspace(-x_spread[0] / 2., x_spread[0] / 2., x_spread[1])
+    else:
+        x_offsets = [0]
 
     for i, col in enumerate(df.columns):
         ax = ax1 if col in ax_decs[ax_names[0]] else ax2
         for j, idx in enumerate(idx_names):
             # print (idx, col, i, df.loc[idx, col])
-            offset = j % len(idx_markers)
-            x_off = (offset / float(len(idx_markers)) - 0.5) * 0.3
-            ax.plot(i + x_off, df.loc[idx, col], idx_markers[offset],
+            mkr = j % len(idx_markers)
+            x_off = x_offsets[j % len(x_offsets)]
+            ax.plot(i + x_off, df.loc[idx, col], idx_markers[mkr],
                     color=colors[j], label=idx, **plot_style)
 
     if xlabel:
