@@ -702,7 +702,7 @@ class ImRegBenchmark(Experiment):
 
         # optional filtering
         if path_reference:
-            ratio, points_target, points_source = \
+            ratio, points_target, _ = \
                 filter_paired_landmarks(row, path_dataset, path_reference, col_source, col_target)
             df_experiments.loc[idx, COL_PAIRED_LANDMARKS] = np.round(ratio, 2)
 

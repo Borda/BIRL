@@ -508,7 +508,7 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None, cmap='tab20
 
 
 def draw_scatter_double_scale(df, colors='nipy_spectral',
-                              ax_decs={'name1': ['col1', 'col2'], 'name2': ['col3']},
+                              ax_decs=None,
                               idx_markers=('o', 'd'),
                               xlabel='',
                               figsize=None,
@@ -533,12 +533,20 @@ def draw_scatter_double_scale(df, colors='nipy_spectral',
     >>> fig, axs = draw_scatter_double_scale(df, ax_decs={'name': None}, xlabel='X')
     >>> axs  # doctest: +ELLIPSIS
     (<...>, None)
-    >>> fig, axs = draw_scatter_double_scale(df, ax_decs={'name1': ['col1', 'col2'], 'name2': None})
+    >>> # just the selected columns
+    >>> fig, axs = draw_scatter_double_scale(df, ax_decs={'name1': ['col1', 'col2'],
+    ...                                                   'name2': ['col3']})
+    >>> fig  # doctest: +ELLIPSIS
+    <...>
+    >>> # for the "name2" use all remaining columns
+    >>> fig, axs = draw_scatter_double_scale(df, ax_decs={'name1': ['col1', 'col2'],
+    ...                                                   'name2': None})
     >>> fig  # doctest: +ELLIPSIS
     <...>
     """
     # https://matplotlib.org/gallery/api/two_scales.html
     fig, ax1 = plt.subplots(figsize=figsize)
+    assert isinstance(ax_decs, dict)
     ax_names = list(ax_decs.keys())
     idx_names = list(df.index)
 
