@@ -43,7 +43,7 @@ setup(
     long_description=birl.__doc__,
     long_description_content_type='text/markdown',
 
-    packages=['birl'],
+    packages=['birl', 'birl.utilities'],
 
     keywords='benchmark image registration landmarks',
     install_requires=requirements,
