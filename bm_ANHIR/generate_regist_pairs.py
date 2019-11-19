@@ -86,8 +86,8 @@ def list_landmarks_images(path_tissue, sc, path_landmarks, path_images):
         return [], []
     paths_imgs, rp_lnds_filter = [], []
     for rp_lnd in rp_lnds:
-        p_imgs = glob.glob(os.path.join(path_images,
-                                        os.path.splitext(rp_lnd)[0] + '.*'))
+        pattern = os.path.splitext(rp_lnd)[0] + '.*'
+        p_imgs = glob.glob(os.path.join(path_images, pattern))
         p_imgs = [p for p in p_imgs if os.path.splitext(p)[-1] in IMAGE_EXTENSIONS]
         if not p_imgs:
             logging.warning('missing image for "%s"', rp_lnd)

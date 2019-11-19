@@ -206,7 +206,7 @@ class Experiment(object):
 
         close the logger if the termination instance is the main one
         """
-        if hasattr(self, '_main_thread') and self._main_thread:
+        if self and hasattr(self, '_main_thread') and self._main_thread:
             logging.info('terminating experiment...')
             release_logger_files()
         logging.debug('terminating child experiment...')
@@ -244,7 +244,7 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     assert os.path.isdir(path_out), 'missing base folder "%s"' % path_out
     date = time.gmtime()
     if isinstance(name, str) and name:
-        dir_name = '%r_%r' % (dir_name, name)
+        dir_name = '%s_%s' % (dir_name, name)
     # if you require time stamp
     if stamp_unique:
         path_stamp = time.strftime(FORMAT_DATE_TIME, date)
@@ -329,6 +329,8 @@ def create_basic_parser(name=''):
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser('Benchmark on Image Registration - %s' % name)
+    parser.add_argument('-n', '--name', type=str, required=False, default=None,
+                        help='custom experiment name')
     parser.add_argument('-t', '--path_table', type=str, required=True,
                         help='path to the csv cover file')
     parser.add_argument('-d', '--path_dataset', type=str, required=False, default=None,
@@ -711,7 +713,7 @@ def computer_info():
     return {
         'system': platform.system(),
         'architecture': platform.architecture(),
-        'node': platform.node(),
+        'name': platform.node(),
         'release': platform.release(),
         'version': platform.version(),
         'machine': platform.machine(),

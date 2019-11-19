@@ -3,10 +3,11 @@ Function for drawing and visualisations
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
-from __future__ import absolute_import
+# from __future__ import absolute_import
 
 import os
 import logging
+import collections
 
 import numpy as np
 import matplotlib.pylab as plt
@@ -184,8 +185,10 @@ def draw_images_warped_landmarks(image_target, image_source,
     >>> fig = draw_images_warped_landmarks(None, None, points, points + 1, points - 1)
     >>> isinstance(fig, plt.Figure)
     True
-    >>> _ = draw_images_warped_landmarks(image, None, points, points + 1, points - 1)
-    >>> _ = draw_images_warped_landmarks(None, image, points, points + 1, points - 1)
+    >>> draw_images_warped_landmarks(image, None, points, points + 1, points - 1)  # doctest: +ELLIPSIS
+    <...>
+    >>> draw_images_warped_landmarks(None, image, points, points + 1, points - 1)  # doctest: +ELLIPSIS
+    <...>
     """
     # down-scale images and landmarks if they are too large
     (image_target, image_source), (points_init, points_target, points_warped) = \
@@ -275,10 +278,12 @@ class RadarChart(object):
 
     >>> import pandas as pd
     >>> df = pd.DataFrame(np.random.random((5, 3)), columns=list('abc'))
-    >>> fig = RadarChart(df)
+    >>> RadarChart(df)  # doctest: +ELLIPSIS
+    <...>
     """
 
-    def __init__(self, df, steps=5, fig=None, rect=None, fill_alpha=0.05, *args, **kw):
+    def __init__(self, df, steps=5, fig=None, rect=None, fill_alpha=0.05, colors='nipy_spectral',
+                 *args, **kwargs):
         """ draw a dataFrame with scaled axis
 
         :param df: data
@@ -286,8 +291,9 @@ class RadarChart(object):
         :param obj|None fig: Figure or None for a new one
         :param tuple(float,float,float,float) rect: rectangle inside figure
         :param float fill_alpha: transparency of filled region
+        :param str cmap: used color map
         :param args: optional arguments
-        :param kw: optional key arguments
+        :param kwargs: optional key arguments
         """
         if fig is None:
             fig = plt.figure()
@@ -312,8 +318,12 @@ class RadarChart(object):
             self.__draw_labels(ax, angle, title)
 
         self.maxs = np.array([self.data[title].max() for title in self.titles])
-        for idx, row in self.data.iterrows():
-            self.__draw_curve(idx, row, fill_alpha, *args, **kw)
+
+        # uf just color space is given, sample colors
+        colors = _list_colors(colors, len(self.data))
+
+        for i, (idx, row) in enumerate(self.data.iterrows()):
+            self.__draw_curve(idx, row, fill_alpha, color=colors[i], *args, **kwargs)
 
         for ax in self.axes:
             for theta, label in zip(ax.get_xticks(), ax.get_xticklabels()):
@@ -349,9 +359,11 @@ class RadarChart(object):
         :param args: optional arguments
         :param kw: optional key arguments
         """
-        vals = row.values / self.maxs * self.nb_steps + 1
-        self.ax.plot(np.deg2rad(self.angles), vals, label=idx, *args, **kw)
-        self.ax.fill(np.deg2rad(self.angles), vals, alpha=fill_alpha)
+        vals = (row.values / self.maxs * self.nb_steps + 1).tolist()
+        vals.append(vals[0])
+        angs = self.angles.tolist() + [self.angles[0]]
+        self.ax.plot(np.deg2rad(angs), vals, label=idx, *args, **kw)
+        self.ax.fill(np.deg2rad(angs), vals, alpha=fill_alpha)
 
     @classmethod
     def __realign_polar_xtick(self, ax, theta, label):
@@ -375,8 +387,31 @@ class RadarChart(object):
             label.set_verticalalignment('top')
 
 
+def _list_colors(colors, nb):
+    """ sample color space
+
+    :param str|list colors:
+    :param int nb:
+    :return list:
+
+    >>> _list_colors('jet', 2)
+    [(0.0, 0.0, 0.5, 1.0), (0.5, 0.0, 0.0, 1.0)]
+    >>> _list_colors(plt.cm.jet, 3)  # doctest: +ELLIPSIS
+    [(0.0, 0.0, 0.5, 1.0), (0.0, 0.0, 0.5..., 1.0), (0.0, 0.0, 0.5..., 1.0)]
+    >>> _list_colors([(255, 0, 0), (0, 255, 0)], 1)
+    [(255, 0, 0), (0, 255, 0)]
+    """
+    # uf just color space is given, sample colors
+    if isinstance(colors, str):
+        colors = plt.get_cmap(colors, nb)
+    # assume case that the color is callable plt.cm.jet
+    if isinstance(colors, collections.Callable):
+        colors = [colors(i) for i in range(nb)]
+    return colors
+
+
 def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
-                 cbar_kw=None, cbarlabel="", **kwargs):
+                 cbar_kw=None, cbar_label="", **kwargs):
     """
     Create a draw_heatmap from a numpy array and two lists of labels.
 
@@ -394,7 +429,7 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
                      create a new one.
         cbar_kw    : A dictionary with arguments to
                      :meth:`matplotlib.Figure.colorbar`.
-        cbarlabel  : The label for the colorbar
+        cbar_label  : The label for the colorbar
     All other arguments are directly passed on to the imshow call.
     """
     cbar_kw = {} if cbar_kw is None else cbar_kw
@@ -404,7 +439,7 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
 
     # Create colorbar
     cbar = ax.figure.colorbar(im, ax=ax, **cbar_kw)
-    cbar.ax.set_ylabel(cbarlabel, rotation=-90, va='bottom')
+    cbar.ax.set_ylabel(cbar_label, rotation=-90, va='bottom')
 
     # We want to show all ticks and label them with the respective list entries.
     if col_labels is not None:
@@ -439,16 +474,19 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
     return im, cbar
 
 
-def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None):
+def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None, cmap='tab20'):
     """ show matrix as image, sorted per column and unique colour per user
 
     :param DF df_stat: table where index are users and columns are scoring
     :param bool higher_better: ranking such that larger value is better
+    :param fig: optional figure
+    :param str cmap: color map
     :return Figure:
 
     >>> import pandas as pd
     >>> df = pd.DataFrame(np.random.random((5, 3)), columns=list('abc'))
-    >>> fig = draw_matrix_user_ranking(df)
+    >>> draw_matrix_user_ranking(df)  # doctest: +ELLIPSIS
+    <...>
     """
     ranking = compute_matrix_user_ranking(df_stat, higher_better)
 
@@ -460,9 +498,110 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None):
     fmt = plt_ticker.FuncFormatter(lambda x, pos: df_stat.index[x])
 
     draw_heatmap(ranking, np.arange(1, len(df_stat) + 1), df_stat.columns, ax=ax,
-                 cmap=plt.get_cmap('nipy_spectral', len(df_stat)), norm=norm,
+                 cmap=plt.get_cmap(cmap, len(df_stat)), norm=norm,
                  cbar_kw=dict(ticks=range(len(df_stat)), format=fmt),
-                 cbarlabel='Users')
+                 cbar_label='Methods')
     ax.set_ylabel('Ranking')
 
+    fig.tight_layout()
     return fig
+
+
+def draw_scatter_double_scale(df, colors='nipy_spectral',
+                              ax_decs=None,
+                              idx_markers=('o', 'd'),
+                              xlabel='',
+                              figsize=None,
+                              legend_style=None,
+                              plot_style=None,
+                              x_spread=(0.3, 5)):
+    """Draw a scatter with double scales on left and right
+
+    :param DF df: dataframe
+    :param func cmap: color mapping
+    :param dict ax_decs: dictionary with names of left and right axis
+    :param tuple idx_markers:
+    :param str xlabel: title of x axis
+    :param tuple(float,float) figsize:
+    :param dict legend_style: legend configuration
+    :param dict plot_style: extra plot configuration
+    :param tuple(float,int) x_spread: range of spreads and number of samples
+    :return tuple: figure and both axis
+
+    >>> import pandas as pd
+    >>> df = pd.DataFrame(np.random.random((10, 3)), columns=['col1', 'col2', 'col3'])
+    >>> fig, axs = draw_scatter_double_scale(df, ax_decs={'name': None}, xlabel='X')
+    >>> axs  # doctest: +ELLIPSIS
+    (<...>, None)
+    >>> # just the selected columns
+    >>> fig, axs = draw_scatter_double_scale(df, ax_decs={'name1': ['col1', 'col2'],
+    ...                                                   'name2': ['col3']})
+    >>> fig  # doctest: +ELLIPSIS
+    <...>
+    >>> # for the "name2" use all remaining columns
+    >>> fig, axs = draw_scatter_double_scale(df, ax_decs={'name1': ['col1', 'col2'],
+    ...                                                   'name2': None})
+    >>> fig  # doctest: +ELLIPSIS
+    <...>
+    """
+    # https://matplotlib.org/gallery/api/two_scales.html
+    fig, ax1 = plt.subplots(figsize=figsize)
+    assert isinstance(ax_decs, dict)
+    ax_names = list(ax_decs.keys())
+    idx_names = list(df.index)
+
+    # uf just color space is given, sample colors
+    colors = _list_colors(colors, len(idx_names))
+
+    # https://matplotlib.org/3.1.0/gallery/lines_bars_and_markers/linestyles.html
+    # https://matplotlib.org/3.1.1/_modules/matplotlib/colors.html
+    tab_colors = ('tab:brown', 'tab:gray') if len(ax_names) > 1 else ('black', )
+
+    ax1.set_ylabel(ax_names[0], color=tab_colors[0])
+    ax1.grid(True, linestyle='dashed', color=tab_colors[0])
+    ax1.tick_params(axis='y', labelcolor=tab_colors[0])
+    # automatically fill missing names in the other collections
+    if not ax_decs[ax_names[0]]:
+        # if it is just one add all columns else just supplement
+        ax_decs[ax_names[0]] = [c for c in df.columns if c not in ax_decs[ax_names[1]]] \
+            if len(ax_names) > 1 and ax_decs.get(ax_names[1]) else list(df.columns)
+
+    # add second y-axes
+    if len(ax_names) == 2:
+        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+        ax2.set_ylabel(ax_names[1], color=tab_colors[1])  # we already handled the x-label with ax1
+        ax2.grid(True, linestyle='dotted', color=tab_colors[1])
+        ax2.tick_params(axis='y', labelcolor=tab_colors[1])
+        # automatically fill missing names in the other collections
+        if not ax_decs[ax_names[1]] and ax_decs[ax_names[0]]:
+            ax_decs[ax_names[1]] = [c for c in df.columns if c not in ax_decs[ax_names[0]]]
+    else:
+        ax2 = None
+
+    plot_style = plot_style if plot_style else {}
+    # is some spread over x around zero is define
+    if x_spread:
+        x_offsets = np.linspace(-x_spread[0] / 2., x_spread[0] / 2., x_spread[1])
+    else:
+        x_offsets = [0]
+
+    for i, col in enumerate(df.columns):
+        ax = ax1 if col in ax_decs[ax_names[0]] else ax2
+        for j, idx in enumerate(idx_names):
+            # print (idx, col, i, df.loc[idx, col])
+            mkr = j % len(idx_markers)
+            x_off = x_offsets[j % len(x_offsets)]
+            ax.plot(i + x_off, df.loc[idx, col], idx_markers[mkr],
+                    color=colors[j], label=idx, **plot_style)
+
+    if xlabel:
+        ax1.set_xlabel(xlabel)
+    # X label ticks - https://stackoverflow.com/questions/43152502
+    ax1.set_xticks(range(len(df.columns)))
+    ax1.set_xticklabels(df.columns, rotation=45, ha="right")
+
+    # legend - https://matplotlib.org/3.1.1/gallery/text_labels_and_annotations/custom_legends.html
+    if legend_style is None:
+        legend_style = dict(loc='upper center', bbox_to_anchor=(1.25, 1.0), ncol=1)
+    ax1.legend(idx_names, **legend_style)
+    return fig, (ax1, ax2)

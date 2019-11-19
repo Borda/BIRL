@@ -62,7 +62,7 @@ def main(path_dataset, path_landmarks_out, path_landmarks_in, path_csv):
     :param str path_landmarks_in: path to landmarks dataset [intput]
     :param str path_csv: path to dataset cover table
     """
-    name_csv = os.path.splitext(os.path.basename(path_csv))[0]
+    name_csv, _ = os.path.splitext(os.path.basename(path_csv))
     df_overview = pd.read_csv(path_csv)
 
     # Section - IMAGES

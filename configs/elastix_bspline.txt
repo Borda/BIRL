@@ -1,6 +1,5 @@
 // Example parameter file for B-spline registration
 // C-style comments: //
-// http://elastix.isi.uu.nl/doxygen/parameter.html
 
 // The internal pixel type, used for internal computations
 // Leave to float in general.
@@ -44,8 +43,8 @@
 // and need to be chosen careful for each application. See manual.
 (Optimizer "AdaptiveStochasticGradientDescent")
 (Transform "BSplineTransform")
-//(Metric "AdvancedMattesMutualInformation")
-(Metric "AdvancedNormalizedCorrelation")
+(Metric "AdvancedMattesMutualInformation")
+//(Metric "DisplacementMagnitudePenalty")
 
 // ***************** Transformation **************************
 
@@ -95,7 +94,7 @@
 // The number of resolutions. 1 Is only enough if the expected
 // deformations are small. 3 or 4 mostly works fine. For large
 // images and large deformations, 5 or 6 may even be useful.
-(NumberOfResolutions 10)
+(NumberOfResolutions 6)
 
 // The downsampling/blurring factors for the image pyramids.
 // By default, the images are downsampled by a factor of 2
@@ -115,13 +114,13 @@
 // 200-2000 works usually fine for nonrigid registration.
 // The more, the better, but the longer computation time.
 // This is an important parameter!
-(MaximumNumberOfIterations 200)
+(MaximumNumberOfIterations 999)
 
 // The step size of the optimizer, in mm. By default the voxel size is used.
 // which usually works well. In case of unusual high-resolution images
 // (eg histology) it is necessary to increase this value a bit, to the size
 // of the "smallest visible structure" in the image:
-(MaximumStepLength 25.0)
+(MaximumStepLength 5.0)
 
 // **************** Image sampling **********************
 
@@ -130,7 +129,7 @@
 // With an AdaptiveStochasticGradientDescent optimizer,
 // in combination with the two options below, around 2000
 // samples may already suffice.
-(NumberOfSpatialSamples 2048)
+(NumberOfSpatialSamples 4096)
 
 // Refresh these spatial samples in every iteration, and select
 // them randomly. See the manual for information on other sampling
@@ -144,7 +143,7 @@
 // It may improve accuracy if you set this to 3. Never use 0.
 // An order of 1 gives linear interpolation. This is in most
 // applications a good choice.
-(BSplineInterpolationOrder 1)
+(BSplineInterpolationOrder 2)
 
 // Order of B-Spline interpolation used for applying the final
 // deformation.
@@ -152,7 +151,7 @@
 // 1 gives worse accuracy (linear interpolation)
 // 0 gives worst accuracy, but is appropriate for binary images
 // (masks, segmentations); equivalent to nearest neighbor interpolation.
-(FinalBSplineInterpolationOrder 2)
+(FinalBSplineInterpolationOrder 3)
 
 //Default pixel value for pixels that come from outside the picture:
 (DefaultPixelValue 0)

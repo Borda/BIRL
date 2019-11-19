@@ -8,6 +8,8 @@
 # this file is *not* meant to cover or endorse the use of travis, but rather to
 # help confirm pull requests to this project.
 
+dist: bionic  # Ubuntu 18.04
+
 env:
   global:
     - DISPLAY=""
@@ -72,8 +74,8 @@ script:
   - python bm_experiments/bm_comp_perform.py -o ./results -n 1
   - python birl/bm_template.py -t ./data_images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique -cfg configs/sample_config.yaml
   - rm ./data_images/*_/*/*_HE.csv  # remove target landmarks from histol. tissue
-  - python birl/bm_template.py -t ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results --preprocessing matching-rgb gray -cfg configs/sample_config.yaml
-  - python bm_experiments/evaluate_experiment.py -d ./data_images -e ./results/BmTemplate --visual
+  - python birl/bm_template.py -n anhir -t ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results --preprocessing matching-rgb gray -cfg configs/sample_config.yaml
+  - python bm_experiments/evaluate_experiment.py -d ./data_images -e ./results/BmTemplate_anhir --visual
 
 after_success:
   - coverage report

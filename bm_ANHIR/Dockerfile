@@ -3,7 +3,7 @@ FROM python:3.6-slim-stretch
 #FROM borda/docker_python-opencv-ffmpeg:py3
 
 # Install packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update -qq && apt-get install -y --no-install-recommends \
         git>=2.0 \
         gcc>=5.1 \
         tk-dev>=8.5 \

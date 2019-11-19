@@ -77,7 +77,7 @@ def load_landmarks(path_file):
     if not os.path.isfile(path_file):
         logging.warning('missing landmarks "%s"', path_file)
         return None
-    ext = os.path.splitext(path_file)[-1]
+    _, ext = os.path.splitext(path_file)
     if ext == '.csv':
         return load_landmarks_csv(path_file)
     elif ext == '.pts':
@@ -160,7 +160,7 @@ def save_landmarks(path_file, landmarks):
     """
     assert os.path.isdir(os.path.dirname(path_file)), \
         'missing folder "%s"' % os.path.dirname(path_file)
-    path_file = os.path.splitext(path_file)[0]
+    path_file, _ = os.path.splitext(path_file)
     landmarks = landmarks.values if isinstance(landmarks, pd.DataFrame) else landmarks
     save_landmarks_csv(path_file + '.csv', landmarks)
     save_landmarks_pts(path_file + '.pts', landmarks)
@@ -433,7 +433,7 @@ def _gene_out_path(path_file, file_ext, path_out_dir=None):
     """
     if not path_out_dir:
         path_out_dir = os.path.dirname(path_file)
-    img_name = os.path.splitext(os.path.basename(path_file))[0]
+    img_name, _ = os.path.splitext(os.path.basename(path_file))
     path_out = os.path.join(path_out_dir, img_name + file_ext)
     return path_out
 

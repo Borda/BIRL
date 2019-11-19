@@ -177,8 +177,8 @@ class BmRVSS(ImRegBenchmark):
 
         # warp moving landmarks to reference frame
         path_dir_out = os.path.join(path_dir, self.DIR_OUTPUTS)
-        # name_ref = os.path.splitext(os.path.basename(path_im_ref))[0]
-        name_move = os.path.splitext(os.path.basename(path_im_move))[0]
+        # name_ref, _ = os.path.splitext(os.path.basename(path_im_ref))
+        name_move, _ = os.path.splitext(os.path.basename(path_im_move))
         path_img_warp = os.path.join(path_dir, os.path.basename(path_im_move))
         dict_params = {
             'exec_Fiji': self.params['exec_Fiji'],
@@ -236,6 +236,7 @@ class BmRVSS(ImRegBenchmark):
 # RUN by given parameters
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
+    logging.info(__doc__)
     arg_params, path_expt = BmRVSS.main()
 
     if arg_params.get('run_comp_benchmark', False):

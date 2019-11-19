@@ -12,12 +12,12 @@ except ImportError:
     traceback.print_exc()
 
 
-__version__ = '0.2.3'
-__author__ = 'Jiri Borovec'
-__author_email__ = 'jiri.borovec@fel.cvut.cz'
-__license__ = 'BSD 3-clause'
-__homepage__ = 'https://borda.github.io/BIRL',
-__copyright__ = 'Copyright (c) 2014-2019, %s.' % __author__
+__version__ = "0.2.3"
+__author__ = "Jiri Borovec"
+__author_email__ = "jiri.borovec@fel.cvut.cz"
+__license__ = "BSD 3-clause"
+__homepage__ = "https://borda.github.io/BIRL",
+__copyright__ = "Copyright (c) 2014-2019, %s." % __author__
 __doc__ = 'BIRL: Benchmark on Image Registration methods with Landmark validation'
 __long_doc__ = "# %s" % __doc__ + """
 

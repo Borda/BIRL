@@ -47,8 +47,12 @@ Sample run::
  see: https://unix.stackexchange.com/a/67783 ; https://stackoverflow.com/a/49660575/4521646
 
 .. note:: This method is not optimized nor suitable for large images, so all used images
- are first scaled to be 1000x1000 pixels and then the registration is performed.
+ are first scaled to be 2000x2000 pixels and then the registration is performed.
   After registration is resulting image scaled back. The landmarks are scalded accordingly.
+
+Glocker, Ben, et al. "Deformable medical image registration: setting the state of the art
+ with discrete methods." Annual review of biomedical engineering 13 (2011): 219-244.
+ https://pdfs.semanticscholar.org/0c5f/277d357e3667b18b5420fd660f221c935fcc.pdf
 
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -163,8 +167,8 @@ class BmDROP(ImRegBenchmark):
         # convert MHD image
         path_img_ = convert_image_from_mhd(os.path.join(path_reg_dir, 'output.mhd'),
                                            scaling=item.get('scaling', 1.))
-        img_name = os.path.splitext(os.path.basename(path_im_move))[0]
-        img_ext = os.path.splitext(os.path.basename(path_img_))[1]
+        img_name, _ = os.path.splitext(os.path.basename(path_im_move))
+        _, img_ext = os.path.splitext(os.path.basename(path_img_))
         path_img_warp = path_img_.replace('output' + img_ext, img_name + img_ext)
         shutil.move(path_img_, path_img_warp)
 
@@ -256,6 +260,7 @@ class BmDROP(ImRegBenchmark):
 # RUN by given parameters
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
+    logging.info(__doc__)
     arg_params, path_expt = BmDROP.main()
 
     if arg_params.get('run_comp_benchmark', False):

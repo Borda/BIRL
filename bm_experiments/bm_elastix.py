@@ -53,6 +53,13 @@ Run the basic ANTs registration with original parameters::
 .. note:: The origin of VTK coordinate system is in left bottom corner of the image.
  Also the first dimension is horizontal (swapped to matplotlib)
 
+.. note:: For proper confirmation see list of Elastix parameters:
+ http://elastix.isi.uu.nl/doxygen/parameter.html
+
+Klein, Stefan, et al. "Elastix: a toolbox for intensity-based medical image registration."
+ IEEE transactions on medical imaging 29.1 (2009): 196-205.
+ http://elastix.isi.uu.nl/marius/downloads/2010_j_TMI.pdf
+
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 from __future__ import absolute_import
@@ -182,8 +189,8 @@ class BmElastix(ImRegBenchmark):
         path_im_out = glob.glob(os.path.join(path_dir, self.NAME_IMAGE_WARPED))
         if path_im_out:
             path_im_out = sorted(path_im_out)[0]
-            ext_img = os.path.splitext(path_im_out)[-1]
-            name_img = os.path.splitext(os.path.basename(path_img_move))[0]
+            _, ext_img = os.path.splitext(path_im_out)
+            name_img, _ = os.path.splitext(os.path.basename(path_img_move))
             path_img_warp = os.path.join(path_dir, name_img + ext_img)
             os.rename(path_im_out, path_img_warp)
 
@@ -249,6 +256,7 @@ class BmElastix(ImRegBenchmark):
 # RUN by given parameters
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
+    logging.info(__doc__)
     arg_params, path_expt = BmElastix.main()
 
     if arg_params.get('run_comp_benchmark', False):

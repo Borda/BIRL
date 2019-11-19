@@ -25,6 +25,7 @@ import os
 import sys
 import logging
 
+# this is used while calling this file as a script
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.experiments import create_basic_parser
 from birl.benchmark import ImRegBenchmark
@@ -174,6 +175,7 @@ class BmTemplate(ImRegBenchmark):
 # RUN by given parameters
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
+    logging.info(__doc__)
     arg_params, path_expt = BmTemplate.main()
 
     if arg_params.get('run_comp_benchmark', False):
