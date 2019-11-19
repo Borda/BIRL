@@ -78,6 +78,8 @@ extensions = [
     'recommonmark',
     # 'm2r',
     'nbsphinx',
+    # https://github.com/sphinx-doc/sphinx/issues/4720
+    'sphinx.ext.imgconverter',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
