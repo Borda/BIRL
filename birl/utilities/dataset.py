@@ -168,7 +168,7 @@ def project_object_edge(img, dimension):
 def load_large_image(img_path):
     """ loading very large images
 
-    Note, for the loading we have to use matplotlib while ImageMagic nor other
+    .. note:: For the loading we have to use matplotlib while ImageMagic nor other
      lib (opencv, skimage, Pillow) is able to load larger images then 64k or 32k.
 
     :param str img_path: path to the image
@@ -189,7 +189,7 @@ def load_large_image(img_path):
 def save_large_image(img_path, img):
     """ saving large images more then 50k x 50k
 
-    Note, for the saving we have to use openCV while other
+    .. note:: For the saving we have to use openCV while other
     lib (matplotlib, Pillow, ITK) is not able to save larger images then 32k.
 
     :param str img_path: path to the new image
@@ -330,7 +330,7 @@ def norm_angle(angle, deg=True):
 def is_point_inside_perpendicular(point_begin, point_end, point_test):
     """ If point is left from line and perpendicularly in between line segment
 
-    Note that negative response does not mean that that the point is on tight side
+    .. note:: negative response does not mean that that the point is on tight side
 
     :param list(float) point_begin: starting line point
     :param list(float) point_end: ending line point
@@ -361,7 +361,7 @@ def is_point_inside_perpendicular(point_begin, point_end, point_test):
 def is_point_in_quadrant_left(point_begin, point_end, point_test):
     """ If point is left quadrant from line end point
 
-    Note that negative response does not mean that that the point is on tight side
+    .. note:: negative response does not mean that that the point is on tight side
 
     :param list(float) point_begin: starting line point
     :param list(float) point_end: ending line point

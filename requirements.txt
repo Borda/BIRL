@@ -7,11 +7,10 @@ matplotlib>=2.0.2,<3.0.0  # new version does not support py2
 tqdm>=4.7.4,<=4.30  # higher fails ascii for py2
 pyyaml
 scikit-image
-opencv-python
+opencv-python-headless
 openslide-python
 nibabel
 SimpleITK
 mock
 psutil
 pathos
-enlighten>=1.3.3  # fix for Windows

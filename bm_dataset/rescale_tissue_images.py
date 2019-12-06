@@ -3,7 +3,7 @@ Converting images to particular scales
 
 With given path pattern to images crete particular scales within the same set
 
-Note, that using these scripts for 1+GB images take several tens of GB RAM
+.. note:: Using these scripts for 1+GB images take several tens of GB RAM
 
 Sample usage::
 

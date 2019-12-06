@@ -3,7 +3,6 @@ General experiments methods.
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
-from __future__ import absolute_import
 
 import os
 import sys
@@ -19,12 +18,12 @@ import uuid
 import multiprocessing as mproc
 from functools import wraps
 
-import enlighten
+import tqdm
 import numpy as np
 from pathos.multiprocessing import ProcessPool
 
-from .data_io import create_folder, save_config_yaml, update_path
-from .dataset import CONVERT_RGB
+from birl.utilities.data_io import create_folder, save_config_yaml, update_path
+from birl.utilities.dataset import CONVERT_RGB
 
 #: number of available CPUs on this computer
 CPU_COUNT = int(mproc.cpu_count())
@@ -544,9 +543,8 @@ def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc=''):
     nb_workers = CPU_COUNT if nb_workers < 0 else nb_workers
 
     if desc is not None:
-        pbar = enlighten.Counter(total=len(iterate_vals),
-                                 desc=str('%r @%i-threads' % (desc, nb_workers)),
-                                 stream=sys.stderr)
+        pbar = tqdm.tqdm(total=len(iterate_vals),
+                         desc=str('%r @%i-threads' % (desc, nb_workers)))
     else:
         pbar = None
 

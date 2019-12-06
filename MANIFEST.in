@@ -18,10 +18,6 @@ recursive-include bm_dataset *.py
 recursive-include bm_experiments *.py
 recursive-exclude bm_experiments *.sh
 
-# exclude challenge scripts
-recursive-exclude bm_ANHIR *
-exclude bm_ANHIR
-
 # exclude tests from package
 recursive-exclude tests *
 exclude tests
@@ -54,3 +50,5 @@ prune .github
 prune notebook*
 prune temp*
 prune test*
+prune bm_ANHIR
+prune bm_CIMA

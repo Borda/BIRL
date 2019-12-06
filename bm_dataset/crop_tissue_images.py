@@ -1,7 +1,7 @@
 """
 Crop images around major object with set padding
 
-Note, that using these scripts for 1+GB images take several tens of GB RAM
+.. note:: Using these scripts for 1+GB images take several tens of GB RAM
 
 Sample usage::
 

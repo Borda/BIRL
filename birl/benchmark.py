@@ -13,7 +13,6 @@ Sample run (usage)::
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
-from __future__ import absolute_import
 
 import os
 import sys
@@ -28,17 +27,17 @@ from skimage.color import rgb2gray
 
 # this is used while calling this file as a script
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from .utilities.data_io import (
+from birl.utilities.data_io import (
     update_path, create_folder, image_sizes, load_landmarks, load_image, save_image)
-from .utilities.dataset import image_histogram_matching, common_landmarks
-from .utilities.evaluate import (
+from birl.utilities.dataset import image_histogram_matching, common_landmarks
+from birl.utilities.evaluate import (
     compute_target_regist_error_statistic, compute_affine_transf_diff, compute_tre_robustness)
-from .utilities.experiments import (
+from birl.utilities.experiments import (
     nb_workers, exec_commands, string_dict, iterate_mproc_map, create_basic_parser,
     parse_arg_params, Experiment)
-from .utilities.drawing import (
+from birl.utilities.drawing import (
     export_figure, draw_image_points, draw_images_warped_landmarks, overlap_two_images)
-from .utilities.registration import estimate_affine_transform
+from birl.utilities.registration import estimate_affine_transform
 
 #: In case provided dataset and complete (true) dataset differ
 COL_PAIRED_LANDMARKS = 'Ration matched landmarks'
