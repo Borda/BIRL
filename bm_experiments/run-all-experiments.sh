@@ -4,7 +4,7 @@ export DISPLAY=""
 # DEFINE GLOBAL PARAMS
 jobs=3
 table="~/Medical-data/dataset_ANHIR/images/dataset_medium.csv"
-# this filder has to contain bland of images and landmarks
+# this folder has to contain bland of images and landmarks
 dataset="~/Medical-data/microscopy/TEMPORARY/borovec/dataset_ANHIR/images"
 results="~/Medical-data/microscopy/TEMPORARY/borovec/experiments_ANHIR/"
 
@@ -57,13 +57,13 @@ do
          $pproc \
          --visual --unique --nb_workers $jobs
 
-    python bm_experiments/bm_DROP.py \
+    python bm_experiments/bm_DROP2.py \
          -t $table \
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -DROP /usr/local/bin/dropreg2d \
-         -cfg ./configs/DROP.txt \
+         -DROP ~/Applications/DROP2/dropreg \
+         -cfg ./configs/DROP2.txt \
          $pproc \
          --visual --unique --nb_workers $jobs
 
