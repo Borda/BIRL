@@ -7,6 +7,7 @@ table="~/Medical-data/dataset_ANHIR/images/dataset_medium.csv"
 # this folder has to contain bland of images and landmarks
 dataset="~/Medical-data/microscopy/TEMPORARY/borovec/dataset_ANHIR/images"
 results="~/Medical-data/microscopy/TEMPORARY/borovec/experiments_ANHIR/"
+apps="~/Applications"
 
 preprocessings=("" \
                 "--preprocessing gray" \
@@ -22,7 +23,7 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -ANTs ~/TEMP/Applications/antsbin/bin \
+         -ANTs $apps/antsbin/bin \
          -cfg ./configs/ANTs_SyN.txt \
          $pproc \
          --visual --unique --nb_workers $jobs
@@ -42,7 +43,7 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -Fiji ~/TEMP/Applications/Fiji.app/ImageJ-linux64 \
+         -Fiji $apps/Fiji.app/ImageJ-linux64 \
          -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml \
          $pproc \
          --visual --unique --nb_workers $jobs
@@ -52,7 +53,7 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -Fiji ~/TEMP/Applications/Fiji.app/ImageJ-linux64 \
+         -Fiji $apps/Fiji.app/ImageJ-linux64 \
          -cfg ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml \
          $pproc \
          --visual --unique --nb_workers $jobs
@@ -62,7 +63,7 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -DROP ~/Applications/DROP2/dropreg \
+         -DROP $apps/DROP2/dropreg \
          -cfg ./configs/DROP2.txt \
          $pproc \
          --visual --unique --nb_workers $jobs
@@ -72,7 +73,7 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -elastix ~/Applications/elastix/bin \
+         -elastix $apps/elastix/bin \
          -cfg ./configs/elastix_bspline.txt \
          $pproc \
          --visual --unique --nb_workers $jobs
@@ -82,7 +83,7 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -R ~/TEMP/Applications/R-3.5.3/bin/Rscript \
+         -R $apps/R-3.5.3/bin/Rscript \
          -script ./scripts/Rscript/RNiftyReg_linear.r \
          $pproc \
          --visual --unique --nb_workers $jobs
@@ -92,7 +93,7 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -Fiji ~/TEMP/Applications/Fiji.app/ImageJ-linux64 \
+         -Fiji $apps/Fiji.app/ImageJ-linux64 \
          -cfg ./configs/ImageJ_RVSS_histol.yaml \
          $pproc \
          --visual --unique --nb_workers $jobs
