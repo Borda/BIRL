@@ -3,7 +3,7 @@
 export DISPLAY=""
 # DEFINE GLOBAL PARAMS
 jobs=5
-table="./bm_CIMA/dataset_CIMA.csv"
+table="./bm_CIMA/dataset_CIMA_100pc.csv"
 # this folder has to contain bland of images and landmarks
 dataset="~/Medical-data/dataset_CIMA"
 results="~/Medical-temp/experiments_CIMA/"

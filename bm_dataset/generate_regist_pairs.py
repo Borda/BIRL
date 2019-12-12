@@ -3,10 +3,15 @@ Script for generating registration pairs in two schemas
 
 Sample run::
 
-    python create_registration_pairs.py \
-        -i ../output/synth_dataset/*.jpg \
-        -l ../output/synth_dataset/*.csv \
+    python generate_regist_pairs.py \
+        -i "../output/synth_dataset/*.jpg" \
+        -l "../output/synth_dataset/*.csv" \
         -csv ../output/cover.csv --mode each2all
+
+    python bm_dataset/generate_regist_pairs.py \
+        -i "~/Medical-data/dataset_CIMA/lung-lesion_1/scale-100pc/*.png" \
+        -l "~/Medical-data/dataset_CIMA/lung-lesion_1/scale-100pc/*.csv" \
+        -csv ~/Medical-data/dataset_CIMA/dataset_CIMA_100pc.csv --mode each2all
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
@@ -58,8 +63,8 @@ def generate_pairs(path_pattern_imgs, path_pattern_lnds, mode):
     list_imgs = sorted(glob.glob(path_pattern_imgs))
     list_lnds = sorted(glob.glob(path_pattern_lnds))
     assert len(list_imgs) == len(list_lnds), \
-        'the list of loaded images (%i) and landmarks (%i) ' \
-        'is different length' % (len(list_imgs), len(list_lnds))
+        'the list of loaded images (%i) and landmarks (%i) is different length' \
+        % (len(list_imgs), len(list_lnds))
     assert len(list_imgs) >= 2, 'the minimum is 2 elements'
     logging.info('combining list %i files with "%s"', len(list_imgs), mode)
 
@@ -100,7 +105,7 @@ def main(path_pattern_images, path_pattern_landmarks, path_csv, mode='all2all'):
         df_overview = pd.DataFrame()
 
     df_ = generate_pairs(path_pattern_images, path_pattern_landmarks, mode)
-    df_overview = pd.concat((df_overview, df_), axis=0, sort=True)
+    df_overview = pd.concat((df_overview, df_), axis=0)  # , sort=True
     df_overview = df_overview[list(ImRegBenchmark.COVER_COLUMNS_EXT)].reset_index(drop=True)
 
     logging.info('saving csv file with %i records \n %s', len(df_overview), path_csv)
