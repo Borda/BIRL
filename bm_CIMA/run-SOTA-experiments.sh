@@ -27,7 +27,7 @@ python ./bm_experiments/bm_bUnwarpJ.py \
 python ./bm_experiments/bm_DROP2.py \
      -t $table -d $dataset -o $results \
      --run_comp_benchmark \
-     -DROP ~/Applications/DROP2/dropreg \
+     -DROP $apps/DROP2/dropreg \
      -cfg ./configs/DROP2.txt \
      --nb_workers $jobs --unique
 

@@ -220,7 +220,8 @@ def parse_landmarks(idx_row):
     #              for col in row if '(final)' in col})
     item.update({col.replace(' (elastic)', '_elastic').replace(' ', '-'): row[col]
                  for col in row if 'TRE' in col})
-    return idx, item
+    # later in JSON keys ahs to be str only
+    return str(idx), item
 
 
 def compute_scores(df_experiments, min_landmarks=1.):
@@ -289,6 +290,9 @@ def _compute_scores_general(df_experiments, df_expt_robust):
 
 def _compute_scores_state_tissue(df_experiments):
     scores = {}
+    if not ImRegBenchmark.COL_STATUS in df_experiments.columns:
+        logging.warning('experiments (table) is missing "%s" column', ImRegBenchmark.COL_STATUS)
+        df_experiments[ImRegBenchmark.COL_STATUS] = 'any'
     # filter all statuses in the experiments
     statuses = df_experiments[ImRegBenchmark.COL_STATUS].unique()
     # parse metrics according to TEST and TRAIN case
