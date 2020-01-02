@@ -7,17 +7,25 @@ assignees: ''
 
 ---
 
-## Before asking:   
+## ❓ Questions and Help
+
+### Before asking:   
+<!--
 1. search the issues.   
 2. search the docs.    
+-->
 
-If you still can't find what you need:     
-## What is your question?    
+<!-- If you still can't find what you need: -->
 
-### Code    
-Please paste a code snippet if your question requires it!   
+#### What is your question?
 
-### What have you tried?    
+#### Code
 
-### What's your environment?   
-If it is depending ou your particular computer/system.
+<!-- Please paste a code snippet if your question requires it! -->   
+
+#### What have you tried?
+
+#### What's your environment?
+
+ - OS: [e.g. iOS, Linux, Win]
+ - Version [e.g. 0.2.1]
