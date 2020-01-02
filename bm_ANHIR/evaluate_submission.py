@@ -278,6 +278,7 @@ def _compute_scores_general(df_experiments, df_expt_robust):
     # parse specific metrics
     scores = {
         'Average-Robustness': np.mean(df_experiments[ImRegBenchmark.COL_ROBUSTNESS]),
+        'STD-Robustness': np.std(df_experiments[ImRegBenchmark.COL_ROBUSTNESS]),
         'Median-Robustness': np.median(df_experiments[ImRegBenchmark.COL_ROBUSTNESS]),
         'Average-Rank-Median-rTRE': np.nan,
         'Average-Rank-Max-rTRE': np.nan,
@@ -289,6 +290,8 @@ def _compute_scores_general(df_experiments, df_expt_robust):
                       ('Norm-Time', COL_NORM_TIME)]:
         scores['Average-' + name] = np.nanmean(df_experiments[col])
         scores['Average-' + name + '-Robust'] = np.nanmean(df_expt_robust[col])
+        scores['STD-' + name] = np.nanstd(df_experiments[col])
+        scores['STD-' + name + '-Robust'] = np.nanstd(df_expt_robust[col])
         scores['Median-' + name] = np.median(df_experiments[col])
         scores['Median-' + name + '-Robust'] = np.median(df_expt_robust[col])
     return scores
