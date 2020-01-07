@@ -288,12 +288,10 @@ def _compute_scores_general(df_experiments, df_expt_robust):
                       ('Max-rTRE', 'rTRE Max'),
                       ('Average-rTRE', 'rTRE Mean'),
                       ('Norm-Time', COL_NORM_TIME)]:
-        scores['Average-' + name] = np.nanmean(df_experiments[col])
-        scores['Average-' + name + '-Robust'] = np.nanmean(df_expt_robust[col])
-        scores['STD-' + name] = np.nanstd(df_experiments[col])
-        scores['STD-' + name + '-Robust'] = np.nanstd(df_expt_robust[col])
-        scores['Median-' + name] = np.median(df_experiments[col])
-        scores['Median-' + name + '-Robust'] = np.median(df_expt_robust[col])
+        for df, sufix in [(df_experiments, ''), (df_expt_robust, '-Robust')]:
+            scores['Average-' + name + sufix] = np.nanmean(df[col])
+            scores['STD-' + name + sufix] = np.nanstd(df[col])
+            scores['Median-' + name + sufix] = np.median(df[col])
     return scores
 
 
