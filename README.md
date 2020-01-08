@@ -320,6 +320,7 @@ The project is using the standard [BSD license](http://opensource.org/licenses/B
 
 For complete references see [bibtex](docs/references.bib).
 1. Borovec, J., Munoz-Barrutia, A., & Kybic, J. (2018). **[Benchmarking of image registration methods for differently stained histological slides](https://www.researchgate.net/publication/325019076_Benchmarking_of_image_registration_methods_for_differently_stained_histological_slides)**. In IEEE International Conference on Image Processing (ICIP) (pp. 3368–3372), Athens. [DOI: 10.1109/ICIP.2018.8451040](https://doi.org/10.1109/ICIP.2018.8451040)
+2. Borovec, J. (2019). BIRL: **Benchmark on Image Registration methods with Landmark validation**. arXiv preprint [arXiv:1912.13452.](https://arxiv.org/abs/1912.13452)
 
 ## Appendix - Useful information
 
