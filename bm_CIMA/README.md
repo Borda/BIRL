@@ -12,4 +12,4 @@ This section is strictly limited to image registration experiment on [CIMA datas
 ## References
 
 For complete references see [bibtex](../docs/references.bib).
-1. Borovec, J. (2019). BIRL: **Benchmark on Image Registration methods with Landmark validation**. arXiv preprint [arXiv:1912.13452.](https://arxiv.org/abs/1912.13452)
+1. Borovec, J. (2019). **BIRL: Benchmark on Image Registration methods with Landmark validation**. arXiv preprint [arXiv:1912.13452.](https://arxiv.org/abs/1912.13452)
