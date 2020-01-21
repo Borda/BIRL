@@ -47,7 +47,7 @@ ENV PATH="/home/evaluator/.local/bin:${PATH}"
 COPY --chown=evaluator:evaluator ./evaluate_submission.py /opt/evaluation/
 COPY --chown=evaluator:evaluator ./dataset_ANHIR/dataset_medium.csv /opt/evaluation/dataset.csv
 COPY --chown=evaluator:evaluator ./dataset_ANHIR/computer-performances_cmpgrid-71.json /opt/evaluation/computer-performances.json
-COPY --chown=evaluator:evaluator ./dataset_ANHIR/landmarks_user /opt/evaluation/lnds_provided
+COPY --chown=evaluator:evaluator dataset_ANHIR/landmarks_user_phase1 /opt/evaluation/lnds_provided
 COPY --chown=evaluator:evaluator ./dataset_ANHIR/landmarks_all /opt/evaluation/lnds_reference
 
 # Define execution

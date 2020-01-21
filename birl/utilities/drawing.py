@@ -324,11 +324,13 @@ class RadarChart(object):
         for i, (idx, row) in enumerate(self.data.iterrows()):
             self.__draw_curve(idx, row, fill_alpha, color=colors[i], *args, **kwargs)
 
+        self._labels = []
         for ax in self.axes:
             for theta, label in zip(ax.get_xticks(), ax.get_xticklabels()):
                 self.__realign_polar_xtick(ax, theta, label)
+                self._labels.append(label)
 
-        self.ax.legend(loc='center left', bbox_to_anchor=(1.2, 0.7))
+        self._legend = self.ax.legend(loc='center left', bbox_to_anchor=(1.2, 0.7))
 
     @classmethod
     def __ax_set_invisible(self, ax):
@@ -490,7 +492,7 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None, cmap='tab20
     ranking = compute_matrix_user_ranking(df_stat, higher_better)
 
     if fig is None:
-        fig, _ = plt.subplots(figsize=np.array(df_stat.as_matrix().shape[::-1]) * 0.35)
+        fig, _ = plt.subplots(figsize=np.array(df_stat.values.shape[::-1]) * 0.35)
     ax = fig.gca()
     arange = np.linspace(-0.5, len(df_stat) - 0.5, len(df_stat) + 1)
     norm = plt_colors.BoundaryNorm(arange, len(df_stat))
@@ -513,7 +515,7 @@ def draw_scatter_double_scale(df, colors='nipy_spectral',
                               figsize=None,
                               legend_style=None,
                               plot_style=None,
-                              x_spread=(0.3, 5)):
+                              x_spread=(0.4, 5)):
     """Draw a scatter with double scales on left and right
 
     :param DF df: dataframe
@@ -531,7 +533,7 @@ def draw_scatter_double_scale(df, colors='nipy_spectral',
     >>> df = pd.DataFrame(np.random.random((10, 3)), columns=['col1', 'col2', 'col3'])
     >>> fig, axs = draw_scatter_double_scale(df, ax_decs={'name': None}, xlabel='X')
     >>> axs  # doctest: +ELLIPSIS
-    (<...>, None)
+    {...}
     >>> # just the selected columns
     >>> fig, axs = draw_scatter_double_scale(df, ax_decs={'name1': ['col1', 'col2'],
     ...                                                   'name2': ['col3']})
@@ -602,5 +604,7 @@ def draw_scatter_double_scale(df, colors='nipy_spectral',
     # legend - https://matplotlib.org/3.1.1/gallery/text_labels_and_annotations/custom_legends.html
     if legend_style is None:
         legend_style = dict(loc='upper center', bbox_to_anchor=(1.25, 1.0), ncol=1)
-    ax1.legend(idx_names, **legend_style)
-    return fig, (ax1, ax2)
+    lgd = ax1.legend(idx_names, **legend_style)
+
+    extras = {'ax1': ax1, 'ax2': ax2, 'legend': lgd}
+    return fig, extras

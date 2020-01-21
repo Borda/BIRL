@@ -455,6 +455,9 @@ class ImRegBenchmark(Experiment):
         row = self.__images_preprocessing(row)
         row[self.COL_TIME_PREPROC] = (time.time() - time_start) / 60.
         row = self._prepare_img_registration(row)
+        # if the pre-processing failed, return back None
+        if not row:
+            return None
 
         # measure execution time
         time_start = time.time()
@@ -468,6 +471,9 @@ class ImRegBenchmark(Experiment):
         row = self.__remove_pproc_images(row)
 
         row = self._parse_regist_results(row)
+        # if the post-processing failed, return back None
+        if not row:
+            return None
         row = self._clear_after_registration(row)
 
         if self.params.get('visual', False):

@@ -187,8 +187,16 @@ class BmANTs(ImRegBenchmark):
         path_im_ref, path_im_move, _, _ = self._get_paths(item)
 
         # Convert images to Nifty
-        item[self.COL_IMAGE_REF_NII] = convert_image_to_nifti_gray(path_im_ref, path_dir)
-        item[self.COL_IMAGE_MOVE_NII] = convert_image_to_nifti_gray(path_im_move, path_dir)
+        try:  # catching issue with too large images
+            item[self.COL_IMAGE_REF_NII] = convert_image_to_nifti_gray(path_im_ref, path_dir)
+        except Exception:
+            logging.exception('Converting: %s', path_im_ref)
+            return None
+        try:  # catching issue with too large images
+            item[self.COL_IMAGE_MOVE_NII] = convert_image_to_nifti_gray(path_im_move, path_dir)
+        except Exception:
+            logging.exception('Converting: %s', path_im_move)
+            return None
 
         return item
 

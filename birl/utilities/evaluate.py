@@ -219,7 +219,7 @@ def compute_matrix_user_ranking(df_stat, higher_better=False):
            [ 0.,  2.,  1.],
            [ 4.,  4.,  2.]])
     """
-    ranking = np.zeros(df_stat.as_matrix().shape)
+    ranking = np.zeros(df_stat.values.shape)
     nan = -np.inf if higher_better else np.inf
     for i, col in enumerate(df_stat.columns):
         vals = [v if not np.isnan(v) else nan for v in df_stat[col]]

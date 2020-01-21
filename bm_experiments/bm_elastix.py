@@ -56,6 +56,9 @@ Run the basic ANTs registration with original parameters::
 .. note:: For proper confirmation see list of Elastix parameters:
  http://elastix.isi.uu.nl/doxygen/parameter.html
 
+.. note:: If you have any complication with Elastix,
+ see https://github.com/SuperElastix/elastix/wiki/FAQ
+
 Klein, Stefan, et al. "Elastix: a toolbox for intensity-based medical image registration."
  IEEE transactions on medical imaging 29.1 (2009): 196-205.
  http://elastix.isi.uu.nl/marius/downloads/2010_j_TMI.pdf

@@ -2,15 +2,14 @@ numpy>=1.8.2
 scipy>=0.10.0
 pandas>=0.17.1
 six>=1.7.3
-pillow>=2.1.0
-matplotlib>=2.0.2,<3.0.0  # new version does not support py2
-tqdm>=4.7.4,<=4.30  # higher fails ascii for py2
+pillow>=2.1.0, !=7.1.0, !=7.1.1  # 7.x fails to load PNG via skimage
+matplotlib>=2.0.2, <3.0.0  # new version does not support py2
+tqdm>=4.7.4, <=4.30  # higher fails ascii for py2
 pyyaml
 scikit-image
 opencv-python-headless
 openslide-python
 nibabel
 SimpleITK
-mock
 psutil
 pathos

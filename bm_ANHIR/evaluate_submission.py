@@ -209,18 +209,25 @@ def parse_landmarks(idx_row):
         # 'reference landmarks': np.round(lnds_ref, 1).tolist(),
         # 'warped landmarks': np.round(lnds_warp, 1).tolist(),
         'matched-landmarks': match_lnds,
-        'Robustness': row.get(ImRegBenchmark.COL_ROBUSTNESS, 0),
-        'Norm-Time_minutes': row.get(COL_NORM_TIME, None),
+        'Robustness': np.round(row.get(ImRegBenchmark.COL_ROBUSTNESS, 0), 3),
+        'Norm-Time_minutes': np.round(row.get(COL_NORM_TIME, None), 5),
         'Status': row.get(ImRegBenchmark.COL_STATUS, None),
     }
+
+    def _round_val(row, col):
+        dec = 5 if col.startswith('rTRE') else 2
+        return np.round(row[col], dec)
+
     # copy all columns with Affine statistic
-    item.update({col.replace(' ', '-'): row[col] for col in row if 'affine' in col.lower()})
+    item.update({col.replace(' ', '-'): _round_val(row, col)
+                 for col in row if 'affine' in col.lower()})
     # copy all columns with rTRE, TRE and Overlap
     # item.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
     #              for col in row if '(final)' in col})
-    item.update({col.replace(' (elastic)', '_elastic').replace(' ', '-'): row[col]
+    item.update({col.replace(' (elastic)', '_elastic').replace(' ', '-'): _round_val(row, col)
                  for col in row if 'TRE' in col})
-    return idx, item
+    # later in JSON keys ahs to be str only
+    return str(idx), item
 
 
 def compute_scores(df_experiments, min_landmarks=1.):
@@ -271,6 +278,7 @@ def _compute_scores_general(df_experiments, df_expt_robust):
     # parse specific metrics
     scores = {
         'Average-Robustness': np.mean(df_experiments[ImRegBenchmark.COL_ROBUSTNESS]),
+        'STD-Robustness': np.std(df_experiments[ImRegBenchmark.COL_ROBUSTNESS]),
         'Median-Robustness': np.median(df_experiments[ImRegBenchmark.COL_ROBUSTNESS]),
         'Average-Rank-Median-rTRE': np.nan,
         'Average-Rank-Max-rTRE': np.nan,
@@ -280,15 +288,18 @@ def _compute_scores_general(df_experiments, df_expt_robust):
                       ('Max-rTRE', 'rTRE Max'),
                       ('Average-rTRE', 'rTRE Mean'),
                       ('Norm-Time', COL_NORM_TIME)]:
-        scores['Average-' + name] = np.nanmean(df_experiments[col])
-        scores['Average-' + name + '-Robust'] = np.nanmean(df_expt_robust[col])
-        scores['Median-' + name] = np.median(df_experiments[col])
-        scores['Median-' + name + '-Robust'] = np.median(df_expt_robust[col])
+        for df, sufix in [(df_experiments, ''), (df_expt_robust, '-Robust')]:
+            scores['Average-' + name + sufix] = np.nanmean(df[col])
+            scores['STD-' + name + sufix] = np.nanstd(df[col])
+            scores['Median-' + name + sufix] = np.median(df[col])
     return scores
 
 
 def _compute_scores_state_tissue(df_experiments):
     scores = {}
+    if ImRegBenchmark.COL_STATUS not in df_experiments.columns:
+        logging.warning('experiments (table) is missing "%s" column', ImRegBenchmark.COL_STATUS)
+        df_experiments[ImRegBenchmark.COL_STATUS] = 'any'
     # filter all statuses in the experiments
     statuses = df_experiments[ImRegBenchmark.COL_STATUS].unique()
     # parse metrics according to TEST and TRAIN case

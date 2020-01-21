@@ -8,3 +8,4 @@ check-manifest
 codacy-coverage
 parameterized
 tox
+mock

@@ -76,6 +76,7 @@ before_install:
     fi
 
 install:
+  - pip install "setuptools<46" -U  # v46 crashes openslide-python install
   - pip install -r requirements.txt
   - pip install -r ./tests/requirements.txt
   - pip --version ; pip list
