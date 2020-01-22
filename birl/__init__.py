@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Using the try/except import since the init is called in setup  to get pkg info
 before satisfying install requirements
@@ -17,7 +18,7 @@ __author__ = "Jiri Borovec"
 __author_email__ = "jiri.borovec@fel.cvut.cz"
 __license__ = "BSD 3-clause"
 __homepage__ = "https://borda.github.io/BIRL",
-__copyright__ = "Copyright (c) 2014-2019, %s." % __author__
+__copyright__ = "Copyright (c) 2014-2020, %s." % __author__
 __doc__ = 'BIRL: Benchmark on Image Registration methods with Landmark validation'
 __long_doc__ = "# %s" % __doc__ + """
 
@@ -35,8 +36,10 @@ The project aims at automatic evaluation of state-of-the-art image registration
 * rerun evaluation and visualisation for finished experiments
 
 ## References
-Borovec, J., Munoz-Barrutia, A., & Kybic, J. (2018). Benchmarking of image
- registration methods for differently stained histological slides.
- In IEEE International Conference on Image Processing (ICIP) (pp. 3368-3372),
- Athens. DOI: 10.1109/ICIP.2018.8451040
+1. Borovec, J., Munoz-Barrutia, A., & Kybic, J. (2018).
+ Benchmarking of image registration methods for differently stained histological slides.
+ In IEEE International Conference on Image Processing (ICIP) (pp. 3368–3372), Athens.
+ DOI: 10.1109/ICIP.2018.8451040
+2. Borovec, J. (2019). BIRL: Benchmark on Image Registration methods with Landmark validation.
+ arXiv preprint arXiv:1912.13452.
 """

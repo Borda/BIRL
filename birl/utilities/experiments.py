@@ -508,7 +508,7 @@ def exec_commands(commands, path_logger=None, timeout=None):
 #     Process = NoDaemonProcess
 
 
-def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc=''):
+def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc='', ordered=True):
     """ create a multi-porocessing pool and execute a wrapped function in separate process
 
     :param func wrap_func: function which will be excited in the iterations
@@ -517,6 +517,7 @@ def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc=''):
     :param int nb_workers: number og jobs running in parallel
     :param str|None desc: description for the bar,
         if it is set None, bar is suppressed
+    :param bool ordered: whether enforce ordering in the parallelism
 
     Waiting reply on:
 
@@ -531,9 +532,9 @@ def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc=''):
     * http://mindcache.me/2015/08/09/python-multiprocessing-module-daemonic-processes-are-not-allowed-to-have-children.html
     * https://medium.com/@bfortuner/python-multithreading-vs-multiprocessing-73072ce5600b
 
-    >>> list(iterate_mproc_map(np.sqrt, range(5), nb_workers=1))  # doctest: +ELLIPSIS
+    >>> list(iterate_mproc_map(np.sqrt, range(5), nb_workers=1, desc=None))  # doctest: +ELLIPSIS
     [0.0, 1.0, 1.41..., 1.73..., 2.0]
-    >>> list(iterate_mproc_map(sum, [[0, 1]] * 5, nb_workers=2, desc=None))
+    >>> list(iterate_mproc_map(sum, [[0, 1]] * 5, nb_workers=2, ordered=False))
     [1, 1, 1, 1, 1]
     >>> list(iterate_mproc_map(max, [(2, 1)] * 5, nb_workers=2, desc=''))
     [2, 2, 2, 2, 2]
@@ -558,7 +559,7 @@ def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc=''):
         # pool = NonDaemonPool(nb_workers)
         pool = ProcessPool(nb_workers)
         # pool = Pool(nb_workers)
-        mapping = pool.imap
+        mapping = pool.imap if ordered else pool.uimap
     else:
         logging.debug('perform sequential')
         pool = None
