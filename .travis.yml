@@ -61,7 +61,9 @@ matrix:
       before_install:
         - choco install python --version 3.7.0
         - python -m pip install --upgrade pip
-      env: PATH=/c/Python37:/c/Python37/Scripts:%OPENCV_DIR%/bin:$PATH
+      env:
+        - TOXENV=py37
+        - PATH=/c/Python37:/c/Python37/Scripts:%OPENCV_DIR%/bin:$PATH
   # https://towardsdatascience.com/extensive-python-testing-on-travis-ci-4c24db9bf961
   allow_failures:
     - os: osx
