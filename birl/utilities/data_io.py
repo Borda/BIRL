@@ -176,7 +176,7 @@ def save_landmarks_pts(path_file, landmarks):
         point1-x point1-y [point1-z]
         point2-x point2-y [point2-z]
 
-    .. ref:: https://simpleelastix.readthedocs.io/PointBasedRegistration.html
+    .. seealso:: https://simpleelastix.readthedocs.io/PointBasedRegistration.html
 
     :param str path_file: path to the output file
     :param landmarks: np.array<np_points, dim>
@@ -504,7 +504,7 @@ def image_resize(img, scale=1., v_range=255, dtype=int):
 def convert_image_from_mhd(path_image, path_out_dir=None, img_ext='.png', scaling=None):
     """ convert standard image to MHD format
 
-    .. ref:: https://www.programcreek.com/python/example/96382/SimpleITK.WriteImage
+    .. seealso:: https://www.programcreek.com/python/example/96382/SimpleITK.WriteImage
 
     :param str path_image: path to the input image
     :param str path_out_dir: path to output directory, if None use the input dir
@@ -540,7 +540,7 @@ def convert_image_from_mhd(path_image, path_out_dir=None, img_ext='.png', scalin
 def convert_image_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=True, scaling=None):
     """ converting standard image to MHD (Nifty format)
 
-    .. ref:: https://stackoverflow.com/questions/37290631
+    .. seealso:: https://stackoverflow.com/questions/37290631
 
     :param str path_image: path to the input image
     :param str path_out_dir: path to output directory, if None use the input dir

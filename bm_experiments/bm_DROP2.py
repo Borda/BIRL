@@ -3,23 +3,23 @@ Benchmark for DROP.
 
 DROP is a approach for image registration and motion estimation based on Markov Random Fields.
 
-.. ref:: https://github.com/biomedia-mira/drop2
+.. seealso:: https://github.com/biomedia-mira/drop2
 
 Related Publication:
-Deformable Medical Image Registration: Setting the State of the Art with Discrete Methods
- Authors: Ben Glocker, Aristeidis Sotiras, Nikos Komodakis, Nikos Paragios
- Published in: Annual Review of Biomedical Engineering, Vol. 12, 2011, pp. 219-244
+
+    1. Deformable Medical Image Registration: Setting the State of the Art with Discrete Methods
+        Authors: Ben Glocker, Aristeidis Sotiras, Nikos Komodakis, Nikos Paragios
+        Published in: Annual Review of Biomedical Engineering, Vol. 12, 2011, pp. 219-244
 
 
-Installation for Linux
-----------------------
+**Installation for Linux**
 
-1. Download source code: https://github.com/biomedia-mira/drop2
-2. Install all required libraries such as ITK, and build following the instructions
-    OR run building script `build.sh` included in the repository
-3. Test calling the executable `./build/drop/apps/dropreg/dropreg` which should return something like::
+    1. Download source code: https://github.com/biomedia-mira/drop2
+    2. Install all required libraries such as ITK, and build following the instructions
+        OR run building script `build.sh` included in the repository
+    3. Test calling the executable `./build/drop/apps/dropreg/dropreg` which should return something like::
 
-    Usage: dropreg --help
+        Usage: dropreg --help
 
 Usage
 -----

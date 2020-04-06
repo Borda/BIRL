@@ -56,13 +56,15 @@ class ImRegBenchmark(Experiment):
     1. check all necessary paths and required parameters
     2. load cover file and set all paths as absolute
     3. run individual registration experiment in sequence or in parallel
-       (nb_workers > 1); if the particular experiment folder exist (assume
-       completed experiment) and skip it
-        a) create experiment folder and init experiment
-        b) generate execution command
-        c) run the command (an option to lock it in single thread)
-        d) evaluate experiment, set the expected outputs and visualisation
-        e) clean all extra files if any
+        (nb_workers > 1); if the particular experiment folder exist (assume
+        completed experiment) and skip it:
+
+            a) create experiment folder and init experiment
+            b) generate execution command
+            c) run the command (an option to lock it in single thread)
+            d) evaluate experiment, set the expected outputs and visualisation
+            e) clean all extra files if any
+
     4. visualise results abd evaluate registration results
 
     .. note:: The actual implementation simulates the "IDEAL" registration while

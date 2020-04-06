@@ -1,7 +1,7 @@
 """
 Benchmark for ImageJ plugin - bUnwarpJ
 
-.. ref::  http://imagej.net/BUnwarpJ
+.. seealso:: http://imagej.net/BUnwarpJ
 
 Installation
 ------------

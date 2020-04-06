@@ -32,7 +32,7 @@ For evaluation, we have manually placed landmarks in each image pair. There are 
 We do not put any landmarks in the background.
 For more information about annotation creation and landmarks handling, we refer to the special repository - [Dataset: histology landmarks](http://borda.github.com/dataset-histology-landmarks).
 
-![images-landmarks](figures/images-landmarks.jpg)
+![images-landmarks](docs/source/_figures/images-landmarks.jpg)
 
 The dataset is defined by a CSV file containing paths to target and sensed image and their related landmarks _(see `./data_images/pairs-imgs-lnds_mix.csv`)_. With the change of the cover table, the benchmarks can be used for any other image dataset.
 
@@ -150,7 +150,7 @@ Moreover we developed two additional script for converting large images, handlin
 
 Even though this framework is completely customizable we include several image registration methods commonly used in medical imaging.
 
-![visualise-regist-results](figures/registration_visual_landmarks.jpg)
+![visualise-regist-results](docs/source/_figures/registration_visual_landmarks.jpg)
 
 ### Install methods and run benchmarks
 
@@ -187,7 +187,7 @@ The general Image Registration benchmarks contain couple required and optional p
 * `--unique` each experiment has creation stamp included in its name (prevent overwriting experiments with the same method)
 * `--visual` generate a simple visualisation of particular image registrations
 
-![preprocessing-hist-matching](figures/Rat-Kidney_histogram-matching.jpg)
+![preprocessing-hist-matching](docs/source/_figures/Rat-Kidney_histogram-matching.jpg)
 
 Measure your computer performance using average execution time on several simple image registrations.
 The registration consists of loading images, denoising, feature detection, transform estimation and image warping. 

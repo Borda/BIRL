@@ -3,24 +3,24 @@ Benchmark for DROP.
 
 DROP is a approach for image registration and motion estimation based on Markov Random Fields.
 
-.. ref:: https://www.mrf-registration.net
+.. seealso:: https://www.mrf-registration.net
 
 Related Publication:
-Deformable Medical Image Registration: Setting the State of the Art with Discrete Methods
- Authors: Ben Glocker, Aristeidis Sotiras, Nikos Komodakis, Nikos Paragios
- Published in: Annual Review of Biomedical Engineering, Vol. 12, 2011, pp. 219-244
+
+    1. Deformable Medical Image Registration: Setting the State of the Art with Discrete Methods
+        Authors: Ben Glocker, Aristeidis Sotiras, Nikos Komodakis, Nikos Paragios
+        Published in: Annual Review of Biomedical Engineering, Vol. 12, 2011, pp. 219-244
 
 
-Installation for Linux
-----------------------
+**Installation for Linux**
 
-1. Download executable according your operation system,
- https://www.mrf-registration.net/deformable/index.html
-2. Copy/extract executables and libraries to you favourite destination
-3. Install all missing libraries such as QT4 with OpenGL support
-4. Test calling the executable `./dropreg2d` which should return something like::
+    1. Download executable according your operation system,
+        https://www.mrf-registration.net/deformable/index.html
+    2. Copy/extract executables and libraries to you favourite destination
+    3. Install all missing libraries such as QT4 with OpenGL support
+    4. Test calling the executable `./dropreg2d` which should return something like::
 
-    Usage: dropreg2d <source> <target> <result> <paramfile> [mask]
+        Usage: dropreg2d <source> <target> <result> <paramfile> [mask]
 
 Usage
 -----
@@ -48,7 +48,7 @@ Sample run::
 
 .. note:: This method is not optimized nor suitable for large images, so all used images
  are first scaled to be 2000x2000 pixels and then the registration is performed.
-  After registration is resulting image scaled back. The landmarks are scalded accordingly.
+ After registration is resulting image scaled back. The landmarks are scalded accordingly.
 
 Glocker, Ben, et al. "Deformable medical image registration: setting the state of the art
  with discrete methods." Annual review of biomedical engineering 13 (2011): 219-244.
@@ -81,7 +81,7 @@ class BmDROP(ImRegBenchmark):
     For the app installation details, see module details.
 
     .. note:: DROP requires gray scale images in MHD format where pixel values
-    are in range (0, 255) of uint8.
+        are in range (0, 255) of uint8.
 
     Example
     -------

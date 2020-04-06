@@ -190,7 +190,7 @@ def save_large_image(img_path, img):
     """ saving large images more then 50k x 50k
 
     .. note:: For the saving we have to use openCV while other
-    lib (matplotlib, Pillow, ITK) is not able to save larger images then 32k.
+     lib (matplotlib, Pillow, ITK) is not able to save larger images then 32k.
 
     :param str img_path: path to the new image
     :param ndarray img: image
@@ -726,7 +726,7 @@ def scale_large_images_landmarks(images, landmarks):
 def convert_landmarks_to_itk(lnds, image_size):
     """converting used landmarks to ITK format
 
-    .. ref:: https://github.com/SuperElastix/elastix/issues/156#issuecomment-511712784
+    .. seealso:: https://github.com/SuperElastix/elastix/issues/156#issuecomment-511712784
 
     :param ndarray lnds: landmarks
     :param (int,int) image_size: image size - height, width
@@ -748,7 +748,7 @@ def convert_landmarks_to_itk(lnds, image_size):
 def convert_landmarks_from_itk(lnds, image_size):
     """converting ITK format to used in ImageJ
 
-    .. ref:: https://github.com/SuperElastix/elastix/issues/156#issuecomment-511712784
+    .. seealso:: https://github.com/SuperElastix/elastix/issues/156#issuecomment-511712784
 
     :param ndarray lnds: landmarks
     :param (int,int) image_size: image height, width

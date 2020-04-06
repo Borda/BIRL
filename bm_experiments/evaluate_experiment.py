@@ -7,12 +7,14 @@ The expected experiment structure is following:
  * `registration-results.csv` coordinate file with path to landmarks and images
  * particular experiment with warped landmarks
 
-Sample Usage:
+Sample Usage
+------------
 .. code-block:: bash
- python evaluate_experiment.py \
-    -e ./results/BmUnwarpJ \
-    -d ./data_images \
-    --visual
+
+    python evaluate_experiment.py \
+        -e ./results/BmUnwarpJ \
+        -d ./data_images \
+        --visual
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
