@@ -41,8 +41,8 @@ references:
        sudo pip install -r docs/requirements.txt
        # sphinx-apidoc -o ./docs/source ./imsegm **/test_* --force --follow-links
        cd docs
-       make html
-       # make latexpdf
+       make html --debug --jobs 2 SPHINXOPTS="-W"
+       make latexpdf
 
   run_dataset: &run_dataset
     run:
@@ -143,7 +143,6 @@ jobs:
     docker:
       - image: circleci/python:2.7
     steps: *steps_expts
-
 
   Build-Docs:
     docker:
