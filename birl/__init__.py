@@ -42,4 +42,7 @@ The project aims at automatic evaluation of state-of-the-art image registration
  DOI: 10.1109/ICIP.2018.8451040
 2. Borovec, J. (2019). BIRL: Benchmark on Image Registration methods with Landmark validation.
  arXiv preprint arXiv:1912.13452.
+3. Borovec, J., Kybic, J., et al. (2020).
+ ANHIR: Automatic Non-rigid Histological Image Registration Challenge.
+ In IEEE Transaction on Medical Imaging (TMI).
 """
