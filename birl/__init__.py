@@ -45,4 +45,5 @@ The project aims at automatic evaluation of state-of-the-art image registration
 3. Borovec, J., Kybic, J., et al. (2020).
  ANHIR: Automatic Non-rigid Histological Image Registration Challenge.
  In IEEE Transaction on Medical Imaging (TMI).
+ DOI: 10.1109/TMI.2020.2986331
 """
