@@ -42,7 +42,7 @@ references:
        # sphinx-apidoc -o ./docs/source ./imsegm **/test_* --force --follow-links
        cd docs
        make html
-       make latexpdf
+       # make latexpdf
 
   run_dataset: &run_dataset
     run:
