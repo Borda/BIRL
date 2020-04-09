@@ -7,36 +7,35 @@ See references:
 * https://github.com/SuperElastix/elastix/wiki/Getting-started
 * https://blog.yuwu.me/wp-content/uploads/2017/10/elastix_manual_v4.8.pdf
 
-Installation
-------------
+**Installation**
 
-1. Download compiled executables from https://github.com/SuperElastix/elastix/releases
-2. Try to run both executables locally `elastix --help` and `transformix --help`
-    * add path to the lib `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Applications/elastix/lib`
-    * define permanent path or copy libraries `cp /elastix/lib/* /usr/local/lib/`
+    1. Download compiled executables from https://github.com/SuperElastix/elastix/releases
+    2. Try to run both executables locally `elastix --help` and `transformix --help`
+
+        * add path to the lib `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Applications/elastix/lib`
+        * define permanent path or copy libraries `cp /elastix/lib/* /usr/local/lib/`
 
 Example
 -------
 
-1. Perform sample image registration:
-    ```bash
-    ~/Applications/elastix/bin/elastix \
-        -f ./data_images/images/artificial_reference.jpg \
-        -m ./data_images/images/artificial_moving-affine.jpg \
-        -out ./results/elastix \
-        -p ./configs/elastix_affine.txt
-    ```
-2. Besides using `transformix` for deforming images, you can also use `transformix`
- to evaluate the transformation at some points. This means that the input points are specified
- in the fixed image domain, since the transformation direction is from fixed to moving image.
- Perform image/points warping:
-    ```bash
-    ~/Applications/elastix/bin/transformix \
-        -tp ./results/elastix/TransformParameters.0.txt \
-        -out ./results/elastix \
-        -in ./data_images/images/artificial_moving-affine.jpg \
-        -def ./data_images/landmarks/artificial_reference.pts
-    ```
+    1. Perform sample image registration::
+
+        ~/Applications/elastix/bin/elastix \
+            -f ./data_images/images/artificial_reference.jpg \
+            -m ./data_images/images/artificial_moving-affine.jpg \
+            -out ./results/elastix \
+            -p ./configs/elastix_affine.txt
+
+    2. Besides using `transformix` for deforming images, you can also use `transformix`
+        to evaluate the transformation at some points. This means that the input points are specified
+        in the fixed image domain, since the transformation direction is from fixed to moving image.
+        Perform image/points warping::
+
+        ~/Applications/elastix/bin/transformix \
+            -tp ./results/elastix/TransformParameters.0.txt \
+            -out ./results/elastix \
+            -in ./data_images/images/artificial_moving-affine.jpg \
+            -def ./data_images/landmarks/artificial_reference.pts
 
 Usage
 -----

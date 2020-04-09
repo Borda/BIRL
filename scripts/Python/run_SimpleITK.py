@@ -9,7 +9,7 @@ Sample call of this script::
         ./data_images/landmarks/artificial_moving-affine.pts \
         ./results/elastix
 
-.. ref:: https://simpleitk.readthedocs.io/en/master/Examples/index.html
+.. seealso:: https://simpleitk.readthedocs.io/en/master/Examples/index.html
 
 """
 

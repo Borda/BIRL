@@ -1,7 +1,8 @@
-sphinx>=1.4, <3.0
+sphinx>=2.0, <3.0
 recommonmark  # fails with badges
 m2r  # fails with multi-line text
 nbsphinx
 pandoc
 docutils<0.15  # higher version breaks py2
 imgconverter
+ipython

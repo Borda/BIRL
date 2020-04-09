@@ -416,22 +416,16 @@ def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
     """
     Create a draw_heatmap from a numpy array and two lists of labels.
 
-    https://matplotlib.org/gallery/images_contours_and_fields/image_annotated_heatmap.html
+    .. seealso:: https://matplotlib.org/gallery/images_contours_and_fields/image_annotated_heatmap.html
 
-    Arguments:
-        data       : A 2D numpy array of shape (N,M)
-        row_labels : A list or array of length N with the labels
-                     for the rows
-        col_labels : A list or array of length M with the labels
-                     for the columns
-    Optional arguments:
-        ax         : A matplotlib.axes.Axes instance to which the draw_heatmap
-                     is plotted. If not provided, use current axes or
-                     create a new one.
-        cbar_kw    : A dictionary with arguments to
-                     :meth:`matplotlib.Figure.colorbar`.
-        cbar_label  : The label for the colorbar
-    All other arguments are directly passed on to the imshow call.
+    :param data: A 2D numpy array of shape (N,M)
+    :param row_labels: A list or array of length N with the labels for the rows
+    :param col_labels: A list or array of length M with the labels for the columns
+    :param ax: A matplotlib.axes.Axes instance to which the draw_heatmap is plotted.
+     If not provided, use current axes or create a new one.
+    :param cbar_kw: A dictionary with arguments to :meth:`matplotlib.Figure.colorbar`.
+    :param cbar_label: The label for the colorbar
+
     """
     cbar_kw = {} if cbar_kw is None else cbar_kw
     ax = plt.figure(figsize=data.shape[::-1]).gca() if ax is None else ax

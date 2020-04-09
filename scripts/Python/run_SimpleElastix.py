@@ -18,7 +18,7 @@ Installing (building) the package:
     cd SimpleITK-build/Wrapping/Python
     python Packaging/setup.py install
 
-.. ref:: https://simpleelastix.readthedocs.io/GettingStarted.html
+.. seealso:: https://simpleelastix.readthedocs.io/GettingStarted.html
 
 Sample call of this script::
 
@@ -28,7 +28,7 @@ Sample call of this script::
         ./data_images/landmarks/artificial_reference.pts \
         ./results/elastix
 
-.. ref:: https://simpleelastix.readthedocs.io/PointBasedRegistration.html?highlight=warp#transforming-point-sets
+.. seealso:: https://simpleelastix.readthedocs.io/PointBasedRegistration.html?highlight=warp#transforming-point-sets
 
 """
 

@@ -1,7 +1,7 @@
 """
 Benchmark for ImageJ plugin - RVSS
 
-.. ref::  https://imagej.net/Register_Virtual_Stack_Slices
+.. seealso::  https://imagej.net/Register_Virtual_Stack_Slices
 
 Installation
 ------------

@@ -32,7 +32,7 @@ For evaluation, we have manually placed landmarks in each image pair. There are 
 We do not put any landmarks in the background.
 For more information about annotation creation and landmarks handling, we refer to the special repository - [Dataset: histology landmarks](http://borda.github.com/dataset-histology-landmarks).
 
-![images-landmarks](figures/images-landmarks.jpg)
+![images-landmarks](docs/source/_figures/images-landmarks.jpg)
 
 The dataset is defined by a CSV file containing paths to target and sensed image and their related landmarks _(see `./data_images/pairs-imgs-lnds_mix.csv`)_. With the change of the cover table, the benchmarks can be used for any other image dataset.
 
@@ -150,7 +150,7 @@ Moreover we developed two additional script for converting large images, handlin
 
 Even though this framework is completely customizable we include several image registration methods commonly used in medical imaging.
 
-![visualise-regist-results](figures/registration_visual_landmarks.jpg)
+![visualise-regist-results](docs/source/_figures/registration_visual_landmarks.jpg)
 
 ### Install methods and run benchmarks
 
@@ -187,7 +187,7 @@ The general Image Registration benchmarks contain couple required and optional p
 * `--unique` each experiment has creation stamp included in its name (prevent overwriting experiments with the same method)
 * `--visual` generate a simple visualisation of particular image registrations
 
-![preprocessing-hist-matching](figures/Rat-Kidney_histogram-matching.jpg)
+![preprocessing-hist-matching](docs/source/_figures/Rat-Kidney_histogram-matching.jpg)
 
 Measure your computer performance using average execution time on several simple image registrations.
 The registration consists of loading images, denoising, feature detection, transform estimation and image warping. 
@@ -278,7 +278,9 @@ Some more image registration methods integrated in ImageJ are listed in [Registr
 
 ### Add custom registration method
 
-The only limitation of adding costume image registration methods that it has to be launched from python script or command line. The new registration benchmark should be inherited from [ImRegBenchmark](birl/benchmark.py) as for example [BmTemplate](birl/bm_template.py).
+The only limitation of adding costume image registration methods that it has to be launched from python script or command line.
+The new registration benchmark should be inherited from [ImRegBenchmark](birl/benchmark.py)
+ as for example [BmTemplate](birl/bm_template.py).
 
 The benchmark workflow is the following:
 1. `self._prepare()` prepare the experiment, e.g. create experiment folder, copy configurations, etc.
@@ -321,7 +323,7 @@ The project is using the standard [BSD license](http://opensource.org/licenses/B
 For complete references see [bibtex](docs/references.bib).
 1. Borovec, J., Munoz-Barrutia, A., & Kybic, J. (2018). **[Benchmarking of image registration methods for differently stained histological slides](https://www.researchgate.net/publication/325019076_Benchmarking_of_image_registration_methods_for_differently_stained_histological_slides)**. In IEEE International Conference on Image Processing (ICIP) (pp. 3368–3372), Athens. [DOI: 10.1109/ICIP.2018.8451040](https://doi.org/10.1109/ICIP.2018.8451040)
 2. Borovec, J. (2019). **[BIRL: Benchmark on Image Registration methods with Landmark validation](https://www.researchgate.net/publication/338291737_BIRL_Benchmark_on_Image_Registration_methods_with_Landmark_validation)**. arXiv preprint [arXiv:1912.13452](https://arxiv.org/abs/1912.13452).
-3. Borovec, J., Kybic, J., et al. (2020). **[ANHIR: Automatic Non-rigid Histological Image Registration Challenge](https://ieeexplore.ieee.org/document/9058666)**. In IEEE Transaction on Medical Imaging (TMI). [DOI: 10.1109/TMI.2020.2986331](https://www.doi.org/10.1109/TMI.2020.2986331)
+3. Borovec, J., Kybic, J., et al. (2020). **[ANHIR: Automatic Non-rigid Histological Image Registration Challenge](https://ieeexplore.ieee.org/document/9058666)**. In IEEE Transaction on Medical Imaging (TMI). [DOI: 10.1109/TMI.2020.2986331](https://www.doi.org/10.1109/TMI.2020.2986331).
 
 ## Appendix - Useful information
 

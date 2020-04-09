@@ -17,6 +17,7 @@ import sys
 import glob
 import shutil
 import inspect
+import re
 
 import m2r
 
@@ -25,6 +26,22 @@ PATH_HERE = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, os.path.abspath(PATH_ROOT))
 
 import birl  # noqa: E402
+
+# -- Project information -----------------------------------------------------
+
+project = 'BIRL'
+copyright = birl.__copyright__
+author = birl.__author__
+
+# The short X.Y version
+version = birl.__version__
+# The full version, including alpha/beta/rc tags
+release = birl.__version__
+
+# Options for the linkcode extension
+# ----------------------------------
+github_user = 'Borda'
+github_repo = project
 
 # -- Project documents -------------------------------------------------------
 
@@ -38,29 +55,24 @@ with open('intro.rst', 'w') as fp:
 with open(os.path.join(PATH_ROOT, 'README.md'), 'r') as fp:
     readme = fp.read()
 # replace all paths to relative
-for ndir in (os.path.basename(p) for p in glob.glob(os.path.join(PATH_ROOT, '*'))
-             if os.path.isdir(p)):
-    readme = readme.replace('](%s/' % ndir, '](%s/%s/' % (PATH_ROOT, ndir))
+readme = readme.replace('](docs/source/', '](')
+# Todo: this seems to replace only once per line
+readme = re.sub(r' \[(.*)\]\((?!http)(.*)\)',
+                r' [\1](https://github.com/%s/%s/blob/master/\2)' % (github_user, github_repo),
+                readme)
+# TODO: temp fix removing SVG badges and GIF, because PDF cannot show them
+readme = re.sub(r'(\[!\[.*\))', '', readme)
+readme = re.sub(r'(!\[.*.gif\))', '', readme)
+# for dir_name in (os.path.basename(p) for p in glob.glob(os.path.join(PATH_ROOT, '*'))
+#                  if os.path.isdir(p)):
+#     readme = readme.replace('](%s/' % dir_name, '](%s/%s/' % (PATH_ROOT, dir_name))
 with open('readme.md', 'w') as fp:
     fp.write(readme)
-
-# -- Project information -----------------------------------------------------
-
-project = 'BIRL'
-copyright = birl.__copyright__
-author = birl.__author__
-
-# The short X.Y version
-version = birl.__version__
-# The full version, including alpha/beta/rc tags
-release = birl.__version__
-
-
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
 
-needs_sphinx = '1.4'
+needs_sphinx = '2.2'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
@@ -111,7 +123,11 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['*.test_*']
+exclude_patterns = [
+    'data_images',
+    '*tests.*', '*.test_*',
+    'modules.rst',
+]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None
@@ -136,7 +152,7 @@ html_theme = 'nature'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = ['_figures']  # , 'notebooks'
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -286,12 +302,6 @@ with open(os.path.join(PATH_ROOT, 'requirements.txt'), 'r') as fp:
 autodoc_mock_imports = MOCK_MODULES + ['cv2', 'skimage', 'yaml']
 # for mod_name in MOCK_MODULES:
 #     sys.modules[mod_name] = mock.Mock()
-
-
-# Options for the linkcode extension
-# ----------------------------------
-github_user = 'Borda'
-github_repo = project
 
 
 # Resolve function
