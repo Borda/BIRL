@@ -278,7 +278,9 @@ Some more image registration methods integrated in ImageJ are listed in [Registr
 
 ### Add custom registration method
 
-The only limitation of adding costume image registration methods that it has to be launched from python script or command line. The new registration benchmark should be inherited from [ImRegBenchmark](birl/benchmark.py) as for example [BmTemplate](birl/bm_template.py).
+The only limitation of adding costume image registration methods that it has to be launched from python script or command line.
+The new registration benchmark should be inherited from [ImRegBenchmark](birl/benchmark.py)
+ as for example [BmTemplate](birl/bm_template.py).
 
 The benchmark workflow is the following:
 1. `self._prepare()` prepare the experiment, e.g. create experiment folder, copy configurations, etc.

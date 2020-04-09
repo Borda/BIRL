@@ -56,6 +56,7 @@ with open(os.path.join(PATH_ROOT, 'README.md'), 'r') as fp:
     readme = fp.read()
 # replace all paths to relative
 readme = readme.replace('](docs/source/', '](')
+# Todo: this seems to replace only once per line
 readme = re.sub(r' \[(.*)\]\((?!http)(.*)\)',
                 r' [\1](https://github.com/%s/%s/blob/master/\2)' % (github_user, github_repo),
                 readme)
@@ -122,7 +123,11 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['*.test_*']
+exclude_patterns = [
+    'data_images',
+    '*tests.*', '*.test_*',
+    'modules.rst',
+]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None

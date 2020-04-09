@@ -7,8 +7,11 @@ The `ANHIR challenge`__ aims at the automatic nonlinear image registration of 2D
 .. toctree::
    :maxdepth: 2
 
-   ../../docs/source/_notebooks/ANHIR_submissions-stat.ipynb
-   ../../docs/source/_notebooks/ANHIR_evaluation-board.ipynb
+   notebooks/ANHIR_submissions-stat.ipynb
+   notebooks/ANHIR_evaluation-board.ipynb
+
+   notebooks/CIMA_SOTA-results_scope.ipynb
+   notebooks/CIMA_SOTA-results_comparing.ipynb
 
 
 .. _ANHIR: https://anhir.grand-challenge.org/
