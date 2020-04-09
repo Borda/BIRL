@@ -5,3 +5,4 @@ nbsphinx
 pandoc
 docutils<0.15  # higher version breaks py2
 imgconverter
+ipython
