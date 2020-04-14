@@ -9,7 +9,7 @@ DATASET/<tissue>/scale-<number>pc/<image-file>
 
 Sample usage::
 
-    python rescale_tissue_landmarks.py -a data_images -d results
+    python rescale_tissue_landmarks.py -a data-images -d results
 
     python bm_dataset/rescale_tissue_landmarks.py \
         -a /datagrid/Medical/dataset_ANHIR/landmarks_all \

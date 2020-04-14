@@ -1,8 +1,8 @@
 # SEE: https://github.com/jonclayden/RNiftyReg
 # CMD>> Rscript scripts/Rscript/regist_niftyReg-elastic.r \
-#                   data_images/rat-kidney_/scale-5pc/Rat_Kidney_HE.jpg \
-#                   data_images/rat-kidney_/scale-5pc/Rat_Kidney_PanCytokeratin.jpg \
-#                   data_images/rat-kidney_/scale-5pc/Rat_Kidney_HE.csv \
+#                   data-images/rat-kidney_/scale-5pc/Rat_Kidney_HE.jpg \
+#                   data-images/rat-kidney_/scale-5pc/Rat_Kidney_PanCytokeratin.jpg \
+#                   data-images/rat-kidney_/scale-5pc/Rat_Kidney_HE.csv \
 #                   output/
 
 ## Install packages if needed, then load them

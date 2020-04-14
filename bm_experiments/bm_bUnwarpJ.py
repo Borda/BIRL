@@ -26,8 +26,8 @@ Usage
 Run the basic bUnwarpJ registration with original parameters::
 
     python bm_experiments/bm_bUnwarpJ.py \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
         -o ./results \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml \
@@ -37,8 +37,8 @@ The bUnwarpJ is supporting SIFT and MOPS feature extraction as landmarks
 see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support ::
 
     python bm_experiments/bm_bUnwarpJ.py \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
         -o ./results \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml \
@@ -72,7 +72,7 @@ class BmUnwarpJ(ImRegBenchmark):
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> fn_path_conf = lambda n: os.path.join(update_path('configs'), n)
-    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
+    >>> path_csv = os.path.join(update_path('data-images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'path_table': path_csv,
     ...           'path_out': path_out,
     ...           'exec_Fiji': 'ImageJ-linux64',

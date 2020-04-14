@@ -91,10 +91,10 @@ script:
   # sample run
   - mkdir results && touch configs/sample_config.yaml
   - python bm_experiments/bm_comp_perform.py -o ./results -n 1
-  - python birl/bm_template.py -t ./data_images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique -cfg configs/sample_config.yaml
-  - rm ./data_images/*_/*/*_HE.csv  # remove target landmarks from histol. tissue
-  - python birl/bm_template.py -n anhir -t ./data_images/pairs-imgs-lnds_histol.csv -d ./data_images -o ./results --preprocessing matching-rgb gray -cfg configs/sample_config.yaml
-  - python bm_experiments/evaluate_experiment.py -d ./data_images -e ./results/BmTemplate_anhir --visual
+  - python birl/bm_template.py -t ./data-images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique -cfg configs/sample_config.yaml
+  - rm ./data-images/*_/*/*_HE.csv  # remove target landmarks from histol. tissue
+  - python birl/bm_template.py -n anhir -t ./data-images/pairs-imgs-lnds_histol.csv -d ./data-images -o ./results --preprocessing matching-rgb gray -cfg configs/sample_config.yaml
+  - python bm_experiments/evaluate_experiment.py -d ./data-images -e ./results/BmTemplate_anhir --visual
 
 after_success:
   - coverage report

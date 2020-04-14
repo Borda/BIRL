@@ -23,9 +23,9 @@ Installing (building) the package:
 Sample call of this script::
 
     python scripts/Python/run_SimpleElastix.py \
-        ./data_images/images/artificial_reference.jpg \
-        ./data_images/images/artificial_moving-affine.jpg \
-        ./data_images/landmarks/artificial_reference.pts \
+        ./data-images/images/artificial_reference.jpg \
+        ./data-images/images/artificial_moving-affine.jpg \
+        ./data-images/landmarks/artificial_reference.pts \
         ./results/elastix
 
 .. seealso:: https://simpleelastix.readthedocs.io/PointBasedRegistration.html?highlight=warp#transforming-point-sets

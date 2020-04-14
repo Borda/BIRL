@@ -32,9 +32,9 @@ For evaluation, we have manually placed landmarks in each image pair. There are 
 We do not put any landmarks in the background.
 For more information about annotation creation and landmarks handling, we refer to the special repository - [Dataset: histology landmarks](http://borda.github.com/dataset-histology-landmarks).
 
-![images-landmarks](docs/source/_figures/images-landmarks.jpg)
+![images-landmarks](assets/images-landmarks.jpg)
 
-The dataset is defined by a CSV file containing paths to target and sensed image and their related landmarks _(see `./data_images/pairs-imgs-lnds_mix.csv`)_. With the change of the cover table, the benchmarks can be used for any other image dataset.
+The dataset is defined by a CSV file containing paths to target and sensed image and their related landmarks _(see `./data-images/pairs-imgs-lnds_mix.csv`)_. With the change of the cover table, the benchmarks can be used for any other image dataset.
 
 
 ## Features
@@ -61,7 +61,7 @@ The project contains the following folders:
 * `bm_dataset` - package handling dataset creation and servicing
 * `bm_experiments` - package with particular benchmark experiments
 * `configs` - configs for registration methods
-* `data_images` - folder with input sample data
+* `data-images` - folder with input sample data
     * `images` - sample image pairs (reference and sensed one)
     * `landmarks` - related landmarks to images in previous folder
     * `lesions_` - samples of histology tissue with annotation
@@ -90,8 +90,8 @@ where the numbers match desired version
 
 ## Before benchmarks (pre-processing) 
 
-In the `data_images` folder we provide some sample images with landmarks for registration. 
-These sample registration pairs are saved in `data_images/pairs-imgs-lnds_mix.csv`. 
+In the `data-images` folder we provide some sample images with landmarks for registration. 
+These sample registration pairs are saved in `data-images/pairs-imgs-lnds_mix.csv`. 
 You can create your own costume cover table for a given dataset (folder with images and landmarks) by hand or use script `bm_dataset/create_registration_pairs.py` assuming the same folder structure `<dataset>/<image-set>/<scale>/<images-and-landmarks>` as for the [CIMA dataset](http://cmp.felk.cvut.cz/~borovji3/?page=dataset).
 
 ### Prepare synthetic data
@@ -102,8 +102,8 @@ The script will generate a set of geometrically deformed images mimicking differ
 
 ```bash
 python bm_dataset/create_real_synth_dataset.py \
-    -i ./data_images/images/Rat_Kidney_HE.jpg \
-    -l ./data_images/landmarks/Rat_Kidney_HE.csv \
+    -i ./data-images/images/Rat_Kidney_HE.jpg \
+    -l ./data-images/landmarks/Rat_Kidney_HE.csv \
     -o ./output/synth_dataset \
     -nb 5 --nb_workers 3 --visual
 ```
@@ -116,9 +116,9 @@ _(note A-B is the same as B-A)_
 
 ```bash
 python bm_dataset/generate_regist_pairs.py \
-    -i ./data_images/synth_dataset/*.jpg \
-    -l ./data_images/synth_dataset/*.csv \
-    -csv ./data_images/cover_synth-dataset.csv \
+    -i ./data-images/synth_dataset/*.jpg \
+    -l ./data-images/synth_dataset/*.csv \
+    -csv ./data-images/cover_synth-dataset.csv \
     --mode each2all
 ```
 
@@ -127,7 +127,7 @@ python bm_dataset/generate_regist_pairs.py \
 We offer a script for scaling images in to particular scales for example
 ```bash
 python bm_dataset/rescale_tissue_images.py \
-    -i "./data_images/rat-kidney_/scale-5pc/*.jpg" \
+    -i "./data-images/rat-kidney_/scale-5pc/*.jpg" \
     -scales 10 -ext .png --nb_workers 2
 ```
 
@@ -135,7 +135,7 @@ We introduce an option how to randomly take only a subset (use `nb_selected`) of
 
 ```bash
 python bm_dataset/rescale_tissue_landmarks.py \
-    -a ./data_images -d ./output \
+    -a ./data-images -d ./output \
     --nb_selected 0.5 --nb_total 200
 ``` 
 
@@ -150,7 +150,7 @@ Moreover we developed two additional script for converting large images, handlin
 
 Even though this framework is completely customizable we include several image registration methods commonly used in medical imaging.
 
-![visualise-regist-results](docs/source/_figures/registration_visual_landmarks.jpg)
+![visualise-regist-results](assets/registration_visual_landmarks.jpg)
 
 ### Install methods and run benchmarks
 
@@ -159,7 +159,7 @@ For each registration method, different experiments can be performed independent
 Sample execution of the "empty" benchmark template:
 ```bash
 python birl/bm_template.py \
-    -t ./data_images/pairs-imgs-lnds_mix.csv \
+    -t ./data-images/pairs-imgs-lnds_mix.csv \
     -o ./results \
     -cfg sample_config.yaml \
     --preprocessing matching-rgb gray \
@@ -168,8 +168,8 @@ python birl/bm_template.py \
 or with relative paths:
 ```bash
 python birl/bm_template.py \
-    -t ./data_images/pairs-imgs-lnds_histol.csv \
-    -d ./data_images \
+    -t ./data-images/pairs-imgs-lnds_histol.csv \
+    -d ./data-images \
     -o ./results \
     -cfg sample_config.yaml \
     --preprocessing gray matching-rgb
@@ -187,7 +187,7 @@ The general Image Registration benchmarks contain couple required and optional p
 * `--unique` each experiment has creation stamp included in its name (prevent overwriting experiments with the same method)
 * `--visual` generate a simple visualisation of particular image registrations
 
-![preprocessing-hist-matching](docs/source/_figures/Rat-Kidney_histogram-matching.jpg)
+![preprocessing-hist-matching](assets/Rat-Kidney_histogram-matching.jpg)
 
 Measure your computer performance using average execution time on several simple image registrations.
 The registration consists of loading images, denoising, feature detection, transform estimation and image warping. 
@@ -204,8 +204,8 @@ For each benchmark experiment, the explanation about how to install and use a pa
 * **[bUnwarpJ](http://imagej.net/BUnwarpJ)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for elastic registration (optional usage of histogram matching and integration with [Feature Extraction](http://imagej.net/Feature_Extraction)).
     ```bash
     python bm_experiments/bm_bUnwarpJ.py \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
         -o ./results \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml \
@@ -215,8 +215,8 @@ For each benchmark experiment, the explanation about how to install and use a pa
 * **[Register Virtual Stack Slices (RVSS)](https://imagej.net/Register_Virtual_Stack_Slices)** is the [ImageJ](https://imagej.nih.gov/ij/) plugin for affine/elastic registration of a sequence of images.
     ```bash
     python bm_experiments/bm_RVSS.py \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
         -o ./results \
         -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_RVSS_histol.yaml \
@@ -225,8 +225,8 @@ For each benchmark experiment, the explanation about how to install and use a pa
 * **[elastix](http://elastix.isi.uu.nl/)** is image registration toolkit based on [ITK](http://www.itk.org/) and it consists of a collection of algorithms that are commonly used to solve (medical) image registration problems. For more details see [documentation](http://elastix.isi.uu.nl/download/elastix_manual_v4.8.pdf).
     ```bash
     python bm_experiments/bm_elastix.py \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
         -o ./results \
         -elastix ~/Applications/elastix/bin \
         -cfg ./configs/elastix_affine.txt \
@@ -235,8 +235,8 @@ For each benchmark experiment, the explanation about how to install and use a pa
 * **[rNiftyReg](https://github.com/jonclayden/RNiftyReg)** is an R-native interface to the [NiftyReg image registration library](http://sourceforge.net/projects/niftyreg/) which contains programs to perform rigid, affine and non-linear registration of Nifty or analyse images. _NiftyReg supports max image size 2048._
     ```bash
     python bm_experiments/bm_rNiftyReg.py \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
         -o ./results \
         -R Rscript \
         -script ./scripts/Rscript/RNiftyReg_linear.r \
@@ -245,8 +245,8 @@ For each benchmark experiment, the explanation about how to install and use a pa
 * **[Advanced Normalization Tools](http://stnava.github.io/ANTs/) (ANTs)** is a medical imaging framework containing state-of-the-art medical image registration and segmentation methods.
     ```bash
     python bm_experiments/bm_ANTs.py \
-        -t ./data_images/pairs-imgs-lnds_anhir.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_anhir.csv \
+        -d ./data-images \
         -o ./results \
         -ANTs ~/Applications/antsbin/bin \
         -cfg ./configs/ANTs_SyN.txt
@@ -254,8 +254,8 @@ For each benchmark experiment, the explanation about how to install and use a pa
     For illustration see ANTsPy [registration tutorial](https://github.com/ANTsX/ANTsPy/blob/master/tutorials/10minTutorial.ipynb).
     ```bash
     python bm_experiments/bm_ANTsPy.py \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
         -o ./results \
         -py python3 \
         -script ./scripts/Python/run_ANTsPy.py \
@@ -264,8 +264,8 @@ For each benchmark experiment, the explanation about how to install and use a pa
 * **[DROP](https://github.com/biomedia-mira/drop2)** is image registration and motion estimation based on Markov Random Fields.
     ```bash
     python bm_experiments/bm_DROP2.py \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
         -o ./results \
         -DROP ~/Applications/DROP2/dropreg \
         -cfg ./configs/DROP2.txt \

@@ -11,7 +11,7 @@ include *.md
 include LICENSE
 
 # Include the visualisations
-recursive-include figures *.jpg
+recursive-include assets *.jpg
 
 # Include the util scripts and experiments
 recursive-include bm_dataset *.py
@@ -27,7 +27,7 @@ recursive-exclude notebooks *.ipynb *.txt
 exclude notebooks
 
 # Include the data files
-recursive-include data_images *
+recursive-include data-images *
 
 # Include the method config files
 recursive-include configs *

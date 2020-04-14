@@ -4,9 +4,9 @@ Image registration using ITK package.
 Sample call of this script::
 
     python scripts/Python/run_SimpleITK.py \
-        ./data_images/images/artificial_reference.jpg \
-        ./data_images/images/artificial_moving-affine.jpg \
-        ./data_images/landmarks/artificial_moving-affine.pts \
+        ./data-images/images/artificial_reference.jpg \
+        ./data-images/images/artificial_moving-affine.jpg \
+        ./data-images/landmarks/artificial_moving-affine.pts \
         ./results/elastix
 
 .. seealso:: https://simpleitk.readthedocs.io/en/master/Examples/index.html

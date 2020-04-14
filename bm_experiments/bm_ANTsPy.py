@@ -19,8 +19,8 @@ Usage
 Run the basic ANTs registration with original parameters::
 
     python bm_experiments/bm_ANTsPy.py \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
         -o ./results \
         -py python3 \
         -script ./scripts/Python/run_ANTsPy.py
@@ -53,7 +53,7 @@ class BmANTsPy(ImRegBenchmark):
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> fn_path_conf = lambda n: os.path.join(update_path('configs'), n)
-    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
+    >>> path_csv = os.path.join(update_path('data-images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'path_table': path_csv,
     ...           'path_out': path_out,
     ...           'nb_workers': 2,

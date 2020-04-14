@@ -22,9 +22,9 @@ Sample usage::
 
     python evaluate_submission.py \
         -e ./results/BmUnwarpJ \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
-        -r ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
+        -r ./data-images \
         -p ./bm_experiments/computer-performances_cmpgrid-71.json \
         -o ./output \
         --min_landmarks 0.20

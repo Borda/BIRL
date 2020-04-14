@@ -591,7 +591,7 @@ def list_sub_folders(path_folder, name='*'):
     :return list(str): folders
 
     >>> from birl.utilities.data_io import update_path
-    >>> paths = list_sub_folders(update_path('data_images'))
+    >>> paths = list_sub_folders(update_path('data-images'))
     >>> list(map(os.path.basename, paths))  # doctest: +ELLIPSIS
     ['images', 'landmarks', 'lesions_', 'rat-kidney_'...]
     """
@@ -792,7 +792,7 @@ def image_histogram_matching(source, reference, use_color='hsv', norm_img_size=4
     :return ndarray: transformed image
 
     >>> from birl.utilities.data_io import update_path, load_image
-    >>> path_imgs = os.path.join(update_path('data_images'), 'rat-kidney_', 'scale-5pc')
+    >>> path_imgs = os.path.join(update_path('data-images'), 'rat-kidney_', 'scale-5pc')
     >>> img1 = load_image(os.path.join(path_imgs, 'Rat-Kidney_HE.jpg'))
     >>> img2 = load_image(os.path.join(path_imgs, 'Rat-Kidney_PanCytokeratin.jpg'))
     >>> image_histogram_matching(img1, img2).shape == img1.shape

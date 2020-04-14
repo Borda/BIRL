@@ -11,8 +11,8 @@ Sample run::
     mkdir ./results
     touch sample-config.yaml
     python birl/bm_template.py \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
         -o ./results \
         --visual --unique \
         -cfg ./sample-config.yaml
@@ -57,7 +57,7 @@ class BmTemplate(ImRegBenchmark):
     >>> # Running in single thread:
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
-    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
+    >>> path_csv = os.path.join(update_path('data-images'), 'pairs-imgs-lnds_mix.csv')
     >>> open('sample_config.yaml', 'w').close()
     >>> BmTemplate.main({
     ...       'path_table': path_csv,
@@ -75,7 +75,7 @@ class BmTemplate(ImRegBenchmark):
     >>> # Running in multiple parallel threads:
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
-    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
+    >>> path_csv = os.path.join(update_path('data-images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'path_table': path_csv,
     ...           'path_out': path_out,
     ...           'nb_workers': 2,

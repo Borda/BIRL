@@ -32,8 +32,8 @@ Sample run::
 
     mkdir ./results
     python bm_experiments/bm_DROP.py \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
         -o ./results \
         -DROP ~/Applications/DROP/dropreg2d \
         --path_config ./configs/DROP.txt \
@@ -87,7 +87,7 @@ class BmDROP(ImRegBenchmark):
     -------
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
-    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
+    >>> path_csv = os.path.join(update_path('data-images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'path_table': path_csv,
     ...           'path_out': path_out,
     ...           'nb_workers': 2,

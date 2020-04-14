@@ -28,7 +28,7 @@ from birl.benchmark import ImRegBenchmark
 from birl.bm_template import BmTemplate
 
 PATH_ROOT = os.path.dirname(update_path('birl'))
-PATH_DATA = update_path('data_images')
+PATH_DATA = update_path('data-images')
 PATH_CSV_COVER_MIX = os.path.join(PATH_DATA, 'pairs-imgs-lnds_mix.csv')
 PATH_CSV_COVER_ANHIR = os.path.join(PATH_DATA, 'pairs-imgs-lnds_histol.csv')
 # logging.basicConfig(level=logging.INFO)

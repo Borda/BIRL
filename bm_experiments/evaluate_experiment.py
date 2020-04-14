@@ -13,7 +13,7 @@ Sample Usage
 
     python evaluate_experiment.py \
         -e ./results/BmUnwarpJ \
-        -d ./data_images \
+        -d ./data-images \
         --visual
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>

@@ -5,9 +5,9 @@ https://github.com/ANTsX/ANTsPy/blob/master/tutorials/10minTutorial.ipynb
 For performance and parameters discussion see https://github.com/ANTsX/ANTsPy/issues/85
 
 >> python ./scripts/Python/run_ANTsPy.py \
-    ./data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.jpg \
-    ./data_images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.jpg \
-    ./data_images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.csv \
+    ./data-images/rat-kidney_/scale-5pc/Rat-Kidney_HE.jpg \
+    ./data-images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.jpg \
+    ./data-images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.csv \
     ./results
 
 Copyright (C) 2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>

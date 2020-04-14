@@ -8,7 +8,7 @@ Sample run (usage)::
 
     mkdir ./results
     python benchmarks/bm_registration.py \
-        -t data_images/pairs-imgs-lnds_histol.csv -d ./data_images \
+        -t data-images/pairs-imgs-lnds_histol.csv -d ./data-images \
         -o ./results --unique
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
@@ -77,7 +77,7 @@ class ImRegBenchmark(Experiment):
     >>> # Running in single thread:
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
-    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
+    >>> path_csv = os.path.join(update_path('data-images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'path_table': path_csv,
     ...           'path_out': path_out,
     ...           'nb_workers': 1,
@@ -92,7 +92,7 @@ class ImRegBenchmark(Experiment):
     >>> # Running in multiple parallel threads:
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
-    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
+    >>> path_csv = os.path.join(update_path('data-images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'path_table': path_csv,
     ...           'path_out': path_out,
     ...           'nb_workers': 2,
@@ -938,7 +938,7 @@ def filter_paired_landmarks(item, path_dataset, path_reference, col_source, col_
     :param str col_target: column name of landmarks to be compared
     :return tuple(float,ndarray,ndarray): match ratio, filtered ref and move landmarks
 
-    >>> p_data = update_path('data_images')
+    >>> p_data = update_path('data-images')
     >>> p_csv = os.path.join(p_data, 'pairs-imgs-lnds_histol.csv')
     >>> df = pd.read_csv(p_csv)
     >>> ratio, lnds_ref, lnds_move = filter_paired_landmarks(dict(df.iloc[0]), p_data, p_data,

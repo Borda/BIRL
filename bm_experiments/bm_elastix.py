@@ -21,8 +21,8 @@ Example
     1. Perform sample image registration::
 
         ~/Applications/elastix/bin/elastix \
-            -f ./data_images/images/artificial_reference.jpg \
-            -m ./data_images/images/artificial_moving-affine.jpg \
+            -f ./data-images/images/artificial_reference.jpg \
+            -m ./data-images/images/artificial_moving-affine.jpg \
             -out ./results/elastix \
             -p ./configs/elastix_affine.txt
 
@@ -34,16 +34,16 @@ Example
         ~/Applications/elastix/bin/transformix \
             -tp ./results/elastix/TransformParameters.0.txt \
             -out ./results/elastix \
-            -in ./data_images/images/artificial_moving-affine.jpg \
-            -def ./data_images/landmarks/artificial_reference.pts
+            -in ./data-images/images/artificial_moving-affine.jpg \
+            -def ./data-images/landmarks/artificial_reference.pts
 
 Usage
 -----
 Run the basic ANTs registration with original parameters::
 
     python bm_experiments/bm_elastix.py \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
         -o ./results \
         -elastix ~/Applications/elastix/bin \
         -cfg ./configs/elastix_affine.txt
@@ -91,7 +91,7 @@ class BmElastix(ImRegBenchmark):
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> fn_path_conf = lambda n: os.path.join(update_path('configs'), n)
-    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
+    >>> path_csv = os.path.join(update_path('data-images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'path_out': path_out,
     ...           'path_table': path_csv,
     ...           'nb_workers': 1,

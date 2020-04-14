@@ -365,7 +365,7 @@ def convert_image_to_nifti(path_image, path_out_dir=None):
     :param str path_out_dir: path to output folder
     :return str: resulted image
 
-    >>> path_img = os.path.join(update_path('data_images'), 'images',
+    >>> path_img = os.path.join(update_path('data-images'), 'images',
     ...                         'artificial_moving-affine.jpg')
     >>> path_img2 = convert_image_to_nifti(path_img, '.')
     >>> path_img2  # doctest: +ELLIPSIS
@@ -513,7 +513,7 @@ def convert_image_from_mhd(path_image, path_out_dir=None, img_ext='.png', scalin
         resulting image will be larger by this factor
     :return str: path to exported image
 
-    >>> path_img = os.path.join(update_path('data_images'), 'images',
+    >>> path_img = os.path.join(update_path('data-images'), 'images',
     ...                         'artificial_reference.jpg')
     >>> path_img = convert_image_to_mhd(path_img, scaling=1.5)
     >>> convert_image_from_mhd(path_img, scaling=1.5)  # doctest: +ELLIPSIS
@@ -549,7 +549,7 @@ def convert_image_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=
         resulting image will be smaller by this factor
     :return str: path to exported image
 
-    >>> path_img = os.path.join(update_path('data_images'), 'images',
+    >>> path_img = os.path.join(update_path('data-images'), 'images',
     ...                         'artificial_moving-affine.jpg')
     >>> convert_image_to_mhd(path_img, scaling=2)  # doctest: +ELLIPSIS
     '...artificial_moving-affine.mhd'

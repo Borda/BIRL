@@ -21,16 +21,16 @@ Usage
 Run the basic R script::
 
     Rscript scripts/Rscript/RNiftyReg_linear.r \
-        data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.jpg \
-        data_images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.jpg \
-        data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.csv \
+        data-images/rat-kidney_/scale-5pc/Rat-Kidney_HE.jpg \
+        data-images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.jpg \
+        data-images/rat-kidney_/scale-5pc/Rat-Kidney_HE.csv \
         output/
 
 Run the RNiftyReg benchmark::
 
     python bm_experiments/bm_rNiftyReg.py \
-        -t ./data_images/pairs-imgs-lnds_histol.csv \
-        -d ./data_images \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
         -o ./results \
         -R Rscript \
         -script ./scripts/Rscript/RNiftyReg_linear.r
@@ -62,7 +62,7 @@ class BmRNiftyReg(ImRegBenchmark):
     >>> from birl.utilities.data_io import create_folder, update_path
     >>> path_out = create_folder('temp_results')
     >>> fn_path_conf = lambda n: os.path.join(update_path('scripts'), 'Rscript', n)
-    >>> path_csv = os.path.join(update_path('data_images'), 'pairs-imgs-lnds_mix.csv')
+    >>> path_csv = os.path.join(update_path('data-images'), 'pairs-imgs-lnds_mix.csv')
     >>> params = {'path_out': path_out,
     ...           'path_table': path_csv,
     ...           'nb_workers': 2,

@@ -1,6 +1,0 @@
-Target image,Source image,Target landmarks,Source landmarks
-data_images/images/artificial_reference.jpg,data_images/images/artificial_moving-rigid.jpg,data_images/landmarks/artificial_reference.csv,data_images/landmarks/artificial_moving-rigid.csv
-data_images/images/artificial_reference.jpg,data_images/images/artificial_moving-affine.jpg,data_images/landmarks/artificial_reference.csv,data_images/landmarks/artificial_moving-affine.csv
-data_images/images/artificial_reference.jpg,data_images/images/artificial_moving-elastic.jpg,data_images/landmarks/artificial_reference.csv,data_images/landmarks/artificial_moving-elastic.csv
-data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.jpg,data_images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.jpg,data_images/rat-kidney_/scale-5pc/Rat-Kidney_HE.csv,data_images/rat-kidney_/scale-5pc/Rat-Kidney_PanCytokeratin.csv
-data_images/lesions_/scale-5pc/Izd2-29-041-w35_HE.jpg,data_images/lesions_/scale-5pc/Izd2-29-041-w35_proSPC.jpg,data_images/lesions_/scale-5pc/Izd2-29-041-w35_HE.csv,data_images/lesions_/scale-5pc/Izd2-29-041-w35_proSPC.csv

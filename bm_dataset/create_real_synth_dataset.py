@@ -6,8 +6,8 @@ and related computed new landmarks.
 Sample run::
 
     python create_real_synth_dataset.py \
-        -i ../data_images/images/Rat-Kidney_HE.jpg \
-        -l ../data_images/landmarks/Rat-Kidney_HE.csv \
+        -i ../data-images/images/Rat-Kidney_HE.jpg \
+        -l ../data-images/landmarks/Rat-Kidney_HE.csv \
         -o ../output/synth_dataset  --visual
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>

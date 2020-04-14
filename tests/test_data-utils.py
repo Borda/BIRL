@@ -16,7 +16,7 @@ from birl.utilities.data_io import update_path, load_image
 from birl.utilities.dataset import image_histogram_matching, CONVERT_RGB
 
 PATH_ROOT = os.path.dirname(update_path('birl'))
-PATH_DATA = update_path('data_images')
+PATH_DATA = update_path('data-images')
 PATH_IMAGE_REF = os.path.join(PATH_DATA, 'rat-kidney_', 'scale-5pc', 'Rat-Kidney_HE.jpg')
 PATH_IMAGE_SRC = os.path.join(PATH_DATA, 'rat-kidney_', 'scale-5pc', 'Rat-Kidney_PanCytokeratin.jpg')
 
