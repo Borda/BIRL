@@ -68,6 +68,8 @@ for dir_name in (os.path.basename(p) for p in glob.glob(os.path.join(PATH_ROOT, 
     readme = readme.replace('](%s/' % dir_name, '](%s/%s/' % (PATH_ROOT, dir_name))
 with open('readme.md', 'w') as fp:
     fp.write(readme)
+
+
 # -- General configuration ---------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -126,7 +128,7 @@ language = None
 exclude_patterns = [
     'data-images',
     '*tests.*', '*.test_*',
-    'modules.rst',
+    'api/modules.rst',
 ]
 
 # The name of the Pygments (syntax highlighting) style to use.
@@ -211,7 +213,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, project, project + ' Documentation', author, project,
-     'One line description of project.', 'Miscellaneous'),
+     birl.__doc__, 'Miscellaneous'),
 ]
 
 
@@ -262,8 +264,13 @@ PACKAGES = [
 
 def run_apidoc(_):
     for pkg in PACKAGES:
-        argv = ['-e', '-o', PATH_HERE, os.path.join(PATH_HERE, PATH_ROOT, pkg),
-                '**/test_*', '--force', '--private', '--module-first']
+        argv = ['-e',
+                '-o', os.path.join(PATH_HERE, 'api'),
+                os.path.join(PATH_HERE, PATH_ROOT, pkg),
+                '**/test_*',
+                '--force',
+                '--private',
+                '--module-first']
         try:
             # Sphinx 1.7+
             from sphinx.ext import apidoc

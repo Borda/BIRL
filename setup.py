@@ -22,7 +22,9 @@ import birl
 PATH_HERE = path.abspath(path.dirname(__file__))
 
 with open(path.join(PATH_HERE, 'requirements.txt'), encoding='utf-8') as fp:
-    requirements = [rq.rstrip() for rq in fp.readlines() if not rq.startswith('#')]
+    reqs = [rq.rstrip() for rq in fp.readlines()]
+    reqs = [ln[:ln.index('#')] if '#' in ln else ln for ln in reqs]
+    requirements = [ln for ln in reqs if ln]
 
 # Get the long description from the README file
 # with open(path.join(PATH_HERE, 'README.md'), encoding='utf-8') as fp:

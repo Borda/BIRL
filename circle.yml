@@ -21,15 +21,22 @@ references:
         python --version ; pwd ; ls -l
         pip --version ; pip list
 
+  formatting: &formatting
+    run:
+      name: Formatting
+      command: |
+        pip install flake8 -q
+        flake8 . --max-line-length=100
+
   test_coverage: &test_coverage
     run:
-      name: Testing and Formating
+      name: Testing and coverage
       command: |
         unset DISPLAY
         sudo pip install -r ./tests/requirements.txt
         mkdir test-reports && mkdir results
         coverage run --source birl -m py.test birl tests bm_dataset bm_experiments bm_ANHIR -v --doctest-modules --junitxml=test-reports/pytest_junit.xml
-        flake8 . --max-line-length=100
+        coverage report
         codecov
         rm -rf results
 
@@ -94,6 +101,13 @@ references:
 
 
 jobs:
+
+  Formatting:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - checkout
+      - *formatting
 
   Py3-Tests:
     docker:
@@ -168,6 +182,7 @@ workflows:
   version: 2
   build:
     jobs:
+      - Formatting
       - Py2-Tests
       - Py3-Tests
       - Py2-Experiments

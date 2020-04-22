@@ -8,9 +8,9 @@ Contents
    :maxdepth: 2
 
    readme
-   birl
-   bm_dataset
-   bm_experiments
+   api/birl
+   api/bm_dataset
+   api/bm_experiments
    ANHIR
 
 Indices and tables
