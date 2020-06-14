@@ -47,11 +47,11 @@ or run locally::
     python bm_ANHIR/evaluate_submission.py \
         -e bm_ANHIR/submission \
         -t bm_ANHIR/dataset_ANHIR/dataset_medium.csv \
-        -d bm_ANHIR/dataset_ANHIR/landmarks_user \
+        -d bm_ANHIR/dataset_ANHIR/landmarks_user_phase2 \
         -r bm_ANHIR/dataset_ANHIR/landmarks_all \
         -p bm_ANHIR/dataset_ANHIR/computer-performances_cmpgrid-71.json \
-        -o output \
-        --min_landmarks 0.20
+        -o bm_ANHIR/output \
+        --min_landmarks 1.0
 
 References:
 
@@ -310,18 +310,18 @@ def _compute_scores_state_tissue(df_experiments):
         # iterate over common measures
         for stat_name, stat_func in [('Average', np.mean),
                                      ('Median', np.median)]:
-            _sname = stat_name + '-' + name
+            _sname = '%s-%s' % (stat_name, name)
             for status in statuses:
                 df_expt_ = df_experiments[df_experiments[ImRegBenchmark.COL_STATUS] == status]
-                scores[_sname + '_' + status] = stat_func(df_expt_[col])
+                scores['%s_%s' % (_sname, status)] = stat_func(df_expt_[col])
             # parse according to Tissue
             for tissue, dfg_tissue in df_experiments.groupby(COL_TISSUE):
-                scores[_sname + '_tissue_' + tissue] = stat_func(dfg_tissue[col])
+                scores['%s__tissue_%s__All' % (_sname, tissue)] = stat_func(dfg_tissue[col])
                 # also per state in tissue
                 for status in statuses:
                     df_tiss_st_ = dfg_tissue[dfg_tissue[ImRegBenchmark.COL_STATUS] == status]
                     stat = stat_func(df_tiss_st_[col]) if not df_tiss_st_.empty else np.nan
-                    scores[_sname + '_' + status + '_tissue_' + tissue] = stat
+                    scores['%s__tissue_%s__%s' % (_sname, tissue, status)] = stat
     return scores
 
 

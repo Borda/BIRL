@@ -1,5 +1,5 @@
 #FROM ubuntu:16.04
-FROM python:3.6-slim-stretch
+FROM python:3.7-slim-stretch
 #FROM borda/docker_python-opencv-ffmpeg:py3
 
 # Install packages
@@ -10,7 +10,7 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
 #        python-dev \
 #        python-tk \
 #        pkg-config \
-#        python-opencv \
+# not needed as no images are loade/saved
 #        openslide-tools \
     && \
     apt-get clean && \
@@ -26,8 +26,10 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
 # for Ubuntu instalation
 #    wget https://bootstrap.pypa.io/get-pip.py --progress=bar:force:noscroll && python get-pip.py && \
 
+# neeeded for openslide installing failer
+    pip install "setuptools<46.0" && \
 # Install BIRL package
-    pip install --upgrade --force-reinstall --no-cache-dir git+https://github.com/Borda/BIRL.git>=0.2.1 && \
+    pip install --upgrade --force-reinstall --no-cache-dir git+https://github.com/Borda/BIRL.git>=0.2.4 && \
 #    pip install --upgrade --force-reinstall --no-cache-dir git+https://github.com/Borda/BIRL.git@devel && \
 
 # Clean image from not needed packages
@@ -36,7 +38,10 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
         git \
     && \
     apt-get autoremove -y && \
-    apt-get clean
+    apt-get clean \
+    && \
+
+    python -c "import birl; print(birl.__version__)"
 
 USER evaluator
 WORKDIR /opt/evaluation
@@ -47,15 +52,15 @@ ENV PATH="/home/evaluator/.local/bin:${PATH}"
 COPY --chown=evaluator:evaluator ./evaluate_submission.py /opt/evaluation/
 COPY --chown=evaluator:evaluator ./dataset_ANHIR/dataset_medium.csv /opt/evaluation/dataset.csv
 COPY --chown=evaluator:evaluator ./dataset_ANHIR/computer-performances_cmpgrid-71.json /opt/evaluation/computer-performances.json
-COPY --chown=evaluator:evaluator dataset_ANHIR/landmarks_user_phase1 /opt/evaluation/lnds_provided
+COPY --chown=evaluator:evaluator ./dataset_ANHIR/landmarks_user_phase2 /opt/evaluation/lnds_provided
 COPY --chown=evaluator:evaluator ./dataset_ANHIR/landmarks_all /opt/evaluation/lnds_reference
 
 # Define execution
 ENTRYPOINT "python" "evaluate_submission.py" \
-    "-e" "/input" \
-    "-c" "/opt/evaluation/dataset.csv" \
-    "-d" "/opt/evaluation/lnds_provided" \
-    "-r" "/opt/evaluation/lnds_reference" \
-    "-p" "/opt/evaluation/computer-performances.json" \
-    "-o" "/output" \
-    "--min_landmarks" 0.20
+    "--path_experiment" "/input" \
+    "--path_table" "/opt/evaluation/dataset.csv" \
+    "--path_dataset" "/opt/evaluation/lnds_provided" \
+    "--path_reference" "/opt/evaluation/lnds_reference" \
+    "--path_comp_bm" "/opt/evaluation/computer-performances.json" \
+    "--path_output" "/output" \
+    "--min_landmarks" 1.0

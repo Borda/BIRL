@@ -733,7 +733,7 @@ class ImRegBenchmark(Experiment):
             logging.warning('Invalid path to the landmarks: "%s" <- "%s"',
                             path_lnds_warp, row[col_lnds_warp])
             return
-        df_experiments.loc[idx, cls.COL_NB_LANDMARKS_INPUT] = min(len(points_ref), len(points_ref))
+        df_experiments.loc[idx, cls.COL_NB_LANDMARKS_INPUT] = min(len(points_init), len(points_target))
         df_experiments.loc[idx, cls.COL_NB_LANDMARKS_WARP] = len(points_warp)
 
         # compute Affine statistic
