@@ -196,6 +196,25 @@ python bm_experiments/bm_comp_perform.py -o ./results
 ```
 This script generate simple report exported in JSON file on given output path.
 
+### Prepared experimental docker image 
+
+You can build it on your own, note it takes lots of time, be prepared.
+
+```bash
+git clone <git-repository>
+docker image build \
+    -t birl:py36 \
+    -f bm_experiments/Dockerfile \
+    --build-arg PYTHON_VERSION=3.6 \
+    .
+```
+
+To run your docker use
+
+```bash
+docker image list
+docker run --rm -it birl:py36 bash
+```
 
 ### Included registration methods
 
