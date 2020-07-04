@@ -3,11 +3,11 @@ name: Publish Docker Image
 # https://github.com/docker/build-push-action
 on:
   push:
-    branches: 
+    branches:
       - master
 
 jobs:
-  build:
+  build-push:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -22,6 +22,7 @@ jobs:
       - name: Publish Master to Docker
         # publish master
         uses: docker/build-push-action@v1.1.0
+        # TODO: push to master
         # if: github.event_name == 'push'
         with:
           repository: pytorchlightning/pytorch_lightning

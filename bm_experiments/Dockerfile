@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
         cmake \
         wget \
+        unzip \
         ca-certificates \
     && \
 
@@ -25,10 +26,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     update-alternatives --install /usr/bin/python python /usr/bin/python${PYTHON_VERSION} 1 && \
 
 # Cleaning
-    apt-get -y remove \
-        wget \
-    && \
     apt-get autoremove -y && \
     apt-get clean
 
-# RUN
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        openslide-tools \
+    && \
+
+# Install BIRL
+    # TODO: use master...
+    # wget https://github.com/Borda/BIRL/archive/master.zip --progress=bar:force:noscroll && \
+    wget https://github.com/Borda/BIRL/archive/docker.zip --progress=bar:force:noscroll && \
+    # unzip -q master.zip && \
+    unzip -q docker.zip && \
+    # rm master.zip && \
+    # mv BIRL-master BIRL && \
+    mv BIRL-docker BIRL && \
+    # v46 crashes openslide-python install
+    pip install "setuptools<46" -U && \
+    pip install ./BIRL && \
+    python -c "import birl ; print(birl.__version__)"
+
+RUN python -c "import birl ; print(birl.__version__)"
