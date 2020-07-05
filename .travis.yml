@@ -21,11 +21,11 @@ matrix:
       python: 2.7
       dist: xenial  # Ubuntu 16.04
       env: TOXENV=py27
-    - os: linux
-      language: python
-      python: 3.5
-      dist: xenial  # Ubuntu 16.04
-      env: TOXENV=py35
+      #- os: linux
+      #  language: python
+      #  python: 3.5
+      #  dist: xenial  # Ubuntu 16.04
+      #  env: TOXENV=py35
     - os: linux
       language: python
       python: 3.6
@@ -36,6 +36,11 @@ matrix:
       python: 3.7
       dist: bionic  # Ubuntu 18.04
       env: TOXENV=py37
+    - os: linux
+      language: python
+      python: 3.8
+      dist: bionic  # Ubuntu 18.04
+      env: TOXENV=py38
     - os: osx
       osx_image: xcode10.3
       language: generic

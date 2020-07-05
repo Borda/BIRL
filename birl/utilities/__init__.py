@@ -4,7 +4,7 @@ from distutils.version import LooseVersion
 
 try:
     import matplotlib
-except (ModuleNotFoundError, ImportError):
+except ImportError:
     print('Package `matplotlib` which shall be configured are missing...')
 else:
     CMD_TRY_MATPLOTLIB = 'python -c "from matplotlib import pyplot; pyplot.close(pyplot.figure())"'
@@ -20,7 +20,7 @@ else:
 
 try:
     import numpy as np
-except (ModuleNotFoundError, ImportError):
+except ImportError:
     print('Package `numpy` which shall be configured are missing...')
 else:
     # comparing strings does not work for version lower 1.10
@@ -31,7 +31,7 @@ else:
 
 try:
     import pandas as pd
-except (ModuleNotFoundError, ImportError):
+except ImportError:
     print('Package `pandas` which shall be configured are missing...')
 else:
     # default display size was changed in pandas v0.23
