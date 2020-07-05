@@ -29,22 +29,58 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get autoremove -y && \
     apt-get clean
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN \
+    # BIRL requirement
+    apt-get update && apt-get install -y --no-install-recommends \
         openslide-tools \
     && \
 
-# Install BIRL
+# Download BIRL from master
     # TODO: use master...
-    # wget https://github.com/Borda/BIRL/archive/master.zip --progress=bar:force:noscroll && \
     wget https://github.com/Borda/BIRL/archive/docker.zip --progress=bar:force:noscroll && \
-    # unzip -q master.zip && \
     unzip -q docker.zip && \
+    mv BIRL-docker BIRL && \
+
+    # wget https://github.com/Borda/BIRL/archive/master.zip --progress=bar:force:noscroll && \
+    # unzip -q master.zip && \
     # rm master.zip && \
     # mv BIRL-master BIRL && \
-    mv BIRL-docker BIRL && \
+
+# Install BIRL
     # v46 crashes openslide-python install
     pip install "setuptools<46" -U && \
     pip install ./BIRL && \
-    python -c "import birl ; print(birl.__version__)"
+    python -c "import birl ; print(birl.__version__)" && \
+    mkdir BIRL/Applications
 
-RUN python -c "import birl ; print(birl.__version__)"
+
+RUN \
+    cd BIRL/Applications && \
+    # add Fiji - needed for RVSS, bUnwarpJ
+    wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip --progress=bar:force:noscroll && \
+    unzip -q fiji-linux64.zip && \
+    rm fiji-linux64.zip && \
+    # https://imagej.nih.gov/ij/docs/guide/146-18.html
+    Fiji.app/ImageJ-linux64 -eval "return getVersion();"
+
+RUN \
+    cd BIRL && \
+    mkdir results && \
+
+    python bm_experiments/bm_bUnwarpJ.py \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
+        -o ./results \
+        -Fiji Applications/Fiji.app/ImageJ-linux64 \
+        -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml \
+        --unique \
+    && \
+
+    python bm_experiments/bm_RVSS.py \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
+        -o ./results \
+        -Fiji Applications/Fiji.app/ImageJ-linux64 \
+        -cfg ./configs/ImageJ_RVSS_histol.yaml \
+        --unique \
+
