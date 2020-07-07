@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         cmake \
         wget \
         unzip \
+        git \
         ca-certificates \
     && \
 
@@ -24,6 +25,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set the default python and install PIP packages
     update-alternatives --install /usr/bin/python${PYTHON_VERSION%%.*} python${PYTHON_VERSION%%.*} /usr/bin/python${PYTHON_VERSION} 1 && \
     update-alternatives --install /usr/bin/python python /usr/bin/python${PYTHON_VERSION} 1 && \
+
+# Disable cache
+    pip config set global.cache-dir false && \
+    pip install "pip>20.1" -U  && \
 
 # Cleaning
     apt-get autoremove -y && \
@@ -49,22 +54,48 @@ RUN \
 # Install BIRL
     # v46 crashes openslide-python install
     pip install "setuptools<46" -U && \
-    pip install ./BIRL && \
+    pip install ./BIRL --no-cache-dir && \
     python -c "import birl ; print(birl.__version__)" && \
     mkdir BIRL/Applications
 
+ENV birl_apps_path="BIRL/Applications"
+
 
 RUN \
-    cd BIRL/Applications && \
-    # add Fiji - needed for RVSS, bUnwarpJ
-    wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip --progress=bar:force:noscroll && \
+    cd $birl_apps_path && \
+# add Fiji - needed for RVSS, bUnwarpJ
+    # wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip --progress=bar:force:noscroll && \
+    wget https://downloads.imagej.net/fiji/archive/20200625-1201/fiji-linux64.zip --progress=bar:force:noscroll && \
     unzip -q fiji-linux64.zip && \
     rm fiji-linux64.zip && \
     # https://imagej.nih.gov/ij/docs/guide/146-18.html
     Fiji.app/ImageJ-linux64 -eval "return getVersion();"
 
 RUN \
+# install ANTsPy
+    pip install git+https://github.com/ANTsX/ANTsPy.git
+
+RUN \
+    cd $birl_apps_path && \
+# Compile ANTs
+    wget https://github.com/ANTsX/ANTs/archive/v2.3.4.zip --progress=bar:force:noscroll && \
+    unzip -q v2.3.4.zip && \
+    rm v2.3.4.zip && \
+    mv ANTs-2.3.4 ANTs && \
+    mkdir antsbin && \
+    cd antsbin && \
+    cmake ../ANTs && \
+    make -j$(nproc) && \
+    cd .. && \
+    # todo: clean some remaining in antsbin
+    rm -rf ANTs
+
+RUN \
+    mv $birl_apps_path/antsbin/ANTS-build $birl_apps_path
+
+RUN \
     cd BIRL && \
+    ls -l $birl_apps_path && \
     mkdir results && \
 
     python bm_experiments/bm_bUnwarpJ.py \
@@ -83,4 +114,25 @@ RUN \
         -Fiji Applications/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_RVSS_histol.yaml \
         --unique \
+    && \
 
+#    python bm_experiments/bm_ANTsPy.py \
+#        -t ./data-images/pairs-imgs-lnds_histol.csv \
+#        -d ./data-images \
+#        -o ./results \
+#        -py python3 \
+#        -script ./scripts/Python/run_ANTsPy.py \
+#    && \
+
+    python bm_experiments/bm_ANTs.py \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
+        -o ./results \
+        --path_ANTs Applications/ANTS-build/Examples \
+        --path_config ./configs/ANTs_SyN.txt \
+        --unique \
+    && \
+
+# see and clean resuls
+    ls -l ./results && \
+    rm -rf ./results

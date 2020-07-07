@@ -198,12 +198,18 @@ This script generate simple report exported in JSON file on given output path.
 
 ### Prepared experimental docker image 
 
+Used prepared docker image from Docker Hub
+
+```bash
+docker run --rm -it BIRL/birl:expt-py3.7 bash
+```
+
 You can build it on your own, note it takes lots of time, be prepared.
 
 ```bash
 git clone <git-repository>
 docker image build \
-    -t birl:py36 \
+    -t birl:py3.6 \
     -f bm_experiments/Dockerfile \
     --build-arg PYTHON_VERSION=3.6 \
     .
@@ -213,7 +219,7 @@ To run your docker use
 
 ```bash
 docker image list
-docker run --rm -it birl:py36 bash
+docker run --rm -it birl:py3.6 bash
 ```
 
 ### Included registration methods

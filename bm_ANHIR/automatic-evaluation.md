@@ -82,7 +82,7 @@ docker image ls
 **Cleaning**
 In case you fail with some builds, you may need to clean your local storage.
 ```bash
-docker image prune
+docker system prune
 ```
 or [Docker - How to cleanup (unused) resources](https://gist.github.com/bastman/5b57ddb3c11942094f8d0a97d461b430)
 ```bash
