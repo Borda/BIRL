@@ -5,10 +5,14 @@ ARG PYTHON_VERSION=3.7
 
 SHELL ["/bin/bash", "-c"]
 
+# for installing tzdata see: https://stackoverflow.com/a/58264927/4521646
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
         python${PYTHON_VERSION} \
         python${PYTHON_VERSION}-dev \
         $( [ ${PYTHON_VERSION%%.*} -ge 3 ] && echo "python${PYTHON_VERSION%%.*}-distutils" ) \
+        python${PYTHON_VERSION%%.*}-tk \
         build-essential \
         cmake \
         wget \
@@ -58,11 +62,11 @@ RUN \
     python -c "import birl ; print(birl.__version__)" && \
     mkdir BIRL/Applications
 
-ENV birl_apps_path="BIRL/Applications"
+ENV BIRL_APPs_PATH="/BIRL/Applications"
 
 
 RUN \
-    cd $birl_apps_path && \
+    cd $BIRL_APPs_PATH && \
 # add Fiji - needed for RVSS, bUnwarpJ
     # wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip --progress=bar:force:noscroll && \
     wget https://downloads.imagej.net/fiji/archive/20200625-1201/fiji-linux64.zip --progress=bar:force:noscroll && \
@@ -71,31 +75,36 @@ RUN \
     # https://imagej.nih.gov/ij/docs/guide/146-18.html
     Fiji.app/ImageJ-linux64 -eval "return getVersion();"
 
+ENV ANTs_VERSION="2.3.4"
+
+RUN \
+    cd $BIRL_APPs_PATH && \
+# Compile ANTs
+    wget https://github.com/ANTsX/ANTs/archive/v$ANTs_VERSION.zip --progress=bar:force:noscroll && \
+    unzip -q v$ANTs_VERSION.zip && \
+    rm v$ANTs_VERSION.zip && \
+    mv ANTs-$ANTs_VERSION ANTs && \
+    mkdir antsbin && \
+    cd antsbin && \
+    cmake ../ANTs && \
+    make -j$(nproc) && \
+    rm -rf $BIRL_APPs_PATH/ANTs && \
+# clean some remaining in antsbin
+    mkdir $BIRL_APPs_PATH/ANTS-bin && \
+    mv $BIRL_APPs_PATH/antsbin/ANTS-build/Examples/* $BIRL_APPs_PATH/ANTS-bin && \
+    rm -rf $BIRL_APPs_PATH/antsbin && \
+    rm -rf $BIRL_APPs_PATH/ANTS-bin/CMakeFiles && \
+    rm -rf $BIRL_APPs_PATH/ANTS-bin/TestSuite && \
+    rm $BIRL_APPs_PATH/ANTS-bin/*.cxx && \
+    rm $BIRL_APPs_PATH/ANTS-bin/*.cmake
+
 RUN \
 # install ANTsPy
     pip install git+https://github.com/ANTsX/ANTsPy.git
 
 RUN \
-    cd $birl_apps_path && \
-# Compile ANTs
-    wget https://github.com/ANTsX/ANTs/archive/v2.3.4.zip --progress=bar:force:noscroll && \
-    unzip -q v2.3.4.zip && \
-    rm v2.3.4.zip && \
-    mv ANTs-2.3.4 ANTs && \
-    mkdir antsbin && \
-    cd antsbin && \
-    cmake ../ANTs && \
-    make -j$(nproc) && \
-    cd .. && \
-    # todo: clean some remaining in antsbin
-    rm -rf ANTs
-
-RUN \
-    mv $birl_apps_path/antsbin/ANTS-build $birl_apps_path
-
-RUN \
+    ls -l $BIRL_APPs_PATH && \
     cd BIRL && \
-    ls -l $birl_apps_path && \
     mkdir results && \
 
     python bm_experiments/bm_bUnwarpJ.py \
@@ -116,23 +125,24 @@ RUN \
         --unique \
     && \
 
-#    python bm_experiments/bm_ANTsPy.py \
-#        -t ./data-images/pairs-imgs-lnds_histol.csv \
-#        -d ./data-images \
-#        -o ./results \
-#        -py python3 \
-#        -script ./scripts/Python/run_ANTsPy.py \
-#    && \
-
     python bm_experiments/bm_ANTs.py \
         -t ./data-images/pairs-imgs-lnds_histol.csv \
         -d ./data-images \
         -o ./results \
-        --path_ANTs Applications/ANTS-build/Examples \
+        --path_ANTs Applications/ANTS-bin \
         --path_config ./configs/ANTs_SyN.txt \
         --unique \
     && \
 
+    python bm_experiments/bm_ANTsPy.py \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
+        -o ./results \
+        -py python3 \
+        -script ./scripts/Python/run_ANTsPy.py \
+        --unique \
+    && \
+
 # see and clean resuls
-    ls -l ./results && \
+    ls -l ./results #&& \
     rm -rf ./results
