@@ -88,19 +88,32 @@ RUN \
     cd antsbin && \
     cmake ../ANTs && \
     make -j$(nproc) && \
+# remove source folder
     rm -rf $BIRL_APPs_PATH/ANTs && \
 # clean some remaining in antsbin
-    mkdir $BIRL_APPs_PATH/ANTS-bin && \
-    mv $BIRL_APPs_PATH/antsbin/ANTS-build/Examples/* $BIRL_APPs_PATH/ANTS-bin && \
-    rm -rf $BIRL_APPs_PATH/antsbin && \
-    rm -rf $BIRL_APPs_PATH/ANTS-bin/CMakeFiles && \
-    rm -rf $BIRL_APPs_PATH/ANTS-bin/TestSuite && \
-    rm $BIRL_APPs_PATH/ANTS-bin/*.cxx && \
-    rm $BIRL_APPs_PATH/ANTS-bin/*.cmake
+    mkdir $BIRL_APPs_PATH/ANTs-regist && \
+    cd $BIRL_APPs_PATH/antsbin/ANTS-build/Examples/ && \
+    mv simpleSynRegistration $BIRL_APPs_PATH/ANTs-regist/ && \
+    mv antsRegistration $BIRL_APPs_PATH/ANTs-regist/ && \
+    mv antsApplyTransforms $BIRL_APPs_PATH/ANTs-regist/ && \
+    mv antsApplyTransformsToPoints $BIRL_APPs_PATH/ANTs-regist/ && \
+    rm -rf $BIRL_APPs_PATH/antsbin
 
 RUN \
 # install ANTsPy
     pip install git+https://github.com/ANTsX/ANTsPy.git
+
+ENV ELASTIX_VERSION="5.0.0"
+
+RUN \
+# add Elastix
+    cd $BIRL_APPs_PATH && \
+    wget https://github.com/SuperElastix/elastix/releases/download/${ELASTIX_VERSION}/elastix-${ELASTIX_VERSION}-Linux.tar.bz2 --progress=bar:force:noscroll && \
+    mkdir elastix && \
+    tar xjf elastix-${ELASTIX_VERSION}-Linux.tar.bz2 --directory=elastix && \
+    rm elastix-${ELASTIX_VERSION}-Linux.tar.bz2
+
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$BIRL_APPs_PATH/elastix/lib/"
 
 RUN \
     ls -l $BIRL_APPs_PATH && \
@@ -111,7 +124,7 @@ RUN \
         -t ./data-images/pairs-imgs-lnds_histol.csv \
         -d ./data-images \
         -o ./results \
-        -Fiji Applications/Fiji.app/ImageJ-linux64 \
+        -Fiji $BIRL_APPs_PATH/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml \
         --unique \
     && \
@@ -120,7 +133,7 @@ RUN \
         -t ./data-images/pairs-imgs-lnds_histol.csv \
         -d ./data-images \
         -o ./results \
-        -Fiji Applications/Fiji.app/ImageJ-linux64 \
+        -Fiji $BIRL_APPs_PATH/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_RVSS_histol.yaml \
         --unique \
     && \
@@ -129,7 +142,7 @@ RUN \
         -t ./data-images/pairs-imgs-lnds_histol.csv \
         -d ./data-images \
         -o ./results \
-        --path_ANTs Applications/ANTS-bin \
+        --path_ANTs $BIRL_APPs_PATH/ANTs-regist \
         --path_config ./configs/ANTs_SyN.txt \
         --unique \
     && \
@@ -140,6 +153,15 @@ RUN \
         -o ./results \
         -py python3 \
         -script ./scripts/Python/run_ANTsPy.py \
+        --unique \
+    && \
+
+    python bm_experiments/bm_elastix.py \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
+        -o ./results \
+        -elastix $BIRL_APPs_PATH/elastix/bin \
+        -cfg ./configs/elastix_affine.txt \
         --unique \
     && \
 
