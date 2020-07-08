@@ -97,11 +97,14 @@ RUN \
     mv antsRegistration $BIRL_APPs_PATH/ANTs-regist/ && \
     mv antsApplyTransforms $BIRL_APPs_PATH/ANTs-regist/ && \
     mv antsApplyTransformsToPoints $BIRL_APPs_PATH/ANTs-regist/ && \
-    rm -rf $BIRL_APPs_PATH/antsbin
+    rm -rf $BIRL_APPs_PATH/antsbin && \
+# try to run ANTs
+    $BIRL_APPs_PATH/ANTs-regist/antsRegistration --help
 
 RUN \
 # install ANTsPy
-    pip install git+https://github.com/ANTsX/ANTsPy.git
+    pip install git+https://github.com/ANTsX/ANTsPy.git && \
+    python -c "import ants ; print(ants.__version__)"
 
 ENV ELASTIX_VERSION="5.0.0"
 
@@ -111,14 +114,42 @@ RUN \
     wget https://github.com/SuperElastix/elastix/releases/download/${ELASTIX_VERSION}/elastix-${ELASTIX_VERSION}-Linux.tar.bz2 --progress=bar:force:noscroll && \
     mkdir elastix && \
     tar xjf elastix-${ELASTIX_VERSION}-Linux.tar.bz2 --directory=elastix && \
-    rm elastix-${ELASTIX_VERSION}-Linux.tar.bz2
-
-ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$BIRL_APPs_PATH/elastix/lib/"
+    rm elastix-${ELASTIX_VERSION}-Linux.tar.bz2 && \
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$BIRL_APPs_PATH/elastix/lib/" && \
+# Try run elastix
+    $BIRL_APPs_PATH/elastix/bin/elastix --help
 
 RUN \
+# add required libs
+    apt-get update && apt-get install -y --no-install-recommends \
+        libtbb-dev \
+        libboost-all-dev \
+    && \
+    cd $BIRL_APPs_PATH && \
+# compile the DROP2
+    git clone https://github.com/biomedia-mira/drop2.git && \
+    cd drop2 && \
+    bash build.sh && \
+# clean up abter build
+    apt-get remove -y \
+        libtbb-dev \
+        libboost-all-dev \
+    && \
+    apt-get clean && \
+    mkdir cd $BIRL_APPs_PATH/DROP2 && \
+    mv $BIRL_APPs_PATH/drop2/build/drop/apps/dropreg/* $BIRL_APPs_PATH/DROP2 && \
+    rm -rf $BIRL_APPs_PATH/drop2 && \
+# try to run DROP2
+    $BIRL_APPs_PATH/DROP2/dropreg --help
+
+
+RUN \
+# show installed applications
     ls -l $BIRL_APPs_PATH && \
     cd BIRL && \
     mkdir results && \
+
+# Run all experimenst with minimal dataset
 
     python bm_experiments/bm_bUnwarpJ.py \
         -t ./data-images/pairs-imgs-lnds_histol.csv \
@@ -162,6 +193,15 @@ RUN \
         -o ./results \
         -elastix $BIRL_APPs_PATH/elastix/bin \
         -cfg ./configs/elastix_affine.txt \
+        --unique \
+    && \
+
+    python bm_experiments/bm_DROP2.py \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
+        -o ./results \
+        -DROP $BIRL_APPs_PATH/DROP2/dropreg \
+        --path_config ./configs/DROP2.txt \
         --unique \
     && \
 
