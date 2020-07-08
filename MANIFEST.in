@@ -17,6 +17,7 @@ recursive-include assets *.jpg
 recursive-include bm_dataset *.py
 recursive-include bm_experiments *.py
 recursive-exclude bm_experiments *.sh
+exclude bm_experiments/Dockerfile
 
 # exclude tests from package
 recursive-exclude tests *
