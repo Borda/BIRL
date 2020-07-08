@@ -144,6 +144,34 @@ RUN \
 
 
 RUN \
+# add required libs
+    apt-get update && apt-get install -y --no-install-recommends \
+        r-base-core \
+        r-base-dev \
+        #libfftw3-dev \
+        libtiff5-dev \
+        libcurl4-gnutls-dev \
+        libxml2-dev \
+        libssl-dev \
+    && \
+# install RNiftyReg
+    R -e 'install.packages(c("png", "jpeg", "OpenImageR", "devtools"))' && \
+    R -e 'devtools::install_github("jonclayden/RNiftyReg")' && \
+# clean up abter build
+    apt-get remove -y \
+        r-base-dev \
+        #libfftw3-dev \
+        libtiff5-dev \
+        libcurl4-gnutls-dev \
+        libxml2-dev \
+        libssl-dev \
+    && \
+    apt-get clean && \
+# try to run DROP2
+    R -e 'library(RNiftyReg)'
+
+
+RUN \
 # show installed applications
     ls -l $BIRL_APPs_PATH && \
     cd BIRL && \
@@ -202,6 +230,15 @@ RUN \
         -o ./results \
         -DROP $BIRL_APPs_PATH/DROP2/dropreg \
         --path_config ./configs/DROP2.txt \
+        --unique \
+    && \
+
+    python bm_experiments/bm_rNiftyReg.py \
+        -t ./data-images/pairs-imgs-lnds_histol.csv \
+        -d ./data-images \
+        -o ./results \
+        -R Rscript \
+        -script ./scripts/Rscript/RNiftyReg_linear.r \
         --unique \
     && \
 
