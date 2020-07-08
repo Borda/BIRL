@@ -83,7 +83,7 @@ ENV ANTs_VERSION="2.3.4"
 
 RUN \
     apt-get update && apt-get install -y --no-install-recommends \
-        zlib-devel \
+        zlib1g-dev \
     && \
     cd $BIRL_APPs_PATH && \
 # Compile ANTs
@@ -107,7 +107,7 @@ RUN \
     rm -rf $BIRL_APPs_PATH/antsbin && \
 # clean up after build
     apt-get remove -y \
-        zlib-devel \
+        zlib1g-dev \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
@@ -132,6 +132,8 @@ RUN \
 # Try run elastix
     $BIRL_APPs_PATH/elastix/bin/elastix --help
 
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$BIRL_APPs_PATH/elastix/lib/"
+
 RUN \
 # add required libs
     apt-get update && apt-get install -y --no-install-recommends \
@@ -155,7 +157,6 @@ RUN \
     rm -rf /var/lib/apt/lists/* && \
 # try to run DROP2
     $BIRL_APPs_PATH/DROP2/dropreg --help
-
 
 RUN \
 # add required libs
@@ -188,6 +189,9 @@ RUN \
 
 RUN \
 # show installed applications
+    apt-get update && apt-get install -y --no-install-recommends \
+        tree \
+    && \
     ls -l $BIRL_APPs_PATH && \
     cd BIRL && \
     mkdir results && \
@@ -258,5 +262,10 @@ RUN \
     && \
 
 # see and clean resuls
-    ls -l ./results #&& \
-    rm -rf ./results
+    tree -l ./results && \
+#    rm -rf ./results && \
+    apt-get remove -y \
+        tree \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*

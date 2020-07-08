@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python_version: [3.6, 3.7]
+        python_version: [3.6, 3.7, 3.8]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: 3.7
 
-      - name: Publish Master to Docker
+      - name: Build and Publish to Docker Hub
         # publish master
         uses: docker/build-push-action@v1.1.0
         # TODO: push to master
@@ -29,6 +29,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           dockerfile: docker/Dockerfile
-          build_args: PYTHON_VERSION=${{ matrix.python_version }},PYTORCH_VERSION=${{ matrix.pytorch_version }}
-          tags: "expt-py${{ matrix.python_version }}"
+          build_args: PYTHON_VERSION=${{ matrix.python_version }}
+          tags: "SOTA-py${{ matrix.python_version }}"
         timeout-minutes: 50
