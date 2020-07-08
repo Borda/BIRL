@@ -36,7 +36,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Cleaning
     apt-get autoremove -y && \
-    apt-get clean
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN \
     # BIRL requirement
@@ -60,7 +61,10 @@ RUN \
     pip install "setuptools<46" -U && \
     pip install ./BIRL --no-cache-dir && \
     python -c "import birl ; print(birl.__version__)" && \
-    mkdir BIRL/Applications
+    mkdir BIRL/Applications && \
+# Cleaning
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV BIRL_APPs_PATH="/BIRL/Applications"
 
@@ -78,6 +82,9 @@ RUN \
 ENV ANTs_VERSION="2.3.4"
 
 RUN \
+    apt-get update && apt-get install -y --no-install-recommends \
+        zlib-devel \
+    && \
     cd $BIRL_APPs_PATH && \
 # Compile ANTs
     wget https://github.com/ANTsX/ANTs/archive/v$ANTs_VERSION.zip --progress=bar:force:noscroll && \
@@ -98,6 +105,12 @@ RUN \
     mv antsApplyTransforms $BIRL_APPs_PATH/ANTs-regist/ && \
     mv antsApplyTransformsToPoints $BIRL_APPs_PATH/ANTs-regist/ && \
     rm -rf $BIRL_APPs_PATH/antsbin && \
+# clean up after build
+    apt-get remove -y \
+        zlib-devel \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
 # try to run ANTs
     $BIRL_APPs_PATH/ANTs-regist/antsRegistration --help
 
@@ -130,15 +143,16 @@ RUN \
     git clone https://github.com/biomedia-mira/drop2.git && \
     cd drop2 && \
     bash build.sh && \
-# clean up abter build
+    mkdir cd $BIRL_APPs_PATH/DROP2 && \
+    mv $BIRL_APPs_PATH/drop2/build/drop/apps/dropreg/* $BIRL_APPs_PATH/DROP2 && \
+    rm -rf $BIRL_APPs_PATH/drop2 && \
+# clean up after build
     apt-get remove -y \
         libtbb-dev \
         libboost-all-dev \
     && \
     apt-get clean && \
-    mkdir cd $BIRL_APPs_PATH/DROP2 && \
-    mv $BIRL_APPs_PATH/drop2/build/drop/apps/dropreg/* $BIRL_APPs_PATH/DROP2 && \
-    rm -rf $BIRL_APPs_PATH/drop2 && \
+    rm -rf /var/lib/apt/lists/* && \
 # try to run DROP2
     $BIRL_APPs_PATH/DROP2/dropreg --help
 
@@ -167,6 +181,7 @@ RUN \
         libssl-dev \
     && \
     apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
 # try to run DROP2
     R -e 'library(RNiftyReg)'
 
