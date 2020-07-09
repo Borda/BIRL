@@ -31,4 +31,4 @@ jobs:
           dockerfile: docker/Dockerfile
           build_args: PYTHON_VERSION=${{ matrix.python_version }}
           tags: "SOTA-py${{ matrix.python_version }}"
-        timeout-minutes: 50
+        # timeout-minutes: 50
