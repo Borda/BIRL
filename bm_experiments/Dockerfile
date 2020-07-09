@@ -1,6 +1,5 @@
 FROM ubuntu:bionic
 
-# This Dockerfile installs pytorch/xla 3.7 wheels. There are also 3.6 wheels available; see below.
 ARG PYTHON_VERSION=3.7
 
 SHELL ["/bin/bash", "-c"]
@@ -258,7 +257,7 @@ RUN \
 
 # see and clean resuls
     tree -l ./results && \
-#    rm -rf ./results && \
+    rm -rf ./results && \
     apt-get remove -y \
         tree \
     && \

@@ -201,7 +201,7 @@ This script generate simple report exported in JSON file on given output path.
 Used prepared docker image from Docker Hub
 
 ```bash
-docker run --rm -it BIRL/birl:expt-py3.7 bash
+docker run --rm -it borda/birl:SOTA-py3.7 bash
 ```
 
 You can build it on your own, note it takes lots of time, be prepared.
