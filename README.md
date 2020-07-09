@@ -196,6 +196,31 @@ python bm_experiments/bm_comp_perform.py -o ./results
 ```
 This script generate simple report exported in JSON file on given output path.
 
+### Prepared experimental docker image 
+
+Used prepared docker image from [Docker Hub](https://hub.docker.com/repository/docker/borda/birl)
+
+```bash
+docker run --rm -it borda/birl:SOTA-py3.7 bash
+```
+
+You can build it on your own, note it takes lots of time, be prepared.
+
+```bash
+git clone <git-repository>
+docker image build \
+    -t birl:py3.6 \
+    -f bm_experiments/Dockerfile \
+    --build-arg PYTHON_VERSION=3.6 \
+    .
+```
+
+To run your docker use
+
+```bash
+docker image list
+docker run --rm -it birl:py3.6 bash
+```
 
 ### Included registration methods
 
