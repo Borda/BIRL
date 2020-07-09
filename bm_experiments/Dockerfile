@@ -46,15 +46,10 @@ RUN \
     && \
 
 # Download BIRL from master
-    # TODO: use master...
-    wget https://github.com/Borda/BIRL/archive/docker.zip --progress=bar:force:noscroll && \
-    unzip -q docker.zip && \
-    mv BIRL-docker BIRL && \
-
-    # wget https://github.com/Borda/BIRL/archive/master.zip --progress=bar:force:noscroll && \
-    # unzip -q master.zip && \
-    # rm master.zip && \
-    # mv BIRL-master BIRL && \
+    wget https://github.com/Borda/BIRL/archive/master.zip --progress=bar:force:noscroll && \
+    unzip -q master.zip && \
+    rm master.zip && \
+    mv BIRL-master BIRL && \
 
 # Install BIRL
     # v46 crashes openslide-python install
