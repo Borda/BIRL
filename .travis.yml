@@ -84,9 +84,15 @@ before_install:
       sudo apt-get install openslide-tools ;
     fi
 
+  - if [ "$TRAVIS_PYTHON_VERSION" == "2.7" ]; then
+      cp requirements-py27.txt requirements-ci.txt ;
+    else
+      cp requirements.txt requirements-ci.txt ;
+    fi
+
 install:
   - pip install "setuptools<46" -U  # v46 crashes openslide-python install
-  - pip install -r requirements.txt
+  - pip install -r requirements-ci.txt
   - pip install -r ./tests/requirements.txt
   - pip --version ; pip list
 

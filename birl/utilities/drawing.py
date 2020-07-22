@@ -347,7 +347,8 @@ class RadarChart(object):
         """
         vals = np.linspace(self.data[title].min(), self.data[title].max(), self.nb_steps + 1)
         dec = effective_decimals(self.data[title].max()) + 1
-        ax.set_rgrids(range(1, self.nb_steps), angle=angle, labels=np.around(vals, dec))
+        ticks = np.around(vals, dec)
+        ax.set_rgrids(range(1, len(ticks) + 1), angle=angle, labels=ticks)
         ax.spines["polar"].set_visible(False)
         # ax.set_ylim(0, 5)
 

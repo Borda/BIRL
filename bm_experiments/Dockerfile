@@ -1,4 +1,6 @@
-FROM ubuntu:bionic
+#FROM ubuntu:bionic
+FROM ubuntu:20.04
+
 
 ARG PYTHON_VERSION=3.7
 
@@ -7,7 +9,11 @@ SHELL ["/bin/bash", "-c"]
 # for installing tzdata see: https://stackoverflow.com/a/58264927/4521646
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
         python${PYTHON_VERSION} \
         python${PYTHON_VERSION}-dev \
         $( [ ${PYTHON_VERSION%%.*} -ge 3 ] && echo "python${PYTHON_VERSION%%.*}-distutils" ) \
@@ -67,7 +73,7 @@ RUN \
     cd $BIRL_APPs_PATH && \
 # add Fiji - needed for RVSS, bUnwarpJ
     # wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip --progress=bar:force:noscroll && \
-    wget https://downloads.imagej.net/fiji/archive/20200625-1201/fiji-linux64.zip --progress=bar:force:noscroll && \
+    wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip --progress=bar:force:noscroll && \
     unzip -q fiji-linux64.zip && \
     rm fiji-linux64.zip && \
     # https://imagej.nih.gov/ij/docs/guide/146-18.html
@@ -87,14 +93,21 @@ RUN \
     mv ANTs-$ANTs_VERSION ANTs && \
     mkdir antsbin && \
     cd antsbin && \
-    cmake ../ANTs && \
-    make -j$(nproc) && \
+    cmake ../ANTs \
+        -D BUILD_ALL_ANTS_APPS=OFF \
+        -D CMAKE_BUILD_TYPE=Release \
+        -D BUILD_SHARED_LIBS=OFF \
+        -D BUILD_TESTING=OFF \
+        -D RUN_SHORT_TESTS=OFF \
+        -D RUN_LONG_TESTS=OFF \
+    && \
+    make -j$(nproc) ANTS && \
 # remove source folder
     rm -rf $BIRL_APPs_PATH/ANTs && \
 # clean some remaining in antsbin
     mkdir $BIRL_APPs_PATH/ANTs-regist && \
     cd $BIRL_APPs_PATH/antsbin/ANTS-build/Examples/ && \
-    mv simpleSynRegistration $BIRL_APPs_PATH/ANTs-regist/ && \
+    # mv simpleSynRegistration $BIRL_APPs_PATH/ANTs-regist/ && \
     mv antsRegistration $BIRL_APPs_PATH/ANTs-regist/ && \
     mv antsApplyTransforms $BIRL_APPs_PATH/ANTs-regist/ && \
     mv antsApplyTransformsToPoints $BIRL_APPs_PATH/ANTs-regist/ && \
@@ -108,9 +121,26 @@ RUN \
 # try to run ANTs
     $BIRL_APPs_PATH/ANTs-regist/antsRegistration --help
 
+ENV ANTSPY_VERSION="0.2.5"
+
 RUN \
+    apt-get update && apt-get install -y --no-install-recommends \
+        libopenblas-dev \
+        liblapack-dev \
+        gfortran \
+    && \
 # install ANTsPy
-    pip install git+https://github.com/ANTsX/ANTsPy.git && \
+    # requirements: https://github.com/ANTsX/ANTsPy/blob/v${ANTSPY_VERSION}/requirements.txt
+    pip install --no-cache-dir https://github.com/ANTsX/ANTsPy/archive/v${ANTSPY_VERSION}.zip && \
+# clean up after build
+    apt-get remove -y \
+        libopenblas-dev \
+        liblapack-dev \
+        gfortran \
+    && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+# test run
     python -c "import ants ; print(ants.__version__)"
 
 ENV ELASTIX_VERSION="5.0.0"
@@ -138,10 +168,50 @@ RUN \
 # compile the DROP2
     git clone https://github.com/biomedia-mira/drop2.git && \
     cd drop2 && \
-    bash build.sh && \
-    mkdir cd $BIRL_APPs_PATH/DROP2 && \
+    # bash build.sh && \
+
+# This is little editted internal script build.sh
+    TEMP_PATH_DROP=$(pwd) && \
+    # prepare 3-party libs
+    export THIRD_PARTY_DIR=$TEMP_PATH_DROP/3rdParty && \
+    mkdir $THIRD_PARTY_DIR && \
+    DROP_EIGEN_VERSION="3.3.7" && \
+    DROP_ITK_VERSION="5.0.0" && \
+
+    # get Eigen
+    cd $THIRD_PARTY_DIR && \
+    wget http://bitbucket.org/eigen/eigen/get/${DROP_EIGEN_VERSION}.tar.gz --progress=bar:force:noscroll && \
+    mkdir eigen && \
+    tar xf ${DROP_EIGEN_VERSION}.tar.gz -C eigen --strip-components=1 && \
+
+    # download and install ITK
+    cd $THIRD_PARTY_DIR && \
+    wget https://sourceforge.net/projects/itk/files/itk/${DROP_ITK_VERSION%.*}/InsightToolkit-${DROP_ITK_VERSION}.tar.gz --progress=bar:force:noscroll && \
+    tar xf InsightToolkit-${DROP_ITK_VERSION}.tar.gz && \
+    cd InsightToolkit-${DROP_ITK_VERSION} && \
+    mkdir build && \
+    cd build && \
+    cmake \
+        -D BUILD_EXAMPLES:BOOL=OFF \
+        -D BUILD_TESTING:BOOL=OFF \
+        -D CMAKE_INSTALL_PREFIX=$THIRD_PARTY_DIR/itk \
+       .. \
+    && \
+    make -j$(nproc) && \
+    make install && \
+
+    # building the
+    cd $TEMP_PATH_DROP && \
+    mkdir build && \
+    cd build && \
+    cmake .. && \
+    make -j$(nproc) && \
+    unset THIRD_PARTY_DIR && \
+
+# Cleaning the build folder
+    mkdir $BIRL_APPs_PATH/DROP2 && \
     mv $BIRL_APPs_PATH/drop2/build/drop/apps/dropreg/* $BIRL_APPs_PATH/DROP2 && \
-    rm -rf $BIRL_APPs_PATH/drop2 && \
+    rm -rf $TEMP_PATH_DROP && \
 # clean up after build
     apt-get remove -y \
         libtbb-dev \
