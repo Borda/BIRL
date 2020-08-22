@@ -73,7 +73,7 @@ RUN \
     cd $BIRL_APPs_PATH && \
 # add Fiji - needed for RVSS, bUnwarpJ
     # wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip --progress=bar:force:noscroll && \
-    wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip --progress=bar:force:noscroll && \
+    wget https://downloads.imagej.net/fiji/archive/20200708-1553/fiji-linux64.zip --progress=bar:force:noscroll && \
     unzip -q fiji-linux64.zip && \
     rm fiji-linux64.zip && \
     # https://imagej.nih.gov/ij/docs/guide/146-18.html
@@ -180,9 +180,9 @@ RUN \
 
     # get Eigen
     cd $THIRD_PARTY_DIR && \
-    wget http://bitbucket.org/eigen/eigen/get/${DROP_EIGEN_VERSION}.tar.gz --progress=bar:force:noscroll && \
+    wget https://gitlab.com/libeigen/eigen/-/archive/${DROP_EIGEN_VERSION}/eigen-${DROP_EIGEN_VERSION}.tar.gz --progress=bar:force:noscroll && \
     mkdir eigen && \
-    tar xf ${DROP_EIGEN_VERSION}.tar.gz -C eigen --strip-components=1 && \
+    tar xf eigen-${DROP_EIGEN_VERSION}.tar.gz -C eigen --strip-components=1 && \
 
     # download and install ITK
     cd $THIRD_PARTY_DIR && \
@@ -247,7 +247,7 @@ RUN \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-# try to run DROP2
+# try to run RNiftyReg
     R -e 'library(RNiftyReg)'
 
 

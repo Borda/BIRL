@@ -41,8 +41,7 @@ exclude docs
 recursive-include scripts *.r *.ijm *.bsh *.py
 
 # Include the Requirements
-include requirements.txt
-include requirements-py27.txt
+include *.txt
 
 # Exclude build configs
 exclude *.yml

@@ -30,6 +30,8 @@ import logging
 import platform
 import hashlib
 import multiprocessing as mproc
+import traceback
+import warnings
 from functools import partial
 
 import tqdm
@@ -115,12 +117,12 @@ def register_image_pair(idx, path_img_target, path_img_source, path_out):
     """
     start = time.time()
     # load and denoise reference image
-    img_target = io.imread(path_img_target)
+    img_target = io.imread(path_img_target)[..., :3]
     img_target = denoise_wavelet(img_target, wavelet_levels=7, multichannel=True)
     img_target_gray = rgb2gray(img_target)
 
     # load and denoise moving image
-    img_source = io.imread(path_img_source)
+    img_source = io.imread(path_img_source)[..., :3]
     img_source = denoise_bilateral(img_source, sigma_color=0.05,
                                    sigma_spatial=2, multichannel=True)
     img_source_gray = rgb2gray(img_source)
@@ -141,7 +143,10 @@ def register_image_pair(idx, path_img_target, path_img_source, path_out):
     # warping source image with estimated transformations
     img_warped = warp(img_target, model.inverse, output_shape=img_target.shape[:2])
     path_img_warped = os.path.join(path_out, NAME_IMAGE_WARPED % idx)
-    io.imsave(path_img_warped, img_warped)
+    try:
+        io.imsave(path_img_warped, img_warped)
+    except Exception:
+        traceback.print_exc()
     # summarise experiment
     execution_time = time.time() - start
     return path_img_warped, execution_time
@@ -245,5 +250,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     arg_params = arg_parse_params()
     logging.info('running...')
-    main(**arg_params)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        main(**arg_params)
     logging.info('Done :]')

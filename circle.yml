@@ -15,11 +15,17 @@ references:
     run:
       name: Install PyPI dependences
       command: |
+        py_ver=$(python -c"import sys; print(sys.version_info.major)")
+        if [ $py_ver -eq 2 ]; then
+            cp -r requirements-py27.txt requirements.txt ;
+        fi
         sudo pip install -U backports.functools_lru_cache  # required for matplotlib @py2
         pip install "setuptools<46" -U  # v46 crashes openslide-python install
         pip install -r requirements.txt --user
-        python --version ; pwd ; ls -l
-        pip --version ; pip list
+        python --version
+        pwd ; ls
+        pip --version
+        pip list
 
   formatting: &formatting
     run:
@@ -78,7 +84,7 @@ references:
     run:
       name: Experiment - bUnwarpJ
       command: |
-        wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip -O applications/fiji-linux64.zip --progress=bar:force:noscroll
+        wget https://downloads.imagej.net/fiji/archive/20200708-1553/fiji-linux64.zip -O applications/fiji-linux64.zip --progress=bar:force:noscroll
         unzip -q applications/fiji-linux64.zip -d applications/
         rm applications/fiji-linux64.zip
         rm -rf results && mkdir results
@@ -86,18 +92,20 @@ references:
         python bm_experiments/bm_bUnwarpJ.py -n anhir -t ./data-images/pairs-imgs-lnds_histol.csv -d ./data-images -o ./results -Fiji ./applications/Fiji.app/ImageJ-linux64 -cfg ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml --unique
         tree -L 3 ./results
         rm -rf ./applications/Fiji.app
+      no_output_timeout: 10m
 
   run_RVSS: &run_RVSS
     run:
       name: Experiment - RVSS
       command: |
-        wget https://downloads.imagej.net/fiji/latest/fiji-linux64.zip -O applications/fiji-linux64.zip --progress=bar:force:noscroll
+        wget https://downloads.imagej.net/fiji/archive/20200708-1553/fiji-linux64.zip -O applications/fiji-linux64.zip --progress=bar:force:noscroll
         unzip -q applications/fiji-linux64.zip -d applications/
         rm applications/fiji-linux64.zip
         rm -rf results && mkdir results
         python bm_experiments/bm_RVSS.py -t ./data-images/pairs-imgs-lnds_mix.csv -o ./results -Fiji ./applications/Fiji.app/ImageJ-linux64 -cfg ./configs/ImageJ_RVSS_histol.yaml --visual
         tree -L 3 ./results
         rm -rf ./applications/Fiji.app
+      no_output_timeout: 10m
 
 
 jobs:

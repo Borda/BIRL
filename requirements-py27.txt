@@ -7,8 +7,8 @@ matplotlib>=2.0.2, <3.0.0  # new version does not support py2
 tqdm>=4.7.4, <=4.30  # higher fails ascii for py2
 pyyaml
 scikit-image
-opencv-python-headless
-openslide-python
+opencv-python-headless<4.3
+openslide-python<=1.1.1
 nibabel
 SimpleITK
 psutil

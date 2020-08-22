@@ -22,8 +22,6 @@ jobs:
       - name: Build and Publish to Docker Hub
         # publish master
         uses: docker/build-push-action@v1.1.0
-        # TODO: push to master
-        # if: github.event_name == 'push'
         with:
           repository: borda/birl
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -31,4 +29,4 @@ jobs:
           dockerfile: bm_experiments/Dockerfile
           build_args: PYTHON_VERSION=${{ matrix.python_version }}
           tags: "SOTA-py${{ matrix.python_version }}"
-        # timeout-minutes: 50
+        timeout-minutes: 180
