@@ -35,6 +35,8 @@ import warnings
 from functools import partial
 
 import tqdm
+import matplotlib
+matplotlib.use('Agg')
 import numpy as np
 from skimage import data, io, __version__ as skimage__version
 from skimage.transform import resize, warp, AffineTransform

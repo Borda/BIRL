@@ -1,3 +1,3 @@
 import birl
 
-birl
+birl.utilities

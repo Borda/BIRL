@@ -34,7 +34,7 @@ def estimate_affine_transform(points_0, points_1):
     >>> pts0 = np.array([[4., 116.], [4., 4.], [26., 4.], [26., 116.]], dtype=int)
     >>> pts1 = np.array([[61., 56.], [61., -56.], [39., -56.], [39., 56.]])
     >>> mx, mx_inv, pts0_w, pts1_w = estimate_affine_transform(pts0, pts1)
-    >>> np.round(mx, 2)
+    >>> np.round(mx, 2) + 0.  # eliminate negative zeros
     array([[ -1.,   0.,  65.],
            [  0.,   1., -60.],
            [  0.,   0.,   1.]])

@@ -1,0 +1,111 @@
+name: CI experiments
+
+# see: https://help.github.com/en/actions/reference/events-that-trigger-workflows
+on:  # Trigger the workflow on push or pull request, but only for the master branch
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  pytest:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-18.04]
+        python-version: [2.7, 3.6, 3.8]
+
+    # Timeout: https://stackoverflow.com/a/59076067/4521646
+    timeout-minutes: 35
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Update Pip
+      run: |
+        pip install --quiet "pip>=20.1" --upgrade --user  # needed for get pip cacher folder
+
+    - name: Set py2.7 dependencies
+      if: matrix.python-version == 2.7
+      run: |
+        cp -r requirements-py27.txt requirements.txt
+
+    # Note: This uses an internal pip API and may not always work
+    # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-py${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-py${{ matrix.python-version }}-
+
+    - name: Install dependencies
+      run: |
+        pip install $(grep "numpy" requirements.txt)
+        # required for matplotlib @py2
+        pip install -U backports.functools_lru_cache
+        # v46 crashes openslide-python install
+        pip install "setuptools<46" -U
+        pip install --requirement requirements.txt --quiet
+        python --version
+        pip --version
+        pip list
+      shell: bash
+
+    - name: update OS
+      run: |
+        sudo apt-get install -y openslide-tools tree
+
+    - name: Dataset processing
+      run: |
+        mkdir output
+        python bm_dataset/rescale_tissue_images.py -i "./data-images/rat-kidney_/scale-5pc/*.jpg" --scales 5 -ext .png --nb_workers 2
+        python bm_dataset/rescale_tissue_landmarks.py -a ./data-images -d ./output --nb_selected 0.5 --nb_total 200
+        python bm_dataset/generate_regist_pairs.py -i "./data-images/images/artificial_*.jpg" -l "./data-images/landmarks/artificial_*.csv" -csv ./data-images/cover_artificial.csv --mode each2all
+
+    - name: General experiments
+      run: |
+        mkdir applications && mkdir results && touch configs/sample_config.yaml
+        # python bm_experiments/bm_comp_perform.py  -o ./results -n 1 # reach time-out while running in 36 threads
+        python birl/bm_template.py -t ./data-images/pairs-imgs-lnds_mix.csv -o ./results --visual --unique -cfg configs/sample_config.yaml
+        rm ./data-images/*_/*/*_HE.csv  # remove target landmarks from histol. tissue
+        python birl/bm_template.py -n anhir -t ./data-images/pairs-imgs-lnds_histol.csv -d ./data-images -o ./results --preprocessing matching-rgb gray -cfg configs/sample_config.yaml
+        python bm_experiments/evaluate_experiment.py -d ./data-images -e ./results/BmTemplate_anhir --visual
+        tree ./results/BmTemplate
+      shell: bash
+
+    - name: prepare Fiji
+      run: |
+        # todo: cache this app and dowload only if needed
+        wget https://downloads.imagej.net/fiji/archive/20200708-1553/fiji-linux64.zip -O applications/fiji-linux64.zip --progress=bar:force:noscroll
+        unzip -q applications/fiji-linux64.zip -d applications/
+        rm applications/fiji-linux64.zip
+      shell: bash
+
+    - name: Experiment - bUnwarpJ
+      env:
+        DISPLAY: ""
+      run: |
+        rm -rf results && mkdir results
+        python bm_experiments/bm_bUnwarpJ.py -n mix -t ./data-images/pairs-imgs-lnds_mix.csv -o ./results -Fiji ./applications/Fiji.app/ImageJ-linux64 -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml --preprocessing matching-rgb --visual
+        python bm_experiments/bm_bUnwarpJ.py -n anhir -t ./data-images/pairs-imgs-lnds_histol.csv -d ./data-images -o ./results -Fiji ./applications/Fiji.app/ImageJ-linux64 -cfg ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml --unique
+        tree -L 3 ./results
+        rm -rf ./applications/Fiji.app
+      shell: bash
+
+    - name: Experiment - RVSS
+      env:
+        DISPLAY: ""
+      run: |
+        rm -rf results && mkdir results
+        python bm_experiments/bm_RVSS.py -t ./data-images/pairs-imgs-lnds_mix.csv -o ./results -Fiji ./applications/Fiji.app/ImageJ-linux64 -cfg ./configs/ImageJ_RVSS_histol.yaml --visual
+        tree -L 3 ./results
+        rm -rf ./applications/Fiji.app
+      shell: bash

@@ -1,15 +1,15 @@
-numpy>=1.8.2
-scipy>=0.10.0
-pandas>=0.17.1
-six>=1.7.3
-pillow>=2.1.0, !=7.1 # 7.x fails to load PNG via skimage
+numpy>=1.13.3
+scipy>=1.0
+pandas>=0.21
+six>=1.10
+pillow>=4.0, !=7.1 # 7.x fails to load PNG via skimage
 matplotlib>=2.0.2
 tqdm>=4.7.4
-pyyaml
-scikit-image
-opencv-python-headless
-openslide-python
-nibabel
+pyyaml>=3.12
+scikit-image>=0.13
+opencv-python-headless>=3.4.0.14
+openslide-python>=1.0
+nibabel>=2.1
 SimpleITK
 psutil
 pathos
