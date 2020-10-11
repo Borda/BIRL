@@ -19,7 +19,7 @@ references:
         if [ $py_ver -eq 2 ]; then
             cp -r requirements-py27.txt requirements.txt ;
         fi
-        sudo pip install -U backports.functools_lru_cache  # required for matplotlib @py2
+        pip install -U backports.functools_lru_cache  # required for matplotlib @py2
         pip install "setuptools<46" -U  # v46 crashes openslide-python install
         pip install -r requirements.txt --user
         python --version
@@ -39,7 +39,7 @@ references:
       name: Testing and coverage
       command: |
         unset DISPLAY
-        sudo pip install -r ./tests/requirements.txt
+        pip install -r ./tests/requirements.txt
         mkdir test-reports && mkdir results
         coverage run --source birl -m py.test birl tests bm_dataset bm_experiments bm_ANHIR -v --doctest-modules --junitxml=test-reports/pytest_junit.xml
         coverage report
@@ -50,8 +50,10 @@ references:
    run:
      name: Make Documentation
      command: |
-       sudo apt-get install pandoc
-       sudo pip install -r docs/requirements.txt
+       # sudo apt-get install pandoc
+       pyenv global 3.7.3
+       python --version
+       pip install -r docs/requirements.txt
        # sphinx-apidoc -o ./docs/source ./imsegm **/test_* --force --follow-links
        cd docs
        make html --debug --jobs 2 SPHINXOPTS="-W"
@@ -168,14 +170,9 @@ jobs:
 
   Build-Docs:
     docker:
-      - image: circleci/python:3.6
+      - image: readthedocs/build:latest
     steps:
       - checkout
-      - run:
-          name: TexLive
-          command: |
-            sudo apt-get update -qq
-            sudo apt-get install -y imagemagick ghostscript latexmk texlive texlive-latex-recommended texlive-fonts-recommended texlive-formats-extra
       # INSTALLATION
       - *install_pips
       # DOCUMENTATION

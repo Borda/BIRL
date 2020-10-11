@@ -4,14 +4,20 @@
 [![CircleCI](https://circleci.com/gh/Borda/BIRL.svg?style=svg&circle-token=e58b9845aab1b02d749df60060afbac54138ea28)](https://circleci.com/gh/Borda/BIRL)
 [![Build status](https://ci.appveyor.com/api/projects/status/rmfvuxix379eu6fh/branch/master?svg=true)](https://ci.appveyor.com/project/Borda/birl/branch/master)
 [![codecov](https://codecov.io/gh/Borda/BIRL/branch/master/graph/badge.svg?token=JZwA1rlUGA)](https://codecov.io/gh/Borda/BIRL)
+[![Publish Docker Image](https://github.com/Borda/BIRL/workflows/Publish%20Docker%20Image/badge.svg?event=push)](https://github.com/Borda/BIRL/actions?query=workflow%3A%22Publish+Docker+Image%22)
+
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b12d7a4a99d549a9baba6c9a83ad6b59)](https://www.codacy.com/project/Borda/BIRL/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Borda/BIRL&amp;utm_campaign=Badge_Grade_Dashboard)
 [![CodeFactor](https://www.codefactor.io/repository/github/borda/birl/badge)](https://www.codefactor.io/repository/github/borda/birl)
-[![Documentation Status](https://readthedocs.org/projects/birl/badge/?version=latest)](https://birl.readthedocs.io/en/latest/?badge=latest)
-[![Gitter](https://badges.gitter.im/BmImRegLnd/community.svg)](https://gitter.im/BmImRegLnd/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
-<!--
-[![Run Status](https://api.shippable.com/projects/585bfa66e18a291000c15f24/badge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/Borda/BIRL.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Borda/BIRL/context:python)
 [![Code Health](https://landscape.io/github/Borda/BIRL/master/landscape.svg?style=flat)](https://landscape.io/github/Borda/BIRL/master)
 [![codebeat badge](https://codebeat.co/badges/6dd13229-ca9e-4dae-9394-caf5f363082d)](https://codebeat.co/projects/github-com-borda-birl-master)
+
+[![Documentation Status](https://readthedocs.org/projects/birl/badge/?version=latest)](https://birl.readthedocs.io/en/latest/?badge=latest)
+[![Gitter](https://badges.gitter.im/BmImRegLnd/community.svg)](https://gitter.im/BmImRegLnd/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Docker Pulls](https://img.shields.io/docker/pulls/borda/birl)](https://hub.docker.com/r/borda/birl)
+
+<!--
+[![Run Status](https://api.shippable.com/projects/585bfa66e18a291000c15f24/badge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
 [![Coverage Badge](https://api.shippable.com/projects/585bfa66e18a291000c15f24/coverageBadge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
 [![Image.sc 
 forum](https://img.shields.io/badge/dynamic/json.svg?label=forum&url=https%3A%2F%2Fforum.image.sc%2Ftags%2Fanhir.json&query=%24.topic_list.tags.0.topic_count&colorB=brightgreen&suffix=%20topics&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAABPklEQVR42m3SyyqFURTA8Y2BER0TDyExZ+aSPIKUlPIITFzKeQWXwhBlQrmFgUzMMFLKZeguBu5y+//17dP3nc5vuPdee6299gohUYYaDGOyyACq4JmQVoFujOMR77hNfOAGM+hBOQqB9TjHD36xhAa04RCuuXeKOvwHVWIKL9jCK2bRiV284QgL8MwEjAneeo9VNOEaBhzALGtoRy02cIcWhE34jj5YxgW+E5Z4iTPkMYpPLCNY3hdOYEfNbKYdmNngZ1jyEzw7h7AIb3fRTQ95OAZ6yQpGYHMMtOTgouktYwxuXsHgWLLl+4x++Kx1FJrjLTagA77bTPvYgw1rRqY56e+w7GNYsqX6JfPwi7aR+Y5SA+BXtKIRfkfJAYgj14tpOF6+I46c4/cAM3UhM3JxyKsxiOIhH0IO6SH/A1Kb1WBeUjbkAAAAAElFTkSuQmCC)](https://forum.image.sc/tags/anhir)

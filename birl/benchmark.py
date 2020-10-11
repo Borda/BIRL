@@ -191,13 +191,6 @@ class ImRegBenchmark(Experiment):
         self._path_csv_regist = os.path.join(self.params['path_exp'],
                                              self.NAME_CSV_REGISTRATION_PAIRS)
 
-    def _check_required_params(self):
-        """ check some extra required parameters for this benchmark """
-        logging.debug('.. check if the BM have all required parameters')
-        super(ImRegBenchmark, self)._check_required_params()
-        for n in self.REQUIRED_PARAMS:
-            assert n in self.params, 'missing "%s" among %r' % (n, self.params.keys())
-
     def _absolute_path(self, path, destination='data', base_path=None):
         """ update te path to the dataset or output
 

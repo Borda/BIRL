@@ -36,8 +36,7 @@ from functools import partial
 
 import tqdm
 import numpy as np
-import skimage
-from skimage import data, io
+from skimage import data, io, __version__ as skimage__version
 from skimage.transform import resize, warp, AffineTransform
 from skimage.color import rgb2gray
 from skimage.measure import ransac
@@ -218,9 +217,9 @@ def main(path_out='', nb_runs=5):
     :param int nb_runs: number of trails to have an robust average value
     """
     logging.info('Running the computer benchmark.')
-    skimage_version = skimage.__version__.split('.')
-    skimage_version = tuple(map(int, skimage_version))
-    if skimage_version < SKIMAGE_VERSION:
+    skimage_ver = skimage__version.split('.')
+    skimage_ver = tuple(map(int, skimage_ver))
+    if skimage_ver < SKIMAGE_VERSION:
         logging.warning('You are using older version of scikit-image then we expect.'
                         ' Please upadte by `pip install -U --user scikit-image>=%s`',
                         '.'.join(map(str, SKIMAGE_VERSION)))
@@ -233,7 +232,7 @@ def main(path_out='', nb_runs=5):
         'file': hasher.hexdigest(),
         'number runs': nb_runs,
         'python-version': platform.python_version(),
-        'skimage-version': skimage.__version__,
+        'skimage-version': skimage__version,
     }
     report.update(measure_registration_single(path_out, nb_iter=nb_runs))
     nb_runs_ = max(1, int(nb_runs / 2.))

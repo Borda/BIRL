@@ -10,7 +10,6 @@ import glob
 import logging
 
 import numpy as np
-import cv2 as cv
 import matplotlib.pyplot as plt
 from PIL import Image
 from scipy import spatial, optimize
@@ -18,9 +17,12 @@ from matplotlib.path import Path
 from skimage.filters import threshold_otsu
 from skimage.exposure import rescale_intensity
 from skimage.color import (
-    rgb2hsv, hsv2rgb, rgb2lab, lab2rgb, lch2lab, lab2lch, rgb2hed, hed2rgb, rgb2luv, luv2rgb)
-from cv2 import (IMWRITE_JPEG_QUALITY, IMWRITE_PNG_COMPRESSION, GaussianBlur,
-                 cvtColor, COLOR_RGBA2RGB, COLOR_RGB2BGR, imwrite)
+    rgb2hsv, hsv2rgb, rgb2lab, lab2rgb, lch2lab, lab2lch, rgb2hed, hed2rgb, rgb2luv, luv2rgb
+)
+from cv2 import (
+    IMWRITE_JPEG_QUALITY, IMWRITE_PNG_COMPRESSION, COLOR_RGBA2RGB, COLOR_RGB2BGR, INTER_LINEAR,
+    GaussianBlur, cvtColor, imwrite, resize
+)
 
 #: threshold of tissue/background presence on potential cutting line
 TISSUE_CONTENT = 0.01
@@ -717,7 +719,7 @@ def scale_large_images_landmarks(images, landmarks):
         logging.debug('One or more images are larger then recommended size for visualisation,'
                       ' an resize with factor %f will be applied', scale)
     # using float16 as image raise TypeError: src data type = 23 is not supported
-    images = [cv.resize(img, None, fx=scale, fy=scale, interpolation=cv.INTER_LINEAR)
+    images = [resize(img, None, fx=scale, fy=scale, interpolation=INTER_LINEAR)
               if img is not None else None for img in images]
     landmarks = [lnds * scale if lnds is not None else None for lnds in landmarks]
     return images, landmarks
