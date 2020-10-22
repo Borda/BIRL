@@ -9,6 +9,7 @@ Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 # Always prefer setuptools over distutils
+import sys
 from os import path
 from setuptools import setup
 # io.open is needed for projects that support Python 2.7
@@ -21,10 +22,20 @@ import birl
 
 PATH_HERE = path.abspath(path.dirname(__file__))
 
-with open(path.join(PATH_HERE, 'requirements.txt'), encoding='utf-8') as fp:
-    reqs = [rq.rstrip() for rq in fp.readlines()]
+
+def load_requirements(fname='requirements.txt'):
+    with open(path.join(PATH_HERE, fname), encoding='utf-8') as fp:
+        reqs = [rq.rstrip() for rq in fp.readlines()]
     reqs = [ln[:ln.index('#')] if '#' in ln else ln for ln in reqs]
-    requirements = [ln for ln in reqs if ln]
+    reqs = [ln for ln in reqs if ln]
+    return reqs
+
+
+if sys.version_info.major == 2:
+    requirements = load_requirements('requirements-py27.txt')
+else:
+    requirements = load_requirements('requirements.txt')
+
 
 # Get the long description from the README file
 # with open(path.join(PATH_HERE, 'README.md'), encoding='utf-8') as fp:

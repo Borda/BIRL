@@ -2,6 +2,8 @@
 FROM python:3.7-slim-stretch
 #FROM borda/docker_python-opencv-ffmpeg:py3
 
+LABEL maintainer="jiri.borovec@fel.cvut.cz"
+
 # Install packages
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
         git>=2.0 \

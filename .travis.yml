@@ -20,7 +20,6 @@ matrix:
       language: python
       python: 2.7
       dist: xenial  # Ubuntu 16.04
-      env: TOXENV=py27
       #- os: linux
       #  language: python
       #  python: 3.5
@@ -30,21 +29,17 @@ matrix:
       language: python
       python: 3.6
       dist: bionic  # Ubuntu 18.04
-      env: TOXENV=py36
     - os: linux
       language: python
       python: 3.7
       dist: bionic  # Ubuntu 18.04
-      env: TOXENV=py37
     - os: linux
       language: python
       python: 3.8
       dist: bionic  # Ubuntu 18.04
-      env: TOXENV=py38
     - os: osx
       osx_image: xcode10.3
       language: generic
-      env: TOXENV=py37
       addons:
         homebrew:
           # update: true
@@ -69,7 +64,6 @@ matrix:
         - python -m pip install --upgrade pip
         - choco install -y opencv
       env:
-        - TOXENV=py37
         - PATH=/c/Python37:/c/Python37/Scripts:%OPENCV_DIR%/bin:$PATH
   # https://towardsdatascience.com/extensive-python-testing-on-travis-ci-4c24db9bf961
   allow_failures:
@@ -97,7 +91,10 @@ install:
 
 script:
   # integration
-  - tox -v
+  - check-manifest
+  - python setup.py check --metadata --strict
+  - python setup.py install --dry-run
+  - coverage run --source birl -m pytest birl tests bm_dataset bm_experiments bm_ANHIR -v
   # sample run
   - mkdir results && touch configs/sample_config.yaml
   - python bm_experiments/bm_comp_perform.py -o ./results -n 1

@@ -1,6 +1,6 @@
 # BIRL: Benchmark on Image Registration methods with Landmark validation
 
-[![Build Status](https://travis-ci.org/Borda/BIRL.svg?branch=master)](https://travis-ci.org/Borda/BIRL)
+[![Build Status](https://travis-ci.com/Borda/BIRL.svg?branch=master)](https://travis-ci.com/Borda/BIRL)
 [![CircleCI](https://circleci.com/gh/Borda/BIRL.svg?style=svg&circle-token=e58b9845aab1b02d749df60060afbac54138ea28)](https://circleci.com/gh/Borda/BIRL)
 [![Build status](https://ci.appveyor.com/api/projects/status/rmfvuxix379eu6fh/branch/master?svg=true)](https://ci.appveyor.com/project/Borda/birl/branch/master)
 [![codecov](https://codecov.io/gh/Borda/BIRL/branch/master/graph/badge.svg?token=JZwA1rlUGA)](https://codecov.io/gh/Borda/BIRL)

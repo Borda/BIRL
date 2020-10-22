@@ -14,22 +14,18 @@ environment:
     #- PYTHON: "C:\\Python27"
     #  PYTHON_VERSION: "2.7.x"
     #  PYTHON_ARCH: "32"
-    #  TOXENV: "py27"
 
     #- PYTHON: "C:\\Python27-x64"
     #  PYTHON_VERSION: "2.7.x"
     #  PYTHON_ARCH: "64"
-    #  TOXENV: "py27"
 
     #- PYTHON: "C:\\Python36-x64"
     #  PYTHON_VERSION: "3.6.x"
     #  PYTHON_ARCH: "64"
-    #  TOXENV: "py36"
 
     - PYTHON: "C:\\Python37-x64"
       PYTHON_VERSION: "3.7.x"
       PYTHON_ARCH: "64"
-      TOXENV: "py37"
 
 build: off
 
@@ -55,7 +51,6 @@ install:
   - pip install "setuptools<46" -U  # v46 crashes openslide-python install
   - pip install -r requirements.txt
   - pip install -r ./tests/requirements.txt
-  - pip install tox
 
 # scripts to run before tests (working directory and environment changes are persisted from the previous steps such as "before_build")
 before_test:
@@ -66,7 +61,7 @@ before_test:
 
 # to run your custom scripts instead of automatic tests
 test_script:
-  - tox -v --sitepackages --parallel auto
+  - coverage run --source birl -m pytest birl tests bm_dataset bm_experiments bm_ANHIR -v
   - mkdir results && touch configs/sample_config.yaml
   - python bm_experiments/bm_comp_perform.py -o ./results -n 1
   - python birl/bm_template.py -n anhir -t ./data-images/pairs-imgs-lnds_mix.csv -o ./results --preprocessing matching-rgb gray --unique --visual -cfg configs/sample_config.yaml

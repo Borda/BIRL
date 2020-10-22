@@ -32,21 +32,21 @@ def draw_image_points(image, points, color='green', marker_size=5, shape='o'):
     :return: np.ndarray
 
     >>> image = np.zeros((10, 10, 3))
-    >>> points = np.array([[7, 9], [2, 2], [5, 5]])
-    >>> img = draw_image_points(image, points, marker_size=1)
+    >>> points = np.array([[9, 1], [2, 2], [5, 5]])
+    >>> img = draw_image_points(image, points, marker_size=1, shape='s')
     >>> img.shape == (10, 10, 3)  # Windows x64 returns (10L, 10L, 3L)
     True
     >>> np.round(img[:, :, 1], 2)
-    array([[ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
-           [ 0. ,  0.5,  0.5,  0.5,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
-           [ 0. ,  0.5,  0. ,  0.5,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
+    array([[ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0.5,  0.5],
+           [ 0. ,  0.5,  0.5,  0.5,  0. ,  0. ,  0. ,  0. ,  0.5,  0. ],
+           [ 0. ,  0.5,  0. ,  0.5,  0. ,  0. ,  0. ,  0. ,  0.5,  0.5],
            [ 0. ,  0.5,  0.5,  0.5,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
            [ 0. ,  0. ,  0. ,  0. ,  0.5,  0.5,  0.5,  0. ,  0. ,  0. ],
            [ 0. ,  0. ,  0. ,  0. ,  0.5,  0. ,  0.5,  0. ,  0. ,  0. ],
            [ 0. ,  0. ,  0. ,  0. ,  0.5,  0.5,  0.5,  0. ,  0. ,  0. ],
            [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
            [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ],
-           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0.5,  0. ]])
+           [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ]])
     >>> img = draw_image_points(None, points, marker_size=1)
     """
     assert list(points), 'missing points'
@@ -64,6 +64,8 @@ def draw_image_points(image, points, color='green', marker_size=5, shape='o'):
             draw.ellipse(pos_marker, outline=color)
         elif shape == '.':
             draw.ellipse(pos_marker, fill=color)
+        elif shape == 's':
+            draw.rectangle(pos_marker, outline=color)
         else:
             draw.ellipse(pos_marker, fill=color, outline=color)
         draw.text(pos_text, str(i + 1), fill=(0, 0, 0))

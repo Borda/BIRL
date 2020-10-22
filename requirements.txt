@@ -2,7 +2,7 @@ numpy>=1.13.3
 scipy>=1.0
 pandas>=0.21
 six>=1.10
-pillow>=4.0, !=7.1 # 7.x fails to load PNG via skimage
+pillow>=4.0, !=7  # 7.x fails to load PNG via skimage
 matplotlib>=2.0.2
 tqdm>=4.7.4
 pyyaml>=3.12

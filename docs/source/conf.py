@@ -21,8 +21,9 @@ import re
 
 import m2r
 
-PATH_ROOT = os.path.join('..', '..')
+PATH_UP = os.path.join('..', '..')
 PATH_HERE = os.path.abspath(os.path.dirname(__file__))
+PATH_ROOT = os.path.abspath(os.path.join(PATH_HERE, PATH_UP))
 sys.path.insert(0, os.path.abspath(PATH_ROOT))
 
 import birl  # noqa: E402
@@ -65,7 +66,7 @@ readme = re.sub(r'(\[!\[.*\))', '', readme)
 readme = re.sub(r'(!\[.*.gif\))', '', readme)
 for dir_name in (os.path.basename(p) for p in glob.glob(os.path.join(PATH_ROOT, '*'))
                  if os.path.isdir(p)):
-    readme = readme.replace('](%s/' % dir_name, '](%s/%s/' % (PATH_ROOT, dir_name))
+    readme = readme.replace('](%s/' % dir_name, '](%s/%s/' % (PATH_UP, dir_name))
 with open('readme.md', 'w') as fp:
     fp.write(readme)
 

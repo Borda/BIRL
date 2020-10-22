@@ -41,6 +41,8 @@ jobs:
       if: matrix.python-version == 2.7
       run: |
         cp -r requirements-py27.txt requirements.txt
+        # required for matplotlib @py2
+        pip install -U backports.functools_lru_cache
 
     - name: Set min. dependencies
       if: matrix.requires == 'minimal'
@@ -66,8 +68,6 @@ jobs:
     - name: Install dependencies
       run: |
         pip install $(grep "numpy" requirements.txt)
-        # required for matplotlib @py2
-        pip install -U backports.functools_lru_cache
         # v46 crashes openslide-python install
         pip install "setuptools<46" -U
         pip install --requirement requirements.txt --quiet --upgrade
@@ -77,15 +77,18 @@ jobs:
         pip list
       shell: bash
 
-    - name: Tests
+    - name: Pkg install
+      run: |
+        check-manifest
+        python setup.py check --metadata --strict
+        python setup.py install --dry-run --user
+
+    - name: Tests and coverage
       env:
         DISPLAY: ""
       run: |
-        check-manifest --ignore tox.ini
-        python setup.py check --metadata --strict
-        python setup.py install --dry-run --user
-        coverage run --source birl -m py.test birl tests bm_dataset bm_experiments bm_ANHIR -v --doctest-modules --durations=25 --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.requires }}.xml
-        flake8 .
+        coverage run --source birl -m pytest birl tests bm_dataset bm_experiments bm_ANHIR -v --durations=25 --junitxml=junit/test-results-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.requires }}.xml
+        # flake8 .
 
     - name: Upload pytest test results
       uses: actions/upload-artifact@master
@@ -107,8 +110,6 @@ jobs:
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: coverage.xml
-        flags: cpu,pytest
-        name: CPU-coverage
         fail_ci_if_error: false
 
     - name: Run sample experiment

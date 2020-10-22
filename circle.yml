@@ -41,7 +41,7 @@ references:
         unset DISPLAY
         pip install -r ./tests/requirements.txt
         mkdir test-reports && mkdir results
-        coverage run --source birl -m py.test birl tests bm_dataset bm_experiments bm_ANHIR -v --doctest-modules --junitxml=test-reports/pytest_junit.xml
+        coverage run --source birl -m pytest birl tests bm_dataset bm_experiments bm_ANHIR -v --junitxml=test-reports/pytest_junit.xml
         coverage report
         codecov
         rm -rf results

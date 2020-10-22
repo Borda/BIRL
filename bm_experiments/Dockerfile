@@ -1,8 +1,9 @@
 #FROM ubuntu:bionic
 FROM ubuntu:20.04
 
-
 ARG PYTHON_VERSION=3.7
+
+LABEL maintainer="jiri.borovec@fel.cvut.cz"
 
 SHELL ["/bin/bash", "-c"]
 
