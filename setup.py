@@ -51,9 +51,9 @@ setup(
     author=birl.__author__,
     author_email=birl.__author_email__,
     license=birl.__license__,
-    description='Benchmark on Image Registration methods with Landmark validation',
+    description=birl.__doc__,
 
-    long_description=birl.__doc__,
+    long_description=birl.__long_doc__,
     long_description_content_type='text/markdown',
 
     packages=['birl', 'birl.utilities'],

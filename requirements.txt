@@ -7,7 +7,7 @@ matplotlib>=2.0.2
 tqdm>=4.7.4
 pyyaml>=3.12
 scikit-image>=0.13
-opencv-python-headless>=3.4.0.14
+opencv-python-headless>=3.4.2.16
 openslide-python>=1.0
 nibabel>=2.1
 SimpleITK

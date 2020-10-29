@@ -1,10 +1,11 @@
 name: Publish Docker Image
 # https://www.docker.com/blog/first-docker-github-action-is-here
 # https://github.com/docker/build-push-action
-on:
+on:  # Trigger the workflow on push or pull request, but only for the master branch
   push:
-    branches:
-      - master
+    branches: [master]
+  pull_request:
+    branches: [master]
 
 jobs:
   build-push:
@@ -15,18 +16,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      # https://github.com/docker/setup-buildx-action
+      # Set up Docker Buildx - to use cache-from and cache-to argument of buildx command
+      - uses: docker/setup-buildx-action@v1
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
         with:
-          python-version: 3.7
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Publish to Docker Hub
         # publish master
-        uses: docker/build-push-action@v1.1.0
+        uses: docker/build-push-action@v2
+        # https://github.com/docker/build-push-action#cache-to-registry
         with:
-          repository: borda/birl
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          dockerfile: bm_experiments/Dockerfile
-          build_args: PYTHON_VERSION=${{ matrix.python_version }}
-          tags: "SOTA-py${{ matrix.python_version }}"
-        timeout-minutes: 180
+          build-args: |
+            PYTHON_VERSION=${{ matrix.python_version }}
+          cache-from: type=registry,ref=borda/birl:SOTA-py${{ matrix.python_version }}
+          cache-to: type=inline
+          file: bm_experiments/Dockerfile
+          push: ${{ github.ref == 'refs/heads/master' }}
+          tags: borda/birl:SOTA-py${{ matrix.python_version }}
+        timeout-minutes: 240
