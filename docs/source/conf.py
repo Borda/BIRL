@@ -297,7 +297,12 @@ for path_ipynb in glob.glob(os.path.join(PATH_ROOT, 'notebooks', '*.ipynb')):
 
 # Ignoring Third-party packages
 # https://stackoverflow.com/questions/15889621/sphinx-how-to-exclude-imports-in-automodule
-
+PACKAGE_MAPPING = {
+    'scikit-image': 'skimage',
+    'opencv-python': 'cv2',
+    'opencv-python-headless': 'cv2',
+    'pyyaml': 'yaml',
+}
 MOCK_MODULES = []
 with open(os.path.join(PATH_ROOT, 'requirements.txt'), 'r') as fp:
     for ln in fp.readlines():
@@ -306,8 +311,7 @@ with open(os.path.join(PATH_ROOT, 'requirements.txt'), 'r') as fp:
         if pkg.rstrip():
             MOCK_MODULES.append(pkg.rstrip())
 
-# TODO: better parse from package since the import name and package name may differ
-autodoc_mock_imports = MOCK_MODULES + ['cv2', 'skimage', 'yaml']
+autodoc_mock_imports = [PACKAGE_MAPPING.get(pkg, pkg) for pkg in MOCK_MODULES]
 # for mod_name in MOCK_MODULES:
 #     sys.modules[mod_name] = mock.Mock()
 
