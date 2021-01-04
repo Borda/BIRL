@@ -47,7 +47,8 @@ RUN apt-get update && \
 
 RUN \
     # BIRL requirement
-    apt-get update && apt-get install -y --no-install-recommends \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
         openslide-tools \
     && \
 
@@ -83,7 +84,8 @@ RUN \
 ENV ANTs_VERSION="2.3.4"
 
 RUN \
-    apt-get update && apt-get install -y --no-install-recommends \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
         zlib1g-dev \
     && \
     cd $BIRL_APPs_PATH && \
@@ -125,7 +127,8 @@ RUN \
 ENV ANTSPY_VERSION="0.2.5"
 
 RUN \
-    apt-get update && apt-get install -y --no-install-recommends \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
         libopenblas-dev \
         liblapack-dev \
         gfortran \
@@ -161,7 +164,8 @@ ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$BIRL_APPs_PATH/elastix/lib/"
 
 RUN \
 # add required libs
-    apt-get update && apt-get install -y --no-install-recommends \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
         libtbb-dev \
         libboost-all-dev \
     && \
@@ -225,7 +229,8 @@ RUN \
 
 RUN \
 # add required libs
-    apt-get update && apt-get install -y --no-install-recommends \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
         r-base-core \
         r-base-dev \
         #libfftw3-dev \
@@ -233,6 +238,7 @@ RUN \
         libcurl4-gnutls-dev \
         libxml2-dev \
         libssl-dev \
+        libgit2-dev \
     && \
 # install RNiftyReg
     R -e 'install.packages(c("png", "jpeg", "OpenImageR", "devtools"))' && \
@@ -245,6 +251,7 @@ RUN \
         libcurl4-gnutls-dev \
         libxml2-dev \
         libssl-dev \
+        libgit2-dev \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
@@ -254,7 +261,8 @@ RUN \
 
 RUN \
 # show installed applications
-    apt-get update && apt-get install -y --no-install-recommends \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
         tree \
     && \
     ls -l $BIRL_APPs_PATH && \

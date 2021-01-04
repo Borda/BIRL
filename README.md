@@ -9,7 +9,6 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b12d7a4a99d549a9baba6c9a83ad6b59)](https://www.codacy.com/project/Borda/BIRL/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Borda/BIRL&amp;utm_campaign=Badge_Grade_Dashboard)
 [![CodeFactor](https://www.codefactor.io/repository/github/borda/birl/badge)](https://www.codefactor.io/repository/github/borda/birl)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/Borda/BIRL.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Borda/BIRL/context:python)
-[![Code Health](https://landscape.io/github/Borda/BIRL/master/landscape.svg?style=flat)](https://landscape.io/github/Borda/BIRL/master)
 [![codebeat badge](https://codebeat.co/badges/6dd13229-ca9e-4dae-9394-caf5f363082d)](https://codebeat.co/projects/github-com-borda-birl-master)
 
 [![Documentation Status](https://readthedocs.org/projects/birl/badge/?version=latest)](https://birl.readthedocs.io/en/latest/?badge=latest)
@@ -17,6 +16,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/borda/birl)](https://hub.docker.com/r/borda/birl)
 
 <!--
+[![Code Health](https://landscape.io/github/Borda/BIRL/master/landscape.svg?style=flat)](https://landscape.io/github/Borda/BIRL/master)
 [![Run Status](https://api.shippable.com/projects/585bfa66e18a291000c15f24/badge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
 [![Coverage Badge](https://api.shippable.com/projects/585bfa66e18a291000c15f24/coverageBadge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
 [![Image.sc 
