@@ -14,11 +14,11 @@ Sample run (usage)::
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
+import logging
 import os
+import shutil
 import sys
 import time
-import logging
-import shutil
 from functools import partial
 
 import numpy as np

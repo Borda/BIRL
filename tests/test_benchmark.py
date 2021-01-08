@@ -5,12 +5,13 @@ Check whether it generates correct outputs and resulting values
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import sys
-import logging
-import unittest
-import shutil
 import argparse
+import logging
+import os
+import shutil
+import sys
+import unittest
+
 try:  # python 3
     from unittest.mock import patch
 except ImportError:  # python 2

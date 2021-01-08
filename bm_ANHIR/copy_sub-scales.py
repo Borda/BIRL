@@ -5,13 +5,13 @@ Copy files as all sub-scales
 
 """
 
-import os
-import sys
-import shutil
 import logging
+import os
+import shutil
+import sys
 
-import tqdm
 import pandas as pd
+import tqdm
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.benchmark import ImRegBenchmark

@@ -57,15 +57,15 @@ Glocker, Ben, et al. "Deformable medical image registration: setting the state o
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import sys
 import glob
-import shutil
 import logging
+import os
+import shutil
+import sys
 import time
 
-import numpy as np
 import SimpleITK as sitk
+import numpy as np
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (

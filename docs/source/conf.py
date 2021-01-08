@@ -12,12 +12,12 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-import os
-import sys
 import glob
-import shutil
 import inspect
+import os
 import re
+import shutil
+import sys
 
 import m2r
 

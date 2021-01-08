@@ -40,10 +40,10 @@ Run the RNiftyReg benchmark::
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import sys
 import logging
+import os
 import shutil
+import sys
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import load_landmarks, save_landmarks

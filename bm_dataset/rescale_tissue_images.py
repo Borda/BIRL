@@ -14,13 +14,13 @@ Sample usage::
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
+import argparse
+import gc
+import glob
+import logging
 import os
 import sys
-import glob
 import time
-import gc
-import logging
-import argparse
 from functools import partial
 
 import cv2 as cv

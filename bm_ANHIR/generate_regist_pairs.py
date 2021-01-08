@@ -5,14 +5,14 @@ The paths and all other constants are set to run on CMP grid.
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import sys
 import glob
 import logging
+import os
+import sys
 from functools import partial
 
-import tqdm
 import pandas as pd
+import tqdm
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import image_sizes, update_path

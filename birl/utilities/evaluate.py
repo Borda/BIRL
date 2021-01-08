@@ -4,8 +4,8 @@ Evaluate experiments
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-from itertools import chain
 from collections import Counter
+from itertools import chain
 
 import numpy as np
 import pandas as pd

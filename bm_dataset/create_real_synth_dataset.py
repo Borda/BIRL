@@ -13,14 +13,15 @@ Sample run::
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import sys
 import argparse
 import logging
 import multiprocessing as mproc
+import os
+import sys
 from functools import partial
 
 import matplotlib
+
 # in case you are running on machine without display, e.g. server
 if os.environ.get('DISPLAY', '') == '':
     print('No display found. Using non-interactive Agg backend')

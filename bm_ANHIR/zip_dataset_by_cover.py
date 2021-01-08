@@ -12,11 +12,11 @@ zip only images mentioned in cover file and landmarks from source::
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import sys
-import logging
 import argparse
+import logging
+import os
 import subprocess
+import sys
 
 import pandas as pd
 

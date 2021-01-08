@@ -16,8 +16,8 @@ Sample call of this script::
 import os
 import sys
 
-import numpy as np
 import SimpleITK as sitk
+import numpy as np
 from PIL import Image
 
 

@@ -20,22 +20,23 @@ Example run::
 Copyright (C) 2018 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import sys
-import time
-import json
 import argparse
 import datetime
-import logging
-import platform
 import hashlib
+import json
+import logging
 import multiprocessing as mproc
+import os
+import platform
+import sys
+import time
 import traceback
 import warnings
 from functools import partial
 
-import tqdm
 import matplotlib
+import tqdm
+
 matplotlib.use('Agg')
 import numpy as np
 from skimage import data, io, __version__ as skimage__version

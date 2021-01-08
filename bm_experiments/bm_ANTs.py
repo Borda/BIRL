@@ -73,11 +73,11 @@ Run the basic ANT registration with original parameters::
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import sys
-import logging
 import glob
+import logging
+import os
 import shutil
+import sys
 
 import pandas as pd
 

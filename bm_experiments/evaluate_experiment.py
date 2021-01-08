@@ -19,10 +19,10 @@ Sample Usage
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
+import argparse
+import logging
 import os
 import sys
-import logging
-import argparse
 from functools import partial
 
 import pandas as pd

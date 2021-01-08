@@ -16,11 +16,11 @@ Sample run::
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
+import argparse
+import glob
+import logging
 import os
 import sys
-import glob
-import argparse
-import logging
 
 import pandas as pd
 

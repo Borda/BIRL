@@ -4,25 +4,25 @@ Some functionality related to dataset
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import re
 import glob
 import logging
+import os
+import re
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from PIL import Image
-from scipy import spatial, optimize
-from matplotlib.path import Path
-from skimage.filters import threshold_otsu
-from skimage.exposure import rescale_intensity
-from skimage.color import (
-    rgb2hsv, hsv2rgb, rgb2lab, lab2rgb, lch2lab, lab2lch, rgb2hed, hed2rgb, rgb2luv, luv2rgb
-)
 from cv2 import (
     IMWRITE_JPEG_QUALITY, IMWRITE_PNG_COMPRESSION, COLOR_RGBA2RGB, COLOR_RGB2BGR, INTER_LINEAR,
     GaussianBlur, cvtColor, imwrite, resize
 )
+from matplotlib.path import Path
+from scipy import spatial, optimize
+from skimage.color import (
+    rgb2hsv, hsv2rgb, rgb2lab, lab2rgb, lch2lab, lab2lch, rgb2hed, hed2rgb, rgb2luv, luv2rgb
+)
+from skimage.exposure import rescale_intensity
+from skimage.filters import threshold_otsu
 
 #: threshold of tissue/background presence on potential cutting line
 TISSUE_CONTENT = 0.01

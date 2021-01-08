@@ -4,22 +4,22 @@ General experiments methods.
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import sys
+import argparse
+import collections
 import copy
+import logging
+import multiprocessing as mproc
+import os
+import platform
+import subprocess
+import sys
 import time
 import types
-import logging
-import argparse
-import subprocess
-import collections
-import platform
 import uuid
-import multiprocessing as mproc
 from functools import wraps
 
-import tqdm
 import numpy as np
+import tqdm
 from pathos.multiprocessing import ProcessPool
 
 from birl.utilities.data_io import create_folder, save_config_yaml, update_path

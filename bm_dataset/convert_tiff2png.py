@@ -19,18 +19,19 @@ Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
 
-import os
-import sys
+import argparse
+import gc
 import glob
 import logging
-import argparse
+import os
+import sys
 import time
-import gc
 from functools import partial
 
-import tqdm
 import cv2 as cv
 import numpy as np
+import tqdm
+
 try:
     from openslide import OpenSlide
 except Exception:

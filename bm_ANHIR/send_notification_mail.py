@@ -11,8 +11,8 @@ import smtplib
 import traceback
 from email.mime.text import MIMEText
 
-import tqdm
 import pandas as pd
+import tqdm
 
 # http://svti.fel.cvut.cz/cz/services/imap/client.html
 SERVER = 'imap.feld.cvut.cz'

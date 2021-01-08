@@ -20,9 +20,9 @@ Sample run::
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
+import logging
 import os
 import sys
-import logging
 
 # this is used while calling this file as a script
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root

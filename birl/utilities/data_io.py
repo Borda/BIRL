@@ -4,17 +4,17 @@ Useful function for managing Input/Output
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
 import logging
+import os
 import warnings
 from functools import wraps
 
-import yaml
+import SimpleITK as sitk
 import cv2 as cv
 import nibabel
 import numpy as np
 import pandas as pd
-import SimpleITK as sitk
+import yaml
 from PIL import Image
 from skimage.color import rgb2gray, gray2rgb
 

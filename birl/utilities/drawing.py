@@ -4,12 +4,12 @@ Function for drawing and visualisations
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import logging
 import collections
+import logging
+import os
 
-import numpy as np
 import matplotlib.pylab as plt
+import numpy as np
 from PIL import ImageDraw
 from matplotlib import colors as plt_colors, ticker as plt_ticker
 

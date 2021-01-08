@@ -19,10 +19,10 @@ import time
 
 import ants
 import pandas as pd
-from skimage.io import imread, imsave
-from skimage.color import rgb2gray
-
 from PIL import Image
+from skimage.color import rgb2gray
+from skimage.io import imread, imsave
+
 # PIL.Image.DecompressionBombError: could be decompression bomb DOS attack.
 # SEE: https://gitlab.mister-muffin.de/josch/img2pdf/issues/42
 Image.MAX_IMAGE_PIXELS = None

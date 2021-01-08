@@ -10,13 +10,14 @@ Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 
 # Always prefer setuptools over distutils
 import sys
-from os import path
-from setuptools import setup
 # io.open is needed for projects that support Python 2.7
 # It ensures open() defaults to text mode with universal newlines,
 # and accepts an argument to specify the text encoding
 # Python 3 only projects can skip this import
 from io import open
+from os import path
+
+from setuptools import setup
 
 import birl
 

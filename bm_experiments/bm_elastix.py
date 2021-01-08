@@ -65,11 +65,11 @@ Klein, Stefan, et al. "Elastix: a toolbox for intensity-based medical image regi
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import sys
 import glob
 import logging
+import os
 import shutil
+import sys
 
 import numpy as np
 import pandas as pd

@@ -60,13 +60,13 @@ References:
 Copyright (C) 2018-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import sys
-import re
-import json
-import time
-import logging
 import argparse
+import json
+import logging
+import os
+import re
+import sys
+import time
 from functools import partial
 
 import numpy as np

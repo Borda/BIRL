@@ -49,10 +49,10 @@ see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support ::
 Copyright (C) 2017-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-import os
-import sys
 import logging
+import os
 import shutil
+import sys
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import update_path, load_landmarks, save_landmarks, load_config_yaml
