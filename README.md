@@ -1,6 +1,6 @@
 # BIRL: Benchmark on Image Registration methods with Landmark validation
 
-[![Build Status](https://travis-ci.com/Borda/BIRL.svg?branch=master)](https://travis-ci.com/Borda/BIRL)
+[![CI testing](https://github.com/Borda/BIRL/workflows/CI%20testing/badge.svg?branch=master&event=push)](https://github.com/Borda/BIRL/actions?query=workflow%3A%22CI+testing%22)
 [![CircleCI](https://circleci.com/gh/Borda/BIRL.svg?style=svg&circle-token=e58b9845aab1b02d749df60060afbac54138ea28)](https://circleci.com/gh/Borda/BIRL)
 [![Build status](https://ci.appveyor.com/api/projects/status/rmfvuxix379eu6fh/branch/master?svg=true)](https://ci.appveyor.com/project/Borda/birl/branch/master)
 [![codecov](https://codecov.io/gh/Borda/BIRL/branch/master/graph/badge.svg?token=JZwA1rlUGA)](https://codecov.io/gh/Borda/BIRL)
@@ -16,6 +16,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/borda/birl)](https://hub.docker.com/r/borda/birl)
 
 <!--
+[![Build Status](https://travis-ci.com/Borda/BIRL.svg?branch=master)](https://travis-ci.com/Borda/BIRL)
 [![Code Health](https://landscape.io/github/Borda/BIRL/master/landscape.svg?style=flat)](https://landscape.io/github/Borda/BIRL/master)
 [![Run Status](https://api.shippable.com/projects/585bfa66e18a291000c15f24/badge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
 [![Coverage Badge](https://api.shippable.com/projects/585bfa66e18a291000c15f24/coverageBadge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
