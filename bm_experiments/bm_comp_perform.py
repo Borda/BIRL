@@ -67,10 +67,8 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-o', '--path_out', type=str, required=False,
-                        help='path to the output folder', default='')
-    parser.add_argument('-n', '--nb_runs', type=int, required=False,
-                        help='number of run experiments', default=5)
+    parser.add_argument('-o', '--path_out', type=str, required=False, help='path to the output folder', default='')
+    parser.add_argument('-n', '--nb_runs', type=int, required=False, help='number of run experiments', default=5)
     args = vars(parser.parse_args())
     logging.info('ARGUMENTS: \n%r' % args)
     return args
@@ -89,9 +87,7 @@ def _prepare_images(path_out, im_size=IMAGE_SIZE):
     io.imsave(path_img_target, img_target)
 
     # warp synthetic image
-    tform = AffineTransform(scale=(0.9, 0.9),
-                            rotation=0.2,
-                            translation=(200, -50))
+    tform = AffineTransform(scale=(0.9, 0.9), rotation=0.2, translation=(200, -50))
     img_source = warp(image, tform.inverse, output_shape=im_size)
     img_source = random_noise(img_source, var=IMAGE_NOISE)
     path_img_source = os.path.join(path_out, NAME_IMAGE_SOURCE)
@@ -125,8 +121,7 @@ def register_image_pair(idx, path_img_target, path_img_source, path_out):
 
     # load and denoise moving image
     img_source = io.imread(path_img_source)[..., :3]
-    img_source = denoise_bilateral(img_source, sigma_color=0.05,
-                                   sigma_spatial=2, multichannel=True)
+    img_source = denoise_bilateral(img_source, sigma_color=0.05, sigma_spatial=2, multichannel=True)
     img_source_gray = rgb2gray(img_source)
 
     # detect ORB features on both images
@@ -134,13 +129,15 @@ def register_image_pair(idx, path_img_target, path_img_source, path_out):
     detector_source = ORB(n_keypoints=150)
     detector_target.detect_and_extract(img_target_gray)
     detector_source.detect_and_extract(img_source_gray)
-    matches = match_descriptors(detector_target.descriptors,
-                                detector_source.descriptors)
+    matches = match_descriptors(detector_target.descriptors, detector_source.descriptors)
     # robustly estimate affine transform model with RANSAC
-    model, _ = ransac((detector_target.keypoints[matches[:, 0]],
-                       detector_source.keypoints[matches[:, 1]]),
-                      AffineTransform, min_samples=25, max_trials=500,
-                      residual_threshold=0.95)
+    model, _ = ransac(
+        (detector_target.keypoints[matches[:, 0]], detector_source.keypoints[matches[:, 1]]),
+        AffineTransform,
+        min_samples=25,
+        max_trials=500,
+        residual_threshold=0.95,
+    )
 
     # warping source image with estimated transformations
     img_warped = warp(img_target, model.inverse, output_shape=img_target.shape[:2])
@@ -166,15 +163,12 @@ def measure_registration_single(path_out, nb_iter=5):
 
     execution_times = []
     for i in tqdm.tqdm(range(nb_iter), desc='using single-thread'):
-        path_img_warped, t = register_image_pair(i, path_img_target,
-                                                 path_img_source,
-                                                 path_out)
+        path_img_warped, t = register_image_pair(i, path_img_target, path_img_source, path_out)
         paths.append(path_img_warped)
         execution_times.append(t)
 
     _clean_images(set(paths))
-    logging.info('registration @1-thread: %f +/- %f',
-                 np.mean(execution_times), np.std(execution_times))
+    logging.info('registration @1-thread: %f +/- %f', np.mean(execution_times), np.std(execution_times))
     res = {'registration @1-thread': np.mean(execution_times)}
     return res
 
@@ -191,8 +185,12 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_workers=CPU_COUNT):
     paths = [path_img_target, path_img_source]
     execution_times = []
 
-    _regist = partial(register_image_pair, path_img_target=path_img_target,
-                      path_img_source=path_img_source, path_out=path_out)
+    _regist = partial(
+        register_image_pair,
+        path_img_target=path_img_target,
+        path_img_source=path_img_source,
+        path_out=path_out,
+    )
     nb_tasks = int(nb_workers * nb_iter)
     logging.info('>> running %i tasks in %i threads', nb_tasks, nb_workers)
     tqdm_bar = tqdm.tqdm(total=nb_tasks, desc='parallel @ %i threads' % nb_workers)
@@ -207,8 +205,7 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_workers=CPU_COUNT):
     tqdm_bar.close()
 
     _clean_images(set(paths))
-    logging.info('registration @%i-thread: %f +/- %f', nb_workers,
-                 np.mean(execution_times), np.std(execution_times))
+    logging.info('registration @%i-thread: %f +/- %f', nb_workers, np.mean(execution_times), np.std(execution_times))
     res = {'registration @n-thread': np.mean(execution_times)}
     return res
 
@@ -223,9 +220,10 @@ def main(path_out='', nb_runs=5):
     skimage_ver = skimage__version.split('.')
     skimage_ver = tuple(map(int, skimage_ver))
     if skimage_ver < SKIMAGE_VERSION:
-        logging.warning('You are using older version of scikit-image then we expect.'
-                        ' Please upadte by `pip install -U --user scikit-image>=%s`',
-                        '.'.join(map(str, SKIMAGE_VERSION)))
+        logging.warning(
+            'You are using older version of scikit-image then we expect.'
+            ' Please upadte by `pip install -U --user scikit-image>=%s`', '.'.join(map(str, SKIMAGE_VERSION))
+        )
 
     hasher = hashlib.sha256()
     hasher.update(open(__file__, 'rb').read())

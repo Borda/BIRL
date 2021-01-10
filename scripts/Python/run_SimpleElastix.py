@@ -41,14 +41,15 @@ from PIL import Image
 
 
 def command_iteration(method):
-    print("{0:3} = {1:10.5f} : {2}".format(method.GetOptimizerIteration(),
-                                           method.GetMetricValue(),
-                                           method.GetOptimizerPosition()))
+    print(
+        "{0:3} = {1:10.5f} : {2}".format(
+            method.GetOptimizerIteration(), method.GetMetricValue(), method.GetOptimizerPosition()
+        )
+    )
 
 
 if len(sys.argv) < 5:
-    print("Usage: {0} <fixedImageFilter> <movingImageFile> <fixedLandmarksFile> <outputFolder>"
-          .format(sys.argv[0]))
+    print("Usage: {0} <fixedImageFilter> <movingImageFile> <fixedLandmarksFile> <outputFolder>".format(sys.argv[0]))
     sys.exit(1)
 
 NAME_TRANSFORM = 'transformation.txt'

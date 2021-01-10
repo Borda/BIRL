@@ -32,18 +32,45 @@ SCALE_NAMES = (
 )
 # define tissues with all landmarks presented
 DATASET_TISSUE_SCALE_COMPLETE = {
-    'lung-lesion_[1,3]': {'small': 5, 'medium': 50},
-    'lung-lesion_2': {'small': 5, 'medium': 25},
-    'lung-lobes_*': {'small': 5, 'medium': 100},
-    'mammary-gland_*': {'small': 5, 'medium': 25},
+    'lung-lesion_[1,3]': {
+        'small': 5,
+        'medium': 50,
+    },
+    'lung-lesion_2': {
+        'small': 5,
+        'medium': 25,
+    },
+    'lung-lobes_*': {
+        'small': 5,
+        'medium': 100,
+    },
+    'mammary-gland_*': {
+        'small': 5,
+        'medium': 25,
+    },
 }
 # define tissues which hide some samples as test
 DATASET_TISSUE_SCALE_PARTIAL = {
-    'mice-kidney_*': {'small': 5, 'medium': 25},
-    'COAD_*': {'small': 5, 'medium': 25},
-    'gastric_*': {'small': 2, 'medium': 15},
-    'breast_*': {'small': 2, 'medium': 20},
-    'kidney_*': {'small': 5, 'medium': 25},
+    'mice-kidney_*': {
+        'small': 5,
+        'medium': 25,
+    },
+    'COAD_*': {
+        'small': 5,
+        'medium': 25,
+    },
+    'gastric_*': {
+        'small': 2,
+        'medium': 15,
+    },
+    'breast_*': {
+        'small': 2,
+        'medium': 20,
+    },
+    'kidney_*': {
+        'small': 5,
+        'medium': 25,
+    },
 }
 # define tissues to be part of the dataset
 DATASET_TISSUE_SCALE = DATASET_TISSUE_SCALE_COMPLETE.copy()
@@ -51,9 +78,7 @@ DATASET_TISSUE_SCALE.update(DATASET_TISSUE_SCALE_PARTIAL)
 # each N sample in test will be considers as test case
 HIDE_TEST_TISSUE_STEP = 3
 # requires empty columns in the dataset cover
-COLUMNS_EMPTY = (ImRegBenchmark.COL_POINTS_REF_WARP,
-                 ImRegBenchmark.COL_POINTS_MOVE_WARP,
-                 ImRegBenchmark.COL_TIME)
+COLUMNS_EMPTY = (ImRegBenchmark.COL_POINTS_REF_WARP, ImRegBenchmark.COL_POINTS_MOVE_WARP, ImRegBenchmark.COL_TIME)
 # define train / test status
 VAL_STATUS_TRAIN = 'training'
 VAL_STATUS_TEST = 'evaluation'
@@ -123,8 +148,7 @@ def generate_reg_pairs(rp_imgs, rp_lnds, pairs, public, path_images=DATASET_IMAG
     return reg_pairs
 
 
-def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out,
-                         step_hide_landmarks, tissue_partial):
+def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out, step_hide_landmarks, tissue_partial):
     """ generate cover CSV file for particular dataset size/scale
 
     :param str name: name of selected scale
@@ -138,18 +162,15 @@ def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out,
     :param list(str) tissue_partial:
     """
     # name, scale_step = dataset
-    tissues = [(tissue, p) for tissue in sorted(dataset)
-               for p in glob.glob(os.path.join(path_landmarks, tissue))
+    tissues = [(tissue, p) for tissue in sorted(dataset) for p in glob.glob(os.path.join(path_landmarks, tissue))
                if os.path.isdir(p)]
 
     reg_pairs = []
     logging.debug('found: %r', sorted(set([os.path.basename(tp[1]) for tp in tissues])))
     for tissue, p_tissue in tqdm.tqdm(sorted(tissues)):
         sc = dataset[tissue][name]
-        rp_lnds, rp_imgs = list_landmarks_images(p_tissue, sc, path_landmarks,
-                                                 path_images)
-        assert len(rp_lnds) == len(rp_imgs), \
-            'the list of landmarks and images does not match'
+        rp_lnds, rp_imgs = list_landmarks_images(p_tissue, sc, path_landmarks, path_images)
+        assert len(rp_lnds) == len(rp_imgs), 'the list of landmarks and images does not match'
         step_hide_lnds = step_hide_landmarks if tissue in tissue_partial else None
         pairs, pub = generate_pairing(len(rp_lnds), step_hide_lnds)
         reg_pairs += generate_reg_pairs(rp_imgs, rp_lnds, pairs, pub)
@@ -162,8 +183,7 @@ def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out,
     df_overview.to_csv(path_csv)
 
 
-def main(path_images, path_landmarks, path_out, step_lnds, dataset,
-         tissue_partial, scale_names):
+def main(path_images, path_landmarks, path_out, step_lnds, dataset, tissue_partial, scale_names):
     """ the main entry point
 
     :param str path_images: path to folder with images
@@ -178,13 +198,15 @@ def main(path_images, path_landmarks, path_out, step_lnds, dataset,
     :param list(str) scale_names: name of chosen scales
     """
 
-    _create_cover = partial(create_dataset_cover,
-                            dataset=dataset,
-                            path_images=path_images,
-                            path_landmarks=path_landmarks,
-                            path_out=path_out,
-                            step_hide_landmarks=step_lnds,
-                            tissue_partial=tissue_partial)
+    _create_cover = partial(
+        create_dataset_cover,
+        dataset=dataset,
+        path_images=path_images,
+        path_landmarks=path_landmarks,
+        path_out=path_out,
+        step_hide_landmarks=step_lnds,
+        tissue_partial=tissue_partial,
+    )
 
     for sc_name in scale_names:
         _create_cover(sc_name)
@@ -193,8 +215,13 @@ def main(path_images, path_landmarks, path_out, step_lnds, dataset,
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     logging.info('running...')
-    main(path_images=DATASET_IMAGES, path_landmarks=DATASET_LANDMARKS,
-         path_out=DATASET_COVERS, step_lnds=HIDE_TEST_TISSUE_STEP,
-         dataset=DATASET_TISSUE_SCALE, scale_names=SCALE_NAMES,
-         tissue_partial=DATASET_TISSUE_SCALE_PARTIAL.keys())
+    main(
+        path_images=DATASET_IMAGES,
+        path_landmarks=DATASET_LANDMARKS,
+        path_out=DATASET_COVERS,
+        step_lnds=HIDE_TEST_TISSUE_STEP,
+        dataset=DATASET_TISSUE_SCALE,
+        scale_names=SCALE_NAMES,
+        tissue_partial=DATASET_TISSUE_SCALE_PARTIAL.keys(),
+    )
     logging.info('Done :]')

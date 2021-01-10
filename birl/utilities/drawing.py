@@ -57,8 +57,7 @@ def draw_image_points(image, points, color='green', marker_size=5, shape='o'):
     image = convert_ndarray2image(image)
     draw = ImageDraw.Draw(image)
     for i, (x, y) in enumerate(points):
-        pos_marker = (x - marker_size, y - marker_size,
-                      x + marker_size, y + marker_size)
+        pos_marker = (x - marker_size, y - marker_size, x + marker_size, y + marker_size)
         pos_text = tuple(points[i] + marker_size)
         if shape == 'o':
             draw.ellipse(pos_marker, outline=color)
@@ -73,8 +72,7 @@ def draw_image_points(image, points, color='green', marker_size=5, shape='o'):
     return image
 
 
-def draw_landmarks_origin_target_warped(ax, points_origin, points_target,
-                                        points_warped=None, marker='o'):
+def draw_landmarks_origin_target_warped(ax, points_origin, points_target, points_warped=None, marker='o'):
     """ visualisation of transforming points, presenting 3 set of points:
     original points, targeting points, and the estimate of target points
 
@@ -98,8 +96,7 @@ def draw_landmarks_origin_target_warped(ax, points_origin, points_target,
     >>> draw_landmarks_origin_target_warped(plt.figure().gca(),
     ...                                     points, points + 1, points - 1)
     """
-    pts_sizes = [len(pts) for pts in [points_origin, points_target, points_warped]
-                 if pts is not None]
+    pts_sizes = [len(pts) for pts in [points_origin, points_target, points_warped] if pts is not None]
     assert pts_sizes, 'no landmarks points given'
     min_pts = min(pts_sizes)
     assert min(pts_sizes) > 0, 'no points given for sizes: %r' % pts_sizes
@@ -115,13 +112,11 @@ def draw_landmarks_origin_target_warped(ax, points_origin, points_target,
         ax.plot([0, 0], [0, 0], style, color=color, linewidth=2, label=label)
 
     if points_origin is not None:
-        ax.plot(points_origin[:, 0], points_origin[:, 1], marker, color='g',
-                label='Original positions')
+        ax.plot(points_origin[:, 0], points_origin[:, 1], marker, color='g', label='Original positions')
     # draw a dotted line between origin and target
     _draw_lines(points_target, points_origin, '-.', 'g', 'true shift')
     if points_target is not None:
-        ax.plot(points_target[:, 0], points_target[:, 1], marker, color='m',
-                label='Target positions')
+        ax.plot(points_target[:, 0], points_target[:, 1], marker, color='m', label='Target positions')
 
     if points_warped is not None:
         points_warped = points_warped[:min_pts]
@@ -130,8 +125,7 @@ def draw_landmarks_origin_target_warped(ax, points_origin, points_target,
         # draw line that  should be minimal between target and estimate
 
         _draw_lines(points_target, points_warped, '-', 'r', 'regist. error (TRE)')
-        ax.plot(points_warped[:, 0], points_warped[:, 1], marker, color='b',
-                label='Estimated positions')
+        ax.plot(points_warped[:, 0], points_warped[:, 1], marker, color='b', label='Estimated positions')
 
 
 def overlap_two_images(image1, image2, transparent=0.5):
@@ -165,9 +159,9 @@ def overlap_two_images(image1, image2, transparent=0.5):
     return image
 
 
-def draw_images_warped_landmarks(image_target, image_source,
-                                 points_init, points_target, points_warped,
-                                 fig_size_max=MAX_FIGURE_SIZE):
+def draw_images_warped_landmarks(
+    image_target, image_source, points_init, points_target, points_warped, fig_size_max=MAX_FIGURE_SIZE
+):
     """ composed form several functions - images overlap + landmarks + legend
 
     :param ndarray image_target: np.array<height, with, dim>
@@ -210,8 +204,10 @@ def draw_images_warped_landmarks(image_target, image_source,
         fig, ax = create_figure(im_size, fig_size_max)
         ax.imshow(image)
     else:
-        lnds_size = [np.max(pts, axis=0) + np.min(pts, axis=0)
-                     for pts in [points_init, points_target, points_warped] if pts is not None]
+        lnds_size = [
+            np.max(pts, axis=0) + np.min(pts, axis=0) for pts in [points_init, points_target, points_warped]
+            if pts is not None
+        ]
         im_size = np.max(lnds_size, axis=0).tolist() if lnds_size else (1, 1)
         fig, ax = create_figure(im_size, fig_size_max)
 
@@ -283,8 +279,7 @@ class RadarChart(object):
     <...>
     """
 
-    def __init__(self, df, steps=5, fig=None, rect=None, fill_alpha=0.05, colors='nipy_spectral',
-                 *args, **kwargs):
+    def __init__(self, df, steps=5, fig=None, rect=None, fill_alpha=0.05, colors='nipy_spectral', *args, **kwargs):
         """ draw a dataFrame with scaled axis
 
         :param df: data
@@ -305,8 +300,7 @@ class RadarChart(object):
         self.nb_steps = steps
         self.data = df.copy()
         self.angles = np.linspace(0, 360, len(self.titles), endpoint=False)
-        self.axes = [fig.add_axes(rect, projection="polar", label="axes%d" % i)
-                     for i in range(len(self.titles))]
+        self.axes = [fig.add_axes(rect, projection="polar", label="axes%d" % i) for i in range(len(self.titles))]
         self.fig = fig
 
         self.ax = self.axes[0]
@@ -414,8 +408,7 @@ def _list_colors(colors, nb):
     return colors
 
 
-def draw_heatmap(data, row_labels=None, col_labels=None, ax=None,
-                 cbar_kw=None, cbar_label="", **kwargs):
+def draw_heatmap(data, row_labels=None, col_labels=None, ax=None, cbar_kw=None, cbar_label="", **kwargs):
     """
     Create a draw_heatmap from a numpy array and two lists of labels.
 
@@ -495,24 +488,34 @@ def draw_matrix_user_ranking(df_stat, higher_better=False, fig=None, cmap='tab20
     norm = plt_colors.BoundaryNorm(arange, len(df_stat))
     fmt = plt_ticker.FuncFormatter(lambda x, pos: df_stat.index[x])
 
-    draw_heatmap(ranking, np.arange(1, len(df_stat) + 1), df_stat.columns, ax=ax,
-                 cmap=plt.get_cmap(cmap, len(df_stat)), norm=norm,
-                 cbar_kw=dict(ticks=range(len(df_stat)), format=fmt),
-                 cbar_label='Methods')
+    _range = np.arange(1, len(df_stat) + 1)
+    draw_heatmap(
+        ranking,
+        _range,
+        df_stat.columns,
+        ax=ax,
+        cmap=plt.get_cmap(cmap, len(df_stat)),
+        norm=norm,
+        cbar_kw=dict(ticks=range(len(df_stat)), format=fmt),
+        cbar_label='Methods',
+    )
     ax.set_ylabel('Ranking')
 
     fig.tight_layout()
     return fig
 
 
-def draw_scatter_double_scale(df, colors='nipy_spectral',
-                              ax_decs=None,
-                              idx_markers=('o', 'd'),
-                              xlabel='',
-                              figsize=None,
-                              legend_style=None,
-                              plot_style=None,
-                              x_spread=(0.4, 5)):
+def draw_scatter_double_scale(
+    df,
+    colors='nipy_spectral',
+    ax_decs=None,
+    idx_markers=('o', 'd'),
+    xlabel='',
+    figsize=None,
+    legend_style=None,
+    plot_style=None,
+    x_spread=(0.4, 5),
+):
     """Draw a scatter with double scales on left and right
 
     :param DF df: dataframe
@@ -589,8 +592,7 @@ def draw_scatter_double_scale(df, colors='nipy_spectral',
             # print (idx, col, i, df.loc[idx, col])
             mkr = j % len(idx_markers)
             x_off = x_offsets[j % len(x_offsets)]
-            ax.plot(i + x_off, df.loc[idx, col], idx_markers[mkr],
-                    color=colors[j], label=idx, **plot_style)
+            ax.plot(i + x_off, df.loc[idx, col], idx_markers[mkr], color=colors[j], label=idx, **plot_style)
 
     if xlabel:
         ax1.set_xlabel(xlabel)

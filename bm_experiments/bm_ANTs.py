@@ -83,8 +83,8 @@ import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (
-    load_landmarks, save_landmarks, load_config_args,
-    convert_image_to_nifti_gray, convert_image_from_nifti)
+    load_landmarks, save_landmarks, load_config_args, convert_image_to_nifti_gray, convert_image_from_nifti
+)
 from birl.utilities.experiments import exec_commands
 from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
@@ -128,6 +128,7 @@ class BmANTs(ImRegBenchmark):
         --dimensionality 2 \
         %(config)s \
         --output [%(output)s/trans]'
+
     #: command for executing the warping image
     COMMAND_WARP_IMAGE = '%(antsApplyTransforms)s \
         --dimensionality 2 \
@@ -136,12 +137,14 @@ class BmANTs(ImRegBenchmark):
         --reference-image %(img_target)s \
         --transform %(transfs)s \
         --interpolation Linear'
+
     #: command for executing the warping landmarks
     COMMAND_WARP_POINTS = '%(antsApplyTransformsToPoints)s \
         --dimensionality 2 \
         --input %(path_points)s \
         --output %(output)s/%(pts_name)s.csv \
         --transform %(transfs)s'
+
     #: column name of temporary Nifty reference image
     COL_IMAGE_REF_NII = ImRegBenchmark.COL_IMAGE_REF + ' Nifty'
     #: column name of temporary Nifty noving image
@@ -209,15 +212,8 @@ class BmANTs(ImRegBenchmark):
         path_dir = self._get_path_reg_dir(item)
 
         config = load_config_args(self.params['path_config'])
-        config = config % {
-            'target-image': item[self.COL_IMAGE_REF_NII],
-            'source-image': item[self.COL_IMAGE_MOVE_NII]
-        }
-        cmd = self.COMMAND_REGISTER % {
-            'config': config,
-            'antsRegistration': self.exec_register,
-            'output': path_dir
-        }
+        config = config % {'target-image': item[self.COL_IMAGE_REF_NII], 'source-image': item[self.COL_IMAGE_MOVE_NII]}
+        cmd = self.COMMAND_REGISTER % {'config': config, 'antsRegistration': self.exec_register, 'output': path_dir}
 
         return cmd
 
@@ -240,8 +236,7 @@ class BmANTs(ImRegBenchmark):
 
         # list output transformations
         tf_elast_inv = sorted(glob.glob(os.path.join(path_dir, 'trans*InverseWarp.nii*')))
-        tf_elast = [os.path.join(os.path.dirname(p), os.path.basename(p).replace('Inverse', ''))
-                    for p in tf_elast_inv]
+        tf_elast = [os.path.join(os.path.dirname(p), os.path.basename(p).replace('Inverse', '')) for p in tf_elast_inv]
         tf_affine = sorted(glob.glob(os.path.join(path_dir, 'trans*GenericAffine.mat')))
         # generate commands
         cmd_warp_img = self.COMMAND_WARP_IMAGE % {
@@ -252,17 +247,16 @@ class BmANTs(ImRegBenchmark):
             'transfs': ' -t '.join(sorted(tf_affine + tf_elast, reverse=True)),
             'img_name': name_im_move
         }
+        _transfs = ' -t '.join(['[ %s , 1]' % tf if 'Affine' in tf else tf for tf in sorted(tf_affine + tf_elast_inv)])
         cmd_warp_pts = self.COMMAND_WARP_POINTS % {
             'antsApplyTransformsToPoints': self.exec_transf_pts,
             'output': path_dir,
             'path_points': path_lnds_warp,
-            'transfs': ' -t '.join(['[ %s , 1]' % tf if 'Affine' in tf else tf
-                                    for tf in sorted(tf_affine + tf_elast_inv)]),
+            'transfs': _transfs,
             'pts_name': name_lnds_move
         }
         # execute commands
-        exec_commands([cmd_warp_img, cmd_warp_pts],
-                      path_logger=os.path.join(path_dir, 'warping.log'))
+        exec_commands([cmd_warp_img, cmd_warp_pts], path_logger=os.path.join(path_dir, 'warping.log'))
 
         path_im_nii = os.path.join(path_dir, name_im_move + '.nii')
         if os.path.isfile(path_im_nii):
@@ -276,8 +270,10 @@ class BmANTs(ImRegBenchmark):
         else:
             path_lnds_warp = None
 
-        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
-                self.COL_POINTS_MOVE_WARP: path_lnds_warp}
+        return {
+            self.COL_IMAGE_MOVE_WARP: path_img_warp,
+            self.COL_POINTS_MOVE_WARP: path_lnds_warp,
+        }
 
     def _clear_after_registration(self, item):
         """ clean unnecessarily files after the registration
@@ -299,11 +295,16 @@ class BmANTs(ImRegBenchmark):
         :return object:
         """
         # SEE: https://docs.python.org/3/library/argparse.html
-        arg_parser.add_argument('-ANTs', '--path_ANTs', type=str, required=False,
-                                help='path to the ANTs executables'
-                                     ' (if they are not directly callable)')
-        arg_parser.add_argument('-cfg', '--path_config', required=True,
-                                type=str, help='path to the ANTs regist. configuration')
+        arg_parser.add_argument(
+            '-ANTs',
+            '--path_ANTs',
+            type=str,
+            required=False,
+            help='path to the ANTs executables (if they are not directly callable)'
+        )
+        arg_parser.add_argument(
+            '-cfg', '--path_config', required=True, type=str, help='path to the ANTs regist. configuration'
+        )
         return arg_parser
 
 

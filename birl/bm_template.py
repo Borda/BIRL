@@ -112,8 +112,7 @@ class BmTemplate(ImRegBenchmark):
         :param dict item: dictionary with registration params
         :return str|list(str): the execution commands
         """
-        logging.debug('.. simulate registration: '
-                      'copy the source image and landmarks, like regist. failed')
+        logging.debug('.. simulate registration: copy the source image and landmarks, like regist. failed')
         _, path_im_move, _, path_lnds_move = self._get_paths(item)
         path_reg_dir = self._get_path_reg_dir(item)
         name_img = os.path.basename(item[self.COL_IMAGE_MOVE])
@@ -135,8 +134,7 @@ class BmTemplate(ImRegBenchmark):
         # detect landmarks
         path_lnd = os.path.join(path_reg_dir, os.path.basename(item[self.COL_POINTS_MOVE]))
         # return formatted results
-        return {self.COL_IMAGE_MOVE_WARP: path_img,
-                self.COL_POINTS_MOVE_WARP: path_lnd}
+        return {self.COL_IMAGE_MOVE_WARP: path_img, self.COL_POINTS_MOVE_WARP: path_lnd}
 
     def _extract_execution_time(self, item):
         """ if needed update the execution time
@@ -166,8 +164,7 @@ class BmTemplate(ImRegBenchmark):
         <class 'argparse.ArgumentParser'>
         """
         # SEE: https://docs.python.org/3/library/argparse.html
-        arg_parser.add_argument('-cfg', '--path_config', type=str, required=True,
-                                help='some extra parameters')
+        arg_parser.add_argument('-cfg', '--path_config', type=str, required=True, help='some extra parameters')
         return arg_parser
 
 
@@ -180,5 +177,4 @@ if __name__ == '__main__':
     if arg_params.get('run_comp_benchmark', False):
         # from bm_experiments import bm_comp_perform
         # bm_comp_perform.main(path_expt)
-        logging.info('Here you can call the separate benchmark'
-                     ' to measure your computer performances.')
+        logging.info('Here you can call the separate benchmark to measure your computer performances.')

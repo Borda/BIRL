@@ -92,14 +92,11 @@ class BmUnwarpJ(ImRegBenchmark):
     #: path to IJ scripts
     PATH_IJ_SCRIPTS = os.path.join(update_path('scripts'), 'ImageJ')
     #: path/name of image registration script
-    PATH_SCRIPT_REGISTRATION_BASE = os.path.join(PATH_IJ_SCRIPTS,
-                                                 'apply-bUnwarpJ-registration.bsh')
+    PATH_SCRIPT_REGISTRATION_BASE = os.path.join(PATH_IJ_SCRIPTS, 'apply-bUnwarpJ-registration.bsh')
     #: path/name of image registration script with features
-    PATH_SCRIPT_REGISTRATION_SIFT = os.path.join(PATH_IJ_SCRIPTS,
-                                                 'apply-SIFT-bUnwarpJ-registration.bsh')
+    PATH_SCRIPT_REGISTRATION_SIFT = os.path.join(PATH_IJ_SCRIPTS, 'apply-SIFT-bUnwarpJ-registration.bsh')
     #: path/name of image/landmarks warping script
-    PATH_SCRIPT_WARP_LANDMARKS = os.path.join(PATH_IJ_SCRIPTS,
-                                              'apply-bUnwarpJ-transform.bsh')
+    PATH_SCRIPT_WARP_LANDMARKS = os.path.join(PATH_IJ_SCRIPTS, 'apply-bUnwarpJ-transform.bsh')
     # PATH_SCRIPT_HIST_MATCH_IJM = os.path.join(PATH_IJ_SCRIPTS,
     #                                           'histogram-matching-for-macro.bsh')
     #: command for executing the image registration
@@ -127,12 +124,14 @@ class BmUnwarpJ(ImRegBenchmark):
         ' %(warp)s'
     #: required parameters in the configuration file for bUnwarpJ
     REQUIRED_PARAMS_BUNWARPJ = (
-        'mode', 'subsampleFactor', 'minScale', 'maxScale', 'divWeight', 'curlWeight',
-        'landmarkWeight', 'imageWeight', 'consistencyWeight', 'stopThreshold')
+        'mode', 'subsampleFactor', 'minScale', 'maxScale', 'divWeight', 'curlWeight', 'landmarkWeight', 'imageWeight',
+        'consistencyWeight', 'stopThreshold'
+    )
     #: required parameters in the configuration file for SIFT features
     REQUIRED_PARAMS_SIFT = (
-        'initialSigma', 'steps', 'minOctaveSize', 'maxOctaveSize', 'fdSize', 'fdBins',
-        'rod', 'maxEpsilon', 'minInlierRatio', 'modelIndex')
+        'initialSigma', 'steps', 'minOctaveSize', 'maxOctaveSize', 'fdSize', 'fdBins', 'rod', 'maxEpsilon',
+        'minInlierRatio', 'modelIndex'
+    )
 
     #: default bUnwarpJ and SIFT parameters
     DEFAULT_PARAMS = {
@@ -245,8 +244,7 @@ class BmUnwarpJ(ImRegBenchmark):
         pts_source = load_landmarks(path_lnds_move)
         save_landmarks(os.path.join(path_dir, self.NAME_LANDMARKS), pts_source)
         # execute transformation
-        exec_commands(self.COMMAND_WARP_LANDMARKS % dict_params, path_logger=path_log,
-                      timeout=self.EXECUTE_TIMEOUT)
+        exec_commands(self.COMMAND_WARP_LANDMARKS % dict_params, path_logger=path_log, timeout=self.EXECUTE_TIMEOUT)
         # load warped landmarks from TXT
         path_lnds_warp = os.path.join(path_dir, self.NAME_LANDMARKS_WARPED)
         if os.path.isfile(path_lnds_warp):
@@ -256,8 +254,10 @@ class BmUnwarpJ(ImRegBenchmark):
         else:
             path_lnds_warp = None
         # return results
-        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
-                self.COL_POINTS_MOVE_WARP: path_lnds_warp}
+        return {
+            self.COL_IMAGE_MOVE_WARP: path_img_warp,
+            self.COL_POINTS_MOVE_WARP: path_lnds_warp,
+        }
 
     @staticmethod
     def extend_parse(arg_parser):
@@ -266,10 +266,10 @@ class BmUnwarpJ(ImRegBenchmark):
         :return object:
         """
         # SEE: https://docs.python.org/3/library/argparse.html
-        arg_parser.add_argument('-Fiji', '--exec_Fiji', type=str, required=True,
-                                help='path to the Fiji executable')
-        arg_parser.add_argument('-cfg', '--path_config', required=True,
-                                type=str, help='path to the bUnwarpJ configuration')
+        arg_parser.add_argument('-Fiji', '--exec_Fiji', type=str, required=True, help='path to the Fiji executable')
+        arg_parser.add_argument(
+            '-cfg', '--path_config', required=True, type=str, help='path to the bUnwarpJ configuration'
+        )
         return arg_parser
 
 

@@ -13,14 +13,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 from cv2 import (
-    IMWRITE_JPEG_QUALITY, IMWRITE_PNG_COMPRESSION, COLOR_RGBA2RGB, COLOR_RGB2BGR, INTER_LINEAR,
-    GaussianBlur, cvtColor, imwrite, resize
+    IMWRITE_JPEG_QUALITY,
+    IMWRITE_PNG_COMPRESSION,
+    COLOR_RGBA2RGB,
+    COLOR_RGB2BGR,
+    INTER_LINEAR,
+    GaussianBlur,
+    cvtColor,
+    imwrite,
+    resize,
 )
 from matplotlib.path import Path
 from scipy import spatial, optimize
-from skimage.color import (
-    rgb2hsv, hsv2rgb, rgb2lab, lab2rgb, lch2lab, lab2lch, rgb2hed, hed2rgb, rgb2luv, luv2rgb
-)
+from skimage.color import rgb2hsv, hsv2rgb, rgb2lab, lab2rgb, lch2lab, lab2lch, rgb2hed, hed2rgb, rgb2luv, luv2rgb
 from skimage.exposure import rescale_intensity
 from skimage.filters import threshold_otsu
 
@@ -47,8 +52,7 @@ CONVERT_RGB = {
     'lab': (rgb2lab, lab2rgb),
     'luv': (rgb2luv, luv2rgb),
     'hed': (rgb2hed, hed2rgb),
-    'lch': (lambda img: lab2lch(rgb2lab(img)),
-            lambda img: lab2rgb(lch2lab(img))),
+    'lch': (lambda img: lab2lch(rgb2lab(img)), lambda img: lab2rgb(lch2lab(img))),
 }
 
 
@@ -112,8 +116,7 @@ def find_split_objects(hist, nb_objects=2, threshold=TISSUE_CONTENT):
     obj_select = sorted([o[1] for o in obj_sorted][:nb_objects])
 
     # compute the mean in the gup
-    splits = [np.mean((ends[obj_select[i]], begins[obj_select[i + 1]]))
-              for i in range(len(obj_select) - 1)]
+    splits = [np.mean((ends[obj_select[i]], begins[obj_select[i + 1]])) for i in range(len(obj_select) - 1)]
     splits = list(map(int, splits))
 
     return splits
@@ -259,11 +262,9 @@ def generate_pairing(count, step_hide=None):
     idxs_all = list(range(count))
     idxs_hide = idxs_all[::step_hide] if step_hide is not None else []
     # prune image on diagonal and missing both landmarks (target and source)
-    idxs_pairs = [(i, j) for i in idxs_all for j in idxs_all
-                  if i != j and j not in idxs_hide]
+    idxs_pairs = [(i, j) for i in idxs_all for j in idxs_all if i != j and j not in idxs_hide]
     # prune symmetric image pairs
-    idxs_pairs = [(i, j) for k, (i, j) in enumerate(idxs_pairs)
-                  if (j, i) not in idxs_pairs[:k]]
+    idxs_pairs = [(i, j) for k, (i, j) in enumerate(idxs_pairs) if (j, i) not in idxs_pairs[:k]]
     public = [not (i in idxs_hide or j in idxs_hide) for i, j in idxs_pairs]
     return idxs_pairs, public
 
@@ -447,8 +448,7 @@ def compute_half_polygon(landmarks, idx_start=0, idx_end=-1):
 
     def _disturbed(poly, pt_new, pt_test):
         last = is_point_in_quadrant_left(poly[-1], pt_new, pt_test) == 1
-        path = sum(is_point_inside_perpendicular(pt0, pt1, pt_test)
-                   for pt0, pt1 in zip(poly, poly[1:] + [pt_new])) < 0
+        path = sum(is_point_inside_perpendicular(pt0, pt1, pt_test) for pt0, pt1 in zip(poly, poly[1:] + [pt_new])) < 0
         return last and not path
 
     # iterated until you add the lst point to chain
@@ -597,8 +597,7 @@ def list_sub_folders(path_folder, name='*'):
     >>> list(map(os.path.basename, paths))  # doctest: +ELLIPSIS
     ['images', 'landmarks', 'lesions_', 'rat-kidney_'...]
     """
-    sub_dirs = sorted([p for p in glob.glob(os.path.join(path_folder, name))
-                       if os.path.isdir(p)])
+    sub_dirs = sorted([p for p in glob.glob(os.path.join(path_folder, name)) if os.path.isdir(p)])
     return sub_dirs
 
 
@@ -633,8 +632,7 @@ def common_landmarks(points1, points2, threshold=1.5):
     dist = spatial.distance.cdist(points1, points2, 'euclidean')
     ind_row, ind_col = optimize.linear_sum_assignment(dist)
     dist_sel = dist[ind_row, ind_col]
-    pairs = [(i, j) for (i, j, d) in zip(ind_row, ind_col, dist_sel)
-             if d < threshold]
+    pairs = [(i, j) for (i, j, d) in zip(ind_row, ind_col, dist_sel) if d < threshold]
     assert len(pairs) <= min([len(points1), len(points2)])
     return np.array(pairs, dtype=int)
 
@@ -654,13 +652,14 @@ def args_expand_images(parser, nb_workers=1, overwrite=True):
     >>> args_expand_images(argparse.ArgumentParser())  # doctest: +ELLIPSIS
     ArgumentParser(...)
     """
-    parser.add_argument('-i', '--path_images', type=str, required=True,
-                        help='path (pattern) to the input image')
-    parser.add_argument('--nb_workers', type=int, required=False, default=nb_workers,
-                        help='number of processes running in parallel')
+    parser.add_argument('-i', '--path_images', type=str, required=True, help='path (pattern) to the input image')
+    parser.add_argument(
+        '--nb_workers', type=int, required=False, default=nb_workers, help='number of processes running in parallel'
+    )
     if overwrite:
-        parser.add_argument('--overwrite', action='store_true', required=False,
-                            default=False, help='allow overwrite existing images')
+        parser.add_argument(
+            '--overwrite', action='store_true', required=False, default=False, help='allow overwrite existing images'
+        )
     return parser
 
 
@@ -716,11 +715,14 @@ def scale_large_images_landmarks(images, landmarks):
         return images, landmarks
     scale = estimate_scaling(images)
     if scale < 1.:
-        logging.debug('One or more images are larger then recommended size for visualisation,'
-                      ' an resize with factor %f will be applied', scale)
+        logging.debug(
+            'One or more images are larger then recommended size for visualisation,'
+            ' an resize with factor %f will be applied', scale
+        )
     # using float16 as image raise TypeError: src data type = 23 is not supported
-    images = [resize(img, None, fx=scale, fy=scale, interpolation=INTER_LINEAR)
-              if img is not None else None for img in images]
+    images = [
+        resize(img, None, fx=scale, fy=scale, interpolation=INTER_LINEAR) if img is not None else None for img in images
+    ]
     landmarks = [lnds * scale if lnds is not None else None for lnds in landmarks]
     return images, landmarks
 
@@ -807,6 +809,7 @@ def image_histogram_matching(source, reference, use_color='hsv', norm_img_size=4
     ...                          np.random.random((30, 10, 20, 5))).ndim
     4
     """
+
     # in case gray images normalise dimensionality
     def _normalise_image(img):
         # normalise gray-scale images
@@ -827,9 +830,11 @@ def image_histogram_matching(source, reference, use_color='hsv', norm_img_size=4
             reference = conv_from_rgb(reference[:, :, :3])
         matched = np.empty(source.shape, dtype=source.dtype)
         for ch in range(source.shape[-1]):
-            matched[..., ch] = histogram_match_cumulative_cdf(source[..., ch],
-                                                              reference[..., ch],
-                                                              norm_img_size=norm_img_size)
+            matched[..., ch] = histogram_match_cumulative_cdf(
+                source[..., ch],
+                reference[..., ch],
+                norm_img_size=norm_img_size,
+            )
         if conv_to_rgb:
             matched = conv_to_rgb(matched)
     else:
@@ -901,8 +906,7 @@ def histogram_match_cumulative_cdf(source, reference, norm_img_size=1024):
     interp_values = np.round(np.interp(src_quantiles, ref_quantiles, ref_values))
     # in case that it overflows, due to sampling step may skip some high values
     if source.max() >= len(interp_values):
-        logging.warning('source image max value %i overflow generated LUT of size %i',
-                        source.max(), len(interp_values))
+        logging.warning('source image max value %i overflow generated LUT of size %i', source.max(), len(interp_values))
         # then clip the source image values to fit ot the range
         source[source >= len(interp_values)] = len(interp_values) - 1
     matched = np.round(interp_values)[source - offset].astype(np.int16) + offset

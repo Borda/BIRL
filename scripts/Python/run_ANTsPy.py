@@ -62,12 +62,8 @@ mytx = ants.registration(
 print('Transform: %r' % mytx)
 t_elapsed = time.time() - t_start
 print('Time: %r seconds' % t_elapsed)
-warped_moving = ants.apply_transforms(fixed=fixed,
-                                      moving=moving,
-                                      transformlist=mytx['fwdtransforms'])
-warped_points = ants.apply_transforms_to_points(dim=2,
-                                                points=lnds,
-                                                transformlist=mytx['invtransforms'])
+warped_moving = ants.apply_transforms(fixed=fixed, moving=moving, transformlist=mytx['fwdtransforms'])
+warped_points = ants.apply_transforms_to_points(dim=2, points=lnds, transformlist=mytx['invtransforms'])
 
 # # Visualisation
 # import matplotlib.pyplot as plt

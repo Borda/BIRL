@@ -26,8 +26,7 @@ def compute_tre(points_1, points_2):
     ...             np.random.random((9, 2)))  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
     array([ 0.21...,  0.70...,  0.44...,  0.34...,  0.41...,  0.41...])
     """
-    nb_common = min([len(pts) for pts in [points_1, points_2]
-                     if pts is not None])
+    nb_common = min([len(pts) for pts in [points_1, points_2] if pts is not None])
     assert nb_common > 0, 'no common landmarks for metric'
     points_1 = np.asarray(points_1)[:nb_common]
     points_2 = np.asarray(points_2)[:nb_common]
@@ -153,12 +152,12 @@ def compute_affine_transf_diff(points_ref, points_init, points_est):
     mtx_est = estimate_affine_transform(points_ref, np.nan_to_num(points_est))[0]
     affine_estim = get_affine_components(np.asarray(mtx_est))
 
-    diff = {'Affine %s %s Diff' % (n, c): (np.array(affine_estim[n]) - np.array(affine_init[n]))[i]
-            for n in ['translation', 'scale'] for i, c in enumerate(['X', 'Y'])}
-    diff.update({'Affine %s Diff' % n: norm_angle(affine_estim[n] - affine_init[n], deg=True)
-                 for n in ['rotation']})
-    diff.update({'Affine %s Diff' % n: affine_estim[n] - affine_init[n]
-                 for n in ['shear']})
+    diff = {
+        'Affine %s %s Diff' % (n, c): (np.array(affine_estim[n]) - np.array(affine_init[n]))[i]
+        for n in ['translation', 'scale'] for i, c in enumerate(['X', 'Y'])
+    }
+    diff.update({'Affine %s Diff' % n: norm_angle(affine_estim[n] - affine_init[n], deg=True) for n in ['rotation']})
+    diff.update({'Affine %s Diff' % n: affine_estim[n] - affine_init[n] for n in ['shear']})
     return diff
 
 
@@ -190,8 +189,7 @@ def compute_ranking(user_cases, field, reverse=False):
     cases = set(chain(*[user_cases[u].keys() for u in user_cases]))
 
     for cs in cases:
-        usr_val = [(u, user_cases[u][cs].get(field, np.nan))
-                   for u in users if cs in user_cases[u]]
+        usr_val = [(u, user_cases[u][cs].get(field, np.nan)) for u in users if cs in user_cases[u]]
         usr_val = sorted(usr_val, key=lambda x: x[1], reverse=reverse)
         usr_rank = dict((usr, i + 1) for i, (usr, _) in enumerate(usr_val))
         for usr in users:
@@ -259,8 +257,7 @@ def grouping_cumulative(df, col_index, col_column):
     return df_counts
 
 
-def aggregate_user_score_timeline(df, col_aggreg, col_user, col_score,
-                                  lower_better=True, top_down=True, interp=False):
+def aggregate_user_score_timeline(df, col_aggreg, col_user, col_score, lower_better=True, top_down=True, interp=False):
     """ compute some cumulative statistic over given table, assuming col_aggreg is continues
     first it is grouped by col_aggreg and chose min/max (according to lower_better) of col_score
     assuming that col_aggreg is sortable like a timeline do propagation of min/max

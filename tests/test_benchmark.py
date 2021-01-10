@@ -79,8 +79,10 @@ class TestBmRegistration(unittest.TestCase):
         benchmark = ImRegBenchmark(params)
         benchmark.run()
         # no landmarks was copy and also no experiment results was produced
-        list_csv = [len([csv for csv in files if os.path.splitext(csv)[-1] == '.csv'])
-                    for _, _, files in os.walk(benchmark.params['path_exp'])]
+        list_csv = [
+            len([csv for csv in files if os.path.splitext(csv)[-1] == '.csv'])
+            for _, _, files in os.walk(benchmark.params['path_exp'])
+        ]
         self.assertEqual(sum(list_csv), 0)
         del benchmark
 
@@ -100,9 +102,7 @@ class TestBmRegistration(unittest.TestCase):
         benchmark.run()
         # rerun experiment simulated repeating unfinished benchmarks
         benchmark.run()
-        self.check_benchmark_results(benchmark,
-                                     final_means=[0., 0., 0., 0., 0.],
-                                     final_stds=[0., 0., 0., 0., 0.])
+        self.check_benchmark_results(benchmark, final_means=[0., 0., 0., 0., 0.], final_stds=[0., 0., 0., 0., 0.])
         del benchmark
 
     def test_benchmark_simple(self):
@@ -119,9 +119,7 @@ class TestBmRegistration(unittest.TestCase):
         }
         benchmark = ImRegBenchmark(params)
         benchmark.run()
-        self.check_benchmark_results(benchmark,
-                                     final_means=[0., 0.],
-                                     final_stds=[0., 0.])
+        self.check_benchmark_results(benchmark, final_means=[0., 0.], final_stds=[0., 0.])
         del benchmark
 
     def test_benchmark_template(self):
@@ -138,9 +136,9 @@ class TestBmRegistration(unittest.TestCase):
         }
         benchmark = BmTemplate(params)
         benchmark.run()
-        self.check_benchmark_results(benchmark,
-                                     final_means=[28., 68., 73., 76., 95.],
-                                     final_stds=[1., 13., 28., 28., 34.])
+        self.check_benchmark_results(
+            benchmark, final_means=[28., 68., 73., 76., 95.], final_stds=[1., 13., 28., 28., 34.]
+        )
         os.remove(path_config)
         del benchmark
 
@@ -151,47 +149,54 @@ class TestBmRegistration(unittest.TestCase):
         path_bm = os.path.join(self.path_out, bm_name)
         self.assertTrue(os.path.exists(path_bm), msg='Missing benchmark: %s' % bm_name)
         # required output files
-        for file_name in [benchmark.NAME_CSV_REGISTRATION_PAIRS,
-                          benchmark.NAME_RESULTS_CSV,
-                          benchmark.NAME_RESULTS_TXT]:
-            self.assertTrue(os.path.isfile(os.path.join(path_bm, file_name)),
-                            msg='Missing "%s" file in the BM experiment' % file_name)
+        for file_name in [
+            benchmark.NAME_CSV_REGISTRATION_PAIRS, benchmark.NAME_RESULTS_CSV, benchmark.NAME_RESULTS_TXT
+        ]:
+            self.assertTrue(
+                os.path.isfile(os.path.join(path_bm, file_name)),
+                msg='Missing "%s" file in the BM experiment' % file_name
+            )
 
         # load registration file
         path_csv = os.path.join(path_bm, benchmark.NAME_CSV_REGISTRATION_PAIRS)
         df_regist = pd.read_csv(path_csv, index_col=0)
 
         # only two items in the benchmark
-        self.assertEqual(len(df_regist), len(benchmark._df_overview),
-                         msg='Found only %i records instead of %i'
-                             % (len(df_regist), len(benchmark._df_overview)))
+        self.assertEqual(
+            len(df_regist),
+            len(benchmark._df_overview),
+            msg='Found only %i records instead of %i' % (len(df_regist), len(benchmark._df_overview))
+        )
 
         # test presence of particular columns
         for col in list(benchmark.COVER_COLUMNS) + [benchmark.COL_IMAGE_MOVE_WARP]:
-            self.assertIn(col, df_regist.columns,
-                          msg='Missing column "%s" in result table' % col)
-        cols_lnds_warp = [col in df_regist.columns
-                          for col in [benchmark.COL_POINTS_REF_WARP, benchmark.COL_POINTS_MOVE_WARP]]
+            self.assertIn(col, df_regist.columns, msg='Missing column "%s" in result table' % col)
+        cols_lnds_warp = [
+            col in df_regist.columns for col in [benchmark.COL_POINTS_REF_WARP, benchmark.COL_POINTS_MOVE_WARP]
+        ]
         self.assertTrue(any(cols_lnds_warp), msg='Missing any column of warped landmarks')
         col_lnds_warp = benchmark.COL_POINTS_REF_WARP if cols_lnds_warp[0] \
             else benchmark.COL_POINTS_MOVE_WARP
         # check existence of all mentioned files
         for _, row in df_regist.iterrows():
-            self.assertTrue(os.path.isfile(os.path.join(path_bm, row[benchmark.COL_IMAGE_MOVE_WARP])),
-                            msg='Missing image "%s"' % row[benchmark.COL_IMAGE_MOVE_WARP])
-            self.assertTrue(os.path.isfile(os.path.join(path_bm, row[col_lnds_warp])),
-                            msg='Missing landmarks "%s"' % row[col_lnds_warp])
+            self.assertTrue(
+                os.path.isfile(os.path.join(path_bm, row[benchmark.COL_IMAGE_MOVE_WARP])),
+                msg='Missing image "%s"' % row[benchmark.COL_IMAGE_MOVE_WARP]
+            )
+            self.assertTrue(
+                os.path.isfile(os.path.join(path_bm, row[col_lnds_warp])),
+                msg='Missing landmarks "%s"' % row[col_lnds_warp]
+            )
 
         # check existence of statistical results
         for stat_name in ['Mean', 'STD', 'Median', 'Min', 'Max']:
-            self.assertTrue(any(stat_name in col for col in df_regist.columns),
-                            msg='Missing statistics "%s"' % stat_name)
+            self.assertTrue(
+                any(stat_name in col for col in df_regist.columns), msg='Missing statistics "%s"' % stat_name
+            )
 
         # test specific results
-        assert_array_almost_equal(sorted(df_regist['TRE Mean'].values),
-                                  np.array(final_means), decimal=0)
-        assert_array_almost_equal(sorted(df_regist['TRE STD'].values),
-                                  np.array(final_stds), decimal=0)
+        assert_array_almost_equal(sorted(df_regist['TRE Mean'].values), np.array(final_means), decimal=0)
+        assert_array_almost_equal(sorted(df_regist['TRE STD'].values), np.array(final_stds), decimal=0)
 
     def test_try_wrap(self):
         self.assertIsNone(try_wrap())
@@ -207,11 +212,9 @@ class TestBmRegistration(unittest.TestCase):
             self.assertIsInstance(args, dict)
 
     def test_fail_visual(self):
-        fig = ImRegBenchmark._visual_image_move_warp_lnds_move_warp(
-            {ImRegBenchmark.COL_POINTS_MOVE_WARP: 'abc'})
+        fig = ImRegBenchmark._visual_image_move_warp_lnds_move_warp({ImRegBenchmark.COL_POINTS_MOVE_WARP: 'abc'})
         self.assertIsNone(fig)
-        fig = ImRegBenchmark._visual_image_move_warp_lnds_ref_warp(
-            {ImRegBenchmark.COL_POINTS_REF_WARP: 'abc'})
+        fig = ImRegBenchmark._visual_image_move_warp_lnds_ref_warp({ImRegBenchmark.COL_POINTS_REF_WARP: 'abc'})
         self.assertIsNone(fig)
         fig = ImRegBenchmark.visualise_registration((0, {}))
         self.assertIsNone(fig)

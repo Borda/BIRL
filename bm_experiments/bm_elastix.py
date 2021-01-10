@@ -174,8 +174,7 @@ class BmElastix(ImRegBenchmark):
         path_log = os.path.join(path_dir, self.NAME_LOG_REGISTRATION)
 
         name_lnds = os.path.basename(path_lnds_ref)
-        path_lnds_local = save_landmarks_pts(os.path.join(path_dir, name_lnds),
-                                             load_landmarks(path_lnds_ref))
+        path_lnds_local = save_landmarks_pts(os.path.join(path_dir, name_lnds), load_landmarks(path_lnds_ref))
 
         # warping the image and points
         cmd = self.COMMAND_TRANSFORMATION % {
@@ -201,8 +200,10 @@ class BmElastix(ImRegBenchmark):
             lnds = self.parse_warped_points(path_lnds_out)
             save_landmarks(path_lnds_warp, lnds)
 
-        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
-                self.COL_POINTS_REF_WARP: path_lnds_warp}
+        return {
+            self.COL_IMAGE_MOVE_WARP: path_img_warp,
+            self.COL_POINTS_REF_WARP: path_lnds_warp,
+        }
 
     def _clear_after_registration(self, item):
         """ clean unnecessarily files after the registration
@@ -226,15 +227,21 @@ class BmElastix(ImRegBenchmark):
         :return object:
         """
         # SEE: https://docs.python.org/3/library/argparse.html
-        arg_parser.add_argument('-elastix', '--path_elastix', type=str, required=False,
-                                help='path to folder with elastix executables'
-                                     ' (if they are not directly callable)')
-        arg_parser.add_argument('-cfg', '--path_config', required=True,
-                                type=str, help='path to the elastic configuration')
+        arg_parser.add_argument(
+            '-elastix',
+            '--path_elastix',
+            type=str,
+            required=False,
+            help='path to folder with elastix executables (if they are not directly callable)'
+        )
+        arg_parser.add_argument(
+            '-cfg', '--path_config', required=True, type=str, help='path to the elastic configuration'
+        )
         return arg_parser
 
     @staticmethod
     def parse_warped_points(path_pts, col_name='OutputPoint'):
+
         def _parse_lists(cell):
             # get just the string with list
             s_list = cell[cell.index(' = ') + 3:].strip()
@@ -245,8 +252,7 @@ class BmElastix(ImRegBenchmark):
         # load the file as table with custom separator and using the first line
         df = pd.read_csv(path_pts, header=None, sep=';')
         # rename columns according content, it it has following stricture `name = value`
-        df.columns = [c[:c.index(' = ')].strip() if '=' in c else n
-                      for n, c in zip(df.columns, df.iloc[0])]
+        df.columns = [c[:c.index(' = ')].strip() if '=' in c else n for n, c in zip(df.columns, df.iloc[0])]
         # parse the values for selected column
         vals = df[col_name].apply(_parse_lists).values
         # transform collection of list to matrix

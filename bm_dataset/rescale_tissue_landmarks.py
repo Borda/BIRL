@@ -28,7 +28,6 @@ Sample usage::
 Copyright (C) 2014-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-
 import argparse
 import glob
 import logging
@@ -42,8 +41,7 @@ import pandas as pd
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.experiments import iterate_mproc_map, parse_arg_params, is_iterable
 from birl.utilities.data_io import create_folder, load_landmarks_csv, save_landmarks_csv
-from birl.utilities.dataset import (list_sub_folders, parse_path_scale,
-                                    compute_bounding_polygon, inside_polygon)
+from birl.utilities.dataset import (list_sub_folders, parse_path_scale, compute_bounding_polygon, inside_polygon)
 from birl.utilities.registration import estimate_affine_transform, transform_points
 from bm_dataset.rescale_tissue_images import NB_WORKERS, DEFAULT_SCALES, FOLDER_TEMPLATE
 
@@ -55,18 +53,25 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-a', '--path_annots', type=str, required=False,
-                        help='path to folder with annotations')
-    parser.add_argument('-d', '--path_dataset', type=str, required=False,
-                        help='path to the output directory - dataset')
-    parser.add_argument('--scales', type=int, required=False, nargs='*',
-                        help='generated scales for the dataset', default=DEFAULT_SCALES)
-    parser.add_argument('--nb_selected', type=float, required=False, default=None,
-                        help='number ot ration of selected landmarks')
-    parser.add_argument('--nb_total', type=int, required=False, default=None,
-                        help='total number of generated landmarks')
-    parser.add_argument('--nb_workers', type=int, required=False, default=NB_WORKERS,
-                        help='number of processes in parallel')
+    parser.add_argument('-a', '--path_annots', type=str, required=False, help='path to folder with annotations')
+    parser.add_argument('-d', '--path_dataset', type=str, required=False, help='path to the output directory - dataset')
+    parser.add_argument(
+        '--scales',
+        type=int,
+        required=False,
+        nargs='*',
+        help='generated scales for the dataset',
+        default=DEFAULT_SCALES
+    )
+    parser.add_argument(
+        '--nb_selected', type=float, required=False, default=None, help='number ot ration of selected landmarks'
+    )
+    parser.add_argument(
+        '--nb_total', type=int, required=False, default=None, help='total number of generated landmarks'
+    )
+    parser.add_argument(
+        '--nb_workers', type=int, required=False, default=NB_WORKERS, help='number of processes in parallel'
+    )
     args = parse_arg_params(parser)
     if not is_iterable(args['scales']):
         args['scales'] = [args['scales']]
@@ -79,16 +84,14 @@ def load_largest_scale(path_set):
     :param str path_set: path to image/landmark set
     :return dict: dictionary of ndarray with loaded landmarks in full scale
     """
-    scales_folders = [(parse_path_scale(p), os.path.basename(p))
-                      for p in list_sub_folders(path_set)]
+    scales_folders = [(parse_path_scale(p), os.path.basename(p)) for p in list_sub_folders(path_set)]
     if not scales_folders:
         return None
     scale, folder = sorted(scales_folders, reverse=True)[0]
 
     paths_csv = glob.glob(os.path.join(path_set, folder, '*.csv'))
     scaling = 100. / scale
-    names_lnds = {os.path.basename(p): load_landmarks_csv(p) * scaling
-                  for p in paths_csv}
+    names_lnds = {os.path.basename(p): load_landmarks_csv(p) * scaling for p in paths_csv}
     return names_lnds
 
 
@@ -110,8 +113,7 @@ def generate_random_points_inside(ref_points, nb_extras):
         if inside_polygon(convex_polygon, point):
             points_extra.append(point)
             if len(points_extra) > nb_extras:
-                logging.debug('particular polygon generated %f inside',
-                              nb_extras / float(i))
+                logging.debug('particular polygon generated %f inside', nb_extras / float(i))
                 break
     else:  # in case the loop ended regularly without break
         logging.warning('something went wrong with ')
@@ -146,11 +148,9 @@ def expand_random_warped_landmarks(names_lnds, names_lnds_new, nb_total):
         matrix, _, _, _ = estimate_affine_transform(pts1, pts2)
         points_warp = transform_points(points_extra, matrix)
         # insert the warped points
-        names_lnds_new[name] = np.vstack([names_lnds_new[name][:nb_min_new],
-                                          points_warp])
+        names_lnds_new[name] = np.vstack([names_lnds_new[name][:nb_min_new], points_warp])
     # insert also the reference sample
-    names_lnds_new[ref_name] = np.vstack([names_lnds_new[ref_name][:nb_min_new],
-                                          points_extra])
+    names_lnds_new[ref_name] = np.vstack([names_lnds_new[ref_name][:nb_min_new], points_extra])
 
     # reorder landmarks but equally in all sets
     reorder = list(range(nb_total))
@@ -197,19 +197,16 @@ def extend_landmarks(path_set, path_dataset, nb_selected=None, nb_total=None):
         names_lnds_new = names_lnds
 
     if nb_total is not None:
-        names_lnds_new = expand_random_warped_landmarks(
-            names_lnds, names_lnds_new, nb_total)
+        names_lnds_new = expand_random_warped_landmarks(names_lnds, names_lnds_new, nb_total)
 
     # export the landmarks
-    path_set_scale = os.path.join(path_dataset, os.path.basename(path_set),
-                                  FOLDER_TEMPLATE % 100)
+    path_set_scale = os.path.join(path_dataset, os.path.basename(path_set), FOLDER_TEMPLATE % 100)
     create_folder(path_set_scale)
     for name in names_lnds_new:
         save_landmarks_csv(os.path.join(path_set_scale, name), names_lnds_new[name])
 
 
-def dataset_expand_landmarks(path_annots, path_dataset, nb_selected=None,
-                             nb_total=None, nb_workers=NB_WORKERS):
+def dataset_expand_landmarks(path_annots, path_dataset, nb_selected=None, nb_total=None, nb_workers=NB_WORKERS):
     """ select and expand over whole dataset
 
     :param str path_annots: root path to original dataset
@@ -222,10 +219,8 @@ def dataset_expand_landmarks(path_annots, path_dataset, nb_selected=None,
     list_sets = list_sub_folders(path_annots)
     logging.info('Found sets: %i', len(list_sets))
 
-    _wrap_extend = partial(extend_landmarks, path_dataset=path_dataset,
-                           nb_selected=nb_selected, nb_total=nb_total)
-    counts = list(iterate_mproc_map(_wrap_extend, sorted(list_sets),
-                                    nb_workers=nb_workers, desc='expand landmarks'))
+    _wrap_extend = partial(extend_landmarks, path_dataset=path_dataset, nb_selected=nb_selected, nb_total=nb_total)
+    counts = list(iterate_mproc_map(_wrap_extend, sorted(list_sets), nb_workers=nb_workers, desc='expand landmarks'))
     return counts
 
 
@@ -245,8 +240,7 @@ def scale_set_landmarks(path_set, scales=DEFAULT_SCALES):
         return
     list_csv = glob.glob(os.path.join(path_scale100, '*.csv'))
     logging.debug('>> found landmarks: %i', len(list_csv))
-    dict_lnds = {os.path.basename(p): pd.read_csv(p, index_col=0)
-                 for p in list_csv}
+    dict_lnds = {os.path.basename(p): pd.read_csv(p, index_col=0) for p in list_csv}
     set_scales = {}
     for sc in (sc for sc in scales if sc not in [100]):  # drop the base scale
         folder_name = FOLDER_TEMPLATE % sc
@@ -271,13 +265,11 @@ def dataset_scale_landmarks(path_dataset, scales=DEFAULT_SCALES, nb_workers=NB_W
     logging.info('Found sets: %i', len(list_sets))
 
     _wrap_scale = partial(scale_set_landmarks, scales=scales)
-    counts = list(iterate_mproc_map(_wrap_scale, sorted(list_sets),
-                                    nb_workers=nb_workers, desc='scaling sets'))
+    counts = list(iterate_mproc_map(_wrap_scale, sorted(list_sets), nb_workers=nb_workers, desc='scaling sets'))
     return counts
 
 
-def main(path_annots, path_dataset, scales, nb_selected=None, nb_total=None,
-         nb_workers=NB_WORKERS):
+def main(path_annots, path_dataset, scales, nb_selected=None, nb_total=None, nb_workers=NB_WORKERS):
     """ main entry point
 
     :param str path_annots: root path to original dataset
@@ -288,10 +280,8 @@ def main(path_annots, path_dataset, scales, nb_selected=None, nb_total=None,
     :param int nb_workers: number of jobs running in parallel
     :return tuple(int,int):
     """
-    count_gene = dataset_expand_landmarks(path_annots, path_dataset,
-                                          nb_selected, nb_total, nb_workers=nb_workers)
-    count_scale = dataset_scale_landmarks(path_dataset, scales=scales,
-                                          nb_workers=nb_workers)
+    count_gene = dataset_expand_landmarks(path_annots, path_dataset, nb_selected, nb_total, nb_workers=nb_workers)
+    count_scale = dataset_scale_landmarks(path_dataset, scales=scales, nb_workers=nb_workers)
     return count_gene, count_scale
 
 

@@ -12,7 +12,6 @@ except ImportError:
     import traceback
     traceback.print_exc()
 
-
 __version__ = "0.2.5"
 __author__ = "Jiri Borovec"
 __author_email__ = "jiri.borovec@fel.cvut.cz"

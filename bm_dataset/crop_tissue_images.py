@@ -26,8 +26,8 @@ import numpy as np
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.dataset import (
-    find_largest_object, project_object_edge, load_large_image, save_large_image,
-    args_expand_parse_images)
+    find_largest_object, project_object_edge, load_large_image, save_large_image, args_expand_parse_images
+)
 from birl.utilities.experiments import iterate_mproc_map, try_decorator, nb_workers
 
 NB_WORKERS = nb_workers(0.5)
@@ -42,8 +42,9 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('--padding', type=float, required=False, default=0.1,
-                        help='padding around the object in image percents')
+    parser.add_argument(
+        '--padding', type=float, required=False, default=0.1, help='padding around the object in image percents'
+    )
     args = args_expand_parse_images(parser, NB_WORKERS, overwrite=False)
     logging.info('ARGUMENTS: \n%r' % args)
     return args
@@ -103,8 +104,7 @@ def main(path_images, padding, nb_workers):
         return
 
     _wrap_crop = partial(crop_image, padding=padding)
-    list(iterate_mproc_map(_wrap_crop, image_paths, desc='Crop image tissue',
-                           nb_workers=nb_workers))
+    list(iterate_mproc_map(_wrap_crop, image_paths, desc='Crop image tissue', nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

@@ -173,8 +173,7 @@ class Experiment(object):
         """
         assert 'path_out' in self.params, 'missing "path_out" among parameters'
         self.params['path_out'] = update_path(self.params.get('path_out'))
-        list_names = [n for n in self.params
-                      if any(m in n.lower() for m in ['path', 'dir', 'file'])]
+        list_names = [n for n in self.params if any(m in n.lower() for m in ['path', 'dir', 'file'])]
         for n in list_names:
             p = os.path.abspath(os.path.expanduser(self.params[n]))
             if not os.path.exists(p):
@@ -195,8 +194,8 @@ class Experiment(object):
                                           % self.params.keys()
         # create results folder for experiments
         path_exp = create_experiment_folder(
-            self.params.get('path_out'), self.__class__.__name__,
-            self.params.get('name'), stamp_unique)
+            self.params.get('path_out'), self.__class__.__name__, self.params.get('name'), stamp_unique
+        )
         self.params['path_exp'] = path_exp
         save_config_yaml(os.path.join(path_exp, self.NAME_CONFIG_YAML), self.params)
 
@@ -328,27 +327,36 @@ def create_basic_parser(name=''):
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser('Benchmark on Image Registration - %s' % name)
-    parser.add_argument('-n', '--name', type=str, required=False, default=None,
-                        help='custom experiment name')
-    parser.add_argument('-t', '--path_table', type=str, required=True,
-                        help='path to the csv cover file')
-    parser.add_argument('-d', '--path_dataset', type=str, required=False, default=None,
-                        help='path to the dataset location, if missing in table')
-    parser.add_argument('-o', '--path_out', type=str, required=True,
-                        help='path to the output directory')
-    parser.add_argument('--unique', dest='unique', action='store_true',
-                        help='whether each experiment have unique time stamp')
-    parser.add_argument('--visual', dest='visual', action='store_true',
-                        help='whether visualise partial results')
-    parser.add_argument('-pproc', '--preprocessing', type=str, required=False, nargs='+',
-                        help='use some image pre-processing, the other matter',
-                        choices=['gray'] + ['matching-%s' % clr for clr in CONVERT_RGB])
+    parser.add_argument('-n', '--name', type=str, required=False, default=None, help='custom experiment name')
+    parser.add_argument('-t', '--path_table', type=str, required=True, help='path to the csv cover file')
+    parser.add_argument(
+        '-d',
+        '--path_dataset',
+        type=str,
+        required=False,
+        default=None,
+        help='path to the dataset location, if missing in table'
+    )
+    parser.add_argument('-o', '--path_out', type=str, required=True, help='path to the output directory')
+    parser.add_argument(
+        '--unique', dest='unique', action='store_true', help='whether each experiment have unique time stamp'
+    )
+    parser.add_argument('--visual', dest='visual', action='store_true', help='whether visualise partial results')
+    parser.add_argument(
+        '-pproc',
+        '--preprocessing',
+        type=str,
+        required=False,
+        nargs='+',
+        help='use some image pre-processing, the other matter',
+        choices=['gray'] + ['matching-%s' % clr for clr in CONVERT_RGB]
+    )
     # parser.add_argument('--lock_expt', dest='lock_thread', action='store_true',
     #                     help='whether lock to run experiment in single thread')
-    parser.add_argument('--run_comp_benchmark', action='store_true',
-                        help='run computation benchmark on the end')
-    parser.add_argument('--nb_workers', type=int, required=False, default=1,
-                        help='number of registration running in parallel')
+    parser.add_argument('--run_comp_benchmark', action='store_true', help='run computation benchmark on the end')
+    parser.add_argument(
+        '--nb_workers', type=int, required=False, default=1, help='number of registration running in parallel'
+    )
     return parser
 
 
@@ -456,8 +464,10 @@ def exec_commands(commands, path_logger=None, timeout=None):
         except Exception as ex:
             # catching this exception directly is not possible because Py2 does not know it
             if hasattr(ex, 'timeout'):
-                logging.warning('subprocess.TimeoutExpired:'
-                                ' Command "%s" timed out after %i seconds', cmd, ex.timeout)
+                logging.warning(
+                    'subprocess.TimeoutExpired:'
+                    ' Command "%s" timed out after %i seconds', cmd, ex.timeout
+                )
                 outputs += [ex.output]
             else:
                 logging.exception(ex)
@@ -529,7 +539,8 @@ def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc='', or
     * https://sebastianraschka.com/Articles/2014_multiprocessing.html
     * https://github.com/nipy/nipype/pull/2754
     * https://medium.com/contentsquare-engineering-blog/multithreading-vs-multiprocessing-in-python-ece023ad55a
-    * http://mindcache.me/2015/08/09/python-multiprocessing-module-daemonic-processes-are-not-allowed-to-have-children.html
+    * http://mindcache.me/2015/08/09/
+        python-multiprocessing-module-daemonic-processes-are-not-allowed-to-have-children.html
     * https://medium.com/@bfortuner/python-multithreading-vs-multiprocessing-73072ce5600b
 
     >>> list(iterate_mproc_map(np.sqrt, range(5), nb_workers=1, desc=None))  # doctest: +ELLIPSIS
@@ -544,8 +555,7 @@ def iterate_mproc_map(wrap_func, iterate_vals, nb_workers=CPU_COUNT, desc='', or
     nb_workers = CPU_COUNT if nb_workers < 0 else nb_workers
 
     if desc is not None:
-        pbar = tqdm.tqdm(total=len(iterate_vals),
-                         desc=str('%r @%i-threads' % (desc, nb_workers)))
+        pbar = tqdm.tqdm(total=len(iterate_vals), desc=str('%r @%i-threads' % (desc, nb_workers)))
     else:
         pbar = None
 
@@ -632,12 +642,14 @@ def try_decorator(func):
     :param func: decorated function
     :return func: output of the decor. function
     """
+
     @wraps(func)
     def wrap(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except Exception:
             logging.exception('%r with %r and %r', func.__name__, args, kwargs)
+
     return wrap
 
 
@@ -694,7 +706,7 @@ def _get_ram():
     """
     try:
         from psutil import virtual_memory
-        ram = virtual_memory().total / 1024. ** 3
+        ram = virtual_memory().total / 1024.**3
     except Exception:
         logging.exception('Retrieving info about RAM memory failed.')
         ram = np.nan

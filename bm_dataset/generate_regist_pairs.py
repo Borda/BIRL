@@ -39,15 +39,17 @@ def arg_parse_params():
     :return dict: parameters
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--path_pattern_images', type=str,
-                        help='path to the input image', required=True)
-    parser.add_argument('-l', '--path_pattern_landmarks', type=str,
-                        help='path to the input landmarks', required=True)
-    parser.add_argument('-csv', '--path_csv', type=str, required=True,
-                        help='path to coordinate csv file')
-    parser.add_argument('--mode', type=str, required=False,
-                        help='type of combination of registration pairs',
-                        default=OPTIONS_COMBINE[0], choices=OPTIONS_COMBINE)
+    parser.add_argument('-i', '--path_pattern_images', type=str, help='path to the input image', required=True)
+    parser.add_argument('-l', '--path_pattern_landmarks', type=str, help='path to the input landmarks', required=True)
+    parser.add_argument('-csv', '--path_csv', type=str, required=True, help='path to coordinate csv file')
+    parser.add_argument(
+        '--mode',
+        type=str,
+        required=False,
+        help='type of combination of registration pairs',
+        default=OPTIONS_COMBINE[0],
+        choices=OPTIONS_COMBINE
+    )
     args = parse_arg_params(parser, upper_dirs=['path_csv'])
     return args
 
@@ -70,13 +72,11 @@ def generate_pairs(path_pattern_imgs, path_pattern_lnds, mode):
 
     pairs = [(0, i) for i in range(1, len(list_imgs))]
     if mode == 'each2all':
-        pairs += [(i, j) for i in range(1, len(list_imgs))
-                  for j in range(i + 1, len(list_imgs))]
+        pairs += [(i, j) for i in range(1, len(list_imgs)) for j in range(i + 1, len(list_imgs))]
 
     reg_pairs = []
     for i, j in pairs:
-        rec = dict(zip(ImRegBenchmark.COVER_COLUMNS,
-                       (list_imgs[i], list_imgs[j], list_lnds[i], list_lnds[j])))
+        rec = dict(zip(ImRegBenchmark.COVER_COLUMNS, (list_imgs[i], list_imgs[j], list_lnds[i], list_lnds[j])))
         img_size, img_diag = image_sizes(rec[ImRegBenchmark.COL_IMAGE_REF])
         rec.update({
             ImRegBenchmark.COL_IMAGE_SIZE: img_size,

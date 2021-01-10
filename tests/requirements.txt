@@ -2,9 +2,10 @@ nose>=1.0
 coverage
 codecov
 pytest>4.0
-pytest-cov
-flake8
+# pytest-cov
+flake8>3.0
 check-manifest
 codacy-coverage
 parameterized
 mock
+yapf

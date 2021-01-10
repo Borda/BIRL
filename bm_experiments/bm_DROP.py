@@ -69,7 +69,8 @@ import numpy as np
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import (
-    convert_image_to_mhd, convert_image_from_mhd, save_landmarks, load_landmarks, image_sizes)
+    convert_image_to_mhd, convert_image_from_mhd, save_landmarks, load_landmarks, image_sizes
+)
 from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
 
@@ -104,7 +105,7 @@ class BmDROP(ImRegBenchmark):
     #: required experiment parameters
     REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_DROP', 'path_config']
     #: maximal image size (diagonal in pixels) recommended for DROP registration
-    MAX_IMAGE_DIAGONAL = int(np.sqrt(2e3 ** 2 + 2e3 ** 2))
+    MAX_IMAGE_DIAGONAL = int(np.sqrt(2e3**2 + 2e3**2))
     #: time need for image conversion and optional scaling
     COL_TIME_CONVERT = 'conversion time [s]'
 
@@ -126,8 +127,7 @@ class BmDROP(ImRegBenchmark):
         item['scaling'] = max(1, max(diags) / float(self.MAX_IMAGE_DIAGONAL))
 
         t_start = time.time()
-        for path_img, col in [(path_im_ref, self.COL_IMAGE_REF),
-                              (path_im_move, self.COL_IMAGE_MOVE)]:
+        for path_img, col in [(path_im_ref, self.COL_IMAGE_REF), (path_im_move, self.COL_IMAGE_MOVE)]:
             item[col + self.COL_IMAGE_EXT_TEMP] = \
                 convert_image_to_mhd(path_img, path_out_dir=path_reg_dir, overwrite=False,
                                      to_gray=True, scaling=item.get('scaling', 1.))
@@ -164,8 +164,7 @@ class BmDROP(ImRegBenchmark):
         path_reg_dir = self._get_path_reg_dir(item)
         _, path_im_move, path_lnds_ref, _ = self._get_paths(item)
         # convert MHD image
-        path_img_ = convert_image_from_mhd(os.path.join(path_reg_dir, 'output.mhd'),
-                                           scaling=item.get('scaling', 1.))
+        path_img_ = convert_image_from_mhd(os.path.join(path_reg_dir, 'output.mhd'), scaling=item.get('scaling', 1.))
         img_name, _ = os.path.splitext(os.path.basename(path_im_move))
         _, img_ext = os.path.splitext(os.path.basename(path_img_))
         path_img_warp = path_img_.replace('output' + img_ext, img_name + img_ext)
@@ -196,8 +195,10 @@ class BmDROP(ImRegBenchmark):
         save_landmarks(path_lnds_warp, lnds_warp)
 
         # return formatted results
-        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
-                self.COL_POINTS_REF_WARP: path_lnds_warp}
+        return {
+            self.COL_IMAGE_MOVE_WARP: path_img_warp,
+            self.COL_POINTS_REF_WARP: path_lnds_warp,
+        }
 
     def _clear_after_registration(self, item, patterns=('output*', '*.mhd', '*.raw')):
         """ clean unnecessarily files after the registration
@@ -220,10 +221,12 @@ class BmDROP(ImRegBenchmark):
         :return object:
         """
         # SEE: https://docs.python.org/3/library/argparse.html
-        arg_parser.add_argument('-DROP', '--exec_DROP', type=str, required=True,
-                                help='path to DROP executable, use `dropreg2d`')
-        arg_parser.add_argument('-cfg', '--path_config', type=str, required=True,
-                                help='parameters for DROP registration')
+        arg_parser.add_argument(
+            '-DROP', '--exec_DROP', type=str, required=True, help='path to DROP executable, use `dropreg2d`'
+        )
+        arg_parser.add_argument(
+            '-cfg', '--path_config', type=str, required=True, help='parameters for DROP registration'
+        )
         return arg_parser
 
     @staticmethod
@@ -235,6 +238,7 @@ class BmDROP(ImRegBenchmark):
         :param ndarray lnds: landmarks
         :return ndarray: shift for each landmarks
         """
+
         # define function for parsing particular shift from MHD
         def __parse_shift(path_deform_, lnds):
             assert os.path.isfile(path_deform_), 'missing deformation: %s' % path_deform_

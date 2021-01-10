@@ -47,14 +47,16 @@ def create_parser():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-e', '--path_experiment', type=str, required=True,
-                        help='path to the experiments')
-    parser.add_argument('-d', '--path_dataset', type=str, required=False,
-                        help='path to dataset with provided landmarks')
-    parser.add_argument('--visual', action='store_true', required=False,
-                        default=False, help='visualise the landmarks in images')
-    parser.add_argument('--nb_workers', type=int, required=False, default=NB_WORKERS,
-                        help='number of processes running in parallel')
+    parser.add_argument('-e', '--path_experiment', type=str, required=True, help='path to the experiments')
+    parser.add_argument(
+        '-d', '--path_dataset', type=str, required=False, help='path to dataset with provided landmarks'
+    )
+    parser.add_argument(
+        '--visual', action='store_true', required=False, default=False, help='visualise the landmarks in images'
+    )
+    parser.add_argument(
+        '--nb_workers', type=int, required=False, default=NB_WORKERS, help='number of processes running in parallel'
+    )
     return parser
 
 
@@ -71,27 +73,29 @@ def main(path_experiment, path_dataset, visual=False, nb_workers=NB_WORKERS):
 
     df_experiments = pd.read_csv(path_results)
     df_results = df_experiments.copy()
-    _compute_lnds_stat = partial(ImRegBenchmark.compute_registration_statistic,
-                                 df_experiments=df_results,
-                                 path_dataset=path_dataset,
-                                 path_experiment=path_experiment)
+    _compute_lnds_stat = partial(
+        ImRegBenchmark.compute_registration_statistic,
+        df_experiments=df_results,
+        path_dataset=path_dataset,
+        path_experiment=path_experiment,
+    )
     # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
-    list(iterate_mproc_map(_compute_lnds_stat, df_experiments.iterrows(),
-                           desc='Statistic', nb_workers=1))
+    list(iterate_mproc_map(_compute_lnds_stat, df_experiments.iterrows(), desc='Statistic', nb_workers=1))
 
     path_csv = os.path.join(path_experiment, NAME_CSV_RESULTS)
     logging.debug('exporting CSV results: %s', path_csv)
     df_results.to_csv(path_csv, index=None)
-    export_summary_results(df_results, path_experiment, None,
-                           name_csv=NAME_CSV_SUMMARY,
-                           name_txt=NAME_TXT_SUMMARY)
+    export_summary_results(df_results, path_experiment, None, name_csv=NAME_CSV_SUMMARY, name_txt=NAME_TXT_SUMMARY)
 
     if visual:
-        _visualise_regist = partial(ImRegBenchmark.visualise_registration,
-                                    path_dataset=path_dataset,
-                                    path_experiment=path_experiment)
-        list(iterate_mproc_map(_visualise_regist, df_experiments.iterrows(),
-                               desc='Visualisation', nb_workers=nb_workers))
+        _visualise_regist = partial(
+            ImRegBenchmark.visualise_registration, path_dataset=path_dataset, path_experiment=path_experiment
+        )
+        list(
+            iterate_mproc_map(
+                _visualise_regist, df_experiments.iterrows(), desc='Visualisation', nb_workers=nb_workers
+            )
+        )
 
 
 if __name__ == '__main__':

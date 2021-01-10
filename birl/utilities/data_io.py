@@ -42,9 +42,11 @@ def create_folder(path_folder, ok_existing=True):
         try:
             os.makedirs(path_folder, mode=0o775)
         except Exception:
-            logging.exception('Something went wrong (probably parallel access),'
-                              ' the status of "%s" is %s', path_folder,
-                              os.path.isdir(path_folder))
+            logging.exception(
+                'Something went wrong (probably parallel access), the status of "%s" is %s',
+                path_folder,
+                os.path.isdir(path_folder),
+            )
             path_folder = None
     elif not ok_existing:
         logging.warning('Folder already exists: %s', path_folder)
@@ -83,8 +85,7 @@ def load_landmarks(path_file):
     elif ext == '.pts':
         return load_landmarks_pts(path_file)
     else:
-        logging.error('not supported landmarks file: %s',
-                      os.path.basename(path_file))
+        logging.error('not supported landmarks file: %s', os.path.basename(path_file))
 
 
 def load_landmarks_pts(path_file):
@@ -119,8 +120,7 @@ def load_landmarks_pts(path_file):
         logging.warning('invalid format: file has less then 2 lines, "%r"', lines)
         return np.zeros((0, 2))
     nb_points = int(lines[1])
-    points = [[float(n) for n in line.split()]
-              for line in lines[2:] if line]
+    points = [[float(n) for n in line.split()] for line in lines[2:] if line]
     assert nb_points == len(points), 'number of declared (%i) and found (%i) ' \
                                      'does not match' % (nb_points, len(points))
     return np.array(points, dtype=np.float)
@@ -260,6 +260,7 @@ def io_image_decorate(func):
     :param func: decorated function
     :return func: output of the decor. function
     """
+
     @wraps(func)
     def wrap(*args, **kwargs):
         log_level = logging.getLogger().getEffectiveLevel()
@@ -269,6 +270,7 @@ def io_image_decorate(func):
             response = func(*args, **kwargs)
         logging.getLogger().setLevel(log_level)
         return response
+
     return wrap
 
 
@@ -288,7 +290,7 @@ def image_sizes(path_image, decimal=1):
     """
     assert os.path.isfile(path_image), 'missing image: %s' % path_image
     width, height = Image.open(path_image).size
-    img_diag = np.sqrt(np.sum(np.array([height, width]) ** 2))
+    img_diag = np.sqrt(np.sum(np.array([height, width])**2))
     return (height, width), np.round(img_diag, decimal)
 
 
@@ -558,8 +560,7 @@ def convert_image_to_mhd(path_image, path_out_dir=None, to_gray=True, overwrite=
     path_image_new = _gene_out_path(path_image, '.mhd', path_out_dir)
     # in case the image exists and you are not allowed to overwrite it
     if os.path.isfile(path_image_new) and not overwrite:
-        logging.debug('skip converting since the image exists and no-overwrite: %s',
-                      path_image_new)
+        logging.debug('skip converting since the image exists and no-overwrite: %s', path_image_new)
         return path_image_new
 
     img = load_image(path_image)

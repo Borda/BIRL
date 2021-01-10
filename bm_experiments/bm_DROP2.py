@@ -160,8 +160,10 @@ class BmDROP2(BmDROP):
         save_landmarks(path_lnds_warp, lnds_warp)
 
         # return formatted results
-        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
-                self.COL_POINTS_REF_WARP: path_lnds_warp}
+        return {
+            self.COL_IMAGE_MOVE_WARP: path_img_warp,
+            self.COL_POINTS_REF_WARP: path_lnds_warp,
+        }
 
     def _clear_after_registration(self, item, patterns=('output*', '*.nii.gz')):
         """ clean unnecessarily files after the registration
@@ -181,6 +183,7 @@ class BmDROP2(BmDROP):
         :param ndarray lnds: landmarks
         :return ndarray: shift for each landmarks
         """
+
         # define function for parsing particular shift from MHD
         def __parse_shift(path_deform_, axis, lnds):
             assert os.path.isfile(path_deform_), 'missing deformation: %s' % path_deform_

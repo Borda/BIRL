@@ -77,11 +77,9 @@ class BmRVSS(ImRegBenchmark):
     #: required experiment parameters
     REQUIRED_PARAMS = ImRegBenchmark.REQUIRED_PARAMS + ['exec_Fiji', 'path_config']
     #: path/name of image registration script
-    PATH_SCRIPT_REGISTRATION = os.path.join(BmUnwarpJ.PATH_IJ_SCRIPTS,
-                                            'apply-RVSS-registration.bsh')
+    PATH_SCRIPT_REGISTRATION = os.path.join(BmUnwarpJ.PATH_IJ_SCRIPTS, 'apply-RVSS-registration.bsh')
     #: path/name of image/landmarks warping script
-    PATH_SCRIPT_WARP_LANDMARKS = os.path.join(BmUnwarpJ.PATH_IJ_SCRIPTS,
-                                              'apply-RVSS-transform.bsh')
+    PATH_SCRIPT_WARP_LANDMARKS = os.path.join(BmUnwarpJ.PATH_IJ_SCRIPTS, 'apply-RVSS-transform.bsh')
     #: internal folder name for copy input image pairs
     DIR_INPUTS = 'input'
     #: internal folder name for registration results - images and transformations
@@ -101,9 +99,7 @@ class BmRVSS(ImRegBenchmark):
         ' %(transf)s' \
         ' %(warp)s'
     #: required parameters in the configuration file for RVSS
-    REQUIRED_PARAMS_RVSS = ('shrinkingConstraint',
-                            'featuresModelIndex',
-                            'registrationModelIndex')
+    REQUIRED_PARAMS_RVSS = ('shrinkingConstraint', 'featuresModelIndex', 'registrationModelIndex')
     #: default RVSS parameters
     DEFAULT_PARAMS = {
         'RVSS': {
@@ -194,8 +190,7 @@ class BmRVSS(ImRegBenchmark):
         pts_source = load_landmarks(path_lnds_move)
         save_landmarks(os.path.join(path_dir, BmUnwarpJ.NAME_LANDMARKS), pts_source)
         # execute transformation
-        exec_commands(self.COMMAND_WARP_LANDMARKS % dict_params, path_logger=path_log,
-                      timeout=self.EXECUTE_TIMEOUT)
+        exec_commands(self.COMMAND_WARP_LANDMARKS % dict_params, path_logger=path_log, timeout=self.EXECUTE_TIMEOUT)
         # load warped landmarks from TXT
         path_lnds_warp = os.path.join(path_dir, BmUnwarpJ.NAME_LANDMARKS_WARPED)
         if os.path.isfile(path_lnds_warp):
@@ -206,14 +201,15 @@ class BmRVSS(ImRegBenchmark):
             path_lnds_warp = None
 
         # return results
-        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
-                self.COL_POINTS_MOVE_WARP: path_lnds_warp}
+        return {
+            self.COL_IMAGE_MOVE_WARP: path_img_warp,
+            self.COL_POINTS_MOVE_WARP: path_lnds_warp,
+        }
 
     def _clear_after_registration(self, item):
         path_dir = self._get_path_reg_dir(item)
 
-        for p_dir in (os.path.join(path_dir, self.DIR_INPUTS),
-                      os.path.join(path_dir, self.DIR_OUTPUTS)):
+        for p_dir in (os.path.join(path_dir, self.DIR_INPUTS), os.path.join(path_dir, self.DIR_OUTPUTS)):
             shutil.rmtree(p_dir)
 
         return item
@@ -225,10 +221,8 @@ class BmRVSS(ImRegBenchmark):
         :return object:
         """
         # SEE: https://docs.python.org/3/library/argparse.html
-        arg_parser.add_argument('-Fiji', '--exec_Fiji', type=str, required=True,
-                                help='path to the Fiji executable')
-        arg_parser.add_argument('-cfg', '--path_config', required=True,
-                                type=str, help='path to the RVSS configuration')
+        arg_parser.add_argument('-Fiji', '--exec_Fiji', type=str, required=True, help='path to the Fiji executable')
+        arg_parser.add_argument('-cfg', '--path_config', required=True, type=str, help='path to the RVSS configuration')
         return arg_parser
 
 

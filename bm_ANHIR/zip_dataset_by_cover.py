@@ -33,14 +33,10 @@ def arg_parse_params():
     :return dict: parameters
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--path_dataset', type=str,
-                        help='path to the input image', required=True)
-    parser.add_argument('-lo', '--path_landmarks_out', type=str,
-                        help='path to the user landmarks', required=True)
-    parser.add_argument('-li', '--path_landmarks_in', type=str,
-                        help='path to the all landmarks', required=True)
-    parser.add_argument('-csv', '--path_csv', type=str, required=True,
-                        help='path to coordinate csv file')
+    parser.add_argument('-i', '--path_dataset', type=str, help='path to the input image', required=True)
+    parser.add_argument('-lo', '--path_landmarks_out', type=str, help='path to the user landmarks', required=True)
+    parser.add_argument('-li', '--path_landmarks_in', type=str, help='path to the all landmarks', required=True)
+    parser.add_argument('-csv', '--path_csv', type=str, required=True, help='path to coordinate csv file')
     args = vars(parser.parse_args())
     return args
 
@@ -68,8 +64,7 @@ def main(path_dataset, path_landmarks_out, path_landmarks_in, path_csv):
     # Section - IMAGES
     images = df_overview[ImRegBenchmark.COL_IMAGE_REF].tolist()
     images += df_overview[ImRegBenchmark.COL_IMAGE_MOVE].tolist()
-    folders = set(os.path.dirname(p) for p in images
-                  if os.path.isdir(os.path.join(path_dataset, os.path.dirname(p))))
+    folders = set(os.path.dirname(p) for p in images if os.path.isdir(os.path.join(path_dataset, os.path.dirname(p))))
     # Remove previous compressed images
     cmd_remove = 'rm -f %s' % os.path.join(path_dataset, name_csv + '.z*')
     _process_cmd(cmd_remove)
@@ -81,14 +76,14 @@ def main(path_dataset, path_landmarks_out, path_landmarks_in, path_csv):
     mask = df_overview[ImRegBenchmark.COL_STATUS] == VAL_STATUS_TRAIN
     lnds_ref_train = df_overview[mask][ImRegBenchmark.COL_POINTS_REF].tolist()
     landmarks = set(df_overview[ImRegBenchmark.COL_POINTS_MOVE].tolist() + lnds_ref_train)
-    landmarks = [p for p in landmarks
-                 if os.path.isfile(os.path.join(path_landmarks_in, p))]
+    landmarks = [p for p in landmarks if os.path.isfile(os.path.join(path_landmarks_in, p))]
     # compress the landmarks
     cmd_zip_lnds = ZIP_COMMAND % (path_landmarks_in, name_csv, ' '.join(landmarks))
     _process_cmd(cmd_zip_lnds)
     # Move the compressed landmarks
-    cmd_move = 'mv %s %s' % (os.path.join(path_landmarks_in, name_csv + '.zip'),
-                             os.path.join(path_landmarks_out, name_csv + '.zip'))
+    cmd_move = 'mv %s %s' % (
+        os.path.join(path_landmarks_in, name_csv + '.zip'), os.path.join(path_landmarks_out, name_csv + '.zip')
+    )
     _process_cmd(cmd_move)
 
 

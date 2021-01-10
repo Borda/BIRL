@@ -132,8 +132,10 @@ class BmRNiftyReg(ImRegBenchmark):
             path_img_warp = os.path.join(path_dir, name_img_move + ext_img_warp)
             os.rename(path_regist, path_img_warp)
 
-        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
-                self.COL_POINTS_MOVE_WARP: path_lnds_warp}
+        return {
+            self.COL_IMAGE_MOVE_WARP: path_img_warp,
+            self.COL_POINTS_MOVE_WARP: path_lnds_warp,
+        }
 
     def _extract_execution_time(self, item):
         """ if needed update the execution time
@@ -153,10 +155,12 @@ class BmRNiftyReg(ImRegBenchmark):
         :return object:
         """
         # SEE: https://docs.python.org/3/library/argparse.html
-        arg_parser.add_argument('-R', '--exec_R', type=str, required=True,
-                                help='path to the Rscript executable', default='Rscript')
-        arg_parser.add_argument('-script', '--path_R_script', required=True,
-                                type=str, help='path to the R script with registration')
+        arg_parser.add_argument(
+            '-R', '--exec_R', type=str, required=True, help='path to the Rscript executable', default='Rscript'
+        )
+        arg_parser.add_argument(
+            '-script', '--path_R_script', required=True, type=str, help='path to the R script with registration'
+        )
         return arg_parser
 
 

@@ -24,8 +24,9 @@ from functools import partial
 import cv2 as cv
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.dataset import (find_split_objects, project_object_edge, load_large_image,
-                                    save_large_image, args_expand_parse_images)
+from birl.utilities.dataset import (
+    find_split_objects, project_object_edge, load_large_image, save_large_image, args_expand_parse_images
+)
 from birl.utilities.experiments import iterate_mproc_map, nb_workers
 
 NB_WORKERS = nb_workers(0.5)
@@ -41,8 +42,9 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('--dimension', type=int, required=False, choices=[0, 1],
-                        help='cutting dimension', default=CUT_DIMENSION)
+    parser.add_argument(
+        '--dimension', type=int, required=False, choices=[0, 1], help='cutting dimension', default=CUT_DIMENSION
+    )
     args = args_expand_parse_images(parser, NB_WORKERS)
     logging.info('ARGUMENTS: \n%r' % args)
     return args
@@ -81,8 +83,7 @@ def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
         logging.error('no splits found for %s', img_path)
         return
 
-    edges = [int(round(i * scale_factor))
-             for i in [0] + splits + [len(img_edge)]]
+    edges = [int(round(i * scale_factor)) for i in [0] + splits + [len(img_edge)]]
 
     # cutting images
     for i, path_img_cut in enumerate(paths_img):
@@ -115,8 +116,7 @@ def main(path_images, dimension, overwrite, nb_workers):
         return
 
     _wrap_split = partial(split_image, cut_dim=dimension, overwrite=overwrite)
-    list(iterate_mproc_map(_wrap_split, image_paths, desc='Cut image tissues',
-                           nb_workers=nb_workers))
+    list(iterate_mproc_map(_wrap_split, image_paths, desc='Cut image tissues', nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

@@ -97,27 +97,43 @@ def create_parser():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-e', '--path_experiment', type=str, required=True,
-                        help='path to the experiments', default='/input/')
-    parser.add_argument('-t', '--path_table', type=str, required=True,
-                        help='path to cover table (csv file)',
-                        default='/opt/evaluation/dataset.csv')
-    parser.add_argument('-d', '--path_dataset', type=str, required=True,
-                        help='path to dataset with provided landmarks',
-                        default='/opt/evaluation/provided')
-    parser.add_argument('-r', '--path_reference', type=str, required=False,
-                        help='path to complete ground truth landmarks')
-    parser.add_argument('-p', '--path_comp_bm', type=str, required=False,
-                        help='path to reference computer performance JSON')
-    parser.add_argument('-o', '--path_output', type=str, required=True,
-                        help='path to output results', default='/output/')
+    parser.add_argument(
+        '-e', '--path_experiment', type=str, required=True, help='path to the experiments', default='/input/'
+    )
+    parser.add_argument(
+        '-t',
+        '--path_table',
+        type=str,
+        required=True,
+        help='path to cover table (csv file)',
+        default='/opt/evaluation/dataset.csv'
+    )
+    parser.add_argument(
+        '-d',
+        '--path_dataset',
+        type=str,
+        required=True,
+        help='path to dataset with provided landmarks',
+        default='/opt/evaluation/provided'
+    )
+    parser.add_argument(
+        '-r', '--path_reference', type=str, required=False, help='path to complete ground truth landmarks'
+    )
+    parser.add_argument(
+        '-p', '--path_comp_bm', type=str, required=False, help='path to reference computer performance JSON'
+    )
+    parser.add_argument(
+        '-o', '--path_output', type=str, required=True, help='path to output results', default='/output/'
+    )
     # required number of submitted landmarks, match values in COL_PAIRED_LANDMARKS
-    parser.add_argument('--min_landmarks', type=float, required=False, default=0.5,
-                        help='ration of required landmarks in submission')
+    parser.add_argument(
+        '--min_landmarks', type=float, required=False, default=0.5, help='ration of required landmarks in submission'
+    )
     # parser.add_argument('--nb_workers', type=int, required=False, default=NB_WORKERS,
     #                     help='number of processes in parallel')
-    parser.add_argument('--details', action='store_true', required=False,
-                        default=False, help='export details for each case')
+    parser.add_argument(
+        '--details', action='store_true', required=False, default=False, help='export details for each case'
+    )
     return parser
 
 
@@ -170,9 +186,10 @@ def normalize_exec_time(df_experiments, path_experiments, path_comp_bm=None):
         logging.warning('Reference comp. perform. not specified.')
         return
     elif not all(os.path.isfile(p) for p in [path_comp_bm, path_comp_bm_expt]):
-        logging.warning('Missing one of the JSON files: \n %s (%s)\n %s (%s)',
-                        path_comp_bm, os.path.isfile(path_comp_bm),
-                        path_comp_bm_expt, os.path.isfile(path_comp_bm_expt))
+        logging.warning(
+            'Missing one of the JSON files: \n %s (%s)\n %s (%s)', path_comp_bm, os.path.isfile(path_comp_bm),
+            path_comp_bm_expt, os.path.isfile(path_comp_bm_expt)
+        )
         return
 
     logging.info('Normalizing the Execution time.')
@@ -219,13 +236,14 @@ def parse_landmarks(idx_row):
         return np.round(row[col], dec)
 
     # copy all columns with Affine statistic
-    item.update({col.replace(' ', '-'): _round_val(row, col)
-                 for col in row if 'affine' in col.lower()})
+    item.update({col.replace(' ', '-'): _round_val(row, col) for col in row if 'affine' in col.lower()})
     # copy all columns with rTRE, TRE and Overlap
     # item.update({col.replace(' (final)', '').replace(' ', '-'): row[col]
     #              for col in row if '(final)' in col})
-    item.update({col.replace(' (elastic)', '_elastic').replace(' ', '-'): _round_val(row, col)
-                 for col in row if 'TRE' in col})
+    item.update({
+        col.replace(' (elastic)', '_elastic').replace(' ', '-'): _round_val(row, col)
+        for col in row if 'TRE' in col
+    })
     # later in JSON keys ahs to be str only
     return str(idx), item
 
@@ -242,8 +260,7 @@ def compute_scores(df_experiments, min_landmarks=1.):
     """
     # if the initial overlap and submitted overlap do not mach, drop results
     if 'overlap points (target)' not in df_experiments.columns:
-        raise ValueError('Missing `overlap points (target)` column,'
-                         ' because there are probably missing wrap landmarks.')
+        raise ValueError('Missing `overlap points (target)` column, because there are probably missing wrap landmarks.')
     unpaired = df_experiments[COL_PAIRED_LANDMARKS] < min_landmarks
     hold_overlap = df_experiments['overlap points (init)'] == df_experiments['overlap points (target)']
     mask_incomplete = unpaired.copy()
@@ -254,9 +271,12 @@ def compute_scores(df_experiments, min_landmarks=1.):
         for col_f, col_i in zip(*_filter_tre_measure_columns(df_experiments)):
             df_experiments.loc[mask_incomplete, col_f] = df_experiments.loc[mask_incomplete, col_i]
         df_experiments.loc[mask_incomplete, ImRegBenchmark.COL_ROBUSTNESS] = 0.
-        logging.warning('There are %i cases which incomplete landmarks'
-                        ' - unpaired %i & missed overlap %i.',
-                        sum(mask_incomplete), sum(unpaired), sum(~hold_overlap))
+        logging.warning(
+            'There are %i cases which incomplete landmarks - unpaired %i & missed overlap %i.',
+            sum(mask_incomplete),
+            sum(unpaired),
+            sum(~hold_overlap),
+        )
 
     df_expt_robust = df_experiments[df_experiments[ImRegBenchmark.COL_ROBUSTNESS] > 0.5]
     pd.set_option('expand_frame_repr', False)
@@ -284,9 +304,7 @@ def _compute_scores_general(df_experiments, df_expt_robust):
         'Average-Rank-Max-rTRE': np.nan,
     }
     # parse Mean & median specific measures
-    for name, col in [('Median-rTRE', 'rTRE Median'),
-                      ('Max-rTRE', 'rTRE Max'),
-                      ('Average-rTRE', 'rTRE Mean'),
+    for name, col in [('Median-rTRE', 'rTRE Median'), ('Max-rTRE', 'rTRE Max'), ('Average-rTRE', 'rTRE Mean'),
                       ('Norm-Time', COL_NORM_TIME)]:
         for df, sufix in [(df_experiments, ''), (df_expt_robust, '-Robust')]:
             scores['Average-' + name + sufix] = np.nanmean(df[col])
@@ -303,13 +321,10 @@ def _compute_scores_state_tissue(df_experiments):
     # filter all statuses in the experiments
     statuses = df_experiments[ImRegBenchmark.COL_STATUS].unique()
     # parse metrics according to TEST and TRAIN case
-    for name, col in [('Average-rTRE', 'rTRE Mean'),
-                      ('Median-rTRE', 'rTRE Median'),
-                      ('Max-rTRE', 'rTRE Max'),
+    for name, col in [('Average-rTRE', 'rTRE Mean'), ('Median-rTRE', 'rTRE Median'), ('Max-rTRE', 'rTRE Max'),
                       ('Robustness', 'Robustness')]:
         # iterate over common measures
-        for stat_name, stat_func in [('Average', np.mean),
-                                     ('Median', np.median)]:
+        for stat_name, stat_func in [('Average', np.mean), ('Median', np.median)]:
             _sname = '%s-%s' % (stat_name, name)
             for status in statuses:
                 df_expt_ = df_experiments[df_experiments[ImRegBenchmark.COL_STATUS] == status]
@@ -338,8 +353,7 @@ def _filter_tre_measure_columns(df_experiments):
     return cols_final, cols_init
 
 
-def export_summary_json(df_experiments, path_experiments, path_output,
-                        min_landmarks=1., details=True):
+def export_summary_json(df_experiments, path_experiments, path_output, min_landmarks=1., details=True):
     """ summarize results in particular JSON format
 
     :param DF df_experiments: experiment DataFrame
@@ -361,8 +375,7 @@ def export_summary_json(df_experiments, path_experiments, path_output,
     df_experiments[COL_TISSUE] = df_experiments[ImRegBenchmark.COL_POINTS_REF].apply(_get_tissue)
 
     # export partial results
-    cases = list(iterate_mproc_map(parse_landmarks, df_experiments.iterrows(),
-                                   desc='Parsing landmarks', nb_workers=1))
+    cases = list(iterate_mproc_map(parse_landmarks, df_experiments.iterrows(), desc='Parsing landmarks', nb_workers=1))
 
     # copy the initial to final for missing
     for col, col2 in zip(*_filter_tre_measure_columns(df_experiments)):
@@ -448,8 +461,7 @@ def swap_inverse_experiment(table, allow_inverse):
             return table
     logging.warning('Missing target column "%s"', ImRegBenchmark.COL_POINTS_MOVE_WARP)
     if ImRegBenchmark.COL_POINTS_REF_WARP not in table.columns:
-        raise ValueError('Missing target column "%s" to swap to'
-                         % ImRegBenchmark.COL_POINTS_REF_WARP)
+        raise ValueError('Missing target column "%s" to swap to' % ImRegBenchmark.COL_POINTS_REF_WARP)
     logging.info('Swapping columns of Moving and Reference landmarks for both - source and warped.')
     col_ref = table[ImRegBenchmark.COL_POINTS_REF].values.tolist()
     col_move = table[ImRegBenchmark.COL_POINTS_MOVE].values.tolist()
@@ -459,8 +471,17 @@ def swap_inverse_experiment(table, allow_inverse):
     return table
 
 
-def main(path_experiment, path_table, path_dataset, path_output, path_reference=None,
-         path_comp_bm=None, min_landmarks=1., details=True, allow_inverse=False):
+def main(
+    path_experiment,
+    path_table,
+    path_dataset,
+    path_output,
+    path_reference=None,
+    path_comp_bm=None,
+    min_landmarks=1.,
+    details=True,
+    allow_inverse=False,
+):
     """ main entry point
 
     :param str path_experiment: path to experiment folder
@@ -487,8 +508,11 @@ def main(path_experiment, path_table, path_dataset, path_output, path_reference=
     df_overview = pd.read_csv(path_table).drop([ImRegBenchmark.COL_TIME], axis=1, errors='ignore')
     df_overview = _df_drop_unnamed(df_overview)
     # drop Warp* column from Cover which should be empty
-    df_overview = df_overview.drop([col for col in df_overview.columns if 'warped' in col.lower()],
-                                   axis=1, errors='ignore')
+    df_overview = df_overview.drop(
+        [col for col in df_overview.columns if 'warped' in col.lower()],
+        axis=1,
+        errors='ignore',
+    )
     df_results = pd.read_csv(path_results)
     df_results = _df_drop_unnamed(df_results)
     # df_results.drop(filter(lambda c: 'Unnamed' in c, df_results.columns), axis=1, inplace=True)
@@ -514,22 +538,22 @@ def main(path_experiment, path_table, path_dataset, path_output, path_reference=
     #     df_experiments.loc[idx, COL_PAIRED_LANDMARKS] = np.round(ratio, 2)
 
     logging.info('Compute landmarks statistic.')
-    _compute_lnds_stat = partial(ImRegBenchmark.compute_registration_statistic,
-                                 df_experiments=df_experiments,
-                                 path_dataset=path_dataset,
-                                 path_experiment=path_experiment,
-                                 path_reference=path_reference)
+    _compute_lnds_stat = partial(
+        ImRegBenchmark.compute_registration_statistic,
+        df_experiments=df_experiments,
+        path_dataset=path_dataset,
+        path_experiment=path_experiment,
+        path_reference=path_reference,
+    )
     # NOTE: this has to run in SINGLE thread so there is SINGLE table instance
-    list(iterate_mproc_map(_compute_lnds_stat, df_experiments.iterrows(),
-                           desc='Statistic', nb_workers=1))
+    list(iterate_mproc_map(_compute_lnds_stat, df_experiments.iterrows(), desc='Statistic', nb_workers=1))
 
     name_results, _ = os.path.splitext(os.path.basename(path_results))
     path_results = os.path.join(path_output, name_results + '_NEW.csv')
     logging.debug('exporting CSV results: %s', path_results)
     df_experiments.to_csv(path_results)
 
-    path_json = export_summary_json(df_experiments, path_experiment, path_output,
-                                    min_landmarks, details)
+    path_json = export_summary_json(df_experiments, path_experiment, path_output, min_landmarks, details)
     return path_json
 
 

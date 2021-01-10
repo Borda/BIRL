@@ -55,25 +55,24 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--path_image', type=str, required=True,
-                        help='path to the input image')
-    parser.add_argument('-l', '--path_landmarks', type=str, required=True,
-                        help='path to the input landmarks')
-    parser.add_argument('-o', '--path_out', type=str, required=True,
-                        help='path to the output folder')
-    parser.add_argument('-n', '--nb_samples', type=int, required=False,
-                        help='number of deformed images', default=NB_DEFORMATIONS)
-    parser.add_argument('--visual', action='store_true', required=False,
-                        default=False, help='visualise the landmarks in images')
-    parser.add_argument('--nb_workers', type=int, required=False, default=NB_WORKERS,
-                        help='number of processes in parallel')
+    parser.add_argument('-i', '--path_image', type=str, required=True, help='path to the input image')
+    parser.add_argument('-l', '--path_landmarks', type=str, required=True, help='path to the input landmarks')
+    parser.add_argument('-o', '--path_out', type=str, required=True, help='path to the output folder')
+    parser.add_argument(
+        '-n', '--nb_samples', type=int, required=False, help='number of deformed images', default=NB_DEFORMATIONS
+    )
+    parser.add_argument(
+        '--visual', action='store_true', required=False, default=False, help='visualise the landmarks in images'
+    )
+    parser.add_argument(
+        '--nb_workers', type=int, required=False, default=NB_WORKERS, help='number of processes in parallel'
+    )
     args = parse_arg_params(parser, upper_dirs=['path_out'])
     args['visual'] = bool(args['visual'])
     return args
 
 
-def generate_deformation_field_gauss(shape, points, max_deform=DEFORMATION_MAX,
-                                     deform_smooth=DEFORMATION_SMOOTH):
+def generate_deformation_field_gauss(shape, points, max_deform=DEFORMATION_MAX, deform_smooth=DEFORMATION_SMOOTH):
     """ generate deformation field as combination of positive and
     negative Galatians densities scaled in range +/- max_deform
 
@@ -109,8 +108,7 @@ def generate_deformation_field_gauss(shape, points, max_deform=DEFORMATION_MAX,
     return deform
 
 
-def generate_deformation_field_rbf(shape, points, max_deform=DEFORMATION_MAX,
-                                   nb_bound_points=25):
+def generate_deformation_field_rbf(shape, points, max_deform=DEFORMATION_MAX, nb_bound_points=25):
     """ generate deformation field as thin plate spline  deformation
     in range +/- max_deform
 
@@ -130,16 +128,13 @@ def generate_deformation_field_rbf(shape, points, max_deform=DEFORMATION_MAX,
     bound = np.ones(nb_bound_points - 1)
     x_bound = np.linspace(0, shape[0] - 1, nb_bound_points)
     y_bound = np.linspace(0, shape[1] - 1, nb_bound_points)
-    x_point = np.hstack((points[:, 0], 0 * bound, x_bound[:-1],
-                         (shape[0] - 1) * bound, x_bound[::-1][:-1]))
-    y_point = np.hstack((points[:, 1], y_bound[:-1], (shape[1] - 1) * bound,
-                         y_bound[::-1][:-1], 0 * bound))
+    x_point = np.hstack((points[:, 0], 0 * bound, x_bound[:-1], (shape[0] - 1) * bound, x_bound[::-1][:-1]))
+    y_point = np.hstack((points[:, 1], y_bound[:-1], (shape[1] - 1) * bound, y_bound[::-1][:-1], 0 * bound))
     # the boundary points sex as 0 shift
     move = np.hstack((move, np.zeros(4 * nb_bound_points - 4)))
     # create the interpolation function
     smooth = 0.2 * max_deform
-    rbf = interpolate.Rbf(x_point, y_point, move, function='thin-plate',
-                          epsilon=1, smooth=smooth)
+    rbf = interpolate.Rbf(x_point, y_point, move, function='thin-plate', epsilon=1, smooth=smooth)
     # interpolate in regular grid
     x_grid, y_grid = np.mgrid[0:shape[0], 0:shape[1]].astype(np.int32)
     # FIXME: it takes to much of RAM memory, for sample image more that 8GM !
@@ -159,22 +154,18 @@ def deform_image_landmarks(image, points, max_deform=DEFORMATION_MAX):
     x, y = np.mgrid[0:image.shape[0], 0:image.shape[1]]
     # generate the deformation field
     nb_fix_points = int(np.max(image.shape) / max_deform * 2.)
-    x_deform = generate_deformation_field_rbf(image.shape[:2], points,
-                                              max_deform, nb_fix_points)
+    x_deform = generate_deformation_field_rbf(image.shape[:2], points, max_deform, nb_fix_points)
     # TODO: look for another elastic deformation which is friendly to Memory usage
     # -> generate random elastic deformation and using this field get new landmarks
-    y_deform = generate_deformation_field_rbf(image.shape[:2], points,
-                                              max_deform, nb_fix_points)
+    y_deform = generate_deformation_field_rbf(image.shape[:2], points, max_deform, nb_fix_points)
     # interpolate the image
-    img_warped = interpolate.griddata(zip(x.ravel(), y.ravel()),
-                                      image.reshape(-1, 3),
-                                      (x + x_deform, y + y_deform),
-                                      method='linear', fill_value=1.)
+    img_warped = interpolate.griddata(
+        zip(x.ravel(), y.ravel()), image.reshape(-1, 3), (x + x_deform, y + y_deform), method='linear', fill_value=1.
+    )
     # compute new positions of landmarks
     x_new = x - x_deform
     y_new = y - y_deform
-    pts_warped = np.array([[x_new[pt[0], pt[1]], y_new[pt[0], pt[1]]]
-                           for pt in points])
+    pts_warped = np.array([[x_new[pt[0], pt[1]], y_new[pt[0], pt[1]]] for pt in points])
     return img_warped, pts_warped
 
 
@@ -190,8 +181,7 @@ def image_color_shift_hue(image, change_satur=True):
     h_shift *= -1 if np.random.random() < 0.5 else 1
     # generate saturation power
     s_power = 0.3 + np.random.random()
-    logging.debug('image color change with Hue shift %d and Sat power %f',
-                  h_shift, s_power)
+    logging.debug('image color change with Hue shift %d and Sat power %f', h_shift, s_power)
     # convert image into range (0, 1)
     if image.max() > 1.:
         image = (image / 255.)
@@ -200,7 +190,7 @@ def image_color_shift_hue(image, change_satur=True):
     # color transformation
     img_hsv[:, :, 0] = (img_hsv[:, :, 0] + (h_shift / 360.0)) % 1.0
     if change_satur:
-        img_hsv[:, :, 1] = img_hsv[:, :, 1] ** s_power
+        img_hsv[:, :, 1] = img_hsv[:, :, 1]**s_power
 
     image = matplotlib.colors.hsv_to_rgb(img_hsv)
     return image
@@ -229,8 +219,7 @@ def draw_image_landmarks(image, points):
     return fig
 
 
-def export_image_landmarks(image, points, idx, path_out, name_img,
-                           visual=False):
+def export_image_landmarks(image, points, idx, path_out, name_img, visual=False):
     """ export the image, landmarks as csv file and if the 'visual' is set,
     draw also landmarks in the image (in separate image)
 
@@ -271,10 +260,8 @@ def perform_deform_export(idx, image, points, path_out, name_img, visual=False):
     """
     image_out = image_color_shift_hue(image)
     max_deform = int(0.03 * np.mean(image.shape[:2]))
-    image_out, points_out = deform_image_landmarks(image_out, points,
-                                                   max_deform)
-    export_image_landmarks(image_out, points_out, idx + 1, path_out, name_img,
-                           visual)
+    image_out, points_out = deform_image_landmarks(image_out, points, max_deform)
+    export_image_landmarks(image_out, points_out, idx + 1, path_out, name_img, visual)
 
 
 def get_name(path):
@@ -308,20 +295,22 @@ def main(params):
     name_img = get_name(params['path_image'])
     # name_points = get_name(params['path_landmarks'])
 
-    export_image_landmarks(image, points, 0, params['path_out'],
-                           name_img, visual=params['visual'])
+    export_image_landmarks(image, points, 0, params['path_out'], name_img, visual=params['visual'])
 
     # create the wrapper for parallel usage
-    wrapper_deform_export = partial(perform_deform_export, image=image,
-                                    points=points, path_out=params['path_out'],
-                                    name_img=name_img,
-                                    visual=params.get('visual', False))
+    wrapper_deform_export = partial(
+        perform_deform_export,
+        image=image,
+        points=points,
+        path_out=params['path_out'],
+        name_img=name_img,
+        visual=params.get('visual', False),
+    )
 
     tqdm_bar = tqdm.tqdm(total=params['nb_samples'])
     if params['nb_workers'] > 1:
         mproc_pool = mproc.Pool(params['nb_workers'])
-        for _ in mproc_pool.imap_unordered(wrapper_deform_export,
-                                           range(params['nb_samples'])):
+        for _ in mproc_pool.imap_unordered(wrapper_deform_export, range(params['nb_samples'])):
             tqdm_bar.update()
         mproc_pool.close()
         mproc_pool.join()

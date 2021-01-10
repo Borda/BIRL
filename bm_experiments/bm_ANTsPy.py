@@ -118,8 +118,10 @@ class BmANTsPy(ImRegBenchmark):
             path_lnds_warp = os.path.join(path_dir, os.path.basename(path_lnds_move))
             os.rename(os.path.join(path_dir, self.NAME_LNDS_WARPED), path_lnds_warp)
 
-        return {self.COL_IMAGE_MOVE_WARP: path_img_warp,
-                self.COL_POINTS_MOVE_WARP: path_lnds_warp}
+        return {
+            self.COL_IMAGE_MOVE_WARP: path_img_warp,
+            self.COL_POINTS_MOVE_WARP: path_lnds_warp,
+        }
 
     def _extract_execution_time(self, item):
         """ if needed update the execution time
@@ -140,10 +142,17 @@ class BmANTsPy(ImRegBenchmark):
         :return object:
         """
         # SEE: https://docs.python.org/3/library/argparse.html
-        arg_parser.add_argument('-py', '--exec_Python', type=str, required=True,
-                                help='path to the Python executable with ANTsPy', default='python3')
-        arg_parser.add_argument('-script', '--path_script', required=True,
-                                type=str, help='path to the image registration script')
+        arg_parser.add_argument(
+            '-py',
+            '--exec_Python',
+            type=str,
+            required=True,
+            help='path to the Python executable with ANTsPy',
+            default='python3'
+        )
+        arg_parser.add_argument(
+            '-script', '--path_script', required=True, type=str, help='path to the image registration script'
+        )
         return arg_parser
 
 

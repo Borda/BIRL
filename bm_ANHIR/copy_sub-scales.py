@@ -67,12 +67,8 @@ def main(path_csv, path_in, path_out, col_name, train_only=True):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     logging.info('running...')
-    main(PATH_CSV, PATH_LANDMARKS_ALL, PATH_LANDMARKS,
-         ImRegBenchmark.COL_POINTS_REF, train_only=True)
-    main(PATH_CSV, PATH_LANDMARKS_ALL, PATH_LANDMARKS,
-         ImRegBenchmark.COL_POINTS_MOVE, train_only=False)
-    main(PATH_CSV, PATH_IMAGES_ALL, PATH_IMAGES,
-         ImRegBenchmark.COL_IMAGE_REF, train_only=False)
-    main(PATH_CSV, PATH_IMAGES_ALL, PATH_IMAGES,
-         ImRegBenchmark.COL_IMAGE_MOVE, train_only=False)
+    main(PATH_CSV, PATH_LANDMARKS_ALL, PATH_LANDMARKS, ImRegBenchmark.COL_POINTS_REF, train_only=True)
+    main(PATH_CSV, PATH_LANDMARKS_ALL, PATH_LANDMARKS, ImRegBenchmark.COL_POINTS_MOVE, train_only=False)
+    main(PATH_CSV, PATH_IMAGES_ALL, PATH_IMAGES, ImRegBenchmark.COL_IMAGE_REF, train_only=False)
+    main(PATH_CSV, PATH_IMAGES_ALL, PATH_IMAGES, ImRegBenchmark.COL_IMAGE_MOVE, train_only=False)
     logging.info('Done >]')

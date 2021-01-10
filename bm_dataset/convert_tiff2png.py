@@ -18,7 +18,6 @@ Sample usage::
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """
 
-
 import argparse
 import gc
 import glob
@@ -35,8 +34,10 @@ import tqdm
 try:
     from openslide import OpenSlide
 except Exception:
-    print('It seems that you do not have installed OpenSlide on your computer.'
-          ' To do so, please follow instructions - https://openslide.org/')
+    print(
+        'It seems that you do not have installed OpenSlide on your computer.'
+        ' To do so, please follow instructions - https://openslide.org/'
+    )
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.experiments import iterate_mproc_map, nb_workers
@@ -54,8 +55,7 @@ def arg_parse_params():
     """
     # SEE: https://docs.python.org/3/library/argparse.html
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', '--level', type=int, required=False,
-                        help='list of output scales', default=DEFAULT_LEVEL)
+    parser.add_argument('-l', '--level', type=int, required=False, help='list of output scales', default=DEFAULT_LEVEL)
     args = args_expand_parse_images(parser, NB_WORKERS)
     logging.info('ARGUMENTS: \n%r' % args)
     return args
@@ -88,9 +88,7 @@ def convert_image(path_img, level=DEFAULT_LEVEL, overwrite=False):
     logging.debug('using down-sample: %i', level_downsample)
 
     tile_size = (np.array(level_size) / level_downsample).astype(int)
-    locations = [(i * tile_size[0], j * tile_size[1])
-                 for i in range(level_downsample)
-                 for j in range(level_downsample)]
+    locations = [(i * tile_size[0], j * tile_size[1]) for i in range(level_downsample) for j in range(level_downsample)]
     im = np.array(slide_img.read_region((0, 0), 0, size=(10, 10)))
     nb_channels = min(3, im.shape[2]) if im.ndim == 3 else 1
     img_size = list(tile_size * level_downsample)[::-1] + [nb_channels]
@@ -98,8 +96,7 @@ def convert_image(path_img, level=DEFAULT_LEVEL, overwrite=False):
     for loc_i, loc_j in tqdm.tqdm(locations, desc=os.path.basename(path_img)):
         loc_img = int(loc_i * level_scale), int(loc_j * level_scale)
         img = np.array(slide_img.read_region(loc_img, level, size=tile_size))
-        image[loc_j:loc_j + img.shape[0],
-              loc_i:loc_i + img.shape[1], ...] = img[:, :, :nb_channels]
+        image[loc_j:loc_j + img.shape[0], loc_i:loc_i + img.shape[1], ...] = img[:, :, :nb_channels]
         del img
 
     if nb_channels == 2:
@@ -122,12 +119,9 @@ def main(path_images, level=DEFAULT_LEVEL, overwrite=False, nb_workers=1):
     """
     paths_img = sorted(glob.glob(path_images))
 
-    _wrap_convert = partial(convert_image,
-                            level=level,
-                            overwrite=overwrite)
+    _wrap_convert = partial(convert_image, level=level, overwrite=overwrite)
 
-    list(iterate_mproc_map(_wrap_convert, paths_img, desc='Converting images',
-                           nb_workers=nb_workers))
+    list(iterate_mproc_map(_wrap_convert, paths_img, desc='Converting images', nb_workers=nb_workers))
 
 
 if __name__ == '__main__':

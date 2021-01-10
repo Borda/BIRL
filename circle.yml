@@ -32,7 +32,7 @@ references:
       name: Formatting
       command: |
         pip install flake8 -q
-        flake8 . --max-line-length=100
+        flake8 .
 
   test_coverage: &test_coverage
     run:

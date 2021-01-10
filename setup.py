@@ -37,7 +37,6 @@ if sys.version_info.major == 2:
 else:
     requirements = load_requirements('requirements.txt')
 
-
 # Get the long description from the README file
 # with open(path.join(PATH_HERE, 'README.md'), encoding='utf-8') as fp:
 #     long_description = fp.read()
@@ -48,17 +47,13 @@ setup(
     name='BIRL',
     version=birl.__version__,
     url=birl.__homepage__,
-
     author=birl.__author__,
     author_email=birl.__author_email__,
     license=birl.__license__,
     description=birl.__doc__,
-
     long_description=birl.__long_doc__,
     long_description_content_type='text/markdown',
-
     packages=['birl', 'birl.utilities'],
-
     keywords='benchmark image registration landmarks',
     install_requires=requirements,
     include_package_data=True,
