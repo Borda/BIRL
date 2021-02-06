@@ -5,6 +5,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/rmfvuxix379eu6fh/branch/master?svg=true)](https://ci.appveyor.com/project/Borda/birl/branch/master)
 [![codecov](https://codecov.io/gh/Borda/BIRL/branch/master/graph/badge.svg?token=JZwA1rlUGA)](https://codecov.io/gh/Borda/BIRL)
 [![Publish Docker Image](https://github.com/Borda/BIRL/workflows/Publish%20Docker%20Image/badge.svg?event=push)](https://github.com/Borda/BIRL/actions?query=workflow%3A%22Publish+Docker+Image%22)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FBorda%2FBIRL.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FBorda%2FBIRL?ref=badge_shield)
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/b12d7a4a99d549a9baba6c9a83ad6b59)](https://www.codacy.com/project/Borda/BIRL/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Borda/BIRL&amp;utm_campaign=Badge_Grade_Dashboard)
 [![CodeFactor](https://www.codefactor.io/repository/github/borda/birl/badge)](https://www.codefactor.io/repository/github/borda/birl)
@@ -349,6 +350,9 @@ python bm_experiments/evaluate_experiment.py \
 
 The project is using the standard [BSD license](http://opensource.org/licenses/BSD-3-Clause).
 
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FBorda%2FBIRL.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FBorda%2FBIRL?ref=badge_large)
 
 ## References
 
