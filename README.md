@@ -350,9 +350,8 @@ python bm_experiments/evaluate_experiment.py \
 
 The project is using the standard [BSD license](http://opensource.org/licenses/BSD-3-Clause).
 
-
-
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FBorda%2FBIRL.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FBorda%2FBIRL?ref=badge_large)
+
 
 ## References
 
