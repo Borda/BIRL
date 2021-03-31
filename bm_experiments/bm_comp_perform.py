@@ -39,13 +39,14 @@ import tqdm
 
 matplotlib.use('Agg')
 import numpy as np
-from skimage import data, io, __version__ as skimage__version
-from skimage.transform import resize, warp, AffineTransform
+from skimage import __version__ as skimage__version
+from skimage import data, io
 from skimage.color import rgb2gray
+from skimage.feature import match_descriptors, ORB
 from skimage.measure import ransac
-from skimage.util import random_noise
 from skimage.restoration import denoise_bilateral, denoise_wavelet
-from skimage.feature import ORB, match_descriptors
+from skimage.transform import AffineTransform, resize, warp
+from skimage.util import random_noise
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.experiments import computer_info

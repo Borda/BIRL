@@ -35,8 +35,8 @@ Sample call of this script::
 import os
 import sys
 
-import SimpleITK as sitk
 import numpy as np
+import SimpleITK as sitk
 from PIL import Image
 
 

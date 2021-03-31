@@ -26,8 +26,8 @@ import sys
 
 # this is used while calling this file as a script
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.experiments import create_basic_parser
 from birl.benchmark import ImRegBenchmark
+from birl.utilities.experiments import create_basic_parser
 
 
 class BmTemplate(ImRegBenchmark):

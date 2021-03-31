@@ -19,14 +19,14 @@ except ImportError:  # python 2
 
 import numpy as np
 import pandas as pd
-from numpy.testing import assert_raises, assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_raises
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import update_path, save_config_yaml
-from birl.utilities.dataset import args_expand_parse_images
-from birl.utilities.experiments import parse_arg_params, try_decorator
 from birl.benchmark import ImRegBenchmark
 from birl.bm_template import BmTemplate
+from birl.utilities.data_io import save_config_yaml, update_path
+from birl.utilities.dataset import args_expand_parse_images
+from birl.utilities.experiments import parse_arg_params, try_decorator
 
 PATH_ROOT = os.path.dirname(update_path('birl'))
 PATH_DATA = update_path('data-images')

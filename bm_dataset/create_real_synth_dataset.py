@@ -27,16 +27,16 @@ if os.environ.get('DISPLAY', '') == '':
     print('No display found. Using non-interactive Agg backend')
     matplotlib.use('Agg')
 
-import tqdm
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import tqdm
 from PIL import Image
-from scipy import ndimage, stats, interpolate
-import matplotlib.pyplot as plt
+from scipy import interpolate, ndimage, stats
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.experiments import parse_arg_params, nb_workers
 from birl.utilities.data_io import LANDMARK_COORDS
+from birl.utilities.experiments import nb_workers, parse_arg_params
 
 COLUMNS_COORD = LANDMARK_COORDS
 NB_WORKERS = nb_workers(0.8)

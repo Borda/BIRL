@@ -46,8 +46,8 @@ import shutil
 import sys
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import load_landmarks, save_landmarks
 from birl.benchmark import ImRegBenchmark
+from birl.utilities.data_io import load_landmarks, save_landmarks
 from bm_experiments import bm_comp_perform
 
 

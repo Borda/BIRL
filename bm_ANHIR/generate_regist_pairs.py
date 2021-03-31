@@ -15,9 +15,9 @@ import pandas as pd
 import tqdm
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import image_sizes, update_path
-from birl.utilities.dataset import IMAGE_EXTENSIONS, generate_pairing
 from birl.benchmark import ImRegBenchmark
+from birl.utilities.data_io import image_sizes, update_path
+from birl.utilities.dataset import generate_pairing, IMAGE_EXTENSIONS
 
 DATASET_IMAGES = '/datagrid/Medical/dataset_ANHIR/images_private'
 DATASET_LANDMARKS = '/datagrid/Medical/dataset_ANHIR/landmarks_all'

@@ -82,11 +82,15 @@ import sys
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
+from birl.benchmark import ImRegBenchmark
 from birl.utilities.data_io import (
-    load_landmarks, save_landmarks, load_config_args, convert_image_to_nifti_gray, convert_image_from_nifti
+    convert_image_from_nifti,
+    convert_image_to_nifti_gray,
+    load_config_args,
+    load_landmarks,
+    save_landmarks,
 )
 from birl.utilities.experiments import exec_commands
-from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
 
 

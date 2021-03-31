@@ -12,8 +12,8 @@ import unittest
 from parameterized import parameterized
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import update_path, load_image
-from birl.utilities.dataset import image_histogram_matching, CONVERT_RGB
+from birl.utilities.data_io import load_image, update_path
+from birl.utilities.dataset import CONVERT_RGB, image_histogram_matching
 
 PATH_ROOT = os.path.dirname(update_path('birl'))
 PATH_DATA = update_path('data-images')

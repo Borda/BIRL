@@ -64,14 +64,18 @@ import shutil
 import sys
 import time
 
-import SimpleITK as sitk
 import numpy as np
+import SimpleITK as sitk
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import (
-    convert_image_to_mhd, convert_image_from_mhd, save_landmarks, load_landmarks, image_sizes
-)
 from birl.benchmark import ImRegBenchmark
+from birl.utilities.data_io import (
+    convert_image_from_mhd,
+    convert_image_to_mhd,
+    image_sizes,
+    load_landmarks,
+    save_landmarks,
+)
 from bm_experiments import bm_comp_perform
 
 

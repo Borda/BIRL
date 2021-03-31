@@ -39,11 +39,11 @@ import numpy as np
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.experiments import iterate_mproc_map, parse_arg_params, is_iterable
 from birl.utilities.data_io import create_folder, load_landmarks_csv, save_landmarks_csv
-from birl.utilities.dataset import (list_sub_folders, parse_path_scale, compute_bounding_polygon, inside_polygon)
+from birl.utilities.dataset import compute_bounding_polygon, inside_polygon, list_sub_folders, parse_path_scale
+from birl.utilities.experiments import is_iterable, iterate_mproc_map, parse_arg_params
 from birl.utilities.registration import estimate_affine_transform, transform_points
-from bm_dataset.rescale_tissue_images import NB_WORKERS, DEFAULT_SCALES, FOLDER_TEMPLATE
+from bm_dataset.rescale_tissue_images import DEFAULT_SCALES, FOLDER_TEMPLATE, NB_WORKERS
 
 
 def arg_parse_params():

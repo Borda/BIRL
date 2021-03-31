@@ -52,11 +52,11 @@ import os
 import shutil
 import sys
 
-import SimpleITK as sitk
 import numpy as np
+import SimpleITK as sitk
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import save_landmarks, load_landmarks, load_config_args
+from birl.utilities.data_io import load_config_args, load_landmarks, save_landmarks
 from bm_experiments import bm_comp_perform
 from bm_experiments.bm_DROP import BmDROP
 

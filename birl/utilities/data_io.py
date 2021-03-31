@@ -9,14 +9,14 @@ import os
 import warnings
 from functools import wraps
 
-import SimpleITK as sitk
 import cv2 as cv
 import nibabel
 import numpy as np
 import pandas as pd
+import SimpleITK as sitk
 import yaml
 from PIL import Image
-from skimage.color import rgb2gray, gray2rgb
+from skimage.color import gray2rgb, rgb2gray
 
 #: landmarks coordinates, loading from CSV file
 LANDMARK_COORDS = ['X', 'Y']

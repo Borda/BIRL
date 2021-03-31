@@ -25,9 +25,9 @@ import sys
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
+from birl.benchmark import ImRegBenchmark
 from birl.utilities.data_io import image_sizes
 from birl.utilities.experiments import parse_arg_params
-from birl.benchmark import ImRegBenchmark
 
 # list of combination options
 OPTIONS_COMBINE = ('first2all', 'each2all')

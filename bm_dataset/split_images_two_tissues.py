@@ -25,7 +25,11 @@ import cv2 as cv
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.dataset import (
-    find_split_objects, project_object_edge, load_large_image, save_large_image, args_expand_parse_images
+    args_expand_parse_images,
+    find_split_objects,
+    load_large_image,
+    project_object_edge,
+    save_large_image,
 )
 from birl.utilities.experiments import iterate_mproc_map, nb_workers
 

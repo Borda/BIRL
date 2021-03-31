@@ -10,8 +10,9 @@ import os
 
 import matplotlib.pylab as plt
 import numpy as np
+from matplotlib import colors as plt_colors
+from matplotlib import ticker as plt_ticker
 from PIL import ImageDraw
-from matplotlib import colors as plt_colors, ticker as plt_ticker
 
 from birl.utilities.data_io import convert_ndarray2image
 from birl.utilities.dataset import scale_large_images_landmarks

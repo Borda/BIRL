@@ -11,21 +11,21 @@ import re
 
 import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image
 from cv2 import (
+    COLOR_RGB2BGR,
+    COLOR_RGBA2RGB,
+    cvtColor,
+    GaussianBlur,
+    imwrite,
     IMWRITE_JPEG_QUALITY,
     IMWRITE_PNG_COMPRESSION,
-    COLOR_RGBA2RGB,
-    COLOR_RGB2BGR,
     INTER_LINEAR,
-    GaussianBlur,
-    cvtColor,
-    imwrite,
     resize,
 )
 from matplotlib.path import Path
-from scipy import spatial, optimize
-from skimage.color import rgb2hsv, hsv2rgb, rgb2lab, lab2rgb, lch2lab, lab2lch, rgb2hed, hed2rgb, rgb2luv, luv2rgb
+from PIL import Image
+from scipy import optimize, spatial
+from skimage.color import hed2rgb, hsv2rgb, lab2lch, lab2rgb, lch2lab, luv2rgb, rgb2hed, rgb2hsv, rgb2lab, rgb2luv
 from skimage.exposure import rescale_intensity
 from skimage.filters import threshold_otsu
 

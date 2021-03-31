@@ -73,10 +73,10 @@ import numpy as np
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
+from birl.benchmark import _df_drop_unnamed, COL_PAIRED_LANDMARKS, filter_paired_landmarks, ImRegBenchmark
 from birl.utilities.data_io import create_folder, load_landmarks, save_landmarks, update_path
 from birl.utilities.dataset import parse_path_scale
-from birl.utilities.experiments import iterate_mproc_map, parse_arg_params, FORMAT_DATE_TIME, nb_workers
-from birl.benchmark import COL_PAIRED_LANDMARKS, ImRegBenchmark, filter_paired_landmarks, _df_drop_unnamed
+from birl.utilities.experiments import FORMAT_DATE_TIME, iterate_mproc_map, nb_workers, parse_arg_params
 
 NB_WORKERS = nb_workers(0.9)
 NAME_CSV_RESULTS = 'registration-results.csv'

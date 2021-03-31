@@ -27,15 +27,23 @@ from skimage.color import rgb2gray
 
 # this is used while calling this file as a script
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
-from birl.utilities.data_io import update_path, create_folder, image_sizes, load_landmarks, load_image, save_image
-from birl.utilities.dataset import image_histogram_matching, common_landmarks
+from birl.utilities.data_io import create_folder, image_sizes, load_image, load_landmarks, save_image, update_path
+from birl.utilities.dataset import common_landmarks, image_histogram_matching
+from birl.utilities.drawing import draw_image_points, draw_images_warped_landmarks, export_figure, overlap_two_images
 from birl.utilities.evaluate import (
-    compute_target_regist_error_statistic, compute_affine_transf_diff, compute_tre_robustness
+    compute_affine_transf_diff,
+    compute_target_regist_error_statistic,
+    compute_tre_robustness,
 )
 from birl.utilities.experiments import (
-    nb_workers, exec_commands, string_dict, iterate_mproc_map, create_basic_parser, parse_arg_params, Experiment
+    create_basic_parser,
+    exec_commands,
+    Experiment,
+    iterate_mproc_map,
+    nb_workers,
+    parse_arg_params,
+    string_dict,
 )
-from birl.utilities.drawing import (export_figure, draw_image_points, draw_images_warped_landmarks, overlap_two_images)
 from birl.utilities.registration import estimate_affine_transform
 
 #: In case provided dataset and complete (true) dataset differ

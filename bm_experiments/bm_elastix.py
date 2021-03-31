@@ -75,9 +75,9 @@ import numpy as np
 import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
+from birl.benchmark import ImRegBenchmark
 from birl.utilities.data_io import load_landmarks, save_landmarks, save_landmarks_pts
 from birl.utilities.experiments import exec_commands
-from birl.benchmark import ImRegBenchmark
 from bm_experiments import bm_comp_perform
 
 
