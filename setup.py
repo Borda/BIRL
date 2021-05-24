@@ -33,7 +33,7 @@ def load_requirements(fname='requirements.txt'):
 
 
 if sys.version_info.major == 2:
-    requirements = load_requirements('requirements-py27.txt')
+    requirements = load_requirements('require-py27.txt')
 else:
     requirements = load_requirements('requirements.txt')
 
