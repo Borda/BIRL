@@ -8,8 +8,9 @@ on:  # Trigger the workflow on push or pull request, but only for the master bra
     branches: [master]
 
 jobs:
-  pytest:
 
+  pytest:
+    if: github.event.pull_request.draft == false
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
