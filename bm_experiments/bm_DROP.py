@@ -132,9 +132,9 @@ class BmDROP(ImRegBenchmark):
 
         t_start = time.time()
         for path_img, col in [(path_im_ref, self.COL_IMAGE_REF), (path_im_move, self.COL_IMAGE_MOVE)]:
-            item[col + self.COL_IMAGE_EXT_TEMP] = \
-                convert_image_to_mhd(path_img, path_out_dir=path_reg_dir, overwrite=False,
-                                     to_gray=True, scaling=item.get('scaling', 1.))
+            item[col + self.COL_IMAGE_EXT_TEMP] = convert_image_to_mhd(
+                path_img, path_out_dir=path_reg_dir, overwrite=False, to_gray=True, scaling=item.get('scaling', 1.)
+            )
         item[self.COL_TIME_CONVERT] = time.time() - t_start
         return item
 
