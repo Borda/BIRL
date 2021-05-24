@@ -17,7 +17,7 @@ references:
       command: |
         py_ver=$(python -c"import sys; print(sys.version_info.major)")
         if [ $py_ver -eq 2 ]; then
-            cp -r requirements-py27.txt requirements.txt ;
+            cp -r require-py27.txt requirements.txt ;
         fi
         pip install -U backports.functools_lru_cache  # required for matplotlib @py2
         pip install "setuptools<46" -U  # v46 crashes openslide-python install
