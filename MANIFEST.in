@@ -6,6 +6,7 @@ recursive-exclude __pycache__  *.pyc *.pyo *.orig
 
 # Include the README
 include *.md
+exclude Makefile
 
 # Include the license file
 include LICENSE

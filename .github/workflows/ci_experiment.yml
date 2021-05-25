@@ -6,10 +6,12 @@ on:  # Trigger the workflow on push or pull request, but only for the master bra
     branches: [master]
   pull_request:
     branches: [master]
+    types: [opened, reopened, ready_for_review, synchronize]
 
 jobs:
-  pytest:
 
+  bash-expt:
+    if: github.event.pull_request.draft == false
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -34,7 +36,7 @@ jobs:
     - name: Set py2.7 dependencies
       if: matrix.python-version == 2.7
       run: |
-        cp -r requirements-py27.txt requirements.txt
+        cp -r require-py27.txt requirements.txt
 
     # Note: This uses an internal pip API and may not always work
     # https://github.com/actions/cache/blob/master/examples.md#multiple-oss-in-a-workflow

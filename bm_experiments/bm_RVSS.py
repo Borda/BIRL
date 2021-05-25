@@ -86,18 +86,20 @@ class BmRVSS(ImRegBenchmark):
     DIR_OUTPUTS = 'output'
     # PATH_SCRIPT_HIST_MATCH_IJM = os.path.join(PATH_IJ_SCRIPTS, 'histogram-matching-for-macro.bsh')
     #: command for executing the image registration
-    COMMAND_REGISTRATION = \
-        '%(exec_Fiji)s --headless %(path_bsh)s' \
-        ' %(dir_input)s/ %(dir_output)s/ %(dir_output)s/' \
+    COMMAND_REGISTRATION = (
+        '%(exec_Fiji)s --headless %(path_bsh)s'
+        ' %(dir_input)s/ %(dir_output)s/ %(dir_output)s/'
         ' %(ref_name)s %(params)s'
+    )
     #: command for executing the warping image and landmarks
-    COMMAND_WARP_LANDMARKS = \
-        '%(exec_Fiji)s --headless %(path_bsh)s' \
-        ' %(source)s %(target)s' \
-        ' %(output)s/' + BmUnwarpJ.NAME_LANDMARKS + \
-        ' %(output)s/' + BmUnwarpJ.NAME_LANDMARKS_WARPED + \
-        ' %(transf)s' \
+    COMMAND_WARP_LANDMARKS = (
+        '%(exec_Fiji)s --headless %(path_bsh)s'
+        ' %(source)s %(target)s'
+        ' %(output)s/' + BmUnwarpJ.NAME_LANDMARKS + ' '
+        ' %(output)s/' + BmUnwarpJ.NAME_LANDMARKS_WARPED + ' '
+        ' %(transf)s'
         ' %(warp)s'
+    )
     #: required parameters in the configuration file for RVSS
     REQUIRED_PARAMS_RVSS = ('shrinkingConstraint', 'featuresModelIndex', 'registrationModelIndex')
     #: default RVSS parameters

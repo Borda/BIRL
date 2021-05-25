@@ -1,9 +1,10 @@
 name: CI testing
 
 # see: https://help.github.com/en/actions/reference/events-that-trigger-workflows
-on:  # Trigger the workflow on push or pull request, but only for the master branch
-  - push
-  - pull_request
+on:  # Trigger the workflow on push or pull request,  but only for the master branch
+  push:
+    branches: [master]
+  pull_request: {}
 
 jobs:
   pytest:
@@ -38,7 +39,7 @@ jobs:
     - name: Set py2.7 dependencies
       if: matrix.python-version == 2.7
       run: |
-        cp -r requirements-py27.txt requirements.txt
+        cp -r require-py27.txt requirements.txt
         # required for matplotlib @py2
         pip install -U backports.functools_lru_cache
 

@@ -2,7 +2,7 @@ numpy>=1.9
 scipy>=0.10.0
 pandas>=0.17.1
 six>=1.7.3
-pillow>=4.0, <7  # 7.x fails to load PNG via skimage
+pillow
 matplotlib>=2.0.2, <3.0.0  # new version does not support py2
 tqdm>=4.7.4, <=4.30  # higher fails ascii for py2
 pyyaml

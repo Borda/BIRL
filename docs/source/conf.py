@@ -90,7 +90,7 @@ extensions = [
     'sphinx.ext.linkcode',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
-    'recommonmark',
+    'myst_parser',
     # 'm2r',
     'nbsphinx',
     # https://github.com/sphinx-doc/sphinx/issues/4720
@@ -106,6 +106,8 @@ templates_path = ['_templates']
 # they should be run at build time.
 nbsphinx_execute = 'never'
 nbsphinx_allow_errors = True
+
+myst_update_mathjax = False
 
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
@@ -347,10 +349,11 @@ def linkcode_resolve(domain, info):
 
 autodoc_member_order = 'groupwise'
 autoclass_content = 'both'
-autodoc_default_flags = [
-    'members',
-    'undoc-members',
-    'show-inheritance',
-    'private-members',
-    # 'special-members', 'inherited-members'
-]
+autodoc_default_options = {
+    'members': True,
+    'undoc-members': True,
+    'private-members': True,
+    'methods': True,
+    'exclude-members': '_abc_impl',
+    'show-inheritance': True,
+}

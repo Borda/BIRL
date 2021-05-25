@@ -100,11 +100,12 @@ class BmUnwarpJ(ImRegBenchmark):
     # PATH_SCRIPT_HIST_MATCH_IJM = os.path.join(PATH_IJ_SCRIPTS,
     #                                           'histogram-matching-for-macro.bsh')
     #: command for executing the image registration
-    COMMAND_REGISTRATION = \
-        '%(exec_Fiji)s --headless %(path_bsh)s' \
-        ' %(source)s %(target)s %(params)s' \
-        ' %(output)s/transform-direct.txt' \
+    COMMAND_REGISTRATION = (
+        '%(exec_Fiji)s --headless %(path_bsh)s'
+        ' %(source)s %(target)s %(params)s'
+        ' %(output)s/transform-direct.txt'
         ' %(output)s/transform-inverse.txt'
+    )
     #: internal name of converted landmarks for tranf. script
     NAME_LANDMARKS = 'source_landmarks.pts'
     #: name of warped moving landmarks by tranf. script
@@ -114,14 +115,13 @@ class BmUnwarpJ(ImRegBenchmark):
     #: resulting direct transformation
     NAME_TRANSF_DIRECT = 'transform-direct.txt'
     #: command for executing the warping image and landmarks
-    COMMAND_WARP_LANDMARKS = \
-        '%(exec_Fiji)s --headless %(path_bsh)s' \
-        ' %(source)s %(target)s' \
-        ' %(output)s/' + NAME_LANDMARKS + \
-        ' %(output)s/' + NAME_LANDMARKS_WARPED + \
-        ' %(transf-inv)s' \
-        ' %(transf-dir)s' \
+    COMMAND_WARP_LANDMARKS = (
+        '%(exec_Fiji)s --headless %(path_bsh)s'
+        ' %(source)s %(target)s'
+        ' %(output)s/' + NAME_LANDMARKS + ' %(output)s/' + NAME_LANDMARKS_WARPED + ' %(transf-inv)s'
+        ' %(transf-dir)s'
         ' %(warp)s'
+    )
     #: required parameters in the configuration file for bUnwarpJ
     REQUIRED_PARAMS_BUNWARPJ = (
         'mode', 'subsampleFactor', 'minScale', 'maxScale', 'divWeight', 'curlWeight', 'landmarkWeight', 'imageWeight',
