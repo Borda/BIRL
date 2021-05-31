@@ -3,8 +3,8 @@
  * @author: Jiri Borovec
  * @date: 13/02/2013
  * @mail: jiri.borovec@fel.cvut.cz
- * 
- * @brief: This macro does mosaic from all open images. 
+ *
+ * @brief: This macro does mosaic from all open images.
  * The grid size is given by param "mosaicSize".
  * It keeps the final image ans the others will be closed.
  */
@@ -49,8 +49,8 @@ for(y=0; y<height; y+=mosaicSize) {
 		makeRectangle(x, y, sMosaicX, sMosaicY);
 		run("Paste");
 		xIdx = (xIdx+1) % nbImgs;
-  	} 
+  	}
   	yIdx = (yIdx+1) % nbImgs;
-} 
+}
 
 //close("Stack");

@@ -20,7 +20,7 @@
 [![Code Health](https://landscape.io/github/Borda/BIRL/master/landscape.svg?style=flat)](https://landscape.io/github/Borda/BIRL/master)
 [![Run Status](https://api.shippable.com/projects/585bfa66e18a291000c15f24/badge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
 [![Coverage Badge](https://api.shippable.com/projects/585bfa66e18a291000c15f24/coverageBadge?branch=master)](https://app.shippable.com/github/Borda/BIRL)
-[![Image.sc 
+[![Image.sc
 forum](https://img.shields.io/badge/dynamic/json.svg?label=forum&url=https%3A%2F%2Fforum.image.sc%2Ftags%2Fanhir.json&query=%24.topic_list.tags.0.topic_count&colorB=brightgreen&suffix=%20topics&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAABPklEQVR42m3SyyqFURTA8Y2BER0TDyExZ+aSPIKUlPIITFzKeQWXwhBlQrmFgUzMMFLKZeguBu5y+//17dP3nc5vuPdee6299gohUYYaDGOyyACq4JmQVoFujOMR77hNfOAGM+hBOQqB9TjHD36xhAa04RCuuXeKOvwHVWIKL9jCK2bRiV284QgL8MwEjAneeo9VNOEaBhzALGtoRy02cIcWhE34jj5YxgW+E5Z4iTPkMYpPLCNY3hdOYEfNbKYdmNngZ1jyEzw7h7AIb3fRTQ95OAZ6yQpGYHMMtOTgouktYwxuXsHgWLLl+4x++Kx1FJrjLTagA77bTPvYgw1rRqY56e+w7GNYsqX6JfPwi7aR+Y5SA+BXtKIRfkfJAYgj14tpOF6+I46c4/cAM3UhM3JxyKsxiOIhH0IO6SH/A1Kb1WBeUjbkAAAAAElFTkSuQmCC)](https://forum.image.sc/tags/anhir)
 -->
 
@@ -33,9 +33,9 @@ _This project/framework is the key component of **[Automatic Non-rigid Histologi
 The project contains a set of sample images with related landmark annotations and experimental evaluation of state-of-the-art image registration methods.
 
 The initial [dataset of stained histological tissues](http://cmp.felk.cvut.cz/~borovji3/?page=dataset) is composed by image pairs of related sections (mainly, consecutive cuts).
-Each image in the pair is coloured with a different stain. 
-The registration of those images is a challenging task due to both artefacts and deformations acquired during sample preparation and appearance differences due to staining. 
-For evaluation, we have manually placed landmarks in each image pair. There are at least 40 uniformly spread over the tissue. 
+Each image in the pair is coloured with a different stain.
+The registration of those images is a challenging task due to both artefacts and deformations acquired during sample preparation and appearance differences due to staining.
+For evaluation, we have manually placed landmarks in each image pair. There are at least 40 uniformly spread over the tissue.
 We do not put any landmarks in the background.
 For more information about annotation creation and landmarks handling, we refer to the special repository - [Dataset: histology landmarks](http://borda.github.com/dataset-histology-landmarks).
 
@@ -91,20 +91,20 @@ python setup.py install
 For installing some particular version/releases use following links
 _https://github.com/Borda/BIRL/archive/v0.2.3.zip_
 where the numbers match desired version
-(see package [releases](https://github.com/Borda/BIRL/releases)). 
+(see package [releases](https://github.com/Borda/BIRL/releases)).
 
 ---
 
-## Before benchmarks (pre-processing) 
+## Before benchmarks (pre-processing)
 
-In the `data-images` folder we provide some sample images with landmarks for registration. 
-These sample registration pairs are saved in `data-images/pairs-imgs-lnds_mix.csv`. 
+In the `data-images` folder we provide some sample images with landmarks for registration.
+These sample registration pairs are saved in `data-images/pairs-imgs-lnds_mix.csv`.
 You can create your own costume cover table for a given dataset (folder with images and landmarks) by hand or use script `bm_dataset/create_registration_pairs.py` assuming the same folder structure `<dataset>/<image-set>/<scale>/<images-and-landmarks>` as for the [CIMA dataset](http://cmp.felk.cvut.cz/~borovji3/?page=dataset).
 
 ### Prepare synthetic data
 
-There is a script to generate synthetic data. 
-Just set an initial image and their corresponding landmarks. 
+There is a script to generate synthetic data.
+Just set an initial image and their corresponding landmarks.
 The script will generate a set of geometrically deformed images mimicking different stains and compute the new related landmarks.
 
 ```bash
@@ -117,8 +117,8 @@ python bm_dataset/create_real_synth_dataset.py \
 
 ### Creating an image-pairs table
 
-When the synthetic datasets have been created, the cover csv file which contains the registration pairs (Reference and Moving image (landmarks)) is generated. 
-Two modes are created: _"first2all"_ for registering the first image to all others and _"each2all"_ for registering each image to all other. 
+When the synthetic datasets have been created, the cover csv file which contains the registration pairs (Reference and Moving image (landmarks)) is generated.
+Two modes are created: _"first2all"_ for registering the first image to all others and _"each2all"_ for registering each image to all other.
 _(note A-B is the same as B-A)_
 
 ```bash
@@ -144,7 +144,7 @@ We introduce an option how to randomly take only a subset (use `nb_selected`) of
 python bm_dataset/rescale_tissue_landmarks.py \
     -a ./data-images -d ./output \
     --nb_selected 0.5 --nb_total 200
-``` 
+```
 
 Moreover we developed two additional script for converting large images, handling multiple tissue samples in single image and crop to wide background.
  * `bm_dataset/convert_tiff2png.py` converts TIFF or SVS image to PNG in a particular level
@@ -161,7 +161,7 @@ Even though this framework is completely customizable we include several image r
 
 ### Install methods and run benchmarks
 
-For each registration method, different experiments can be performed independently using different values of the parameters or image pairs sets. 
+For each registration method, different experiments can be performed independently using different values of the parameters or image pairs sets.
 
 Sample execution of the "empty" benchmark template:
 ```bash
@@ -197,13 +197,13 @@ The general Image Registration benchmarks contain couple required and optional p
 ![preprocessing-hist-matching](assets/Rat-Kidney_histogram-matching.jpg)
 
 Measure your computer performance using average execution time on several simple image registrations.
-The registration consists of loading images, denoising, feature detection, transform estimation and image warping. 
+The registration consists of loading images, denoising, feature detection, transform estimation and image warping.
 ```bash
 python bm_experiments/bm_comp_perform.py -o ./results
 ```
 This script generate simple report exported in JSON file on given output path.
 
-### Prepared experimental docker image 
+### Prepared experimental docker image
 
 Used prepared docker image from [Docker Hub](https://hub.docker.com/r/borda/birl)
 
@@ -334,14 +334,14 @@ The new image registration methods should be added to `bm_experiments` folder.
 
 ### Re-evaluate experiment
 
-In case you need to re-compute evaluation or add visualisation to existing experiment you can use the following script. 
-The script require complete experiment folder with standard `registration-results.scv` (similar to registration pairs extended by experiment results). 
+In case you need to re-compute evaluation or add visualisation to existing experiment you can use the following script.
+The script require complete experiment folder with standard `registration-results.scv` (similar to registration pairs extended by experiment results).
 
 ```bash
 python bm_experiments/evaluate_experiment.py \
     -e ./results/BmUnwarpJ \
     --visual
-``` 
+```
 
 ---
 
@@ -363,10 +363,10 @@ For complete references see [bibtex](docs/references.bib).
 
 Create your own local environment, for more information see the [User Guide](https://pip.pypa.io/en/latest/user_guide.html), and install dependencies requirements.txt contains a list of packages and can be installed as
 ```bash
-@duda:~$ cd BIRL 
+@duda:~$ cd BIRL
 @duda:~/BIRL$ virtualenv env
-@duda:~/BIRL$ source env/bin/activate  
-(env)@duda:~/BIRL$ pip install -r requirements.txt  
+@duda:~/BIRL$ source env/bin/activate
+(env)@duda:~/BIRL$ pip install -r requirements.txt
 (env)@duda:~/BIRL$ python ...
 ```
 and in the end, terminating...
@@ -376,7 +376,7 @@ and in the end, terminating...
 
 **Running docString tests** - documentation and samples of doc string on [pymotw](https://pymotw.com/2/doctest/) and [python/docs](https://docs.python.org/2/library/doctest.html)
 
-**Listing dataset in command line**  
+**Listing dataset in command line**
 ```bash
 find . | sed -e "s/[^-][^\/]*\// |/g" -e "s/|\([^ ]\)/|-\1/" >> dataset.txt
 ```
