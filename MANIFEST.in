@@ -45,7 +45,7 @@ recursive-include scripts *.r *.ijm *.bsh *.py
 include *.txt
 
 # Exclude build configs
-exclude *.yml
+exclude *.yml *.yaml
 
 prune .git
 prune .github
