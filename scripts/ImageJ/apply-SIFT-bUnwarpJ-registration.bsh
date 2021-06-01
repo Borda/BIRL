@@ -37,7 +37,7 @@ if( bsh.args.length < 23 )
 	IJ.log( "       'modelIndex' expected transformation (SIFT parameter, 0:Translation, 1:Rigid, 2:Similarity, 3:Affine, 4:Perspective)" );
 
 	// bUnwarpJ parameters
-	
+
 	IJ.log( "       'mode' 0-2 (0-Accurate, 1-Fast, 2-Mono)" );
 	IJ.log( "       'subsampleFactor' 0-7 (0 = 2^0, 7 = 2^7)" );
 	IJ.log( "       'minScale' 0-3 (0-Very Coarse, 1-Coarse, 2-Fine, 3-Very Fine)" );
@@ -111,9 +111,9 @@ sift.exec( fixedImage, movingImage,
 			minInlierRatio, modelIndex );
 
 // compute registration without GUI
-t = bUnwarpJ_.computeTransformationBatch( fixedImage, movingImage, maskIpTgt, maskIpSrc, mode, 
-						subsampleFactor, minScale, maxScale, 
-						divWeight, curlWeight, landmarkWeight, 
+t = bUnwarpJ_.computeTransformationBatch( fixedImage, movingImage, maskIpTgt, maskIpSrc, mode,
+						subsampleFactor, minScale, maxScale,
+						divWeight, curlWeight, landmarkWeight,
 						imageWeight, consistencyWeight, stopThreshold );
 
 // save transforms

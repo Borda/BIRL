@@ -47,7 +47,7 @@ Run one of following sample registration experiments:
         ~/Medical-temp/experiments_anhir/BmUnwarpJ/*/*.png
     ```
 
-Running the docker image with mapped folders 
+Running the docker image with mapped folders
 ```bash
 mkdir submission output
 ```
@@ -61,7 +61,7 @@ docker run --rm -it \
 ```
 
 
-### Export 
+### Export
 
 Export the created image to be uploaded to the evaluation system.
 ```bash

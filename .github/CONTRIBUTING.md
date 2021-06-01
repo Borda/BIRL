@@ -81,7 +81,7 @@ Now, run all tests using::
 Use ``--doctest-modules`` to run doctests.
 For example, run all tests and all doctests using::
 ```
-    $ PYTHONPATH=. pytest --doctest-modules --with-xunit --with-coverage <package> 
+    $ PYTHONPATH=. pytest --doctest-modules --with-xunit --with-coverage <package>
 ```
 
 ## Test coverage

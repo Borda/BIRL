@@ -51,13 +51,13 @@ referenceName = bsh.args[ 3 ];
 IJ.log( "reference file: " + referenceName );
 if( referenceName.equals("null") )
 	referenceName = null;
-	
+
 shrinkingConstraint = Integer.parseInt( bsh.args[ 4 ] ) == 1; // (0 or 1)
 
 // RVSS parameters
 p = new Register_Virtual_Stack_MT.Param();
 
-p.featuresModelIndex = Integer.parseInt( bsh.args[ 5 ] ); 
+p.featuresModelIndex = Integer.parseInt( bsh.args[ 5 ] );
 p.registrationModelIndex = Integer.parseInt( bsh.args[ 6 ] );
 // SIFT
 p.sift.initialSigma = Float.parseFloat( bsh.args[ 7 ] );
@@ -75,5 +75,5 @@ p.featuresModelIndex = Integer.parseInt( bsh.args[ 16 ] );
 //if( bsh.args.length >= 23 )
 //	fixedTransfFile = new File( bsh.args[ 23 ] );
 
- 
+
 Register_Virtual_Stack_MT.exec(sourceDir, targetDir, transfDir, referenceName, p, shrinkingConstraint );

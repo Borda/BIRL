@@ -56,7 +56,7 @@ try {
 		pointList.add( point );
         line = br.readLine();
     }
-    
+
 } finally {
     br.close();
 }
@@ -88,7 +88,7 @@ try {
 catch (IOException ex) {
     IJ.log( ex.printStackTrace());
 } finally {
-   
+
 }
 
 // Apply transform to image
@@ -100,7 +100,7 @@ bb = mesh.getBoundingBox();
 //IJ.log( "bb.x = " + bb.x + ", bb.y = " + bb.y + ", bb.width = " + bb.width + ", bb.height = " + bb.height );
 
 movingImage.getProcessor().setValue(0);
-ip = mapping.createMappedImageInterpolated( movingImage.getProcessor() ); 
+ip = mapping.createMappedImageInterpolated( movingImage.getProcessor() );
 
 // crop corresponding area based on fixed image
 output = new ImagePlus( "output", ip );

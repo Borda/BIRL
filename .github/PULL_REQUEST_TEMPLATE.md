@@ -23,8 +23,8 @@ Fixes # (issue).
 - Breaking change (fix or feature that would cause existing functionality to not work as expected)
 - This change requires a documentation update
 
-## PR review    
-Anyone in the community is free to review the PR once the tests have passed.     
+## PR review
+Anyone in the community is free to review the PR once the tests have passed.
 If we didn't discuss your PR in Github issues there's a high chance it will not be merged.
 
 ## Did you have fun?

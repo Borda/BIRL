@@ -57,9 +57,9 @@ maskIpTgt = null;
 maskIpSrc = null;
 
 // compute registration without GUI
-t = bUnwarpJ_.computeTransformationBatch( fixedImage, movingImage, maskIpTgt, maskIpSrc, mode, 
-						subsampleFactor, minScale, maxScale, 
-						divWeight, curlWeight, landmarkWeight, 
+t = bUnwarpJ_.computeTransformationBatch( fixedImage, movingImage, maskIpTgt, maskIpSrc, mode,
+						subsampleFactor, minScale, maxScale,
+						divWeight, curlWeight, landmarkWeight,
 						imageWeight, consistencyWeight, stopThreshold );
 
 // save transforms
