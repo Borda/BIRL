@@ -10,6 +10,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/borda/birl/badge)](https://www.codefactor.io/repository/github/borda/birl)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/Borda/BIRL.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/Borda/BIRL/context:python)
 [![codebeat badge](https://codebeat.co/badges/6dd13229-ca9e-4dae-9394-caf5f363082d)](https://codebeat.co/projects/github-com-borda-birl-master)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/Borda/BIRL/master.svg)](https://results.pre-commit.ci/latest/github/Borda/BIRL/master)
 
 [![Documentation Status](https://readthedocs.org/projects/birl/badge/?version=latest)](https://birl.readthedocs.io/en/latest/?badge=latest)
 [![Gitter](https://badges.gitter.im/BmImRegLnd/community.svg)](https://gitter.im/BmImRegLnd/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
