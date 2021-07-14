@@ -165,7 +165,7 @@ def filter_export_landmarks(idx_row, path_output, path_dataset, path_reference):
         create_folder(os.path.dirname(path_out), ok_existing=True)
         if os.path.isfile(path_out):
             if not np.array_equal(load_landmarks(path_out), lnds_flt):
-                raise AssertionError('overwrite different set of landmarks')
+                raise ValueError('overwrite different set of landmarks')
         save_landmarks(path_out, lnds_flt)
 
     return idx, ratio_matches
@@ -350,7 +350,7 @@ def _filter_tre_measure_columns(df_experiments):
     cols_init = [col for col in df_experiments.columns if re.match(r'(r)?IRE', col)]
     cols_final = [col.replace('IRE', 'TRE') for col in cols_init]
     if len(cols_final) != len(cols_init):
-        raise AssertionError('columns do not match for future zip')
+        raise ValueError('columns do not match for future zip')
     return cols_final, cols_init
 
 

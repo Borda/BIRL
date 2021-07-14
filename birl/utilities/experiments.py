@@ -116,7 +116,7 @@ class Experiment(object):
         logging.debug('.. check if Experiment have all required parameters')
         for n in self.REQUIRED_PARAMS:
             if n not in self.params:
-                raise AssertionError('missing "%s" among %r' % (n, self.params.keys()))
+                raise ValueError('missing "%s" among %r' % (n, self.params.keys()))
 
     def run(self):
         """Running the complete experiment.
@@ -173,7 +173,7 @@ class Experiment(object):
         'path', 'dir', 'file'
         """
         if 'path_out' not in self.params:
-            raise AssertionError('missing "path_out" among parameters')
+            raise ValueError('missing "path_out" among parameters')
         self.params['path_out'] = update_path(self.params.get('path_out'))
         list_names = [n for n in self.params if any(m in n.lower() for m in ['path', 'dir', 'file'])]
         for n in list_names:
@@ -193,8 +193,7 @@ class Experiment(object):
         * export experiment configuration to the folder
         """
         if 'path_out' not in self.params:
-            raise AssertionError('missing "path_out" among %r' \
-                                          % self.params.keys())
+            raise ValueError('missing "path_out" among %r' % self.params.keys())
         # create results folder for experiments
         path_exp = create_experiment_folder(
             self.params.get('path_out'), self.__class__.__name__, self.params.get('name'), stamp_unique
@@ -243,7 +242,7 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     >>> os.rmdir(p_dir)
     """
     if not os.path.isdir(path_out):
-        raise AssertionError('missing base folder "%s"' % path_out)
+        raise FileNotFoundError('missing base folder "%s"' % path_out)
     date = time.gmtime()
     if isinstance(name, str) and name:
         dir_name = '%s_%s' % (dir_name, name)
@@ -415,7 +414,7 @@ def parse_arg_params(parser, upper_dirs=None):
     # extend and test all paths in params
     args, missing = update_paths(args, upper_dirs=upper_dirs)
     if missing:
-        raise AssertionError('missing paths: %r' % {k: args[k] for k in missing})
+        raise ValueError('missing paths: %r' % {k: args[k] for k in missing})
     return args
 
 

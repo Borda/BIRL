@@ -72,7 +72,7 @@ def convert_image(path_img, level=DEFAULT_LEVEL, overwrite=False):
     """
     slide_img = OpenSlide(path_img)
     if level >= len(slide_img.level_dimensions):
-        raise AssertionError('unsupported level %i of %i' % (level, slide_img.level_count))
+        raise ValueError('unsupported level %i of %i' % (level, slide_img.level_count))
 
     path_img_new = os.path.splitext(path_img)[0] + IMAGE_EXTENSION
     if os.path.isfile(path_img_new) and not overwrite:

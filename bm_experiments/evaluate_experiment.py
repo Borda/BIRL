@@ -70,7 +70,7 @@ def main(path_experiment, path_dataset, visual=False, nb_workers=NB_WORKERS):
     """
     path_results = os.path.join(path_experiment, ImRegBenchmark.NAME_CSV_REGISTRATION_PAIRS)
     if not os.path.isfile(path_results):
-        raise AssertionError
+        raise FileNotFoundError('missing: %s' % path_results)
 
     df_experiments = pd.read_csv(path_results)
     df_results = df_experiments.copy()

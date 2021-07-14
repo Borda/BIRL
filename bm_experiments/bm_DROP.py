@@ -180,7 +180,7 @@ class BmDROP(ImRegBenchmark):
         lnds_name = os.path.basename(path_lnds_ref)
         path_lnds_warp = os.path.join(path_reg_dir, lnds_name)
         if lnds_ref is None:
-            raise AssertionError('missing landmarks to be transformed "%s"' % lnds_name)
+            raise ValueError('missing landmarks to be transformed "%s"' % lnds_name)
 
         # down-scale landmarks if defined
         lnds_ref = lnds_ref / item.get('scaling', 1.)
@@ -247,14 +247,16 @@ class BmDROP(ImRegBenchmark):
         # define function for parsing particular shift from MHD
         def __parse_shift(path_deform_, lnds):
             if not os.path.isfile(path_deform_):
-                raise AssertionError('missing deformation: %s' % path_deform_)
+                raise FileNotFoundError('missing deformation: %s' % path_deform_)
             deform_ = sitk.GetArrayFromImage(sitk.ReadImage(path_deform_))
             if deform_ is None:
-                raise AssertionError('loaded deformation is Empty - %s' % path_deform_)
+                raise ValueError('loaded deformation is Empty - %s' % path_deform_)
             lnds_max = np.max(lnds, axis=0)[::-1]
             if not all(ln < dim for ln, dim in zip(lnds_max, deform_.shape)):
-                raise AssertionError('landmarks max %s is larger then (exceeded) deformation shape %s' \
-                % (lnds_max.tolist(), deform_.shape))
+                raise ValueError(
+                    'landmarks max %s is larger then (exceeded) deformation shape %s' %
+                    (lnds_max.tolist(), deform_.shape)
+                )
             shift_ = deform_[lnds[:, 1], lnds[:, 0]]
             return shift_
 

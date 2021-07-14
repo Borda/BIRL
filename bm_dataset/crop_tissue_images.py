@@ -72,7 +72,7 @@ def crop_image(img_path, crop_dims=(0, 1), padding=0.15):
     crops = {}
     for crop_dim in crop_dims:
         if crop_dim not in (0, 1):
-            raise AssertionError('not supported dimension: %i' % crop_dim)
+            raise ValueError('not supported dimension: %i' % crop_dim)
         img_edge = project_object_edge(img_small, crop_dim)
 
         begin, end = find_largest_object(img_edge, threshold=TISSUE_CONTENT)

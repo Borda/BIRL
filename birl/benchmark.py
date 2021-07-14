@@ -185,7 +185,7 @@ class ImRegBenchmark(Experiment):
         :param dict params:  parameters
         """
         if 'unique' not in params:
-            raise AssertionError('missing "unique" among %r' % params.keys())
+            raise ValueError('missing "unique" among %r' % params.keys())
         super(ImRegBenchmark, self).__init__(params, params['unique'])
         logging.info(self.__doc__)
         self._df_overview = None
@@ -220,7 +220,7 @@ class ImRegBenchmark(Experiment):
             logging.debug('Source path does not exists: %s', path)
             return path
         if destination not in self.params:
-            raise AssertionError('Missing path in params: %s' % destination)
+            raise ValueError('Missing path in params: %s' % destination)
         base_path = self.params['path_exp']
         base_dir = os.path.basename(base_path)
         path_split = path.split(os.sep)
@@ -281,11 +281,11 @@ class ImRegBenchmark(Experiment):
         logging.info('-> loading data...')
         # loading the csv cover file
         if not os.path.isfile(self.params['path_table']):
-            raise AssertionError('path to csv cover is not defined - %s' % self.params['path_table'])
+            raise FileNotFoundError('path to csv cover is not defined - %s' % self.params['path_table'])
         self._df_overview = pd.read_csv(self.params['path_table'], index_col=None)
         self._df_overview = _df_drop_unnamed(self._df_overview)
         if not all(col in self._df_overview.columns for col in self.COVER_COLUMNS):
-            raise AssertionError('Some required columns are missing in the cover file.')
+            raise ValueError('Some required columns are missing in the cover file.')
 
     def _run(self):
         """ perform complete benchmark experiment """
@@ -835,7 +835,7 @@ class ImRegBenchmark(Experiment):
         :return obj|None:
         """
         if not isinstance(item.get(cls.COL_POINTS_MOVE_WARP, None), str):
-            raise AssertionError('Missing registered points in "%s"' % cls.COL_POINTS_MOVE_WARP)
+            raise ValueError('Missing registered points in "%s"' % cls.COL_POINTS_MOVE_WARP)
         path_points_warp = update_path(item[cls.COL_POINTS_MOVE_WARP], pre_path=path_experiment)
         if not os.path.isfile(path_points_warp):
             logging.warning('missing warped landmarks for: %r', dict(item))
@@ -869,7 +869,7 @@ class ImRegBenchmark(Experiment):
         :return obj|None:
         """
         if not isinstance(item.get(cls.COL_POINTS_REF_WARP, None), str):
-            raise AssertionError('Missing registered points in "%s"' % cls.COL_POINTS_REF_WARP)
+            raise ValueError('Missing registered points in "%s"' % cls.COL_POINTS_REF_WARP)
         path_points_warp = update_path(item[cls.COL_POINTS_REF_WARP], pre_path=path_experiment)
         if not os.path.isfile(path_points_warp):
             logging.warning('missing warped landmarks for: %r', dict(item))
@@ -961,10 +961,10 @@ def filter_paired_landmarks(item, path_dataset, path_reference, col_source, col_
     """
     path_ref = update_path(item[col_source], pre_path=path_reference)
     if not os.path.isfile(path_ref):
-        raise AssertionError('missing landmarks: %s' % path_ref)
+        raise FileNotFoundError('missing landmarks: %s' % path_ref)
     path_load = update_path(item[col_source], pre_path=path_dataset)
     if not os.path.isfile(path_load):
-        raise AssertionError('missing landmarks: %s' % path_load)
+        raise FileNotFoundError('missing landmarks: %s' % path_load)
     pairs = common_landmarks(load_landmarks(path_ref), load_landmarks(path_load), threshold=1)
     if not pairs.size:
         logging.warning('there is not pairing between landmarks or dataset and user reference')
@@ -984,8 +984,7 @@ def filter_paired_landmarks(item, path_dataset, path_reference, col_source, col_
 
     ratio_matches = len(ind_ref) / float(nb_common)
     if ratio_matches > 1:
-        raise AssertionError('suspicious ratio for %i paired and %i common landmarks' \
-                               % (len(pairs), nb_common))
+        raise ValueError('suspicious ratio for %i paired and %i common landmarks' % (len(pairs), nb_common))
     return ratio_matches, lnds_filter_ref, lnds_filter_move
 
 
