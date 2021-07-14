@@ -46,6 +46,7 @@ include *.txt
 
 # Exclude build configs
 exclude *.yml *.yaml
+exclude *.toml
 
 prune .git
 prune .github
