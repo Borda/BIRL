@@ -185,7 +185,7 @@ def normalize_exec_time(df_experiments, path_experiments, path_comp_bm=None):
     if not path_comp_bm:
         logging.warning('Reference comp. perform. not specified.')
         return
-    elif not all(os.path.isfile(p) for p in [path_comp_bm, path_comp_bm_expt]):
+    if not all(os.path.isfile(p) for p in [path_comp_bm, path_comp_bm_expt]):
         logging.warning(
             'Missing one of the JSON files: \n %s (%s)\n %s (%s)', path_comp_bm, os.path.isfile(path_comp_bm),
             path_comp_bm_expt, os.path.isfile(path_comp_bm_expt)
