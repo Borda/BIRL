@@ -69,7 +69,8 @@ def main(path_experiment, path_dataset, visual=False, nb_workers=NB_WORKERS):
     :param int nb_workers: number of parallel jobs
     """
     path_results = os.path.join(path_experiment, ImRegBenchmark.NAME_CSV_REGISTRATION_PAIRS)
-    assert os.path.isfile(path_results)
+    if not os.path.isfile(path_results):
+        raise AssertionError
 
     df_experiments = pd.read_csv(path_results)
     df_results = df_experiments.copy()

@@ -136,7 +136,8 @@ def find_largest_object(hist, threshold=TISSUE_CONTENT):
     hist_bin = hist > threshold
     begins, ends, lengths = detect_binary_blocks(hist_bin)
 
-    assert lengths, 'no object found'
+    if not lengths:
+        raise AssertionError('no object found')
 
     # select only the number of largest objects
     obj_sorted = sorted(zip(lengths, range(len(lengths))), reverse=True)
@@ -159,8 +160,10 @@ def project_object_edge(img, dimension):
     [0.0, 0.0, 0.7, 0.7, 0.7, 0.7, 0.0, 0.0, 0.0, 0.0,
      0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.0, 0.0, 0.0]
     """
-    assert dimension in (0, 1), 'not supported dimension %i' % dimension
-    assert img.ndim == 3, 'unsupported image shape %r' % img.shape
+    if dimension not in (0, 1):
+        raise AssertionError('not supported dimension %i' % dimension)
+    if img.ndim != 3:
+        raise AssertionError('unsupported image shape %r' % img.shape)
     img_gray = np.mean(img, axis=-1)
     img_gray = GaussianBlur(img_gray, (5, 5), 0)
     p_low, p_high = np.percentile(img_gray, (1, 95))
@@ -179,7 +182,8 @@ def load_large_image(img_path):
     :param str img_path: path to the image
     :return ndarray: image
     """
-    assert os.path.isfile(img_path), 'missing image: %s' % img_path
+    if not os.path.isfile(img_path):
+        raise AssertionError('missing image: %s' % img_path)
     img = plt.imread(img_path)
     if img.ndim == 3 and img.shape[2] == 4:
         img = cvtColor(img, COLOR_RGBA2RGB)
@@ -633,7 +637,8 @@ def common_landmarks(points1, points2, threshold=1.5):
     ind_row, ind_col = optimize.linear_sum_assignment(dist)
     dist_sel = dist[ind_row, ind_col]
     pairs = [(i, j) for (i, j, d) in zip(ind_row, ind_col, dist_sel) if d < threshold]
-    assert len(pairs) <= min([len(points1), len(points2)])
+    if len(pairs) > min([len(points1), len(points2)]):
+        raise AssertionError
     return np.array(pairs, dtype=int)
 
 
@@ -819,7 +824,8 @@ def image_histogram_matching(source, reference, use_color='hsv', norm_img_size=4
 
     source = _normalise_image(source)
     reference = _normalise_image(reference)
-    assert source.ndim == reference.ndim, 'the image dimensionality has to be equal'
+    if source.ndim != reference.ndim:
+        raise AssertionError('the image dimensionality has to be equal')
 
     if source.ndim == 2:
         matched = histogram_match_cumulative_cdf(source, reference, norm_img_size=norm_img_size)

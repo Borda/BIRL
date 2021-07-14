@@ -50,7 +50,8 @@ def draw_image_points(image, points, color='green', marker_size=5, shape='o'):
            [ 0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ,  0. ]])
     >>> img = draw_image_points(None, points, marker_size=1)
     """
-    assert list(points), 'missing points'
+    if not list(points):
+        raise AssertionError('missing points')
     if image is None:
         # landmark range plus minimal offset to avoid zero image
         lnds_range = np.max(points, axis=0) - np.min(points, axis=0) + 1
@@ -98,9 +99,11 @@ def draw_landmarks_origin_target_warped(ax, points_origin, points_target, points
     ...                                     points, points + 1, points - 1)
     """
     pts_sizes = [len(pts) for pts in [points_origin, points_target, points_warped] if pts is not None]
-    assert pts_sizes, 'no landmarks points given'
+    if not pts_sizes:
+        raise AssertionError('no landmarks points given')
     min_pts = min(pts_sizes)
-    assert min(pts_sizes) > 0, 'no points given for sizes: %r' % pts_sizes
+    if min(pts_sizes) <= 0:
+        raise AssertionError('no points given for sizes: %r' % pts_sizes)
     points_origin = points_origin[:min_pts] if points_origin is not None else None
     points_target = points_target[:min_pts] if points_target is not None else None
 
@@ -148,9 +151,11 @@ def overlap_two_images(image1, image2, transparent=0.5):
            [ 0.5,  0.5,  0.5,  0.5,  0.5,  0.1],
            [ 0.4,  0.4,  0.4,  0.4,  0.4,  0. ]])
     """
-    assert image1.ndim == 3, 'required RGB images, got %i' % image1.ndim
-    assert image1.ndim == image2.ndim, 'image dimension has to match, %r != %r' \
-                                       % (image1.ndim, image2.ndim)
+    if image1.ndim != 3:
+        raise AssertionError('required RGB images, got %i' % image1.ndim)
+    if image1.ndim != image2.ndim:
+        raise AssertionError('image dimension has to match, %r != %r' \
+                                       % (image1.ndim, image2.ndim))
     size1, size2 = image1.shape, image2.shape
     max_size = np.max(np.array([size1, size2]), axis=0)
     image = np.zeros(max_size)
@@ -231,7 +236,8 @@ def create_figure(im_size, figsize_max=MAX_FIGURE_SIZE):
     >>> isinstance(fig, plt.Figure)
     True
     """
-    assert len(im_size) >= 2, 'not valid image size - %r' % im_size
+    if len(im_size) < 2:
+        raise AssertionError('not valid image size - %r' % im_size)
     size = np.array(im_size[:2])
     fig_size = size[::-1] / float(size.max()) * figsize_max
     fig, ax = plt.subplots(figsize=fig_size)
@@ -248,8 +254,8 @@ def export_figure(path_fig, fig):
     >>> export_figure(path_fig, plt.figure())
     >>> os.remove(path_fig)
     """
-    assert os.path.isdir(os.path.dirname(path_fig)), \
-        'missing folder "%s"' % os.path.dirname(path_fig)
+    if not os.path.isdir(os.path.dirname(path_fig)):
+        raise AssertionError('missing folder "%s"' % os.path.dirname(path_fig))
     fig.subplots_adjust(left=0., right=1., top=1., bottom=0.)
     logging.debug('exporting Figure: %s', path_fig)
     fig.savefig(path_fig)
@@ -548,7 +554,8 @@ def draw_scatter_double_scale(
     """
     # https://matplotlib.org/gallery/api/two_scales.html
     fig, ax1 = plt.subplots(figsize=figsize)
-    assert isinstance(ax_decs, dict)
+    if not isinstance(ax_decs, dict):
+        raise AssertionError
     ax_names = list(ax_decs.keys())
     idx_names = list(df.index)
 

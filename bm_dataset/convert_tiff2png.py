@@ -71,8 +71,8 @@ def convert_image(path_img, level=DEFAULT_LEVEL, overwrite=False):
     :param bool overwrite: whether overwrite existing image on output
     """
     slide_img = OpenSlide(path_img)
-    assert level < len(slide_img.level_dimensions), \
-        'unsupported level %i of %i' % (level, slide_img.level_count)
+    if level >= len(slide_img.level_dimensions):
+        raise AssertionError('unsupported level %i of %i' % (level, slide_img.level_count))
 
     path_img_new = os.path.splitext(path_img)[0] + IMAGE_EXTENSION
     if os.path.isfile(path_img_new) and not overwrite:

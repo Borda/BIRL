@@ -64,10 +64,11 @@ def generate_pairs(path_pattern_imgs, path_pattern_lnds, mode):
     """
     list_imgs = sorted(glob.glob(path_pattern_imgs))
     list_lnds = sorted(glob.glob(path_pattern_lnds))
-    assert len(list_imgs) == len(list_lnds), \
-        'the list of loaded images (%i) and landmarks (%i) is different length' \
-        % (len(list_imgs), len(list_lnds))
-    assert len(list_imgs) >= 2, 'the minimum is 2 elements'
+    if len(list_imgs) != len(list_lnds):
+        raise AssertionError('the list of loaded images (%i) and landmarks (%i) is different length' \
+        % (len(list_imgs), len(list_lnds)))
+    if len(list_imgs) < 2:
+        raise AssertionError('the minimum is 2 elements')
     logging.info('combining list %i files with "%s"', len(list_imgs), mode)
 
     pairs = [(0, i) for i in range(1, len(list_imgs))]

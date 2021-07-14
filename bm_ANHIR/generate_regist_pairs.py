@@ -170,7 +170,8 @@ def create_dataset_cover(name, dataset, path_images, path_landmarks, path_out, s
     for tissue, p_tissue in tqdm.tqdm(sorted(tissues)):
         sc = dataset[tissue][name]
         rp_lnds, rp_imgs = list_landmarks_images(p_tissue, sc, path_landmarks, path_images)
-        assert len(rp_lnds) == len(rp_imgs), 'the list of landmarks and images does not match'
+        if len(rp_lnds) != len(rp_imgs):
+            raise AssertionError('the list of landmarks and images does not match')
         step_hide_lnds = step_hide_landmarks if tissue in tissue_partial else None
         pairs, pub = generate_pairing(len(rp_lnds), step_hide_lnds)
         reg_pairs += generate_reg_pairs(rp_imgs, rp_lnds, pairs, pub)

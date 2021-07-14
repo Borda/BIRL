@@ -111,7 +111,8 @@ def load_landmarks_pts(path_file):
     0
     >>> os.remove('./sample_landmarks.pts')
     """
-    assert os.path.isfile(path_file), 'missing file "%s"' % path_file
+    if not os.path.isfile(path_file):
+        raise AssertionError('missing file "%s"' % path_file)
     with open(path_file, 'r') as fp:
         data = fp.read()
         lines = data.split('\n')
@@ -121,8 +122,9 @@ def load_landmarks_pts(path_file):
         return np.zeros((0, 2))
     nb_points = int(lines[1])
     points = [[float(n) for n in line.split()] for line in lines[2:] if line]
-    assert nb_points == len(points), 'number of declared (%i) and found (%i) ' \
-                                     'does not match' % (nb_points, len(points))
+    if nb_points != len(points):
+        raise AssertionError('number of declared (%i) and found (%i) ' \
+                                     'does not match' % (nb_points, len(points)))
     return np.array(points, dtype=np.float)
 
 
@@ -143,7 +145,8 @@ def load_landmarks_csv(path_file):
            [5, 6]]...)
     >>> os.remove('./sample_landmarks.csv')
     """
-    assert os.path.isfile(path_file), 'missing file "%s"' % path_file
+    if not os.path.isfile(path_file):
+        raise AssertionError('missing file "%s"' % path_file)
     df = pd.read_csv(path_file, index_col=0)
     points = df[LANDMARK_COORDS].values
     return points
@@ -158,8 +161,8 @@ def save_landmarks(path_file, landmarks):
     :param str path_file: path to the output file
     :param landmarks: np.array<np_points, dim>
     """
-    assert os.path.isdir(os.path.dirname(path_file)), \
-        'missing folder "%s"' % os.path.dirname(path_file)
+    if not os.path.isdir(os.path.dirname(path_file)):
+        raise AssertionError('missing folder "%s"' % os.path.dirname(path_file))
     path_file, _ = os.path.splitext(path_file)
     landmarks = landmarks.values if isinstance(landmarks, pd.DataFrame) else landmarks
     save_landmarks_csv(path_file + '.csv', landmarks)
@@ -182,8 +185,8 @@ def save_landmarks_pts(path_file, landmarks):
     :param landmarks: np.array<np_points, dim>
     :return str: file path
     """
-    assert os.path.isdir(os.path.dirname(path_file)), \
-        'missing folder "%s"' % os.path.dirname(path_file)
+    if not os.path.isdir(os.path.dirname(path_file)):
+        raise AssertionError('missing folder "%s"' % os.path.dirname(path_file))
     path_file = os.path.splitext(path_file)[0] + '.pts'
     lines = ['point', str(len(landmarks))]
     lines += [' '.join(str(i) for i in point) for point in landmarks]
@@ -205,8 +208,8 @@ def save_landmarks_csv(path_file, landmarks):
     :param landmarks: np.array<np_points, dim>
     :return str: file path
     """
-    assert os.path.isdir(os.path.dirname(path_file)), \
-        'missing folder "%s"' % os.path.dirname(path_file)
+    if not os.path.isdir(os.path.dirname(path_file)):
+        raise AssertionError('missing folder "%s"' % os.path.dirname(path_file))
     path_file = os.path.splitext(path_file)[0] + '.csv'
     df = pd.DataFrame(landmarks, columns=LANDMARK_COORDS)
     df.index = np.arange(1, len(df) + 1)
@@ -288,7 +291,8 @@ def image_sizes(path_image, decimal=1):
     ((50, 75), 90.0)
     >>> os.remove('./test_image.jpg')
     """
-    assert os.path.isfile(path_image), 'missing image: %s' % path_image
+    if not os.path.isfile(path_image):
+        raise AssertionError('missing image: %s' % path_image)
     width, height = Image.open(path_image).size
     img_diag = np.sqrt(np.sum(np.array([height, width])**2))
     return (height, width), np.round(img_diag, decimal)
@@ -309,7 +313,8 @@ def load_image(path_image, force_rgb=True):
     True
     >>> os.remove('./test_image.jpg')
     """
-    assert os.path.isfile(path_image), 'missing image "%s"' % path_image
+    if not os.path.isfile(path_image):
+        raise AssertionError('missing image "%s"' % path_image)
     image = np.array(Image.open(path_image))
     while image.max() > 1.5:
         image = image / 255.
@@ -522,7 +527,8 @@ def convert_image_from_mhd(path_image, path_out_dir=None, img_ext='.png', scalin
     '...artificial_reference.png'
     """
     path_image = update_path(path_image)
-    assert os.path.isfile(path_image), 'missing image: %s' % path_image
+    if not os.path.isfile(path_image):
+        raise AssertionError('missing image: %s' % path_image)
     # Reads the image using SimpleITK
     itk_image = sitk.ReadImage(path_image)
 
@@ -594,7 +600,8 @@ def load_config_args(path_config, comment='#'):
     '-a 1 --b c'
     >>> os.remove(p_conf)
     """
-    assert os.path.isfile(path_config), 'missing file: %s' % path_config
+    if not os.path.isfile(path_config):
+        raise AssertionError('missing file: %s' % path_config)
     lines = []
     with open(path_config, 'r') as fp:
         for ln in fp.readlines():

@@ -181,7 +181,8 @@ def extend_landmarks(path_set, path_dataset, nb_selected=None, nb_total=None):
     # select subset of selected landmarks
     names_lnds_new = {}
     if nb_selected is not None:
-        assert nb_selected >= 0, 'number of selected has to be positive'
+        if nb_selected < 0:
+            raise AssertionError('number of selected has to be positive')
         lens = list(map(len, names_lnds.values()))
         # transform the relative count to absolute number
         if nb_selected < 1:

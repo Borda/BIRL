@@ -115,7 +115,8 @@ class Experiment(object):
         """Check some extra required parameters for this experiment."""
         logging.debug('.. check if Experiment have all required parameters')
         for n in self.REQUIRED_PARAMS:
-            assert n in self.params, 'missing "%s" among %r' % (n, self.params.keys())
+            if n not in self.params:
+                raise AssertionError('missing "%s" among %r' % (n, self.params.keys()))
 
     def run(self):
         """Running the complete experiment.
@@ -171,7 +172,8 @@ class Experiment(object):
         check existence of all parameters dictionary which has contains words:
         'path', 'dir', 'file'
         """
-        assert 'path_out' in self.params, 'missing "path_out" among parameters'
+        if 'path_out' not in self.params:
+            raise AssertionError('missing "path_out" among parameters')
         self.params['path_out'] = update_path(self.params.get('path_out'))
         list_names = [n for n in self.params if any(m in n.lower() for m in ['path', 'dir', 'file'])]
         for n in list_names:
@@ -190,8 +192,9 @@ class Experiment(object):
         * create unique folder if timestamp is requested
         * export experiment configuration to the folder
         """
-        assert 'path_out' in self.params, 'missing "path_out" among %r' \
-                                          % self.params.keys()
+        if 'path_out' not in self.params:
+            raise AssertionError('missing "path_out" among %r' \
+                                          % self.params.keys())
         # create results folder for experiments
         path_exp = create_experiment_folder(
             self.params.get('path_out'), self.__class__.__name__, self.params.get('name'), stamp_unique
@@ -239,7 +242,8 @@ def create_experiment_folder(path_out, dir_name, name='', stamp_unique=True):
     '...my_test_...-...'
     >>> os.rmdir(p_dir)
     """
-    assert os.path.isdir(path_out), 'missing base folder "%s"' % path_out
+    if not os.path.isdir(path_out):
+        raise AssertionError('missing base folder "%s"' % path_out)
     date = time.gmtime()
     if isinstance(name, str) and name:
         dir_name = '%s_%s' % (dir_name, name)
@@ -410,7 +414,8 @@ def parse_arg_params(parser, upper_dirs=None):
     args = {k: args[k] for k in args if args[k] is not None}
     # extend and test all paths in params
     args, missing = update_paths(args, upper_dirs=upper_dirs)
-    assert not missing, 'missing paths: %r' % {k: args[k] for k in missing}
+    if missing:
+        raise AssertionError('missing paths: %r' % {k: args[k] for k in missing})
     return args
 
 

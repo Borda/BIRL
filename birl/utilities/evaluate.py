@@ -27,7 +27,8 @@ def compute_tre(points_1, points_2):
     array([ 0.21...,  0.70...,  0.44...,  0.34...,  0.41...,  0.41...])
     """
     nb_common = min([len(pts) for pts in [points_1, points_2] if pts is not None])
-    assert nb_common > 0, 'no common landmarks for metric'
+    if nb_common <= 0:
+        raise AssertionError('no common landmarks for metric')
     points_1 = np.asarray(points_1)[:nb_common]
     points_2 = np.asarray(points_2)[:nb_common]
     diffs = np.sqrt(np.sum(np.power(points_1 - points_2, 2), axis=1))
@@ -71,7 +72,8 @@ def compute_target_regist_error_statistic(points_ref, points_est):
         return [], {'overlap points': 0}
 
     lnd_sizes = [len(points_ref), len(points_est)]
-    assert min(lnd_sizes) > 0, 'no common landmarks for metric'
+    if min(lnd_sizes) <= 0:
+        raise AssertionError('no common landmarks for metric')
     diffs = compute_tre(points_ref, points_est)
 
     inter_dist = distance.cdist(points_ref[:len(diffs)], points_ref[:len(diffs)])
@@ -109,7 +111,8 @@ def compute_tre_robustness(points_target, points_init, points_warp):
     ...                        np.random.random((8, 2)) + 2)
     1.0
     """
-    assert all(pts is not None for pts in [points_init, points_target, points_warp])
+    if not all(pts is not None for pts in [points_init, points_target, points_warp]):
+        raise AssertionError
     nb_common = min([len(pts) for pts in [points_init, points_target, points_warp]])
     tre_init = compute_tre(points_init[:nb_common], points_target[:nb_common])
     tre_final = compute_tre(points_warp[:nb_common], points_target[:nb_common])
