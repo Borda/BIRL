@@ -191,7 +191,7 @@ def compute_ranking(user_cases, field, reverse=False):
     for cs in cases:
         usr_val = [(u, user_cases[u][cs].get(field, np.nan)) for u in users if cs in user_cases[u]]
         usr_val = sorted(usr_val, key=lambda x: x[1], reverse=reverse)
-        usr_rank = dict((usr, i + 1) for i, (usr, _) in enumerate(usr_val))
+        usr_rank = {usr: i + 1 for i, (usr, _) in enumerate(usr_val)}
         for usr in users:
             if cs not in user_cases[usr]:
                 user_cases[usr][cs] = {}

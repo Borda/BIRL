@@ -64,7 +64,7 @@ def main(path_dataset, path_landmarks_out, path_landmarks_in, path_csv):
     # Section - IMAGES
     images = df_overview[ImRegBenchmark.COL_IMAGE_REF].tolist()
     images += df_overview[ImRegBenchmark.COL_IMAGE_MOVE].tolist()
-    folders = set(os.path.dirname(p) for p in images if os.path.isdir(os.path.join(path_dataset, os.path.dirname(p))))
+    folders = {os.path.dirname(p) for p in images if os.path.isdir(os.path.join(path_dataset, os.path.dirname(p)))}
     # Remove previous compressed images
     cmd_remove = 'rm -f %s' % os.path.join(path_dataset, name_csv + '.z*')
     _process_cmd(cmd_remove)
