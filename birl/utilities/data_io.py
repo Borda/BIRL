@@ -82,10 +82,9 @@ def load_landmarks(path_file):
     _, ext = os.path.splitext(path_file)
     if ext == '.csv':
         return load_landmarks_csv(path_file)
-    elif ext == '.pts':
+    if ext == '.pts':
         return load_landmarks_pts(path_file)
-    else:
-        logging.error('not supported landmarks file: %s', os.path.basename(path_file))
+    logging.error('not supported landmarks file: %s', os.path.basename(path_file))
 
 
 def load_landmarks_pts(path_file):
@@ -234,7 +233,7 @@ def update_path(a_path, pre_path=None, lim_depth=5, absolute=True):
     path_ = str(a_path)
     if path_.startswith('/'):
         return path_
-    elif path_.startswith('~'):
+    if path_.startswith('~'):
         path_ = os.path.expanduser(path_)
     # special case when you want to add something before
     elif pre_path:
