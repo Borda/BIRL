@@ -33,7 +33,7 @@ import tqdm
 
 try:
     from openslide import OpenSlide
-except ImportError:
+except (ImportError, OSError):
     print(
         'It seems that you do not have installed OpenSlide on your computer.'
         ' To do so, please follow instructions - https://openslide.org/'
