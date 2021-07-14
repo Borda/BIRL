@@ -159,7 +159,7 @@ class TestBmRegistration(unittest.TestCase):
 
         # load registration file
         path_csv = os.path.join(path_bm, benchmark.NAME_CSV_REGISTRATION_PAIRS)
-        df_regist = pd.read_csv(path_csv, index_col=0)
+        df_regist = pd.read_csv(path_csv, index_col=None)
 
         # only two items in the benchmark
         self.assertEqual(
