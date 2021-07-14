@@ -48,7 +48,6 @@ class TestBmRegistration(unittest.TestCase):
         path_expt = os.path.join(self.path_out, bm_name)
         shutil.rmtree(path_expt, ignore_errors=True)
 
-    @classmethod
     def test_benchmark_invalid_inputs(self):
         # test missing some parameters
         params = {
@@ -61,7 +60,7 @@ class TestBmRegistration(unittest.TestCase):
         for miss in ['path_table', 'path_out', 'unique']:
             params_miss = params.copy()
             del params_miss[miss]
-            assert_raises(AssertionError, ImRegBenchmark, params_miss)
+            assert_raises(ValueError, ImRegBenchmark, params_miss)
         # not defined output folder
         assert_raises(Exception, ImRegBenchmark, params)
 

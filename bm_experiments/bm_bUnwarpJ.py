@@ -198,8 +198,8 @@ class BmUnwarpJ(ImRegBenchmark):
         path_dir = self._get_path_reg_dir(item)
         config = self.DEFAULT_PARAMS
         config = dict_deep_update(config, load_config_yaml(self.params['path_config']))
-        assert config['bUnwarpJ']['mode'] < 2, 'Mono mode does not supports inverse transform' \
-                                               ' which is need for landmarks warping.'
+        if config['bUnwarpJ']['mode'] >= 2:
+            raise ValueError('Mono mode does not supports inverse transform which is need for landmarks warping.')
 
         config_sift = [config['SIFT'][k] for k in self.REQUIRED_PARAMS_SIFT] \
             if config.get('SIFT', False) else []

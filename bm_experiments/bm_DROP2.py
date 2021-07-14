@@ -145,7 +145,8 @@ class BmDROP2(BmDROP):
         # lnds_ = load_landmarks(path_lnds_move)
         lnds_name = os.path.basename(path_lnds_move)
         path_lnds_warp = os.path.join(path_reg_dir, lnds_name)
-        assert lnds_ is not None, 'missing landmarks to be transformed "%s"' % lnds_name
+        if lnds_ is None:
+            raise ValueError('missing landmarks to be transformed "%s"' % lnds_name)
 
         # extract deformation
         path_deform_x = os.path.join(path_reg_dir, 'output_field_x.nii.gz')
@@ -186,16 +187,20 @@ class BmDROP2(BmDROP):
 
         # define function for parsing particular shift from MHD
         def __parse_shift(path_deform_, axis, lnds):
-            assert os.path.isfile(path_deform_), 'missing deformation: %s' % path_deform_
+            if not os.path.isfile(path_deform_):
+                raise FileNotFoundError('missing deformation: %s' % path_deform_)
             img_ = sitk.ReadImage(path_deform_)
             spacing = img_.GetSpacing()
             deform_ = sitk.GetArrayFromImage(img_)[0].T
             # deform_ = nibabel.load(path_deform_).get_data()[:, :, 0].T
-            assert deform_ is not None, 'loaded deformation is Empty - %s' % path_deform_
+            if deform_ is None:
+                raise ValueError('loaded deformation is Empty - %s' % path_deform_)
             lnds_max = np.max(lnds, axis=0)
-            assert all(ln < dim for ln, dim in zip(lnds_max, deform_.shape)), \
-                'landmarks max %s is larger then (exceeded) deformation shape %s' \
-                % (lnds_max.tolist(), deform_.shape)
+            if not all(ln < dim for ln, dim in zip(lnds_max, deform_.shape)):
+                raise ValueError(
+                    'landmarks max %s is larger then (exceeded) deformation shape %s' %
+                    (lnds_max.tolist(), deform_.shape)
+                )
             # see: https://github.com/biomedia-mira/drop2/issues/2#issuecomment-547340836
             shift_ = deform_[lnds[:, 0], lnds[:, 1]] / spacing[axis]
             return shift_

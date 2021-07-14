@@ -32,6 +32,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: update OS
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get install -y openslide-tools
+
     - name: Update Pip
       run: |
         pip install --quiet "pip>=20.1" --upgrade --user  # needed for get pip cacher folder

@@ -99,7 +99,7 @@ def split_image(img_path, overwrite=False, cut_dim=CUT_DIMENSION):
         elif cut_dim == 1:
             img_cut = img[:, edges[i]:edges[i + 1], ...]
         else:
-            raise Exception('unsupported dimension: %i' % cut_dim)
+            raise ValueError('unsupported dimension: %i' % cut_dim)
         save_large_image(path_img_cut, img_cut)
         gc.collect()
         time.sleep(1)
