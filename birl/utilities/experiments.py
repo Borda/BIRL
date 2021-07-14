@@ -179,7 +179,7 @@ class Experiment(object):
         for n in list_names:
             p = os.path.abspath(os.path.expanduser(self.params[n]))
             if not os.path.exists(p):
-                raise Exception('given path/file/dir "%s" does not exist!' % p)
+                raise FileNotFoundError('given path/file/dir "%s" does not exist!' % p)
             self.params[n] = p
         for n in [n for n in self.params if 'exec' in n]:
             # in case you define executable in your home
@@ -711,7 +711,7 @@ def _get_ram():
     try:
         from psutil import virtual_memory
         ram = virtual_memory().total / 1024.**3
-    except Exception:
+    except ImportError:
         logging.exception('Retrieving info about RAM memory failed.')
         ram = np.nan
     return ram
