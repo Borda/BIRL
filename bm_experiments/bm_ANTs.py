@@ -64,7 +64,7 @@ Run the basic ANT registration with original parameters::
         -t ./data-images/pairs-imgs-lnds_anhir.csv \
         -d ./data-images \
         -o ./results \
-        --path_ANTs ~/Applications/antsbin/bin \
+        --path_ANTs $HOME/Applications/antsbin/bin \
         --path_config ./configs/ANTs_SyN.txt
 
 

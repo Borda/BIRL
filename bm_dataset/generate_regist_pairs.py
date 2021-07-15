@@ -9,9 +9,9 @@ Sample run::
         -csv ../output/cover.csv --mode each2all
 
     python bm_dataset/generate_regist_pairs.py \
-        -i "~/Medical-data/dataset_CIMA/lung-lesion_1/scale-100pc/*.png" \
-        -l "~/Medical-data/dataset_CIMA/lung-lesion_1/scale-100pc/*.csv" \
-        -csv ~/Medical-data/dataset_CIMA/dataset_CIMA_100pc.csv --mode each2all
+        -i "$HOME/Medical-data/dataset_CIMA/lung-lesion_1/scale-100pc/*.png" \
+        -l "$HOME/Medical-data/dataset_CIMA/lung-lesion_1/scale-100pc/*.csv" \
+        -csv $HOME/Medical-data/dataset_CIMA/dataset_CIMA_100pc.csv --mode each2all
 
 Copyright (C) 2016-2019 Jiri Borovec <jiri.borovec@fel.cvut.cz>
 """

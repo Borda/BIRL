@@ -29,7 +29,7 @@ Run the basic bUnwarpJ registration with original parameters::
         -t ./data-images/pairs-imgs-lnds_histol.csv \
         -d ./data-images \
         -o ./results \
-        -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
+        -Fiji $HOME/Applications/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml \
         --visual --unique
 
@@ -40,7 +40,7 @@ see: http://imagej.net/BUnwarpJ#SIFT_and_MOPS_plugin_support ::
         -t ./data-images/pairs-imgs-lnds_histol.csv \
         -d ./data-images \
         -o ./results \
-        -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
+        -Fiji $HOME/Applications/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml \
         --visual --unique
 

@@ -12,7 +12,7 @@ See references:
     1. Download compiled executables from https://github.com/SuperElastix/elastix/releases
     2. Try to run both executables locally `elastix --help` and `transformix --help`
 
-        * add path to the lib `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Applications/elastix/lib`
+        * add path to the lib `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/Applications/elastix/lib`
         * define permanent path or copy libraries `cp /elastix/lib/* /usr/local/lib/`
 
 Example
@@ -20,7 +20,7 @@ Example
 
     1. Perform sample image registration::
 
-        ~/Applications/elastix/bin/elastix \
+        $HOME/Applications/elastix/bin/elastix \
             -f ./data-images/images/artificial_reference.jpg \
             -m ./data-images/images/artificial_moving-affine.jpg \
             -out ./results/elastix \
@@ -31,7 +31,7 @@ Example
         in the fixed image domain, since the transformation direction is from fixed to moving image.
         Perform image/points warping::
 
-        ~/Applications/elastix/bin/transformix \
+        $HOME/Applications/elastix/bin/transformix \
             -tp ./results/elastix/TransformParameters.0.txt \
             -out ./results/elastix \
             -in ./data-images/images/artificial_moving-affine.jpg \
@@ -45,7 +45,7 @@ Run the basic ANTs registration with original parameters::
         -t ./data-images/pairs-imgs-lnds_histol.csv \
         -d ./data-images \
         -o ./results \
-        -elastix ~/Applications/elastix/bin \
+        -elastix $HOME/Applications/elastix/bin \
         -cfg ./configs/elastix_affine.txt
 
 

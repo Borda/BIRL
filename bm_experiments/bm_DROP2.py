@@ -38,7 +38,7 @@ Sample run::
         -t ./data-images/pairs-imgs-lnds_histol.csv \
         -d ./data-images \
         -o ./results \
-        -DROP ~/Applications/DROP2/dropreg \
+        -DROP $HOME/Applications/DROP2/dropreg \
         --path_config ./configs/DROP2.txt \
         --visual --unique
 
