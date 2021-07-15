@@ -220,15 +220,15 @@ def parse_landmarks(idx_row):
     item = {
         'name-tissue': os.path.basename(os.path.dirname(path_dir)),
         'scale-tissue': parse_path_scale(os.path.basename(path_dir)),
-        'type-tissue': row.get(COL_TISSUE, None),
+        'type-tissue': row.get(COL_TISSUE),
         'name-reference': os.path.splitext(os.path.basename(row[ImRegBenchmark.COL_POINTS_REF]))[0],
         'name-source': os.path.splitext(os.path.basename(row[ImRegBenchmark.COL_POINTS_MOVE]))[0],
         # 'reference landmarks': np.round(lnds_ref, 1).tolist(),
         # 'warped landmarks': np.round(lnds_warp, 1).tolist(),
         'matched-landmarks': match_lnds,
         'Robustness': np.round(row.get(ImRegBenchmark.COL_ROBUSTNESS, 0), 3),
-        'Norm-Time_minutes': np.round(row.get(COL_NORM_TIME, None), 5),
-        'Status': row.get(ImRegBenchmark.COL_STATUS, None),
+        'Norm-Time_minutes': np.round(row.get(COL_NORM_TIME), 5),
+        'Status': row.get(ImRegBenchmark.COL_STATUS),
     }
 
     def _round_val(row, col):
@@ -431,7 +431,7 @@ def replicate_missing_warped_landmarks(df_experiments, path_dataset, path_experi
     # iterate over whole table and check if the path is valid
     for idx, row in df_experiments.iterrows():
         # select refence/moving warped landmarks
-        use_move_warp = isinstance(row.get(ImRegBenchmark.COL_POINTS_MOVE_WARP, None), str)
+        use_move_warp = isinstance(row.get(ImRegBenchmark.COL_POINTS_MOVE_WARP), str)
         col_lnds_warp = ImRegBenchmark.COL_POINTS_MOVE_WARP \
             if use_move_warp else ImRegBenchmark.COL_POINTS_REF_WARP
         # extract the CSV path
