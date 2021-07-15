@@ -32,7 +32,7 @@ from birl.utilities.dataset import (
     project_object_edge,
     save_large_image,
 )
-from birl.utilities.experiments import iterate_mproc_map, get_nb_workers, try_decorator
+from birl.utilities.experiments import get_nb_workers, iterate_mproc_map, try_decorator
 
 NB_WORKERS = get_nb_workers(0.5)
 SCALE_SIZE = 512

@@ -29,7 +29,7 @@ import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.benchmark import export_summary_results, ImRegBenchmark
-from birl.utilities.experiments import iterate_mproc_map, get_nb_workers, parse_arg_params
+from birl.utilities.experiments import get_nb_workers, iterate_mproc_map, parse_arg_params
 
 #: default number of used threads
 NB_WORKERS = get_nb_workers(0.75)
