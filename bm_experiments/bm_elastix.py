@@ -12,7 +12,7 @@ See references:
     1. Download compiled executables from https://github.com/SuperElastix/elastix/releases
     2. Try to run both executables locally `elastix --help` and `transformix --help`
 
-        * add path to the lib `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Applications/elastix/lib`
+        * add path to the lib `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/Applications/elastix/lib`
         * define permanent path or copy libraries `cp /elastix/lib/* /usr/local/lib/`
 
 Example
@@ -20,7 +20,7 @@ Example
 
     1. Perform sample image registration::
 
-        ~/Applications/elastix/bin/elastix \
+        $HOME/Applications/elastix/bin/elastix \
             -f ./data-images/images/artificial_reference.jpg \
             -m ./data-images/images/artificial_moving-affine.jpg \
             -out ./results/elastix \
@@ -31,7 +31,7 @@ Example
         in the fixed image domain, since the transformation direction is from fixed to moving image.
         Perform image/points warping::
 
-        ~/Applications/elastix/bin/transformix \
+        $HOME/Applications/elastix/bin/transformix \
             -tp ./results/elastix/TransformParameters.0.txt \
             -out ./results/elastix \
             -in ./data-images/images/artificial_moving-affine.jpg \
@@ -45,7 +45,7 @@ Run the basic ANTs registration with original parameters::
         -t ./data-images/pairs-imgs-lnds_histol.csv \
         -d ./data-images \
         -o ./results \
-        -elastix ~/Applications/elastix/bin \
+        -elastix $HOME/Applications/elastix/bin \
         -cfg ./configs/elastix_affine.txt
 
 
@@ -100,7 +100,6 @@ class BmElastix(ImRegBenchmark):
     ...           'path_config': fn_path_conf('elastix_affine.txt')}
     >>> benchmark = BmElastix(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
     #: required experiment parameters
@@ -151,7 +150,7 @@ class BmElastix(ImRegBenchmark):
         :return str|list(str): the execution commands
         """
         path_dir = self._get_path_reg_dir(item)
-        path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(item)
+        path_im_ref, path_im_move, _, _ = self._get_paths(item)
 
         cmd = self.COMMAND_REGISTRATION % {
             'exec_elastix': self.exec_elastix,
@@ -169,7 +168,7 @@ class BmElastix(ImRegBenchmark):
         :return dict: paths to warped images/landmarks
         """
         path_dir = self._get_path_reg_dir(item)
-        path_img_ref, path_img_move, path_lnds_ref, path_lnds_move = self._get_paths(item)
+        _, path_img_move, path_lnds_ref, _ = self._get_paths(item)
         path_img_warp, path_lnds_warp = None, None
         path_log = os.path.join(path_dir, self.NAME_LOG_REGISTRATION)
 

@@ -31,9 +31,9 @@ from birl.utilities.dataset import (
     project_object_edge,
     save_large_image,
 )
-from birl.utilities.experiments import iterate_mproc_map, nb_workers
+from birl.utilities.experiments import get_nb_workers, iterate_mproc_map
 
-NB_WORKERS = nb_workers(0.5)
+NB_WORKERS = get_nb_workers(0.5)
 #: use following image size for estimating cutting line
 SCALE_SIZE = 512
 #: cut image in one dimension/axis

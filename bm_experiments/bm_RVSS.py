@@ -29,7 +29,7 @@ Run the basic RVSS registration with original parameters::
         -t ./data-images/pairs-imgs-lnds_histol.csv \
         -d ./data-images \
         -o ./results \
-        -Fiji ~/Applications/Fiji.app/ImageJ-linux64 \
+        -Fiji $HOME/Applications/Fiji.app/ImageJ-linux64 \
         -cfg ./configs/ImageJ_RVSS_histol.yaml \
         --visual --unique
 
@@ -71,7 +71,6 @@ class BmRVSS(ImRegBenchmark):
     ...           'path_config': fn_path_conf('ImageJ_RVSS_histol.yaml')}
     >>> benchmark = BmRVSS(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
     #: required experiment parameters

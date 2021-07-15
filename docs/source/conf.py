@@ -319,7 +319,7 @@ def linkcode_resolve(domain, info):
             obj = getattr(obj, part)
         fname = inspect.getsourcefile(obj)
         # https://github.com/rtfd/readthedocs.org/issues/5735
-        if any([s in fname for s in ('readthedocs', 'rtfd', 'checkouts')]):
+        if any(s in fname for s in ('readthedocs', 'rtfd', 'checkouts')):
             # /home/docs/checkouts/readthedocs.org/user_builds/birl/checkouts/
             #  devel/birl/utilities/cls_experiment.py#L26-L176
             path_top = os.path.abspath(os.path.join('..', '..', '..'))
@@ -331,7 +331,7 @@ def linkcode_resolve(domain, info):
         return fname, lineno, lineno + len(source) - 1
 
     if domain != 'py' or not info['module']:
-        return None
+        return
     try:
         filename = '%s#L%d-L%d' % find_source()
     except Exception:

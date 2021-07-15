@@ -35,7 +35,7 @@ Sample run::
         -t ./data-images/pairs-imgs-lnds_histol.csv \
         -d ./data-images \
         -o ./results \
-        -DROP ~/Applications/DROP/dropreg2d \
+        -DROP $HOME/Applications/DROP/dropreg2d \
         --path_config ./configs/DROP.txt \
         --visual --unique
 
@@ -102,7 +102,6 @@ class BmDROP(ImRegBenchmark):
     ...           'path_config': os.path.join(update_path('configs'), 'DROP.txt')}
     >>> benchmark = BmDROP(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> del benchmark
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """

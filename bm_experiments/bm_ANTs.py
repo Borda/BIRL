@@ -64,7 +64,7 @@ Run the basic ANT registration with original parameters::
         -t ./data-images/pairs-imgs-lnds_anhir.csv \
         -d ./data-images \
         -o ./results \
-        --path_ANTs ~/Applications/antsbin/bin \
+        --path_ANTs $HOME/Applications/antsbin/bin \
         --path_config ./configs/ANTs_SyN.txt
 
 
@@ -114,7 +114,6 @@ class BmANTs(ImRegBenchmark):
     >>> benchmark.EXECUTE_TIMEOUT
     10800
     >>> benchmark.run()  # doctest: +SKIP
-    >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
     #: timeout for executing single image registration
@@ -198,12 +197,12 @@ class BmANTs(ImRegBenchmark):
             item[self.COL_IMAGE_REF_NII] = convert_image_to_nifti_gray(path_im_ref, path_dir)
         except Exception:
             logging.exception('Converting: %s', path_im_ref)
-            return None
+            return
         try:  # catching issue with too large images
             item[self.COL_IMAGE_MOVE_NII] = convert_image_to_nifti_gray(path_im_move, path_dir)
         except Exception:
             logging.exception('Converting: %s', path_im_move)
-            return None
+            return
 
         return item
 
@@ -228,7 +227,7 @@ class BmANTs(ImRegBenchmark):
         :return dict: paths to results
         """
         path_dir = self._get_path_reg_dir(item)
-        path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(item)
+        _, _, _, path_lnds_move = self._get_paths(item)
         name_im_move, _ = os.path.splitext(os.path.basename(path_lnds_move))
         name_lnds_move, _ = os.path.splitext(os.path.basename(path_lnds_move))
 

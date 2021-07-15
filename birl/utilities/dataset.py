@@ -356,7 +356,7 @@ def is_point_inside_perpendicular(point_begin, point_end, point_test):
     angle_a = norm_angle(line_angle_2d(point_end, point_test, deg=True) - angle_line, deg=True)
     # compute angle of begin - test compare to begin - end
     angle_b = norm_angle(line_angle_2d(point_begin, point_test, deg=True) - angle_line, deg=True)
-    if (angle_a >= 90) and (angle_b <= 90):
+    if angle_a >= 90 >= angle_b:
         state = 1
     elif (angle_a <= -90) and (angle_b >= -90):
         state = -1
@@ -448,7 +448,7 @@ def compute_half_polygon(landmarks, idx_start=0, idx_end=-1):
     poly = [pt_begin]
 
     def _in(pt0, pts):
-        return any([np.array_equal(pt, pt0) for pt in pts])
+        return any(np.array_equal(pt, pt0) for pt in pts)
 
     def _disturbed(poly, pt_new, pt_test):
         last = is_point_in_quadrant_left(poly[-1], pt_new, pt_test) == 1
@@ -465,9 +465,8 @@ def compute_half_polygon(landmarks, idx_start=0, idx_end=-1):
             # find a point which does not have any point on the left perpendic
             if any(_disturbed(poly, pt0, pt) for pt in points if not _in(pt, poly + [pt0])):
                 continue
-            else:
-                poly.append(pt0)
-                break
+            poly.append(pt0)
+            break
     poly = np.array(poly).tolist()
     return poly
 
@@ -746,7 +745,7 @@ def convert_landmarks_to_itk(lnds, image_size):
            [150,  50],
            [100, 150]])
     """
-    height, width = image_size
+    height, _ = image_size
     # swap rows-columns to X-Y
     lnds = np.array(lnds)[:, [1, 0]]
     # revert the Y by height
@@ -773,7 +772,7 @@ def convert_landmarks_from_itk(lnds, image_size):
     >>> np.array_equal(lnds, lnds2)
     True
     """
-    height, width = image_size
+    height, _ = image_size
     # swap rows-columns to X-Y
     lnds = np.array(lnds)[:, [1, 0]]
     # revert the Y by height

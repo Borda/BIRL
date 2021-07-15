@@ -78,7 +78,7 @@ def load_landmarks(path_file):
     """
     if not os.path.isfile(path_file):
         logging.warning('missing landmarks "%s"', path_file)
-        return None
+        return
     _, ext = os.path.splitext(path_file)
     if ext == '.csv':
         return load_landmarks_csv(path_file)

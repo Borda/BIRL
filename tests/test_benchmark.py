@@ -83,7 +83,6 @@ class TestBmRegistration(unittest.TestCase):
             for _, _, files in os.walk(benchmark.params['path_exp'])
         ]
         self.assertEqual(sum(list_csv), 0)
-        del benchmark
 
     def test_benchmark_parallel(self):
         """ test run in parallel (2 threads) """
@@ -102,7 +101,6 @@ class TestBmRegistration(unittest.TestCase):
         # rerun experiment simulated repeating unfinished benchmarks
         benchmark.run()
         self.check_benchmark_results(benchmark, final_means=[0., 0., 0., 0., 0.], final_stds=[0., 0., 0., 0., 0.])
-        del benchmark
 
     def test_benchmark_simple(self):
         """ test run in sequence (1 thread) """
@@ -119,7 +117,6 @@ class TestBmRegistration(unittest.TestCase):
         benchmark = ImRegBenchmark(params)
         benchmark.run()
         self.check_benchmark_results(benchmark, final_means=[0., 0.], final_stds=[0., 0.])
-        del benchmark
 
     def test_benchmark_template(self):
         """ test run in single thread """
@@ -139,7 +136,6 @@ class TestBmRegistration(unittest.TestCase):
             benchmark, final_means=[28., 68., 73., 76., 95.], final_stds=[1., 13., 28., 28., 34.]
         )
         os.remove(path_config)
-        del benchmark
 
     def check_benchmark_results(self, benchmark, final_means, final_stds):
         """ check whether the benchmark folder contains all required files

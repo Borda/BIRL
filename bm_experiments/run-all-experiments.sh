@@ -23,9 +23,9 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -ANTs $apps/antsbin/bin \
+         -ANTs "$apps/antsbin/bin" \
          -cfg ./configs/ANTs_SyN.txt \
-         $pproc \
+         "$pproc" \
          --visual --unique --nb_workers $jobs
 
     python bm_experiments/bm_ANTsPy.py \
@@ -35,7 +35,7 @@ do
          --run_comp_benchmark \
          -py python3 \
          -script ./scripts/Python/run_ANTsPy.py \
-         $pproc \
+         "$pproc" \
          --visual --unique --nb_workers $jobs
 
     python bm_experiments/bm_bUnwarpJ.py \
@@ -43,9 +43,9 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -Fiji $apps/Fiji.app/ImageJ-linux64 \
+         -Fiji "$apps/Fiji.app/ImageJ-linux64" \
          -cfg ./configs/ImageJ_bUnwarpJ_histol.yaml \
-         $pproc \
+         "$pproc" \
          --visual --unique --nb_workers $jobs
 
     python bm_experiments/bm_bUnwarpJ.py \
@@ -53,9 +53,9 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -Fiji $apps/Fiji.app/ImageJ-linux64 \
+         -Fiji "$apps/Fiji.app/ImageJ-linux64" \
          -cfg ./configs/ImageJ_bUnwarpJ-SIFT_histol.yaml \
-         $pproc \
+         "$pproc" \
          --visual --unique --nb_workers $jobs
 
     python bm_experiments/bm_DROP2.py \
@@ -63,9 +63,9 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -DROP $apps/DROP2/dropreg \
+         -DROP "$apps/DROP2/dropreg" \
          -cfg ./configs/DROP2.txt \
-         $pproc \
+         "$pproc" \
          --visual --unique --nb_workers $jobs
 
     python bm_experiments/bm_elastix.py \
@@ -73,9 +73,9 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -elastix $apps/elastix/bin \
+         -elastix "$apps/elastix/bin" \
          -cfg ./configs/elastix_bspline.txt \
-         $pproc \
+         "$pproc" \
          --visual --unique --nb_workers $jobs
 
     python bm_experiments/bm_rNiftyReg.py \
@@ -83,9 +83,9 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -R $apps/R-3.5.3/bin/Rscript \
+         -R "$apps/R-3.5.3/bin/Rscript" \
          -script ./scripts/Rscript/RNiftyReg_linear.r \
-         $pproc \
+         "$pproc" \
          --visual --unique --nb_workers $jobs
 
     python bm_experiments/bm_RVSS.py \
@@ -93,9 +93,9 @@ do
          -d $dataset \
          -o $results \
          --run_comp_benchmark \
-         -Fiji $apps/Fiji.app/ImageJ-linux64 \
+         -Fiji "$apps/Fiji.app/ImageJ-linux64" \
          -cfg ./configs/ImageJ_RVSS_histol.yaml \
-         $pproc \
+         "$pproc" \
          --visual --unique --nb_workers $jobs
 
 done

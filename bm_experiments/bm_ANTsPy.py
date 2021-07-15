@@ -62,7 +62,6 @@ class BmANTsPy(ImRegBenchmark):
     ...           'path_script': '.'}
     >>> benchmark = BmANTsPy(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
     #: required experiment parameters

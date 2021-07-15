@@ -38,7 +38,7 @@ Sample run::
         -t ./data-images/pairs-imgs-lnds_histol.csv \
         -d ./data-images \
         -o ./results \
-        -DROP ~/Applications/DROP2/dropreg \
+        -DROP $HOME/Applications/DROP2/dropreg \
         --path_config ./configs/DROP2.txt \
         --visual --unique
 
@@ -81,7 +81,6 @@ class BmDROP2(BmDROP):
     ...           'path_config': os.path.join(update_path('configs'), 'DROP2.txt')}
     >>> benchmark = BmDROP2(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> del benchmark
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
@@ -134,7 +133,7 @@ class BmDROP2(BmDROP):
         :return dict: paths to warped images/landmarks
         """
         path_reg_dir = self._get_path_reg_dir(item)
-        path_im_ref, path_im_move, path_lnds_ref, path_lnds_move = self._get_paths(item)
+        _, path_im_move, path_lnds_ref, path_lnds_move = self._get_paths(item)
 
         path_img_warp = os.path.join(path_reg_dir, os.path.basename(path_im_move))
         shutil.move(os.path.join(path_reg_dir, 'output.jpeg'), path_img_warp)

@@ -28,9 +28,9 @@ import cv2 as cv
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import create_folder
 from birl.utilities.dataset import args_expand_parse_images, load_large_image, parse_path_scale, save_large_image
-from birl.utilities.experiments import is_iterable, iterate_mproc_map, nb_workers
+from birl.utilities.experiments import get_nb_workers, is_iterable, iterate_mproc_map
 
-NB_WORKERS = nb_workers(0.5)
+NB_WORKERS = get_nb_workers(0.5)
 DEFAULT_SCALES = (5, 10, 15, 20, 25, 50)
 IMAGE_EXTENSION = '.jpg'
 # IMWRITE_PARAMS = (cv.IMWRITE_JPEG_QUALITY, 100)
