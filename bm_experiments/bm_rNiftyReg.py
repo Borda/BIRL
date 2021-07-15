@@ -71,7 +71,6 @@ class BmRNiftyReg(ImRegBenchmark):
     ...           'path_R_script': fn_path_conf('RNiftyReg_linear.r')}
     >>> benchmark = BmRNiftyReg(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
     #: required experiment parameters

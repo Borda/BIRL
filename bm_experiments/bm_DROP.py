@@ -102,7 +102,6 @@ class BmDROP(ImRegBenchmark):
     ...           'path_config': os.path.join(update_path('configs'), 'DROP.txt')}
     >>> benchmark = BmDROP(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> del benchmark
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """

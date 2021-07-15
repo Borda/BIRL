@@ -84,7 +84,6 @@ class BmUnwarpJ(ImRegBenchmark):
     >>> params['path_config'] = fn_path_conf('ImageJ_bUnwarpJ-SIFT_histol.yaml')
     >>> benchmark = BmUnwarpJ(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
     #: required experiment parameters

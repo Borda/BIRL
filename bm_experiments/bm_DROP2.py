@@ -81,7 +81,6 @@ class BmDROP2(BmDROP):
     ...           'path_config': os.path.join(update_path('configs'), 'DROP2.txt')}
     >>> benchmark = BmDROP2(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> del benchmark
     >>> import shutil
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """

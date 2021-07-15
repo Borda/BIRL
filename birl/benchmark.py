@@ -93,7 +93,6 @@ class ImRegBenchmark(Experiment):
     >>> benchmark = ImRegBenchmark(params)
     >>> benchmark.run()
     True
-    >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
 
     >>> # Running in multiple parallel threads:
@@ -108,7 +107,6 @@ class ImRegBenchmark(Experiment):
     >>> benchmark = ImRegBenchmark(params)
     >>> benchmark.run()
     True
-    >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
 
@@ -858,7 +856,6 @@ class ImRegBenchmark(Experiment):
         # visualise the landmarks move during registration
         image_ref = load_image(path_img_ref)
         fig = draw_images_warped_landmarks(image_ref, image_warp, points_move, points_ref, points_warp)
-        del image_ref, image_warp
         return fig
 
     @classmethod
@@ -898,7 +895,6 @@ class ImRegBenchmark(Experiment):
 
         # visualise the landmarks move during registration
         fig = draw_images_warped_landmarks(image_ref, image_move, points_ref, points_move, points_warp)
-        del image_ref, image_move
         return fig
 
     @classmethod

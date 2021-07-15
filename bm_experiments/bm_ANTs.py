@@ -114,7 +114,6 @@ class BmANTs(ImRegBenchmark):
     >>> benchmark.EXECUTE_TIMEOUT
     10800
     >>> benchmark.run()  # doctest: +SKIP
-    >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
     #: timeout for executing single image registration

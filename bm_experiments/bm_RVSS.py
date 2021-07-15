@@ -71,7 +71,6 @@ class BmRVSS(ImRegBenchmark):
     ...           'path_config': fn_path_conf('ImageJ_RVSS_histol.yaml')}
     >>> benchmark = BmRVSS(params)
     >>> benchmark.run()  # doctest: +SKIP
-    >>> del benchmark
     >>> shutil.rmtree(path_out, ignore_errors=True)
     """
     #: required experiment parameters
