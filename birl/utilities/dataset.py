@@ -356,7 +356,7 @@ def is_point_inside_perpendicular(point_begin, point_end, point_test):
     angle_a = norm_angle(line_angle_2d(point_end, point_test, deg=True) - angle_line, deg=True)
     # compute angle of begin - test compare to begin - end
     angle_b = norm_angle(line_angle_2d(point_begin, point_test, deg=True) - angle_line, deg=True)
-    if (angle_a >= 90) and (angle_b <= 90):
+    if angle_a >= 90 >= angle_b:
         state = 1
     elif (angle_a <= -90) and (angle_b >= -90):
         state = -1
