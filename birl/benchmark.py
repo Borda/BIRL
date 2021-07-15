@@ -39,8 +39,8 @@ from birl.utilities.experiments import (
     create_basic_parser,
     exec_commands,
     Experiment,
-    iterate_mproc_map,
     get_nb_workers,
+    iterate_mproc_map,
     parse_arg_params,
     string_dict,
 )
