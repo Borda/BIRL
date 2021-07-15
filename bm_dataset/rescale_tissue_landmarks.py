@@ -86,7 +86,7 @@ def load_largest_scale(path_set):
     """
     scales_folders = [(parse_path_scale(p), os.path.basename(p)) for p in list_sub_folders(path_set)]
     if not scales_folders:
-        return None
+        return
     scale, folder = sorted(scales_folders, reverse=True)[0]
 
     paths_csv = glob.glob(os.path.join(path_set, folder, '*.csv'))

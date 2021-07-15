@@ -448,7 +448,7 @@ class ImRegBenchmark(Experiment):
         path_dir_reg = self._get_path_reg_dir(row)
         # check whether the particular experiment already exists and have result
         if self.__check_exist_regist(idx, path_dir_reg):
-            return None
+            return
         create_folder(path_dir_reg)
 
         time_start = time.time()
@@ -458,14 +458,14 @@ class ImRegBenchmark(Experiment):
         row = self._prepare_img_registration(row)
         # if the pre-processing failed, return back None
         if not row:
-            return None
+            return
 
         # measure execution time
         time_start = time.time()
         row = self._execute_img_registration(row)
         # if the experiment failed, return back None
         if not row:
-            return None
+            return
         # compute the registration time in minutes
         row[self.COL_TIME] = (time.time() - time_start) / 60.
         # remove some temporary images
@@ -474,7 +474,7 @@ class ImRegBenchmark(Experiment):
         row = self._parse_regist_results(row)
         # if the post-processing failed, return back None
         if not row:
-            return None
+            return
         row = self._clear_after_registration(row)
 
         if self.params.get('visual', False):
@@ -588,7 +588,6 @@ class ImRegBenchmark(Experiment):
         :return float|None: time in minutes
         """
         _ = self._get_path_reg_dir(item)
-        return None
 
     def _parse_regist_results(self, item):
         """ evaluate rests of the experiment and identity the registered image
