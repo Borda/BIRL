@@ -29,10 +29,10 @@ import pandas as pd
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.benchmark import export_summary_results, ImRegBenchmark
-from birl.utilities.experiments import iterate_mproc_map, nb_workers, parse_arg_params
+from birl.utilities.experiments import iterate_mproc_map, get_nb_workers, parse_arg_params
 
 #: default number of used threads
-NB_WORKERS = nb_workers(0.75)
+NB_WORKERS = get_nb_workers(0.75)
 #: file name of new table with registration results
 NAME_CSV_RESULTS = 'registration-results_NEW.csv'
 #: file name of new table with registration summary

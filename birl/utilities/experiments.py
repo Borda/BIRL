@@ -39,7 +39,7 @@ LOG_FILE_FORMAT = logging.Formatter(STR_LOG_FORMAT, datefmt="%H:%M:%S")
 ITERABLE_TYPES = (list, tuple, types.GeneratorType)
 
 
-def nb_workers(ratio):
+def get_nb_workers(ratio):
     """Given usage `ratio` return nb of cpu to use."""
     return max(1, int(CPU_COUNT * ratio))
 

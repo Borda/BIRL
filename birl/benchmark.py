@@ -40,7 +40,7 @@ from birl.utilities.experiments import (
     exec_commands,
     Experiment,
     iterate_mproc_map,
-    nb_workers,
+    get_nb_workers,
     parse_arg_params,
     string_dict,
 )
@@ -115,7 +115,7 @@ class ImRegBenchmark(Experiment):
     #: timeout for executing single image registration, NOTE: does not work for Py2
     EXECUTE_TIMEOUT = 60 * 60  # default = 1 hour
     #: default number of threads used by benchmarks
-    NB_WORKERS_USED = nb_workers(0.8)
+    NB_WORKERS_USED = get_nb_workers(0.8)
     #: some needed files
     NAME_CSV_REGISTRATION_PAIRS = 'registration-results.csv'
     #: default file for exporting results in table format
@@ -190,7 +190,7 @@ class ImRegBenchmark(Experiment):
         logging.info(self.__doc__)
         self._df_overview = None
         self._df_experiments = None
-        self.nb_workers = params.get('nb_workers', nb_workers(0.25))
+        self.nb_workers = params.get('nb_workers', get_nb_workers(0.25))
         self._path_csv_regist = os.path.join(self.params['path_exp'], self.NAME_CSV_REGISTRATION_PAIRS)
 
     def _absolute_path(self, path, destination='data', base_path=''):

@@ -41,12 +41,12 @@ except (ImportError, OSError):
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.dataset import args_expand_parse_images
-from birl.utilities.experiments import iterate_mproc_map, nb_workers
+from birl.utilities.experiments import iterate_mproc_map, get_nb_workers
 
 DEFAULT_LEVEL = 1
 MAX_LOAD_IMAGE_SIZE = 16000
 IMAGE_EXTENSION = '.png'
-NB_WORKERS = nb_workers(0.5)
+NB_WORKERS = get_nb_workers(0.5)
 
 
 def arg_parse_params():

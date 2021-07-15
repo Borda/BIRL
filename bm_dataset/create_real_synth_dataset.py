@@ -36,10 +36,10 @@ from scipy import interpolate, ndimage, stats
 
 sys.path += [os.path.abspath('.'), os.path.abspath('..')]  # Add path to root
 from birl.utilities.data_io import LANDMARK_COORDS
-from birl.utilities.experiments import nb_workers, parse_arg_params
+from birl.utilities.experiments import get_nb_workers, parse_arg_params
 
 COLUMNS_COORD = LANDMARK_COORDS
-NB_WORKERS = nb_workers(0.8)
+NB_WORKERS = get_nb_workers(0.8)
 NB_DEFORMATIONS = 5
 HUE_SHIFT_MIN = 20
 HUE_SHIFT_MAX = 120
