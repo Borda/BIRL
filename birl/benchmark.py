@@ -427,7 +427,7 @@ class ImRegBenchmark(Experiment):
             if not is_temp:
                 continue
             # the warped image is not the same as pre-process image is equal
-            elif item.get(col_warp, None) != item.get(col_temp, None):
+            if item.get(col_warp, None) != item.get(col_temp, None):
                 # update the path to the pre-process image in experiment folder
                 path_img = self._absolute_path(item[col_temp], destination='expt')
                 # remove image and from the field

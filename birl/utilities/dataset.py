@@ -465,9 +465,8 @@ def compute_half_polygon(landmarks, idx_start=0, idx_end=-1):
             # find a point which does not have any point on the left perpendic
             if any(_disturbed(poly, pt0, pt) for pt in points if not _in(pt, poly + [pt0])):
                 continue
-            else:
-                poly.append(pt0)
-                break
+            poly.append(pt0)
+            break
     poly = np.array(poly).tolist()
     return poly
 
