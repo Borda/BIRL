@@ -588,6 +588,7 @@ class ImRegBenchmark(Experiment):
         :return float|None: time in minutes
         """
         _ = self._get_path_reg_dir(item)
+        return 0
 
     def _parse_regist_results(self, item):
         """ evaluate rests of the experiment and identity the registered image
