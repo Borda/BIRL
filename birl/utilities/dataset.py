@@ -448,7 +448,7 @@ def compute_half_polygon(landmarks, idx_start=0, idx_end=-1):
     poly = [pt_begin]
 
     def _in(pt0, pts):
-        return any([np.array_equal(pt, pt0) for pt in pts])
+        return any(np.array_equal(pt, pt0) for pt in pts)
 
     def _disturbed(poly, pt_new, pt_test):
         last = is_point_in_quadrant_left(poly[-1], pt_new, pt_test) == 1
