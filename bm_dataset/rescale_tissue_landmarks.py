@@ -203,8 +203,8 @@ def extend_landmarks(path_set, path_dataset, nb_selected=None, nb_total=None):
     # export the landmarks
     path_set_scale = os.path.join(path_dataset, os.path.basename(path_set), FOLDER_TEMPLATE % 100)
     create_folder(path_set_scale)
-    for name in names_lnds_new:
-        save_landmarks_csv(os.path.join(path_set_scale, name), names_lnds_new[name])
+    for name, val in names_lnds_new.items():
+        save_landmarks_csv(os.path.join(path_set_scale, name), val)
 
 
 def dataset_expand_landmarks(path_annots, path_dataset, nb_selected=None, nb_total=None, nb_workers=NB_WORKERS):
