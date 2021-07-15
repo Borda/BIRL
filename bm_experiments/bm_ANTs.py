@@ -228,7 +228,7 @@ class BmANTs(ImRegBenchmark):
         :return dict: paths to results
         """
         path_dir = self._get_path_reg_dir(item)
-        path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(item)
+        _, _, _, path_lnds_move = self._get_paths(item)
         name_im_move, _ = os.path.splitext(os.path.basename(path_lnds_move))
         name_lnds_move, _ = os.path.splitext(os.path.basename(path_lnds_move))
 

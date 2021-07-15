@@ -151,7 +151,7 @@ class BmElastix(ImRegBenchmark):
         :return str|list(str): the execution commands
         """
         path_dir = self._get_path_reg_dir(item)
-        path_im_ref, path_im_move, _, path_lnds_move = self._get_paths(item)
+        path_im_ref, path_im_move, _, _ = self._get_paths(item)
 
         cmd = self.COMMAND_REGISTRATION % {
             'exec_elastix': self.exec_elastix,
@@ -169,7 +169,7 @@ class BmElastix(ImRegBenchmark):
         :return dict: paths to warped images/landmarks
         """
         path_dir = self._get_path_reg_dir(item)
-        path_img_ref, path_img_move, path_lnds_ref, path_lnds_move = self._get_paths(item)
+        _, path_img_move, path_lnds_ref, _ = self._get_paths(item)
         path_img_warp, path_lnds_warp = None, None
         path_log = os.path.join(path_dir, self.NAME_LOG_REGISTRATION)
 

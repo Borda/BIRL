@@ -745,7 +745,7 @@ def convert_landmarks_to_itk(lnds, image_size):
            [150,  50],
            [100, 150]])
     """
-    height, width = image_size
+    height, _ = image_size
     # swap rows-columns to X-Y
     lnds = np.array(lnds)[:, [1, 0]]
     # revert the Y by height
@@ -772,7 +772,7 @@ def convert_landmarks_from_itk(lnds, image_size):
     >>> np.array_equal(lnds, lnds2)
     True
     """
-    height, width = image_size
+    height, _ = image_size
     # swap rows-columns to X-Y
     lnds = np.array(lnds)[:, [1, 0]]
     # revert the Y by height

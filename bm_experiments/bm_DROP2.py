@@ -134,7 +134,7 @@ class BmDROP2(BmDROP):
         :return dict: paths to warped images/landmarks
         """
         path_reg_dir = self._get_path_reg_dir(item)
-        path_im_ref, path_im_move, path_lnds_ref, path_lnds_move = self._get_paths(item)
+        _, path_im_move, path_lnds_ref, path_lnds_move = self._get_paths(item)
 
         path_img_warp = os.path.join(path_reg_dir, os.path.basename(path_im_move))
         shutil.move(os.path.join(path_reg_dir, 'output.jpeg'), path_img_warp)
