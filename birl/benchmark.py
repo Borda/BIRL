@@ -193,7 +193,7 @@ class ImRegBenchmark(Experiment):
         self.nb_workers = params.get('nb_workers', nb_workers(0.25))
         self._path_csv_regist = os.path.join(self.params['path_exp'], self.NAME_CSV_REGISTRATION_PAIRS)
 
-    def _absolute_path(self, path, destination='data', base_path=None):
+    def _absolute_path(self, path, destination='data', base_path=''):
         """ update te path to the dataset or output
 
         :param str path: original path
@@ -206,6 +206,8 @@ class ImRegBenchmark(Experiment):
             path = os.path.join(self.params['path_dataset'], path)
         elif destination and destination == 'expt' and 'path_exp' in self.params:
             path = os.path.join(self.params['path_exp'], path)
+        elif base_path:
+            path = os.path.join(base_path, path)
         path = update_path(path, absolute=True)
         return path
 
