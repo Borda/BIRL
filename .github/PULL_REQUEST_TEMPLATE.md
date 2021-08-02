@@ -1,12 +1,12 @@
 ## Before submitting
 
-- [ ] Was this discussed/approved via a Github issue? (no need for typos, doc improvements)
-- [ ] My code follows the style guidelines of this project, see the [contributor guideline](https://github.com/Borda/BIRL/blob/master/.github/CONTRIBUTING.md)
-- [ ] I have performed a self-review of my own code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
+- [ ] Was this **discussed/approved** via a Github issue? (no need for typos, doc improvements)
+- [ ] My code follows the **style guidelines** of this project, see the [contributor guideline](https://github.com/Borda/BIRL/blob/master/.github/CONTRIBUTING.md)
+- [ ] I have performed a **self-review** of my own code
+- [ ] I have **commented my code**, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the **documentation**
+- [ ] I have **added tests** that prove my fix is effective or that my feature works
+- [ ] New and existing **unit tests pass** locally with my changes
 
 ## What does this PR do?
 
