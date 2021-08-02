@@ -76,7 +76,7 @@ jobs:
         pip install $(grep "numpy" requirements.txt)
         # v46 crashes openslide-python install
         pip install "setuptools<46" -U
-        pip install --requirement requirements.txt --quiet --upgrade
+        pip install --requirement requirements.txt --upgrade
         pip install --requirement tests/requirements.txt --quiet --upgrade
         python --version
         pip --version

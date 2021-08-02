@@ -4,12 +4,12 @@ about: Asking a questions about...
 title: ''
 labels: question
 assignees: ''
-
 ---
 
 ## ❓ Questions and Help
 
 ### Before asking:
+
 <!--
 1. search the issues.
 2. search the docs.
@@ -27,5 +27,5 @@ assignees: ''
 
 #### What's your environment?
 
- - OS: [e.g. iOS, Linux, Win]
- - Version [e.g. 0.2.1]
+- OS: \[e.g. iOS, Linux, Win\]
+- Version \[e.g. 0.2.1\]
