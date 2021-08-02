@@ -51,13 +51,13 @@ Here's the long and short of it:
 - Set up your editor to remove trailing whitespace.  Follow [PEP08](http://www.python.org/dev/peps/pep-0008/).  Check code with pyflakes / flake8.
 - Use numpy data types instead of strings (`np.uint8` instead of `"uint8"`).
 - Use the following import conventions:
-    ```python
-    import numpy as np
-    import matplotlib.pyplot as plt
-    from scipy import ndimage as ndi
-    
-    cimport numpy as cnp  # in Cython code
-    ```
+  ```python
+  import numpy as np
+  import matplotlib.pyplot as plt
+  from scipy import ndimage as ndi
+
+  cimport numpy as cnp  # in Cython code
+  ```
 - When documenting array parameters, use `image : (M, N) ndarray` and then refer to `M` and `N` in the docstring, if necessary.
 - Refer to array dimensions as (plane), row, column, not as x, y, z. See :ref:`Coordinate conventions <numpy-images-coordinate-conventions>` in the user guide for more information.
 - Functions should support all input image dtypes.  Use utility functions such as `img_as_float` to help convert to an appropriate type.  The output format can be whatever is most efficient.  This allows us to string together several functions into a pipeline
