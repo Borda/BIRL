@@ -1,15 +1,15 @@
 numpy>=1.9
 scipy>=0.10.0
-pandas>=0.17.1
-six>=1.7.3
+pandas>=0.17.1, <1.0
+six>1.7.3
 pillow
 matplotlib>=2.0.2, <3.0.0  # new version does not support py2
 tqdm>=4.7.4, <=4.30  # higher fails ascii for py2
 pyyaml
-scikit-image
+scikit-image>=0.13, <0.18
 opencv-python-headless<4.3
 openslide-python<=1.1.1
 nibabel<3.0
-SimpleITK
+SimpleITK<2.0
 psutil
 pathos
