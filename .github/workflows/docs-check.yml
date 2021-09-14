@@ -75,7 +75,7 @@ jobs:
         run: |
           cd docs
           make clean
-          make html --debug --jobs 2 SPHINXOPTS="-W  --keep-going"
+          make html --debug --jobs 2 SPHINXOPTS="-W"
           make latexpdf
 
       - name: Upload built docs
