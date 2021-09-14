@@ -1,7 +1,7 @@
-sphinx>=4.0
+sphinx>=4.0, <4.1  # assert 'Verbatim' in lines[0]
 m2r  # fails with multi-line text
 myst-parser
-nbsphinx==0.8.5  # freeze for some "Unexpected indentation" in notebooks
+nbsphinx==0.8.6  # freeze for some "Unexpected indentation" in notebooks
 pandoc
 docutils  # >0.15 higher version breaks py2
 imgconverter
