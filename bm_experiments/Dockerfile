@@ -10,10 +10,10 @@ SHELL ["/bin/bash", "-c"]
 # for installing tzdata see: https://stackoverflow.com/a/58264927/4521646
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && \
+RUN apt-get update -qq --fix-missing && \
     apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
+    apt-get update -qq --fix-missing && \
     apt-get install -y --no-install-recommends \
         python${PYTHON_VERSION} \
         python${PYTHON_VERSION}-dev \
@@ -45,31 +45,9 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN \
-    # BIRL requirement
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        openslide-tools \
-    && \
-
-# Download BIRL from master
-    wget https://github.com/Borda/BIRL/archive/master.zip --progress=bar:force:noscroll && \
-    unzip -q master.zip && \
-    rm master.zip && \
-    mv BIRL-master BIRL && \
-
-# Install BIRL
-    # v46 crashes openslide-python install
-    pip install "setuptools<46" -U && \
-    pip install ./BIRL --no-cache-dir && \
-    python -c "import birl ; print(birl.__version__)" && \
-    mkdir BIRL/Applications && \
-# Cleaning
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
 ENV BIRL_APPs_PATH="/BIRL/Applications"
 
+RUN mkdir -p $BIRL_APPs_PATH
 
 RUN \
     cd $BIRL_APPs_PATH && \
@@ -84,7 +62,7 @@ RUN \
 ENV ANTs_VERSION="2.3.4"
 
 RUN \
-    apt-get update && \
+    apt-get update -qq && \
     apt-get install -y --no-install-recommends \
         zlib1g-dev \
     && \
@@ -127,7 +105,7 @@ RUN \
 ENV ANTSPY_VERSION="0.2.5"
 
 RUN \
-    apt-get update && \
+    apt-get update -qq && \
     apt-get install -y --no-install-recommends \
         libopenblas-dev \
         liblapack-dev \
@@ -163,8 +141,7 @@ RUN \
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$BIRL_APPs_PATH/elastix/lib/"
 
 RUN \
-# add required libs
-    apt-get update && \
+    apt-get update -qq && \
     apt-get install -y --no-install-recommends \
         libtbb-dev \
         libboost-all-dev \
@@ -228,8 +205,7 @@ RUN \
     $BIRL_APPs_PATH/DROP2/dropreg --help
 
 RUN \
-# add required libs
-    apt-get update && \
+    apt-get update -qq && \
     apt-get install -y --no-install-recommends \
         r-base-core \
         r-base-dev \
@@ -258,10 +234,25 @@ RUN \
 # try to run RNiftyReg
     R -e 'library(RNiftyReg)'
 
+COPY ./ /BIRL/
 
 RUN \
-# show installed applications
-    apt-get update && \
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+        openslide-tools \
+    && \
+# Install BIRL
+    # v46 crashes openslide-python install
+    pip install "setuptools<46" -U && \
+    pip install ./BIRL --no-cache-dir && \
+    python -c "import birl ; print(birl.__version__)" && \
+# Cleaning
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+
+RUN \
+    apt-get update -qq && \
     apt-get install -y --no-install-recommends \
         tree \
     && \

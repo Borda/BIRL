@@ -2,13 +2,13 @@ name: CI testing
 
 # see: https://help.github.com/en/actions/reference/events-that-trigger-workflows
 on:  # Trigger the workflow on push or pull request,  but only for the master branch
-  push:
+  push: {}
+  pull_request:
     branches: [master]
-  pull_request: {}
 
 jobs:
-  pytest:
 
+  pytest:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -17,12 +17,8 @@ jobs:
         python-version: [3.6, 3.9]
         requires: ['latest']
         include:
-          - os: "ubuntu-18.04"
-            python-version: 2.7
-            requires: 'latest'
-          - os: "ubuntu-18.04"
-            python-version: 3.6
-            requires: 'minimal'
+          - {os: "ubuntu-18.04", python-version: 2.7, requires: 'latest'}
+          - {os: "ubuntu-18.04", python-version: 3.6, requires: 'oldest'}
 
     # Timeout: https://stackoverflow.com/a/59076067/4521646
     timeout-minutes: 35
@@ -51,7 +47,7 @@ jobs:
         pip install -U backports.functools_lru_cache
 
     - name: Set min. dependencies
-      if: matrix.requires == 'minimal'
+      if: matrix.requires == 'oldest'
       run: |
         for fpath in ('requirements.txt', 'tests/requirements.txt'):
             req = open(fpath).read().replace('>=', '==')
