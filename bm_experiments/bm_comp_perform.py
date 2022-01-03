@@ -222,7 +222,9 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_workers=CPU_COUNT):
     _clean_images(set(paths))
     logging.info(
         'registration @%i-thread: %f +/- %f',
-        nb_workers, np.mean(execution_times), np.std(execution_times),
+        nb_workers,
+        np.mean(execution_times),
+        np.std(execution_times),
     )
     res = {'registration @n-thread': np.mean(execution_times)}
     return res
@@ -240,8 +242,7 @@ def main(path_out='', nb_runs=5):
     if skimage_ver < SKIMAGE_VERSION:
         logging.warning(
             'You are using older version of scikit-image then we expect.'
-            ' Please upadte by `pip install -U --user scikit-image>=%s`',
-            '.'.join(map(str, SKIMAGE_VERSION))
+            ' Please upadte by `pip install -U --user scikit-image>=%s`', '.'.join(map(str, SKIMAGE_VERSION))
         )
 
     hasher = hashlib.sha256()
