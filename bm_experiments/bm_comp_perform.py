@@ -75,6 +75,10 @@ def arg_parse_params():
     return args
 
 
+def _rand_float(low, high):
+    return np.random.random() * (high - low) + low
+
+
 def _prepare_images(path_out, im_size=IMAGE_SIZE):
     """ generate and prepare synth. images for registration
 
@@ -88,7 +92,11 @@ def _prepare_images(path_out, im_size=IMAGE_SIZE):
     io.imsave(path_img_target, img_target)
 
     # warp synthetic image
-    tform = AffineTransform(scale=(0.9, 0.9), rotation=0.2, translation=(200, -50))
+    tform = AffineTransform(
+        scale=(_rand_float(0.9, 1.1), _rand_float(0.9, 1.1)),
+        rotation=_rand_float(-0.1, 0.1),
+        translation=np.random.randint(-150, 150, size=2).tolist(),
+    )
     img_source = warp(image, tform.inverse, output_shape=im_size)
     img_source = random_noise(img_source, var=IMAGE_NOISE)
     path_img_source = os.path.join(path_out, NAME_IMAGE_SOURCE)
@@ -102,6 +110,8 @@ def _clean_images(image_paths):
     :param str image_paths: path to images
     """
     for p_img in image_paths:
+        if not p_img:
+            continue
         os.remove(p_img)
 
 
@@ -137,16 +147,20 @@ def register_image_pair(idx, path_img_target, path_img_source, path_out):
         AffineTransform,
         min_samples=25,
         max_trials=500,
-        residual_threshold=0.95,
+        residual_threshold=0.9,
     )
 
     # warping source image with estimated transformations
-    img_warped = warp(img_target, model.inverse, output_shape=img_target.shape[:2])
     path_img_warped = os.path.join(path_out, NAME_IMAGE_WARPED % idx)
-    try:
-        io.imsave(path_img_warped, img_warped)
-    except Exception:
-        traceback.print_exc()
+    if model:
+        img_warped = warp(img_target, model.inverse, output_shape=img_target.shape[:2])
+        try:
+            io.imsave(path_img_warped, img_warped)
+        except Exception:
+            traceback.print_exc()
+    else:
+        warnings.warn("Image registration failed.", RuntimeWarning)
+        path_img_warped = None
     # summarise experiment
     execution_time = time.time() - start
     return path_img_warped, execution_time
@@ -162,15 +176,15 @@ def measure_registration_single(path_out, nb_iter=5):
     path_img_target, path_img_source = _prepare_images(path_out, IMAGE_SIZE)
     paths = [path_img_target, path_img_source]
 
-    execution_times = []
+    exec_times = []
     for i in tqdm.tqdm(range(nb_iter), desc='using single-thread'):
         path_img_warped, t = register_image_pair(i, path_img_target, path_img_source, path_out)
         paths.append(path_img_warped)
-        execution_times.append(t)
+        exec_times.append(t)
 
     _clean_images(set(paths))
-    logging.info('registration @1-thread: %f +/- %f', np.mean(execution_times), np.std(execution_times))
-    res = {'registration @1-thread': np.mean(execution_times)}
+    logging.info('registration @1-thread: %f +/- %f', np.mean(exec_times), np.std(exec_times))
+    res = {'registration @1-thread': np.mean(exec_times)}
     return res
 
 
@@ -186,7 +200,7 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_workers=CPU_COUNT):
     paths = [path_img_target, path_img_source]
     execution_times = []
 
-    _regist = partial(
+    _register = partial(
         register_image_pair,
         path_img_target=path_img_target,
         path_img_source=path_img_source,
@@ -197,7 +211,7 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_workers=CPU_COUNT):
     tqdm_bar = tqdm.tqdm(total=nb_tasks, desc='parallel @ %i threads' % nb_workers)
 
     pool = mproc.Pool(nb_workers)
-    for path_img_warped, t in pool.map(_regist, (range(nb_tasks))):
+    for path_img_warped, t in pool.map(_register, (range(nb_tasks))):
         paths.append(path_img_warped)
         execution_times.append(t)
         tqdm_bar.update()
@@ -206,7 +220,12 @@ def measure_registration_parallel(path_out, nb_iter=3, nb_workers=CPU_COUNT):
     tqdm_bar.close()
 
     _clean_images(set(paths))
-    logging.info('registration @%i-thread: %f +/- %f', nb_workers, np.mean(execution_times), np.std(execution_times))
+    logging.info(
+        'registration @%i-thread: %f +/- %f',
+        nb_workers,
+        np.mean(execution_times),
+        np.std(execution_times),
+    )
     res = {'registration @n-thread': np.mean(execution_times)}
     return res
 
